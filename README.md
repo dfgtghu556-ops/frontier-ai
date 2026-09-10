@@ -34,7 +34,7 @@ Read these first if you are joining the project (human or AI agent):
 | --- | --- |
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
 | [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
-| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-029) and open questions |
+| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-030) and open questions |
 | [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log (EXP-001…EXP-003) |
 | [docs/tokenization.md](docs/tokenization.md) | tokenizer research: why it matters, metrics, Indic/Unicode notes, workflow |
 | [docs/experiments.md](docs/experiments.md) | Project 003: experiment records, seeding and documented limits, git/data/env provenance, the runner |
@@ -186,6 +186,22 @@ With two or more configurations each one is aggregated **separately** and config
 never mixed into a single mean — see
 [docs/experiments.md](docs/experiments.md#multiple-configurations).
 
+### Loss reporting: per token, per byte, per character
+
+Per-token loss depends on the tokenization, so it cannot compare a char-level corpus with a
+word-level or BPE one. Every evaluation therefore reports both:
+
+```bash
+python scripts/evaluate.py --ckpt out/cpu-smoke/best --data data/synthetic.bin
+# val_loss 1.37519 · val_ppl 3.956 · bits_per_token 1.984
+# bits_per_byte 1.983986 · bits_per_char 1.983986     <- comparable across tokenizers
+```
+
+`prepare_data.py` records how many UTF-8 bytes and Unicode characters each split was encoded
+from (measured per token, so it is exact), and `bits_per_byte = bits_per_token ×
+tokens_per_byte`. Corpora prepared before this existed report `null`, never `0`, and the CLI
+says to re-run `prepare_data.py`. Details: [docs/experiments.md §9](docs/experiments.md#9-loss-reporting-per-token-per-byte-per-character).
+
 Seeding is a single mechanism (master seed + derived per-component seeds) whose limitations
 — cuDNN nondeterminism, thread-dependent FP order, library versions, RNGs outside
 python/numpy/torch — are written into every record. We claim reproducibility **under the
@@ -292,7 +308,7 @@ mkdir -p .github/workflows && cp docs/ci.yml.example .github/workflows/ci.yml
 ## Tests
 
 ```bash
-pytest -q        # 170 tests, ~40 s on CPU
+pytest -q        # 194 tests, ~45 s on CPU
 ruff check .     # lint
 make test lint
 ```

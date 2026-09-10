@@ -651,6 +651,125 @@ on the basis of this entry.
 fresh-clone re-verification sweeps live outside the repository (`/tmp/fresh-sweep-*`).
 Run directories are git-ignored; the sweeps are regenerable with the commands above.
 
+### EXP-006 — Bits per byte: does per-token loss misrank two tokenizations of the same text? ✅
+
+> **This entry validates a metric, not a model.** Two tiny models (139k and 145k
+> parameters) were trained for 200 steps on the templated synthetic corpus with a 141-type
+> vocabulary. The numbers show how the *reporting* changes the ranking; they are not a
+> statement about char-level vs word-level modelling in general, and no architecture or
+> tokenizer is chosen on the basis of them.
+
+- **Status:** complete (metric verification)
+- **Date:** 2026-09-10
+- **Objective:** verify Project 003 Stage 1 item 2: loss is now reported per **byte** and per
+  **character** as well as per token, the byte/character counts are *measured* and exact
+  rather than estimated, and a corpus without them says `null` instead of guessing.
+- **Hypothesis:** (a) two corpora built from the same text report the same total bytes even
+  though their token counts differ; (b) per-token loss and bits-per-byte **disagree about
+  which model is better**, which is exactly the trap the roadmap item warns about; (c) the
+  char-level run reproduces EXP-001's numbers exactly, so the change is a pure addition;
+  (d) unknown counts are reported as `null`, never `0`.
+- **Baseline:** EXP-001 (`val_loss 1.37519`, `val_ppl 3.956`, `bits_per_token 1.984`).
+
+**Configuration**
+
+- One corpus, two tokenizations (identical `prepare_data.py` source text, 200,094 chars,
+  seed 1337):
+  - `char` — 200,094 tokens, vocab 51, **1.0000 bytes/token**
+  - `word` — 99,397 tokens, vocab 141, **2.0131 bytes/token**
+  - both report **200,094 bytes and 200,094 characters** in total
+- Model and schedule identical across runs (`configs/cpu_smoke.json`): 2 layers, 2 heads,
+  `n_embd=64`, `block_size=64`, batch 8 × `accum_steps` 4, 200 steps, lr 3e-3 cosine,
+  warmup 20, seed 1337, fp32, `num_threads=1`
+- Third run: the word-level model at **100 steps** — because a word token carries ~2× the
+  text, 100 word steps see roughly the same amount of text as 200 char steps
+- Hardware: 2 CPU cores, 3 GB RAM, Python 3.11.2, torch 2.14.0+cu130
+
+**Commands (exact)**
+
+```bash
+. .venv/bin/activate
+python scripts/prepare_data.py --source synthetic --target-chars 200000 --level char --out data/synthetic-char
+python scripts/prepare_data.py --source synthetic --target-chars 200000 --level word --out data/synthetic-word
+
+# same hyperparameters, only the corpus (and, for the third run, the step count) changes
+python scripts/train.py --config configs/cpu_smoke.json --set data.path=data/synthetic-char.bin \
+    --set data.tokenizer=data/synthetic-char.tokenizer.json \
+    --set train.out_dir=out/exp006-char  --set train.num_threads=1
+python scripts/train.py --config configs/cpu_smoke.json --set data.path=data/synthetic-word.bin \
+    --set data.tokenizer=data/synthetic-word.tokenizer.json \
+    --set train.out_dir=out/exp006-word  --set train.num_threads=1
+python scripts/train.py --config configs/cpu_smoke.json --set data.path=data/synthetic-word.bin \
+    --set data.tokenizer=data/synthetic-word.tokenizer.json \
+    --set train.out_dir=out/exp006-word100 --max-steps 100 --set train.num_threads=1
+
+python scripts/evaluate.py --ckpt out/exp006-char/best     --data data/synthetic-char.bin --device cpu
+python scripts/evaluate.py --ckpt out/exp006-word/best     --data data/synthetic-word.bin --device cpu
+python scripts/evaluate.py --ckpt out/exp006-word100/best  --data data/synthetic-word.bin --device cpu
+```
+
+**Measured result** (full validation split, `scripts/evaluate.py`)
+
+| run | level | steps | nats/token (`val_loss`) | `val_ppl` | bits/token | **bits/byte** | bits/char | params |
+|---|---|---|---|---|---|---|---|---|
+| `char` | char | 200 | **1.37519** | 3.956 | 1.984 | **1.983986** | 1.983986 | 138,752 |
+| `word` | word | 200 | 2.16143 | 8.684 | 3.118 | **1.546772** | 1.546772 | 144,512 |
+| `word100` | word | 100 | 2.30418 | 10.016 | 3.324 | **1.648925** | 1.648925 | 144,512 |
+
+The two tokenizations disagree: **per-token loss ranks `char` 36 % "better" than `word`
+(1.375 vs 2.161), while bits per byte ranks `word` 22 % better than `char` (1.547 vs
+1.984).** The ranking inverts. It still inverts when the word model is given half the steps
+and therefore sees roughly the same amount of text (1.649 vs 1.984).
+
+**Metrics**
+
+| check | expected | observed | verdict |
+|---|---|---|---|
+| byte counts are tokenizer-independent | same text ⇒ same bytes | `char` and `word` corpora both 200,094 bytes / 200,094 characters, despite 200,094 vs 99,397 tokens | pass |
+| counts are exact, not estimated | per-token lengths sum to the source text | `tokenize()` pieces concatenate back to the text for both levels; `n_bytes_train + n_bytes_val == len(text.encode("utf-8"))` (test-pinned, incl. multi-byte UTF-8) | pass |
+| per-token vs per-byte ranking | they must be able to disagree | they invert the ranking on this corpus (1.375 vs 2.161 per token; 1.984 vs 1.547 per byte) | pass |
+| EXP-001 regression | char numbers unchanged | `val_loss 1.37519`, `val_ppl 3.956`, `bits_per_token 1.984` — identical to EXP-001; a second identical run reproduced `best_val=1.2816` / `bits_per_byte=1.983986` | pass |
+| unknown counts | `null`, never `0` | a corpus prepared without counts reports `bits_per_byte: null` / `bits_per_char: null`, the CLI prints an explanatory note, and the trainer logs no `bits_per_byte` field | pass |
+| old corpora still load | backward compatible | a pre-change `.meta.json` (no `n_bytes_*` keys) loads with `has_text_lengths=False` | pass |
+| tokenizer honesty on ASCII | bits/char == bits/byte here | equal on this ASCII corpus (1.983986 / 1.983986); they differ on multi-byte text (covered by test) | pass |
+
+**Results:** Per-token loss is a property of the tokenization as much as of the model, and
+on this corpus it points the wrong way. Bits per byte is computed from byte counts that are
+measured once, at prepare time, from the tokenizer's own pieces — so two corpora built from
+the same text have identical byte totals by construction, whatever the tokenization. Every
+consumer (`scripts/evaluate.py`, the trainer's `eval` and `run.end` events, `scripts/train.py`)
+now reports both numbers, and the note in the output says which one is comparable.
+
+**Observations:**
+
+- The word-level model wins on bits per byte *even at half the steps*, so the effect is not
+  simply "the word model saw more text". It is also not a recommendation: the synthetic
+  corpus has 141 word types and templated sentences, and the two models differ in parameter
+  count (138,752 vs 144,512) because the embedding table follows the vocabulary.
+- `bits_per_char` equals `bits_per_byte` on this corpus only because it is ASCII. The
+  distinction matters for the Indic text in Project 002's corpora, where a character can be
+  three UTF-8 bytes.
+- While adding the tests, a **pre-existing provenance leak** surfaced (recorded as Q-13):
+  the environment section captures `torch.get_num_threads()` *before* the run body, so a run
+  that changes torch's global thread count (any `Trainer` with `num_threads` set) makes a
+  *later run in the same process* record a different environment and hence a different
+  content fingerprint, even with identical metrics. The tests now pin threads to 1; the
+  record shape was deliberately left unchanged so the fingerprints recorded in EXP-003,
+  EXP-004 and EXP-005 still reproduce.
+
+**Conclusion:** Hypothesis confirmed on all four points. Stage 1 item 2 (bits per byte /
+per character) is implemented and measured. Stage 1 as a whole is **not** complete:
+real licensed smoke corpora and automatic experiment-record wiring for `scripts/train.py` /
+`scripts/tokenizer_*.py` remain.
+
+**Next action:** quote **bits per byte** in any comparison that crosses tokenizers, and keep
+quoting per-token loss as the training objective. Do not use this entry to pick a tokenizer.
+
+**Artifacts:** `out/exp006-{char,word,word100}/` (configs, `train.jsonl`, checkpoints),
+`data/synthetic-{char,word}.{bin,meta.json,tokenizer.json}`, `tests/test_loss_reporting.py`,
+`src/frontier_ai/engine/metrics.py`, [docs/experiments.md §9](docs/experiments.md). Run
+directories are git-ignored; the runs are regenerable with the commands above.
+
 ## 5. Log index
 
 | ID | Title | Status | Date | Key metric |
@@ -660,6 +779,7 @@ Run directories are git-ignored; the sweeps are regenerable with the commands ab
 | EXP-003 | **Infrastructure verification** (not a benchmark): does the experiment record reproduce runs? | complete | 2026-09-10 | identical runs → identical fingerprints (`f54881c68513f295…` twice, `best_val=2.9223`); EXP-002 metrics reproduce exactly; a Project 001 determinism bug found and fixed |
 | EXP-004 | **Infrastructure verification** (not a benchmark): do multi-seed sweeps reproduce and report spread honestly? | complete | 2026-09-10 | 5 seeds: mean 3.2626 ± 0.0476 (sample stdev); repeated and reversed-order sweeps give identical fingerprints `d4f498b9977a6f94…`; partial failure → `partial` + exit 2 |
 | EXP-005 | **Infrastructure verification** (not a benchmark): do multi-configuration sweeps separate configurations and reproduce? | complete | 2026-09-10 | 2 configs × 3 seeds: `lr_high` 3.164264 ± 0.059841 vs `lr_low` 3.365245 ± 0.068379; identical fingerprint `f7306163a37b7a83…` across repeats and reversed order; one config failing → `partial`, 3/6 runs |
+| EXP-006 | **Metric verification** (not a model benchmark): does per-token loss misrank two tokenizations of the same text? | complete | 2026-09-10 | char 1.37519 nats/token but **1.983986 bits/byte** vs word 2.16143 nats/token and **1.546772 bits/byte** — the ranking inverts; EXP-001 numbers reproduce exactly |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -755,6 +875,25 @@ ls out/sweeps/EXP-005/*/seed-*/experiment.json   # one full record per configura
 Each configuration is aggregated **separately**; with two or more configurations the
 top-level `statistics` reports `aggregated: false` and publishes no mixed mean. Reversing
 the `--configs` order or the `--seeds` order must not change the means, the spreads or the
-sweep fingerprint. This is recorded here because the rules require every run to be logged — it
+sweep fingerprint.
+
+**EXP-006 (loss per byte instead of per token)**
+
+```bash
+. .venv/bin/activate
+python scripts/prepare_data.py --source synthetic --target-chars 200000 --level char --out data/synthetic-char
+python scripts/prepare_data.py --source synthetic --target-chars 200000 --level word --out data/synthetic-word
+python scripts/train.py --config configs/cpu_smoke.json --set data.path=data/synthetic-char.bin \
+    --set train.out_dir=out/exp006-char --set train.num_threads=1
+python scripts/train.py --config configs/cpu_smoke.json --set data.path=data/synthetic-word.bin \
+    --set train.out_dir=out/exp006-word --set train.num_threads=1
+python scripts/evaluate.py --ckpt out/exp006-char/best --data data/synthetic-char.bin --device cpu
+python scripts/evaluate.py --ckpt out/exp006-word/best --data data/synthetic-word.bin --device cpu
+```
+
+`evaluate.py` prints `val_loss` (nats per token), `bits_per_token`, **and** `bits_per_byte` /
+`bits_per_char`. Only the per-byte and per-character numbers compare across tokenizers. If a
+corpus predates this bookkeeping they are `null` and the output says to re-run
+`prepare_data.py`. This is recorded here because the rules require every run to be logged — it
 verifies the *infrastructure*, not model quality. Its own record will show `dirty=true`
 whenever the working tree is dirty; that is the point, not a defect.

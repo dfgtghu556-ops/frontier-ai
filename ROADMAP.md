@@ -40,6 +40,9 @@ resume, sampling, JSONL metrics, 47 tests, CI example.
   directory with config, metrics, environment, and a one-line summary.
 - Fix loss/perplexity reporting to be comparable across tokenizers (bits per *byte* or
   per character, not just per token) so a char-level and a BPE model can be compared fairly.
+  **Delivered (2026-09-10):** `val_loss` (nats/token) is reported next to
+  `bits_per_token`, **`bits_per_byte`** and **`bits_per_char`**; `prepare_data.py` records
+  measured per-split byte/character counts, unknown counts report `null` (D-030, EXP-006).
 - Multi-seed support: report mean ± spread for any headline number. **Delivered
   (2026-09-10, Stage 1A):** `run_sweep()` / `scripts/experiment_sweep.py` run one spec
   across an explicit seed list, keep one full record per seed, and aggregate as
@@ -67,9 +70,9 @@ directory is self-describing and diffable.
   the Project 001/002 CLI conventions.
 - No new dependencies (stdlib + existing torch/numpy). 31 new tests; Project 001 and 002
   suites unchanged in behaviour and still green.
-- Documented in [docs/experiments.md](docs/experiments.md); decisions **D-024…D-029**;
-  verification recorded as **EXP-003**, **EXP-004** and **EXP-005** (infrastructure
-  verification, not benchmarks).
+- Documented in [docs/experiments.md](docs/experiments.md); decisions **D-024…D-030**;
+  verification recorded as **EXP-003** … **EXP-006** (infrastructure/metric verification,
+  not benchmarks).
 - **Bug found and fixed in Project 001:** batch sampling called `torch.Generator.seed()`,
   which *re-seeds* from OS entropy rather than reading the seed, so training was not
   reproducible despite a fixed seed. Fixed; two identical runs now match exactly
@@ -104,11 +107,29 @@ directory is self-describing and diffable.
 - 25 new tests in `tests/test_sweep_configs.py`; `tests/test_sweeps.py` (Stage 1A) is the
   backward-compatibility suite and is unchanged.
 
+**What Project 003 added (2026-09-10): loss per byte and per character**
+
+- `src/frontier_ai/engine/metrics.py`: one place that converts nats/token into
+  `bits_per_token`, `bits_per_byte` and `bits_per_char`. Unknown denominators give `null`,
+  never `0`.
+- `data/tokenizer.py`: `Tokenizer.tokenize()` returns the surface pieces a tokenizer
+  encodes; they concatenate back to the source text, which is what makes the counts exact.
+  `data/dataset.py`: `write_tokens()` stores per-split `n_bytes_*` / `n_chars_*`, and
+  `TokenDataset.tokens_per_byte()` / `tokens_per_char()` expose the ratios.
+- `scripts/evaluate.py` prints all four numbers plus the corpus counts; the trainer logs
+  `bits_per_byte` / `bits_per_char` on `eval` events and `best_bpb` on `run.end`;
+  `scripts/train.py` prints `best_bpb`.
+- 23 new tests in `tests/test_loss_reporting.py`; old corpora still load (D-030, EXP-006).
+- **Found while testing (Q-13, not fixed):** `environment.torch.num_threads` is captured
+  *before* the run body, so a run that changes torch's thread count makes a later
+  in-process run's record differ; the tests pin threads to 1.
+
 **Still open before this stage can close** (deliberately not started):
 
 - Larger sweep orchestration: many configurations, scheduling, resuming an interrupted
   sweep (**Q-8**). Two-configuration sweeps themselves are delivered.
-- Bits-per-byte / per-character loss reporting so char-level and BPE models compare fairly.
+- ~~Bits-per-byte / per-character loss reporting~~ **delivered 2026-09-10 (D-030, EXP-006)**
+  for the char and word levels; re-check when a byte-level BPE enters the training path.
 - Real, clearly licensed smoke-test corpora (needs Stage 3 data work).
 - Wiring the existing `scripts/train.py` and `scripts/tokenizer_*.py` entry points to write
   experiment records themselves (today the CLI wraps them from outside).

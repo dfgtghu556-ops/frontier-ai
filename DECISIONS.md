@@ -748,6 +748,71 @@ allow-list *and* record a per-configuration data digest), or when the number of
 configurations grows enough that a comparison table (not just per-configuration means)
 becomes the primary artefact.
 
+## D-030 — Loss is reported per token and per byte; byte counts are recorded at prepare time
+
+**Status:** accepted (2026-09-10, Project 003 Stage 1, item 2)
+
+**Decision:** Experiment and CLI output report the validation loss in **four** forms, and
+the corpus carries the denominators needed for the last two:
+
+* `val_loss` — nats per token (unchanged; this is what the optimiser minimises).
+* `val_ppl` / `bits_per_token` — token-level perplexity and `nats / ln 2`.
+* `bits_per_byte` = `bits_per_token × tokens_per_byte`.
+* `bits_per_char` = `bits_per_token × tokens_per_char`.
+
+`tokens_per_byte` and `tokens_per_char` come from the corpus metadata: `prepare_data.py`
+measures the UTF-8 byte and Unicode character length of **every token's surface piece**
+(`Tokenizer.tokenize`, a new method that returns the pieces each tokenizer encodes) and
+`write_tokens` sums them per split into `n_bytes_train/val` and `n_chars_train/val`. The
+pieces concatenate back to the source text for both supported levels, so the sums are
+exact rather than estimated.
+
+Specifically:
+
+* Byte/character counts are **measured, never inferred**. A corpus prepared before this
+  change has no counts; every consumer then reports `bits_per_byte: null` (never `0`, never
+  a guess) and `scripts/evaluate.py` prints a note saying to re-run `prepare_data.py`.
+* `DataMeta` gained four optional fields; old `.meta.json` files still load.
+* The trainer logs `bits_per_byte` / `bits_per_char` on every `eval` event and `best_bpb`
+  on `run.end`, **only** when the corpus has counts — a corpus without them produces the
+  same log lines as before.
+* The conversion lives in one place (`engine/metrics.py`) so the CLI, the trainer and any
+  future script cannot disagree about the formula.
+
+**Rationale:** The roadmap's Stage 1 item is explicit: per-token loss is not comparable
+across tokenizers, because it depends on how much text a token happens to carry. A
+char-level model predicting one byte at a time looks far better per token than a word-level
+or BPE model predicting several characters at a time, even when it models the text worse.
+Dividing by the bytes (or characters) each token represents removes that dependency: two
+corpora built from the same text have identical byte totals by construction, whatever the
+tokenization. Recording the counts at prepare time (rather than decoding at eval time) keeps
+the numbers exact for tokenizers whose decode is not the inverse of encode, and keeps
+evaluation cheap.
+
+**Alternatives considered:** estimating bytes from the token count with a per-level constant
+(rejected: it is a guess dressed as a measurement, and it breaks the moment a BPE corpus
+appears); decoding the tokens at evaluation time and measuring the text (rejected: word-level
+decode is not the exact inverse of encode when `<unk>` is involved, and it costs a full pass
+over the split on every evaluation); storing a per-token length array on disk (rejected: it
+multiplies corpus size for two integers per split); reporting only bits per byte and dropping
+per-token loss (rejected: per-token loss is the training objective and the number the
+optimiser sees — both are useful, they just answer different questions).
+
+**Consequences:** Comparisons between tokenizers must quote **bits per byte** (or per
+character); per-token numbers are now explicitly labelled as non-comparable in the output
+note. Any corpus prepared with an older `prepare_data.py` reports `null` until it is
+regenerated — a one-off re-prepare, and the `null` is honest rather than wrong. Adding a new
+tokenizer level means implementing `tokenize()` so the counts stay exact; a level whose
+pieces do not partition the text would silently mis-measure bytes, so the property is
+covered by a test for both existing levels.
+
+**Revisit when:** a byte-level BPE enters the training path (Project 002's BPE currently
+lives in the tokenizer research subsystem only): then verify that `tokenize()` returns byte
+pieces and that `bits_per_byte` for a BPE corpus is computed the same way, and record the
+comparison as an experiment.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 
@@ -766,6 +831,7 @@ becomes the primary artefact.
 | Q-10 | Vocabulary sizing policy for Indic multilingual models | Stage 2, on real data |
 | Q-11 | Unicode normalization policy (NFC/NFD/None) as a tokenizer-level decision | Stage 2 |
 | Q-12 | BPE vs Unigram for our data mix | Stage 2 |
+| Q-13 | `environment.torch.num_threads` is captured *before* the run body executes, so a run that changes torch's global thread count (any `Trainer` with `num_threads` set) makes a **later run in the same process** record a different environment and therefore a different content fingerprint. Options: capture after the body, record both, or have the runner pin the thread count. | Stage 1 (tests pin threads to 1 in the meantime; see the conftest note) |
 
 ## How to add a decision
 

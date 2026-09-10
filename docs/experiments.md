@@ -406,7 +406,54 @@ convention `scripts/train.py --eval-only` and `scripts/evaluate.py` already use.
 source was used is recorded per run as `metric_source`. A command with no `{seed}`
 placeholder runs identically for every seed; the CLI warns about it.
 
-## 9. What determinism is actually verified here
+## 9. Loss reporting: per token, per byte, per character
+
+Per-token loss is a property of the **tokenization** as much as of the model: predicting one
+character at a time is an easier prediction than predicting a whole word, so a char-level
+model can post a lower per-token loss while modelling the same text *worse*. The fix is to
+divide by the amount of text a token represents:
+
+```
+bits_per_token = nats_per_token / ln 2          # "val_loss" is nats per token
+bits_per_byte  = bits_per_token x tokens_per_byte
+bits_per_char  = bits_per_token x tokens_per_char
+```
+
+`tokens_per_byte` and `tokens_per_char` come from the corpus, not from a guess:
+`prepare_data.py` measures the UTF-8 byte length and the Unicode character length of every
+token's **surface piece** (`Tokenizer.tokenize()`) and `write_tokens()` sums them per split
+into `n_bytes_train/val` and `n_chars_train/val` in `*.meta.json`. The pieces concatenate
+back to the source text for both supported levels, so the sums are exact — two corpora
+built from the same text have identical byte totals whatever the tokenization.
+
+### Reading the numbers
+
+| field | meaning | comparable across tokenizers? |
+|---|---|---|
+| `val_loss` | nats per token — the training objective | **no** |
+| `val_ppl` / `bits_per_token` | token-level perplexity / bits | **no** |
+| `bits_per_byte` | bits per UTF-8 byte of source text | yes |
+| `bits_per_char` | bits per Unicode character | yes |
+
+`scripts/evaluate.py` prints all of them plus the corpus counts it used; the trainer logs
+`bits_per_byte` / `bits_per_char` on every `eval` event and `best_bpb` on `run.end`;
+`scripts/train.py` prints `best_bpb` with its final line.
+
+### Unknown is null, never zero
+
+Corpora prepared before this bookkeeping existed have no counts. Every consumer then reports
+`bits_per_byte: null` and `bits_per_char: null` (never `0`, never an estimate), the CLI adds
+a note telling you to re-run `prepare_data.py`, and the trainer simply omits the fields. Old
+`.meta.json` files still load: the four fields are optional.
+
+Measured 2026-09-10 (EXP-006): the same synthetic corpus trained as `char` (vocab 51) and as
+`word` (vocab 141) with identical hyperparameters gave `val_loss` 1.37519 vs 2.16143 — the
+char model looks 36 % better per token — but **1.983986 vs 1.546772 bits per byte**, i.e. the
+word model is 22 % better per byte. The ranking inverts; quote bits per byte.
+
+---
+
+## 10. What determinism is actually verified here
 
 Measured on this branch (CPU, torch 2.14.0+cu130), two runs of the same spec, same seed,
 `tiny_training_experiment(steps=10)` — a real Project 001 `Trainer` run:
@@ -430,6 +477,12 @@ seed's record, and averaged only the two usable runs (`n=2`).
 The same sweep, re-run from a **fresh clone of the pushed branch on a clean tree**, gives
 `mean 3.1767848`, `spread 0.0534606` and fingerprint `c603596da493d50a…` — identical for a
 second run and for the reversed seed order `5,4,3,2,1` (EXP-004).
+
+**Thread-count caveat (Q-13).** The environment section captures torch's CPU thread count
+*before* the run body executes. A run that changes it (any `Trainer` with `num_threads` set)
+therefore leaves a different value behind, and a *later run in the same process* can record
+a different environment — and a different content fingerprint — with identical metrics. One
+sweep per process is unaffected; the test suite pins threads to 1 to keep it deterministic.
 
 `pytest tests/test_experiments.py` covers: spec defaults/explicit/round-trip/invalid
 values/unknown keys/overrides, seeding stability and recorded limitations, git provenance
@@ -455,7 +508,7 @@ improve on that fixture. Nothing about the model or the training algorithm chang
 
 ---
 
-## 10. Module map
+## 11. Module map
 
 | file | responsibility |
 |---|---|
@@ -467,18 +520,22 @@ improve on that fixture. Nothing about the model or the training algorithm chang
 | `record.py` | `ExperimentRecord` — sections, fingerprint, save/load/render |
 | `runner.py` | `run_experiment()`, `run_command()`, `ExperimentContext` |
 | `sweep.py` | `run_sweep()`, `run_command_sweep()`, `SweepRecord`, `SweepConfiguration`, mean ± spread |
+| `metrics.py` | `bits_from_nats()`, `perplexity()`, `bits_per_unit()`, `loss_summary()` (§9) |
 | `examples.py` | reference experiments used by the docs and determinism tests |
 
 `examples.py` is intentionally **not** imported by the package `__init__` (it pulls in the
 training stack); import it directly when you need it.
 
-## 11. Not done (Stage 1 is infrastructure only)
+## 12. Not done (Stage 1 is infrastructure only)
 
 * Larger sweep orchestration (many configurations, scheduling, resuming a half-finished
   sweep) — Stage 1/4 work (Q-8). Seed sweeps and multi-configuration sweeps are implemented
   (§8).
 * An external experiment tracker / dashboard; records are plain JSON files on disk.
-* Comparable loss reporting: bits-per-byte / per-character normalization so a char-level
-  and a BPE model can be compared fairly.
 * Real licensed corpora for smoke tests (Stage 3).
+* Automatic experiment-record wiring for `scripts/train.py` and `scripts/tokenizer_*.py`:
+  today the record is produced by the `experiment_record.py` / `experiment_sweep.py`
+  wrappers, not by the scripts themselves.
+* Bits-per-byte was on this list; it is implemented (§9, EXP-006) for the char and word
+  levels, and will need re-checking when a byte-level BPE enters the training path.
 * Anything that changes the model, the tokenizer, or the research direction.

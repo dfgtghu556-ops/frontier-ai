@@ -27,7 +27,8 @@ data) is NOT done.**
   configurations** (one record per run + a mean ± spread aggregate,
   `scripts/experiment_sweep.py`). Documented in
   [docs/experiments.md](docs/experiments.md); validation recorded as **EXP-003**,
-  **EXP-004** and **EXP-005** (infrastructure verification, *not* benchmarks).
+  **EXP-004**, **EXP-005** and **EXP-006** (infrastructure/metric verification,
+  *not* benchmarks).
 - All three are committed on branch `arena/01a08a78-frontier-ai` and open as **PR #1**
   against `main`. PR #1 is **not merged** — the human merges it.
 - The most likely next steps are finishing ROADMAP Stage 1 (multi-seed sweeps with
@@ -205,6 +206,14 @@ difference is measured, not assumed — see EXP-002.
   passes its seeded generator); two identical runs now give bit-identical results
   (`final_val_loss 3.24484`, equal fingerprints). Reproducibility is only claimed under a
   recorded environment, not across machines, versions or thread counts.
+- **Loss reporting per byte / per character (Stage 1 item 2):** per-token loss is not
+  comparable across tokenizers, so `val_loss` (nats/token) is now reported alongside
+  `bits_per_token`, **`bits_per_byte`** and **`bits_per_char`**
+  (`bits_per_byte = bits_per_token × tokens_per_byte`). `prepare_data.py` measures the UTF-8
+  byte and Unicode character length of every token's surface piece (`Tokenizer.tokenize()`)
+  and stores the per-split sums in `*.meta.json`, so the conversion is measured, not
+  estimated; the `char` and `word` corpora of the same text report the same 200,094 bytes.
+  Corpora without counts report `null` — never `0` (D-030, EXP-006).
 - **Stage 1B (multi-configuration sweeps):** the same sweeps now take **named
   configurations** (`--configs NAME:key=value`), each run across the whole seed list. One
   record per configuration × seed; every configuration is aggregated **separately** and
@@ -220,8 +229,8 @@ difference is measured, not assumed — see EXP-002.
   by zero. Status is `success` / `partial` / `failed`, so a lost seed can never be reported
   as a success. The aggregate is independent of the order seeds were supplied in.
 
-Full details: [docs/experiments.md](docs/experiments.md) · decisions **D-024…D-029** ·
-validation **EXP-003**, **EXP-004** and **EXP-005**.
+Full details: [docs/experiments.md](docs/experiments.md) · decisions **D-024…D-030** ·
+validation **EXP-003**, **EXP-004**, **EXP-005** and **EXP-006**.
 
 ## 7. Current repository structure
 
@@ -397,8 +406,7 @@ Smoke-config step economics: `batch_size=8 × block_size=64 × accum_steps=4`
 
 ## 11. Current evaluation and testing approach
 
-**Testing (automated, 89 tests: 47 Project 001 + 38 tokenizer + 4 repo-hygiene, ~15 s on CPU, `pytest -q`;
-`ruff check .` clean):**
+**Testing (automated, 194 tests, ~45 s on CPU, `pytest -q`; `ruff check .` clean):**
 
 - Model: shapes and initial loss near `ln(vocab)`; **causality** (changing tokens after
   position *t* must not change logits before *t*); every architecture variant
@@ -536,7 +544,7 @@ results at the current size (see [ROADMAP.md](ROADMAP.md)).
 ```bash
 python -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]"                       # CPU torch; the PyTorch CDN may be blocked (see D-012)
-pytest -q                                     # 170 tests, ~40 s
+pytest -q                                     # 194 tests, ~45 s
 ruff check .                                  # lint
 python scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
 python scripts/train.py --config configs/cpu_smoke.json                     # ~10 s, val loss 3.9 -> ~1.38
