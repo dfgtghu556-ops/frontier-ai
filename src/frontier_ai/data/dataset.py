@@ -90,7 +90,14 @@ class TokenDataset:
                 f"split '{split}' has {len(data)} tokens, need more than block_size+1={block_size + 1}. "
                 "Prepare more data or lower block_size."
             )
-        rng = np.random.default_rng(None if generator is None else int(generator.seed() % (2**32)))
+        # NOTE: torch.Generator.seed() *re-seeds* the generator with a new random value,
+        # so calling it here would make sampling irreproducible even with a fixed seed.
+        # Drawing an integer from the generator advances it deterministically instead:
+        # same initial seed -> same sequence of batches (Project 003 Stage 1).
+        seed: int | None = None
+        if generator is not None:
+            seed = int(torch.randint(0, 2**31 - 1, (1,), generator=generator).item())
+        rng = np.random.default_rng(seed)
         hi = len(data) - block_size - 1
         offsets = (
             rng.integers(0, hi, size=batch_size) if hi > 0 else np.zeros(batch_size, dtype=np.int64)

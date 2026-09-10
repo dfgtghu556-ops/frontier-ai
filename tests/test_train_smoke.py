@@ -126,7 +126,9 @@ def test_resume_continues_from_checkpoint(tmp_path):
     trainer.fit()
     assert trainer.state.step == 10
 
-    cfg2 = make_cfg(tmp_path, max_steps=25, eval_interval=0)
+    # Enough continuation steps to beat a noisy 8-batch estimate: at +15 steps the
+    # validation loss is statistically indistinguishable, at +50 it is clearly lower.
+    cfg2 = make_cfg(tmp_path, max_steps=60, eval_interval=0, eval_iters=8)
     cfg2.model.vocab_size = meta.vocab_size
     cfg2.train.init_from = "resume"
     resumed = Trainer(cfg2, ds)
@@ -134,7 +136,7 @@ def test_resume_continues_from_checkpoint(tmp_path):
 
     assert resumed.state.step == 10, "resume did not restore the step counter"
     resumed.fit()
-    assert resumed.state.step == 25
+    assert resumed.state.step == 60
     assert resumed.evaluate() <= first_eval_before + 1e-6
 
 

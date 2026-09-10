@@ -235,7 +235,11 @@ class Trainer:
             iters = max(1, self.ds.batches_per_epoch(cfg.data.batch_size, cfg.model.block_size, split))
         total, count = 0.0, 0
         for _ in range(iters):
-            x, y = self.ds.get_batch(split, cfg.data.batch_size, cfg.model.block_size, self.device)
+            # use the seeded generator: evaluation must sample the same batches for the
+            # same seed, otherwise validation loss is not comparable across runs
+            x, y = self.ds.get_batch(
+                split, cfg.data.batch_size, cfg.model.block_size, self.device, generator=self._gen
+            )
             with torch.autocast(
                 device_type=self.device.type, dtype=self.spec.amp_dtype, enabled=self.spec.amp
             ):
