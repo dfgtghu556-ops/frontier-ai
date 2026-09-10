@@ -373,6 +373,10 @@ the sweep fingerprint (`d8c2565c964ceb59…`). A 3-seed CLI sweep reproduced ide
 reverse order. A partial sweep (seed 2 exiting non-zero) reported `partial`, kept the failed
 seed's record, and averaged only the two usable runs (`n=2`).
 
+The same sweep, re-run from a **fresh clone of the pushed branch on a clean tree**, gives
+`mean 3.1767848`, `spread 0.0534606` and fingerprint `c603596da493d50a…` — identical for a
+second run and for the reversed seed order `5,4,3,2,1` (EXP-004).
+
 `pytest tests/test_experiments.py` covers: spec defaults/explicit/round-trip/invalid
 values/unknown keys/overrides, seeding stability and recorded limitations, git provenance
 (commit compared against `git rev-parse HEAD` in a fixture repo — **no hard-coded SHA**;

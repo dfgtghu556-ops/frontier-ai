@@ -470,16 +470,30 @@ the CLI something real to sweep.
 | one-seed sweep | mean = that value, spread undefined | `spread=null` with an explanatory note | pass |
 | spread definition | `n − 1` denominator | equals `statistics.stdev`, differs from `statistics.pstdev`; definition text states it is not a confidence interval | pass |
 | Project 001 / 002 regression | unchanged | `pytest -q` → **145 passed**; `ruff check .` clean; EXP-002 metrics re-verified unchanged | pass |
+| fresh clone, clean tree, seeds `1,2,3,4,5` (CLI) | identical mean, spread and sweep fingerprint | mean 3.1767848, spread 0.0534606, fingerprint `c603596da493d50a…`, `reproducible_from_commit=true`, and identical for a second run and for `--seeds 5,4,3,2,1` | pass |
 
 **Results:** The sweep machinery behaves as specified. Seed-to-seed variation in
 `final_val_loss` on this 8-step toy run is small but real (spread ≈ 0.048 around a mean of
 3.263, i.e. ~1.5%), which is exactly the kind of number a single-seed run cannot show.
 
+**Fresh-clone re-verification (mandatory, and it caught a real thing):** the same CLI sweep
+was repeated in a pristine clone of the pushed branch at `5cff3ee` with an independently
+built environment (Python 3.11.2, torch 2.14.0+cu130). On a **clean** tree it gives
+`mean 3.1767848`, `spread 0.0534606` over seeds 1–5 (3.229035 / 3.164611 / 3.098340 /
+3.167123 / 3.224815), `reproducible_from_commit=true`, and the **same** sweep fingerprint
+`c603596da493d50a…` for a second run and for `--seeds 5,4,3,2,1`. The first attempt at this
+check reported a *different* fingerprint between runs for an innocent reason worth knowing:
+the verification helper wrote its scratch files inside the clone, so the second run recorded
+a dirty tree while the first had recorded a clean one. The statistics were identical in all
+three runs — only the `dirty_files` list differed — which is exactly what D-026 is for.
+Scratch output was moved outside the clone and the three runs then agreed exactly.
+
 **Observations:**
 
-- Both sweeps ran on a **dirty** working tree, so their records honestly state
-  `reproducible_from_commit=false`. The numbers above are evidence about the *machinery*,
-  not a claim that anyone can reproduce them from a commit.
+- The original (local) sweeps ran on a **dirty** working tree, so their records honestly
+  state `reproducible_from_commit=false`. The fresh-clone runs above are the clean-tree
+  evidence; the numbers below the table are evidence about the *machinery*, not a claim
+  that the dirty-tree runs can be reproduced from a commit.
 - Order-independence required normalising the recorded template spec: the sweep embeds the
   base spec with the **first canonical** (smallest) seed. Before that, `[1,2,3]` and
   `[3,1,2]` differed in `configuration.spec.seed` and produced different fingerprints — the
@@ -505,7 +519,8 @@ on the basis of this entry.
 
 **Artifacts:** `/tmp/exp004/sweep-a/sweep.json` (+ `sweep.txt` and one
 `seed-*/experiment.json` per seed), `/tmp/exp004/cli-a/sweep.json`,
-`/tmp/exp004/partial2/sweep.json`, `tests/test_sweeps.py`,
+`/tmp/exp004/partial2/sweep.json`, the fresh-clone `out/sweeps/EXP-004-{a,b,rev}/sweep.json`,
+`tests/test_sweeps.py`,
 [docs/experiments.md §8](docs/experiments.md). Run directories are git-ignored; the sweeps
 are regenerable with the commands above.
 
