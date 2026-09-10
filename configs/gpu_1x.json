@@ -1,0 +1,55 @@
+{
+  "_comment": "Single-GPU (~124M params, ~1-2 hours on an A100/4090). Same code path as cpu_smoke.json.",
+  "model": {
+    "n_layer": 12,
+    "n_head": 12,
+    "n_embd": 768,
+    "block_size": 1024,
+    "dropout": 0.0,
+    "norm": "rmsnorm",
+    "ffn": "swiglu",
+    "pos": "rope",
+    "tie_embeddings": true,
+    "n_kv_head": 4
+  },
+  "data": {
+    "path": "data/synthetic.bin",
+    "tokenizer": "data/synthetic.tokenizer.json",
+    "level": "char",
+    "val_frac": 0.1,
+    "batch_size": 24,
+    "num_workers": 0,
+    "seed": 1337
+  },
+  "optim": {
+    "lr": 0.0003,
+    "min_lr_ratio": 0.1,
+    "weight_decay": 0.1,
+    "betas": [0.9, 0.95],
+    "grad_clip": 1.0,
+    "warmup_steps": 200,
+    "schedule": "cosine"
+  },
+  "train": {
+    "out_dir": "out/gpu-1x",
+    "max_steps": 5000,
+    "accum_steps": 8,
+    "eval_interval": 250,
+    "eval_iters": 50,
+    "log_interval": 10,
+    "save_interval": 1000,
+    "save_best": true,
+    "device": "auto",
+    "precision": "auto",
+    "seed": 1337,
+    "num_threads": 0,
+    "compile": false,
+    "grad_checkpointing": false
+  },
+  "gen": {
+    "max_new_tokens": 400,
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.95
+  }
+}

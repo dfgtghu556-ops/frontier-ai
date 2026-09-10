@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Project artifacts: keep raw/prepared datasets and checkpoints out of git
+data/
+out/
+runs/
+checkpoints/
+*.bin
+*.pt
+*.pth
+*.npz
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
