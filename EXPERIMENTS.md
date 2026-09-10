@@ -597,6 +597,7 @@ Sweep status `success`, 6/6 runs usable, no cross-configuration mean published
 |---|---|---|---|
 | two configurations separate | different per-configuration means | 3.164264 vs 3.365245; the spread of each (≈0.06) is smaller than the gap (≈0.20) | pass |
 | repeated sweep | identical fingerprints | `f7306163a37b7a83cecfe23b410d76c16eb1fdc4193764f5ea11f84d3bfe81e3` for run a, run b and the reversed run | pass |
+| fresh clone, clean tree, commits `166c858`+`d15a25d` (CLI) | identical per-configuration means, spreads and sweep fingerprint | `lr_high` 3.164264 ± 0.059841, `lr_low` 3.365245 ± 0.068379, fingerprint `b397ba46addd7e7d…` — identical for a second run and for `--configs lr_high lr_low` + `--seeds 3,1,2`; `reproducible_from_commit=true`; `pytest` → 171 passed, `ruff check .` clean | pass |
 | configuration order reversed | identical aggregate | `--configs lr_high lr_low` + `--seeds 3,1,2` → same means, spreads **and** fingerprint | pass |
 | seed order reversed | identical aggregate | as above | pass |
 | one record per configuration × seed | 6 records | `lr_low/seed-000000000{1,2,3}/experiment.json`, `lr_high/seed-000000000{1,2,3}/experiment.json`, each with git/data/environment/configuration/randomness and its own fingerprint | pass |
@@ -604,7 +605,7 @@ Sweep status `success`, 6/6 runs usable, no cross-configuration mean published
 | partial failure | `partial`, exit 2, failed records kept | status `partial`, 3/6 runs, `lr_high` failed for seeds 1–3 with `CalledProcessError`, its records kept; `lr_low` still 3.365245 — the surviving aggregate is untouched | pass |
 | complete failure / missing / non-numeric metrics | existing semantics | `failed` / `metric_missing` per run, per-configuration `failed` status, `mean=null`, `spread=null` (never 0) — covered by the test suite | pass |
 | Stage 1A compatibility | seed-only sweep unchanged | no `configurations` section, no `configuration` key on runs, `seed-<seed>/` layout, top-level statistics aggregated as before; `tests/test_sweeps.py` (25 Stage 1A tests) passes unmodified | pass |
-| Project 001 / 002 regression | unchanged | `pytest -q` → **170 passed**; `ruff check .` clean; EXP-002 metrics re-verified unchanged | pass |
+| Project 001 / 002 regression | unchanged | `pytest -q` → **171 passed**; `ruff check .` clean; EXP-001 `best_val=1.2816`, `val_loss 1.37519`, ppl 3.956, 138,752 params, `--init_from=resume` and `scripts/generate.py` all unchanged; EXP-002 metrics re-verified unchanged | pass |
 
 **Results:** A two-configuration sweep now runs unattended, keeps every individual record,
 reports each configuration's own mean ± spread, and refuses to publish a mixed number. On
@@ -625,6 +626,15 @@ which is exactly the comparison a single-seed run could not support.
   "does it run" testing and only showed up in the order/repeat checks.
 - All runs above were made on a **dirty** working tree, so their records honestly state
   `reproducible_from_commit=false`. The numbers are evidence about the machinery.
+- After committing, the same 2-configuration × 3-seed sweep was re-run in a **fresh clone**
+  of the pushed branch at `d15a25d` (clean tree, `reproducible_from_commit=true`): the
+  per-configuration means and spreads are bit-identical to the dirty-tree run, and the three
+  runs (a, b, reversed) share one fingerprint. The fingerprint itself differs from
+  `f7306163…` because provenance now records a clean commit instead of a dirty tree and a
+  different interpreter path — the *metrics* reproduce, which is what the machinery
+  promises. A seed-only sweep in the same clone reproduced `fingerprint 03dfe74d…` twice
+  and emitted no `configurations` section, confirming Stage 1A compatibility from the
+  pushed branch as well.
 
 **Conclusion:** Hypothesis confirmed on all four points. Stage 1B delivers the roadmap's
 "2-config sweep runs unattended" exit criterion; Stage 1 as a whole is **not** complete
@@ -637,8 +647,9 @@ on the basis of this entry.
 
 **Artifacts:** `out/sweeps/EXP-005-{a,b,rev}/sweep.json` (+ `sweep.txt` and six
 `<config>/seed-*/experiment.json` per sweep), `out/sweeps/EXP-005-partial/sweep.json`,
-`tests/test_sweep_configs.py`, [docs/experiments.md §8](docs/experiments.md). Run
-directories are git-ignored; the sweeps are regenerable with the commands above.
+`tests/test_sweep_configs.py`, [docs/experiments.md §8](docs/experiments.md). The
+fresh-clone re-verification sweeps live outside the repository (`/tmp/fresh-sweep-*`).
+Run directories are git-ignored; the sweeps are regenerable with the commands above.
 
 ## 5. Log index
 
