@@ -728,6 +728,7 @@ and therefore sees roughly the same amount of text (1.649 vs 1.984).
 | byte counts are tokenizer-independent | same text ⇒ same bytes | `char` and `word` corpora both 200,094 bytes / 200,094 characters, despite 200,094 vs 99,397 tokens | pass |
 | counts are exact, not estimated | per-token lengths sum to the source text | `tokenize()` pieces concatenate back to the text for both levels; `n_bytes_train + n_bytes_val == len(text.encode("utf-8"))` (test-pinned, incl. multi-byte UTF-8) | pass |
 | per-token vs per-byte ranking | they must be able to disagree | they invert the ranking on this corpus (1.375 vs 2.161 per token; 1.984 vs 1.547 per byte) | pass |
+| fresh clone at `e8abde6` (clean tree) | identical numbers | char `val_loss 1.37519` / `bits_per_byte 1.983986`, word `2.16143` / `1.546772` — bit-identical to the working-tree run; `pytest` 194 passed, `ruff` clean; seed-only sweep fingerprint `13e3f720…` twice; 2-config sweep `3.164264 ± 0.059841` / `3.365245 ± 0.068379` | pass |
 | EXP-001 regression | char numbers unchanged | `val_loss 1.37519`, `val_ppl 3.956`, `bits_per_token 1.984` — identical to EXP-001; a second identical run reproduced `best_val=1.2816` / `bits_per_byte=1.983986` | pass |
 | unknown counts | `null`, never `0` | a corpus prepared without counts reports `bits_per_byte: null` / `bits_per_char: null`, the CLI prints an explanatory note, and the trainer logs no `bits_per_byte` field | pass |
 | old corpora still load | backward compatible | a pre-change `.meta.json` (no `n_bytes_*` keys) loads with `has_text_lengths=False` | pass |
@@ -749,6 +750,10 @@ now reports both numbers, and the note in the output says which one is comparabl
 - `bits_per_char` equals `bits_per_byte` on this corpus only because it is ASCII. The
   distinction matters for the Indic text in Project 002's corpora, where a character can be
   three UTF-8 bytes.
+- A sweep whose **every** run fails reports `status: failed`, exits 1, and keeps all six
+  records with the error — seen for real in the fresh clone when the training command was
+  pointed at a corpus that had not been prepared; the failure semantics needed no fixing,
+  they simply worked.
 - While adding the tests, a **pre-existing provenance leak** surfaced (recorded as Q-13):
   the environment section captures `torch.get_num_threads()` *before* the run body, so a run
   that changes torch's global thread count (any `Trainer` with `num_threads` set) makes a
