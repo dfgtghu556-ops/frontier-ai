@@ -8,22 +8,29 @@
 
 ## CURRENT POSITION — START HERE
 
-**Project 001 is COMPLETE. The next development task is Project 002, which has NOT started yet.**
+**Project 001 and Project 002 are COMPLETE. The next development task is Project 003,
+which has NOT started yet.**
 
-- Project 001 = the CPU-first, GPU-ready PyTorch GPT training pipeline in this repository
+- **Project 001** = the CPU-first, GPU-ready PyTorch GPT training pipeline
   (data → model → training loop → evaluation → checkpointing → sampling, plus 47 tests).
-- It is committed on branch `arena/01a08a78-frontier-ai` and is open as **PR #1** against `main`.
-- **Do not start Project 002 until the user explicitly asks for it.**
-- The most likely shape of Project 002 is "make experiments trustworthy and measurable"
-  (better tokenizer, real data pipeline, deterministic reproducible runs, an experiment
-  runner) — see [ROADMAP.md](ROADMAP.md) Stages 1–3. Confirm the actual scope with the user
-  before writing code; the roadmap is a proposal, not an approved plan.
+- **Project 002** = the tokenizer research subsystem: a pluggable tokenizer framework,
+  two byte-level BPE baselines (ours + HuggingFace `tokenizers`), a deterministic
+  Indian-language evaluation fixture, and an evaluator/comparator that produce
+  machine-readable metrics. Documented in [docs/tokenization.md](docs/tokenization.md);
+  results recorded as **EXP-002** in [EXPERIMENTS.md](EXPERIMENTS.md).
+- Both are committed on branch `arena/01a08a78-frontier-ai` and open as **PR #1** against `main`.
+- **Do not start Project 003 until the user explicitly asks for it.**
+- The most likely next steps are ROADMAP Stage 1 (make experiments
+  trustworthy: determinism, config+git+data-hash capture, an experiment runner) and
+  continuing Stage 2/3 (vocabulary sweeps and real licensed data). Confirm the actual
+  scope with the user before writing code; the roadmap is a proposal, not an approved plan.
+- **Project 002 did NOT choose a production tokenizer.** It built the framework for that
+  decision and took the first measurements. Do not treat EXP-002 as a verdict.
 - Before changing any code, read: this file, [ROADMAP.md](ROADMAP.md),
-  [DECISIONS.md](DECISIONS.md), [EXPERIMENTS.md](EXPERIMENTS.md), and [README.md](README.md).
+  [DECISIONS.md](DECISIONS.md), [EXPERIMENTS.md](EXPERIMENTS.md),
+  [docs/tokenization.md](docs/tokenization.md) and [README.md](README.md).
 - Record any experiment you run in [EXPERIMENTS.md](EXPERIMENTS.md) using the standard
   template. Never record a number you did not actually observe.
-
----
 
 ## 1. Mission and long-term goal
 
@@ -119,7 +126,46 @@ complete, tested training pipeline:
 - **Quality gates**: 47 tests (unit + end-to-end), `ruff` lint, and a GitHub Actions
   workflow example.
 
-## 6. Current repository structure
+## 6. What Project 002 built (tokenizer research subsystem)
+
+Project 002 added a modular tokenizer research framework under
+`src/frontier_ai/tokenization/` and four CLI commands. **Project 001's tokenizers and
+training pipeline were not modified** — they are wrapped by adapters so they can be
+measured in the same harness.
+
+- **Pluggable implementations** behind one interface (`SubwordTokenizer`) and a registry:
+  - `bpe_python` — our own byte-level BPE, dependency-free, deterministic, with a
+    **mark-aware pre-tokenizer** that keeps Indic combining marks attached to their base
+    character (see §Unicode note below).
+  - `bpe_hf` — byte-level BPE via HuggingFace `tokenizers` 0.23.2 (Apache-2.0), optional
+    dependency, offline save/load.
+  - `char`, `word` — adapters over the Project 001 tokenizers, kept as baselines.
+- **Research corpus** (`corpus.py` + `scripts/tokenizer_prepare_corpus.py`): deterministic
+  training text plus a hand-written evaluation fixture of 179 probes covering 14 languages
+  (incl. Hinglish) and 9 orthography categories (numbers, dates, decimals, math,
+  punctuation, URLs, technical terms, code-mixed tech, Unicode marks). The loader verifies
+  a sha256 and refuses to run on a modified fixture.
+- **Evaluator** (`evaluate.py`): per-tokenizer metrics overall, per language and per
+  category — tokens, chars, UTF-8 bytes, words, tokens/char, chars/token, bytes/token,
+  tokens/word, unknown rate, round-trip failures, plus special-token behaviour checks.
+  Output is JSON (and optional JSONL per example).
+- **Comparator** (`compare.py`): any number of artifacts scored on the same corpus version;
+  refuses cross-corpus comparisons; disqualifies tokenizers that cannot round-trip their
+  input from winning "best".
+- **Artifacts** (`artifact.py`): tokenizer files + `manifest.json` recording experiment id,
+  implementation and version, vocab size, special tokens, training params, corpus id/hash,
+  seed, library versions, timestamp.
+- **Tests**: 38 additional tests (85 total: 47 Project 001 + 38 tokenizer) covering round trips for every language,
+  determinism, save/load, special tokens, Unicode/Indic handling, evaluator arithmetic,
+  comparison logic, invalid input, and an end-to-end CLI workflow.
+
+**Unicode note (why this matters):** Python's `\w` and the GPT-2-style regex used by many
+tokenizers match letters and numbers but **not** combining marks, so "मैं" is split into
+"म" + "ैं". BPE merges cannot cross a pre-token boundary, so the fragment can never be
+repaired. `bpe_python` treats marks as word characters; the HF baseline does not. This
+difference is measured, not assumed — see EXP-002.
+
+## 7. Current repository structure
 
 ```
 configs/
@@ -127,11 +173,16 @@ configs/
     gpu_1x.json               single-GPU config (~124M params) — UNTESTED on real hardware
 docs/
     ci.yml.example            GitHub Actions workflow (copy to .github/workflows to enable)
+    tokenization.md           Project 002: tokenizer research guide, metrics, limitations
 scripts/
     prepare_data.py           text or synthetic corpus -> tokens.bin + tokenizer.json + meta.json
     train.py                  build model from config, run training, save checkpoints
     evaluate.py               score a checkpoint: val loss, perplexity, bits/token, sample
     generate.py               sample text with the KV cache (temperature / top-k / top-p)
+    tokenizer_prepare_corpus.py   write the tokenizer research corpus (train + eval fixture)
+    tokenizer_train.py            train a tokenizer from a local corpus -> versioned artifact
+    tokenizer_evaluate.py         evaluate artifact(s) -> JSON metrics per tokenizer
+    tokenizer_compare.py          compare 2+ artifacts on the same corpus -> JSON + table
 src/frontier_ai/
     config.py                 dataclass configs, JSON load/save, --set overrides, validation
     data/
@@ -139,6 +190,17 @@ src/frontier_ai/
         dataset.py            memmap token store, train/val split, batch sampling
         synthetic.py          deterministic pseudo-English corpus (a test fixture)
     model/gpt.py              the model: norms, RoPE, attention, MLP, blocks, sampling
+    tokenization/             Project 002: tokenizer research subsystem
+        base.py                 pluggable SubwordTokenizer interface + TokenizerInfo
+        registry.py             name -> implementation registry
+        bpe_python.py           our own byte-level BPE (mark-aware pre-tokenizer)
+        bpe_hf.py               HuggingFace `tokenizers` byte-level BPE (optional dep)
+        adapters.py             Project 001 char/word tokenizers behind the same interface
+        corpus.py               deterministic train text + Indic evaluation fixture
+        evaluate.py             metrics: overall / per language / per category
+        compare.py              multi-tokenizer comparison + rendered table
+        artifact.py             tokenizer files + provenance manifest
+        cli.py                  shared CLI helpers
     engine/
         trainer.py            the training loop
         optim.py              AdamW builder + warmup/cosine LR scheduler
@@ -163,7 +225,7 @@ Makefile, pyproject.toml, LICENSE (MIT), .gitignore
 Ignored (never committed): `data/` (prepared corpora), `out/` (runs and checkpoints),
 `.venv/`, caches.
 
-## 7. Current model architecture and important implementation details
+## 8. Current model architecture and important implementation details
 
 `src/frontier_ai/model/gpt.py`, configured by `ModelConfig` in `config.py`.
 
@@ -206,7 +268,7 @@ Implementation details that matter for future work:
   (`0.02 / sqrt(2 · n_layer)`) on the output projections.
 - **Optional** and off by default: gradient checkpointing, `torch.compile`.
 
-## 8. Current training pipeline
+## 9. Current training pipeline
 
 `src/frontier_ai/engine/trainer.py`, driven by `configs/*.json` plus `--set` overrides.
 
@@ -233,7 +295,7 @@ Smoke-config step economics: `batch_size=8 × block_size=64 × accum_steps=4`
 - **Logging**: one JSON object per event in `out/<run>/train.jsonl`, plus a console line.
 - **Metrics logged**: loss, perplexity, LR, gradient norm, tokens seen, tokens/sec, ETA.
 
-## 9. Current tokenizer and data approach
+## 10. Current tokenizer and data approach
 
 - **Tokenizers**: `CharTokenizer` (one token per character, plus a `\ufffd` replacement
   token) and `WordTokenizer` (regex word/punctuation tokens with `<unk>` and an optional
@@ -252,10 +314,16 @@ Smoke-config step economics: `batch_size=8 × block_size=64 × accum_steps=4`
   small grammar (`data/synthetic.py`). It exists so smoke tests and CI need no network
   access and so loss demonstrably falls in seconds. **It is a test fixture, not training
   data for any real model.**
+- **Tokenizer research is separate** (Project 002, §6): `src/frontier_ai/tokenization/`
+  provides pluggable subword tokenizers and evaluation tooling, but the *training pipeline
+  still uses the Project 001 char/word tokenizers.* Wiring a research tokenizer into
+  training is a later step — the interface (`encode`/`decode`/`save`/`load`) was designed
+  so that it is a small change, but it has not been made yet.
 
-## 10. Current evaluation and testing approach
+## 11. Current evaluation and testing approach
 
-**Testing (automated, 47 tests, ~10 s on CPU, `pytest -q`; `ruff check .` clean):**
+**Testing (automated, 85 tests: 47 Project 001 + 38 tokenizer, ~15 s on CPU, `pytest -q`;
+`ruff check .` clean):**
 
 - Model: shapes and initial loss near `ln(vocab)`; **causality** (changing tokens after
   position *t* must not change logits before *t*); every architecture variant
@@ -273,10 +341,16 @@ Smoke-config step economics: `batch_size=8 × block_size=64 × accum_steps=4`
 
 **Model evaluation (today):** validation loss, perplexity (`exp(loss)`), and
 bits-per-token (`loss / ln 2`) on the held-out tail of the same corpus, plus a qualitative
-text sample. There is **no** downstream task evaluation, no standardized benchmark, no
-per-language evaluation, and no comparison against published models.
+text sample. There is **no** downstream task evaluation, no standardized benchmark, and no
+comparison against published models.
 
-## 11. What Project 001 proves
+**Tokenizer evaluation (Project 002):** fertility and compression metrics
+(tokens/char, chars/token, bytes/token, tokens/word), unknown rate, UTF-8 round-trip
+correctness and special-token behaviour — reported overall, **per language** and per
+orthography category, with multi-tokenizer comparison. See
+[docs/tokenization.md](docs/tokenization.md).
+
+## 12. What Project 001 proves
 
 - The complete pipeline works end to end: text → tokens → batches → model → loss →
   gradients → updates → checkpoints → resume → sampling.
@@ -297,7 +371,7 @@ per-language evaluation, and no comparison against published models.
   averaged over accumulation steps (read 4× high), and repeated `--set` flags overwriting
   each other instead of accumulating.
 
-## 12. What Project 001 does NOT prove
+## 13. What Project 001 does NOT prove
 
 - **Nothing about GPU performance.** No CUDA device was available. bf16/fp16 autocast,
   flash kernels, the GradScaler path, and `torch.compile` have never executed. The
@@ -318,22 +392,23 @@ per-language evaluation, and no comparison against published models.
 - **Nothing about data quality at scale.** No deduplication, filtering, mixing, licensing
   review, or provenance tracking exists yet.
 
-## 13. Current limitations
+## 14. Current limitations
 
 | Area | Limitation |
 |---|---|
-| Tokenizer | char/word level only; no BPE, no special/EOS tokens, no multilingual or Indic-script coverage |
+| Tokenizer (training pipeline) | still char/word level in the training pipeline; the Project 002 subword tokenizers are **not** yet wired into training |
+| Tokenizer (research) | measured only on a 179-example hand-written probe fixture; no vocabulary sweep, no Unigram comparison, no normalization ablation, no tokenizer→model-quality measurement |
 | Data | single in-memory-style memmap file; tail split; no packing, dedup, filtering, mixing, sharding, or streaming; `data.num_workers` and `data.shuffle_buffer` exist in config but are **unused placeholders** |
 | Scale | largest verified model: 138,752 params, 64-token context |
 | Hardware | verified only on 2 CPU cores / 3 GB RAM; no GPU, no multi-node |
 | Precision | only fp32 has actually run; bf16/fp16 paths are written but unexercised |
 | Sampling | temperature + top-k + top-p only; no repetition penalty, no batch generation, no stop tokens (no EOS in the tokenizer) |
 | Evaluation | loss/perplexity on the training corpus distribution; no benchmarks, no task eval, no human eval |
-| Experiment tooling | no sweeps, no ablation runner, no tracker (WandB/TensorBoard), no multi-seed support |
+| Experiment tooling | tokenizer experiments are recorded and machine-readable; model-training sweeps, an ablation runner, and a tracker (WandB/TensorBoard) still do not exist; no multi-seed support |
 | CI | workflow committed as `docs/ci.yml.example`; it has never run on GitHub Actions (the App used to push lacks the `workflows` permission) |
 | Post-training | none: no SFT, preference optimization, reasoning, or safety work |
 
-## 14. CPU-first development was intentional
+## 15. CPU-first development was intentional
 
 The tiny defaults (`configs/cpu_smoke.json`) exist so every change can be validated in
 seconds on a laptop, with no GPU, no network, and no data downloads. That gives fast
@@ -345,7 +420,7 @@ autocast dtype and GradScaler policy) and nothing in the model or loop branches 
 on a GPU". Real GPU training is a later stage (see [ROADMAP.md](ROADMAP.md) Stage 4+), and
 it should require a config change, not a code change.
 
-## 15. Scale discipline: what NOT to do next
+## 16. Scale discipline: what NOT to do next
 
 Explicitly **out of scope until the earlier stages are done**. Jumping ahead produces a
 large model nobody can debug, evaluate, or afford.
@@ -363,21 +438,23 @@ large model nobody can debug, evaluate, or afford.
 Scale is earned by experiments, not declared. Every jump in size must be justified by
 results at the current size (see [ROADMAP.md](ROADMAP.md)).
 
-## 16. Exact current state of the GitHub project
+## 17. Exact current state of the GitHub project
 
 - Repository: `https://github.com/dfgtghu556-ops/frontier-ai`
 - Current branch (and the only branch this work happens on): **`arena/01a08a78-frontier-ai`**
 - Base branch: `main` (contains one commit, `89b9a1c Initial commit`, a README stub)
-- Project 001 commit: `e467eb0` — "Add CPU-first, GPU-ready PyTorch GPT training pipeline"
-  (29 files, +2,688 / −1)
+- Commits on the branch (oldest → newest):
+  - `e467eb0` — Project 001: "Add CPU-first, GPU-ready PyTorch GPT training pipeline"
+  - `4ede476` — "Add permanent project documentation for long-term development"
+  - a third commit adds Project 002 (tokenizer research subsystem) — see `git log`
 - **PR: #1** — OPEN, not a draft, mergeable:
   https://github.com/dfgtghu556-ops/frontier-ai/pull/1
 - CI: no checks have ever run on the branch (workflow not installable under
   `.github/workflows` with the available App permission — see D-013)
 - Verified locally in the development sandbox: Python 3.11.2, torch 2.14.0+cu130,
-  `torch.cuda.is_available() == False`, 2 CPUs, 3 GB RAM
+  `tokenizers` 0.23.2, `torch.cuda.is_available() == False`, 2 CPUs, 3 GB RAM
 
-## 17. Commands a new agent should run first
+## 18. Commands a new agent should run first
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
@@ -389,9 +466,17 @@ python scripts/train.py --config configs/cpu_smoke.json                     # ~1
 python scripts/evaluate.py --ckpt out/cpu-smoke/best --data data/synthetic.bin
 python scripts/generate.py --ckpt out/cpu-smoke/best \
     --tokenizer data/synthetic.tokenizer.json --prompt "the quiet cat"
+
+# tokenizer research (Project 002)
+python scripts/tokenizer_prepare_corpus.py --out data/tokenizer/indic-v1
+python scripts/tokenizer_train.py --corpus data/tokenizer/indic-v1 --impl bpe_hf \
+    --vocab-size 1024 --out artifacts/tokenizers/bpe_hf_1024 --exp-id EXP-002
+python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
+    --tokenizer artifacts/tokenizers/char artifacts/tokenizers/bpe_hf_1024 \
+    --out out/tokenizer/compare.json
 ```
 
-## 18. Conventions for future agents
+## 19. Conventions for future agents
 
 1. **Never invent results.** If a number is not in `train.jsonl`, a test, or a terminal
    you actually ran, it does not go in a document. "Not measured" is an acceptable answer.

@@ -21,11 +21,25 @@ eval: ## evaluate the best CPU checkpoint
 generate: ## sample from the best CPU checkpoint
 	python scripts/generate.py --ckpt out/cpu-smoke/best --tokenizer data/synthetic.tokenizer.json --prompt "the quiet cat"
 
+tokdata: ## write the tokenizer research corpus
+	python scripts/tokenizer_prepare_corpus.py --out data/tokenizer/indic-v1
+
+toktrain: ## train the HuggingFace BPE baseline (needs pip install ".[tokenizer]")
+	python scripts/tokenizer_train.py --corpus data/tokenizer/indic-v1 --impl bpe_hf \
+		--vocab-size 1024 --out artifacts/tokenizers/bpe_hf_1024 --exp-id EXP-002
+
+tokcompare: ## compare every trained tokenizer artifact on the probe corpus
+	python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
+		--tokenizer artifacts/tokenizers/char artifacts/tokenizers/word \
+		            artifacts/tokenizers/bpe_py_512 artifacts/tokenizers/bpe_py_1024 \
+		            artifacts/tokenizers/bpe_hf_1024 \
+		--out out/tokenizer/compare.json --exp-id EXP-002
+
 test: ## unit + smoke tests
 	pytest -q
 
 lint: ## ruff
 	ruff check .
 
-clean: ## remove runs and prepared data
-	rm -rf out data *.egg-info
+clean: ## remove runs, prepared data and tokenizer artifacts
+	rm -rf out data artifacts *.egg-info

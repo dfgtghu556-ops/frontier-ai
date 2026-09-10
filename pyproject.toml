@@ -27,6 +27,11 @@ dev = [
   "pytest>=7.0",
   "ruff>=0.4",
 ]
+# Optional: enables the `bpe_hf` tokenizer baseline in the tokenizer research
+# subsystem (Project 002). Apache-2.0. The core training pipeline does not need it.
+tokenizer = [
+  "tokenizers>=0.20",
+]
 
 [project.urls]
 Repository = "https://github.com/dfgtghu556-ops/frontier-ai"

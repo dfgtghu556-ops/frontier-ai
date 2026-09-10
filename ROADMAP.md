@@ -15,6 +15,8 @@
   a skeptical reader would accept, it is not finished.
 - **This roadmap is a proposal.** The user approves what becomes the next project. An agent
   must not start a stage on its own.
+- **Stage 0 (Project 001) and part of Stage 2 (Project 002) are done.** The tokenizer
+  *framework* exists and has produced first measurements; the tokenizer *decision* is open.
 
 ---
 
@@ -47,25 +49,48 @@ runs unattended; every run directory is self-describing and diffable.
 
 **Risk:** none technical — this is discipline work. It is the highest-leverage stage.
 
-## Stage 2 — Tokenizer
+## Stage 2 — Tokenizer 🔶 FRAMEWORK BUILT, DECISION PENDING (Project 002)
 
-**Goal:** a tokenizer trained on our own data, with coverage for Indian languages.
+**Goal:** a tokenizer trained on our own data, with coverage for Indian languages,
+*chosen on measurements*.
 
-- Train a BPE (or Unigram) tokenizer; keep the existing `Tokenizer` interface
-  (`encode` / `decode` / `save` / `load`) so the swap is contained.
-- Evaluate: compression rate (bytes/token), fertility across languages, round-trip fidelity,
-  coverage of Indic scripts (Devanagari, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada,
-  Malayalam, Punjabi, Odia, Urdu, and others), and inference-time behavior.
-- Decide vocab size **by experiment** (compression vs. embedding/head cost vs. rare-token
-  fragmentation), not by copying a published number.
-- Add the special tokens that post-training will need (BOS/EOS/PAD, chat/role markers,
-  tool-call markers) and make sure the model code handles them.
+**What Project 002 delivered (2026-09-10):**
 
-**Exit criteria:** tokenizer trained on our data, versioned, with a documented comparison
-against the current char/word baseline on identical data.
+- A pluggable tokenizer subsystem (`src/frontier_ai/tokenization/`): our own dependency-free
+  byte-level BPE with a mark-aware pre-tokenizer, plus a HuggingFace `tokenizers` BPE
+  baseline, plus adapters for the Project 001 char/word tokenizers as baselines.
+- A deterministic research corpus: generated training text and a hand-written evaluation
+  fixture of 179 probes across 14 languages (incl. Hinglish) and 9 orthography categories,
+  sha256-verified on load.
+- An evaluator (overall / per-language / per-category metrics, UTF-8 round-trip and
+  special-token checks) and a comparator that scores any number of artifacts on the same
+  corpus and refuses cross-corpus comparisons.
+- 38 tests and full documentation ([docs/tokenization.md](docs/tokenization.md));
+  first measurements recorded as **EXP-002** in [EXPERIMENTS.md](EXPERIMENTS.md).
 
-**Risk:** a tokenizer chosen before the data exists must be rebuilt later. Sequence this
-after at least a first pass of Stage 3.
+**What Project 002 deliberately did NOT do:** select a production tokenizer, sweep
+vocabulary size, compare BPE vs Unigram, ablate normalization, or measure how tokenizer
+choice affects downstream model quality.
+
+**Remaining before this stage can close:**
+
+- Vocabulary-size sweep on real data (not just 512/1024 on a probe fixture).
+- Pre-tokenization ablation: mark-aware vs GPT-2-style regex, whitespace attachment,
+  script-aware initial alphabets (open question **Q-9**).
+- Normalization policy (NFC/NFD) — **Q-11**.
+- BPE vs Unigram comparison.
+- **Tokenizer → model-quality measurement**: train the same small model with two
+  tokenizers and compare (this is the only metric that ultimately matters).
+- Train on real, licensed, Indic-heavy data (depends on Stage 3) — the current fixture is
+  far too small to size a vocabulary for production.
+
+**Exit criteria (unchanged):** a tokenizer trained on our data, versioned, with a
+documented comparison against the current baselines **on representative data**, and an
+explicit decision record superseding D-010. Until then: **no production tokenizer has been
+selected.**
+
+**Risk:** deciding from a 179-example fixture. The framework is explicitly designed to make
+that mistake visible — every report carries the fixture caveat.
 
 ## Stage 3 — Real data pipeline
 

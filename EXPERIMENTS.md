@@ -79,7 +79,35 @@ generation quality, per-language breakdowns, contamination check outcome, and co
 
 ---
 
-## 3. Experiment log
+## 3. Extra fields for tokenizer experiments (Project 002+)
+
+In addition to the standard template, tokenizer experiments must record:
+
+- **Tokenizer implementation** and **library version** (e.g. `bpe_python` /
+  `frontier-bpe-python-1`, `bpe_hf` / `tokenizers-0.23.2`) — captured automatically in the
+  artifact `manifest.json`.
+- **Corpus identifier and version** plus the fixture's sha256 (the corpus loader refuses to
+  run if the hash no longer matches, so the id is trustworthy).
+- **Vocabulary size**, **special tokens**, **training parameters** (`vocab_size`,
+  `min_frequency`, `min_count`), **seed**, and the **artifact directory**.
+- **Per-language and per-category metrics**, not just overall: a single aggregate number
+  hides language-specific regressions, which is the whole point for Indian languages.
+- **Round-trip failures** and **unknown rate** — a tokenizer that cannot reconstruct its
+  input is disqualified from "best" (D-022) no matter how good its compression is.
+
+Reproduce a tokenizer experiment with:
+
+```bash
+python scripts/tokenizer_prepare_corpus.py --out data/tokenizer/indic-v1 --seed 1337
+python scripts/tokenizer_train.py --corpus data/tokenizer/indic-v1 --impl <impl> \
+    --vocab-size <n> --out artifacts/tokenizers/<name> --exp-id EXP-00N
+python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
+    --tokenizer <artifact> [<artifact> ...] --out out/tokenizer/compare.json
+```
+
+---
+
+## 4. Experiment log
 
 ### EXP-001 — CPU smoke test: end-to-end pipeline verification ✅
 
@@ -155,18 +183,120 @@ machine-dependent).
 
 ---
 
-## 4. Log index
+---
+
+### EXP-002 — Tokenizer baselines on the Indian-language probe fixture ✅
+
+- **Status:** complete
+- **Date:** 2026-09-10
+- **Objective:** stand up the tokenizer research framework and take first measurements:
+  compare character, word and byte-level BPE tokenizers on the same deterministic probe
+  fixture, and check whether the framework can actually distinguish them.
+- **Hypothesis:** (a) byte-level BPE will be lossless while char/word tokenizers will not
+  (their tiny training text cannot cover the probe); (b) byte-level BPE will compress
+  English better than Indic scripts at 512–1024 vocabulary, because Indic characters cost
+  3 UTF-8 bytes each; (c) at equal vocabulary, the two BPE implementations will differ
+  mostly because of pre-tokenization, not the merge algorithm.
+- **Baseline:** none (first tokenizer experiment); char/word are Project 001 tokenizers
+  used as reference points.
+
+**Configuration**
+- Corpus: `data/tokenizer/indic-v1` — `indic-eval-v1`, seed 1337, 73,033 training chars,
+  179 evaluation examples (14 languages + 9 orthography categories; 4,108 code points,
+  8,141 UTF-8 bytes, 680 whitespace words); sha256-verified on load
+- Implementations and versions: `bpe_python` = `frontier-bpe-python-1`,
+  `bpe_hf` = `tokenizers-0.23.2` (Apache-2.0), `char` = `project001-char-1`,
+  `word` = `project001-word-1`
+- Special tokens for every tokenizer: `<pad>`, `<bos>`, `<eos>`, `<unk>`
+- Training parameters: `bpe_python` vocab 512 and 1024; `bpe_hf` vocab 1024,
+  `min_frequency=2`; `char`/`word` vocabularies determined by the corpus (365 / 1,085)
+- Deterministic: yes (corpus seed 1337; BPE merge selection is frequency-then-pair ordered)
+- Hardware: 2 CPU cores, 3 GB RAM, Python 3.11.2, torch 2.14.0+cu130, tokenizers 0.23.2
+- Command: `python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1
+  --tokenizer artifacts/tokenizers/{char,word,bpe_py_512,bpe_py_1024,bpe_hf_1024}
+  --out out/tokenizer/compare.json --exp-id EXP-002`
+- Code revision: Project 002 branch commit; config: `data/tokenizer/indic-v1/manifest.json`
+
+**Metrics** (179 examples, identical for every row)
+
+| Tokenizer | Impl | Vocab | Tokens | chars/token | bytes/token | tokens/char | tokens/word | unk rate | round-trip failures |
+|---|---|---|---|---|---|---|---|---|---|
+| char | char | 365 | 4,108 | 1.000 | 1.982 | 1.000 | 6.041 | 9.74% | 128 |
+| word | word | 1,085 | 3,111 | 1.320 | 2.617 | 0.757 | 4.575 | 18.61% | 160 |
+| bpe_py_512 | bpe_python | 512 | 4,835 | 0.850 | 1.684 | 1.177 | 7.110 | n/a | 0 |
+| bpe_py_1024 | bpe_python | 1,024 | 4,204 | 0.977 | 1.936 | 1.023 | 6.182 | n/a | 0 |
+| bpe_hf_1024 | bpe_hf | 1,024 | 3,835 | 1.071 | 2.123 | 0.934 | 5.640 | n/a | 0 |
+
+Per-language chars/token (higher = more compression), selected languages:
+
+| Tokenizer | en | hi | hi-en | best language | worst language |
+|---|---|---|---|---|---|
+| bpe_py_512 | 1.390 | 0.777 | 1.214 | en 1.390 | or 0.636 |
+| bpe_py_1024 | 1.507 | 0.893 | 1.376 | en 1.507 | pa 0.714 |
+| bpe_hf_1024 | 1.825 | 0.967 | 1.690 | en 1.825 | pa 0.800 |
+
+**Results:**
+1. Both byte-level BPEs round-trip all 179 examples with zero unknown tokens. The char
+   tokenizer altered 128/179 examples (9.74% of its tokens were the unknown-character
+   token) and the word tokenizer altered 160/179 (18.61% unknown rate).
+2. Byte-level BPE beats one-token-per-character on English (1.39–1.83 chars/token) but
+   **not** on Indic scripts at these vocabulary sizes (0.64–0.97 chars/token vs 1.000 for
+   the character baseline).
+3. At equal vocabulary (1,024), `bpe_hf` produced 3,835 tokens vs 4,204 for `bpe_python`
+   (8.8% fewer) on identical input.
+4. Both char and word tokenizers are disqualified from "best" by the losslessness gate
+   (D-022); among lossless tokenizers `bpe_hf_1024` leads on every compression metric.
+
+**Observations:**
+- Findings 1 and 2 confirm hypotheses (a) and (b). Finding 3 is consistent with (c): the
+  merge rules are equivalent, and the difference is pre-tokenization — HuggingFace's
+  ByteLevel pattern attaches a leading space to words so merges can absorb it, while our
+  implementation emits whitespace runs as separate tokens. This is now open ablation
+  **Q-9**, not a conclusion.
+- The per-language spread is large: English reaches 1.39–1.83 chars/token while Odia and
+  Punjabi sit at 0.71–0.86 for the same tokenizer — a >2× cost difference between
+  languages, which is exactly the inequity this framework exists to quantify.
+- `bpe_python`'s mark-aware pre-tokenizer keeps "मैं" whole, but that did not translate
+  into fewer tokens here: Indic characters still cost 3 bytes each and the merges needed
+  to reassemble them compete with word-level merges for the same vocabulary budget.
+- The fixture's training text shares small word lists with its evaluation examples, so all
+  compression numbers are optimistic. They are valid only as a like-for-like comparison on
+  this fixture.
+
+**Conclusion:** hypothesis confirmed on all three points. The framework works, is
+deterministic, and produces discriminating measurements. **It does not select a
+production tokenizer** — see D-021. The main substantive signal is that Indian-language
+scripts need a substantially larger vocabulary budget (or a script-aware initialization)
+before subword BPE pays off, which must be re-measured on real data.
+
+**Next action:** do **not** pick a tokenizer yet. Next experiments: (1) vocabulary sweep
+(2k / 4k / 8k / 16k / 32k) on the same fixture to find where Indic compression crosses
+1.0 chars/token; (2) pre-tokenization ablation Q-9 (mark-aware vs GPT-2 pattern,
+whitespace attachment); (3) repeat on real licensed Indic data once Stage 3 delivers it;
+(4) eventually train the same small model with two tokenizers and compare quality.
+
+**Artifacts:** `out/tokenizer/compare.json` (machine-readable comparison),
+`out/tokenizer/compare.txt` (rendered table),
+`out/tokenizer/eval/{bpe_hf_1024,bpe_py_1024}.json` (per-tokenizer reports),
+`artifacts/tokenizers/*/manifest.json` (provenance). Artifacts are regenerable and are not
+committed; regenerate with the commands in §3.
+
+
+## 5. Log index
 
 | ID | Title | Status | Date | Key metric |
 |---|---|---|---|---|
 | EXP-001 | CPU smoke test: end-to-end pipeline verification | complete | 2026-09-10 | val loss 3.93 → 1.378 (ppl 3.97) on synthetic corpus |
+| EXP-002 | Tokenizer baselines on the Indian-language probe fixture | complete | 2026-09-10 | lossless byte-BPE (0 round-trip failures) vs char 128/179 and word 160/179 failures; en 1.83 vs pa 0.80 chars/token |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
 
 ---
 
-## 5. Reproducing EXP-001
+## 6. Reproducing experiments
+
+**EXP-001 (model smoke test)**
 
 ```bash
 . .venv/bin/activate
@@ -179,3 +309,27 @@ cat out/cpu-smoke/train.jsonl
 Expected on comparable hardware: val loss ≈ 1.38 after 200 steps in under a minute. Exact
 numbers vary with thread count and CPU; the corpus and seed are fixed, so loss curves should
 be close but are **not** guaranteed bit-identical unless `train.deterministic=true`.
+
+**EXP-002 (tokenizer baselines)**
+
+```bash
+. .venv/bin/activate
+pip install ".[tokenizer]"                       # optional: enables the bpe_hf baseline
+python scripts/tokenizer_prepare_corpus.py --out data/tokenizer/indic-v1 --seed 1337
+for spec in "char:char:1024" "word:word:1024" \
+            "bpe_python:bpe_py_512:512" "bpe_python:bpe_py_1024:1024" \
+            "bpe_hf:bpe_hf_1024:1024"; do
+  impl=${spec%%:*}; rest=${spec#*:}; name=${rest%%:*}; vs=${rest##*:}
+  python scripts/tokenizer_train.py --corpus data/tokenizer/indic-v1 --impl "$impl" \
+      --vocab-size "$vs" --out "artifacts/tokenizers/$name" --exp-id EXP-002
+done
+python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
+    --tokenizer artifacts/tokenizers/char artifacts/tokenizers/word \
+                artifacts/tokenizers/bpe_py_512 artifacts/tokenizers/bpe_py_1024 \
+                artifacts/tokenizers/bpe_hf_1024 \
+    --out out/tokenizer/compare.json --exp-id EXP-002
+```
+
+The corpus is deterministic (seed 1337) and BPE merge selection is deterministic, so token
+counts reproduce exactly. `bpe_hf` requires the optional `tokenizers` package; without it,
+drop that row.

@@ -30,3 +30,6 @@ checkpoints/
 .vscode/
 .idea/
 .DS_Store
+
+# Tokenizer research artifacts (regenerable)
+artifacts/

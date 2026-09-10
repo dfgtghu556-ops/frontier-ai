@@ -35,7 +35,8 @@ Read these first if you are joining the project (human or AI agent):
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
 | [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
 | [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-017) and open questions |
-| [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log (EXP-001…) |
+| [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log (EXP-001, EXP-002) |
+| [docs/tokenization.md](docs/tokenization.md) | tokenizer research: why it matters, metrics, Indic/Unicode notes, workflow |
 
 The rest of this README is the technical quickstart.
 
@@ -101,6 +102,27 @@ python scripts/train.py --config configs/cpu_smoke.json --set train.max_steps=50
 Weights, optimizer state, scheduler position, step counter and best score are all
 restored, so the LR schedule continues where it left off.
 
+## Tokenizer research (Project 002)
+
+A pluggable tokenizer framework lives in `src/frontier_ai/tokenization/`: our own
+byte-level BPE, an optional HuggingFace `tokenizers` BPE baseline, adapters for the
+char/word tokenizers, a deterministic Indian-language probe corpus, and an
+evaluator/comparator that emit machine-readable metrics.
+
+```bash
+pip install ".[tokenizer]"                                   # optional HuggingFace baseline
+python scripts/tokenizer_prepare_corpus.py --out data/tokenizer/indic-v1
+python scripts/tokenizer_train.py --corpus data/tokenizer/indic-v1 --impl bpe_hf \
+    --vocab-size 1024 --out artifacts/tokenizers/bpe_hf_1024 --exp-id EXP-002
+python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
+    --tokenizer artifacts/tokenizers/char artifacts/tokenizers/bpe_hf_1024 \
+    --out out/tokenizer/compare.json
+```
+
+See [docs/tokenization.md](docs/tokenization.md). **No production tokenizer has been
+selected** — Project 002 built the framework for that decision and recorded the first
+measurements as EXP-002.
+
 ## Layout
 
 ```
@@ -117,8 +139,9 @@ src/frontier_ai/
         trainer.py      the training loop
         optim.py        AdamW + warmup/cosine scheduler
         checkpoint.py   save / load / resume
+    tokenization/    pluggable tokenizers, Indic probe corpus, evaluator, comparator
     utils/          device+dtype resolution, seeding, JSONL logging
-tests/              47 unit + end-to-end tests (CPU, ~10 s)
+tests/              85 unit + end-to-end tests (CPU, ~15 s)
 ```
 
 ## Model
@@ -200,7 +223,7 @@ mkdir -p .github/workflows && cp docs/ci.yml.example .github/workflows/ci.yml
 ## Tests
 
 ```bash
-pytest -q        # 47 tests, ~10 s on CPU
+pytest -q        # 85 tests, ~15 s on CPU
 ruff check .     # lint
 make test lint
 ```
