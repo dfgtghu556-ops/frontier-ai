@@ -141,7 +141,7 @@ src/frontier_ai/
         checkpoint.py   save / load / resume
     tokenization/    pluggable tokenizers, Indic probe corpus, evaluator, comparator
     utils/          device+dtype resolution, seeding, JSONL logging
-tests/              85 unit + end-to-end tests (CPU, ~15 s)
+tests/              89 unit + end-to-end tests (CPU, ~15 s)
 ```
 
 ## Model
@@ -223,15 +223,16 @@ mkdir -p .github/workflows && cp docs/ci.yml.example .github/workflows/ci.yml
 ## Tests
 
 ```bash
-pytest -q        # 85 tests, ~15 s on CPU
+pytest -q        # 89 tests, ~15 s on CPU
 ruff check .     # lint
 make test lint
 ```
 
 The suite covers the model (causality, architecture variants, KV-cache equivalence,
 context-length clamping), data (tokenizer round-trips, split math, deterministic
-corpus), the engine (schedules, checkpoint round-trips, config overrides), and full
-train → checkpoint → resume → sample runs. Two tests exist specifically to catch bugs
+corpus), the engine (schedules, checkpoint round-trips, config overrides), the tokenizer
+research subsystem, full train → checkpoint → resume → sample runs, and repository
+hygiene (no source file may be git-ignored — see DECISIONS.md D-023). Two tests exist specifically to catch bugs
 found while building this: logged loss must be a *mean* over accumulation steps, and
 repeated `--set` flags must accumulate.
 

@@ -155,7 +155,7 @@ measured in the same harness.
 - **Artifacts** (`artifact.py`): tokenizer files + `manifest.json` recording experiment id,
   implementation and version, vocab size, special tokens, training params, corpus id/hash,
   seed, library versions, timestamp.
-- **Tests**: 38 additional tests (85 total: 47 Project 001 + 38 tokenizer) covering round trips for every language,
+- **Tests**: 42 additional tests (89 total: 47 Project 001 + 38 tokenizer + 4 repo-hygiene) covering round trips for every language,
   determinism, save/load, special tokens, Unicode/Indic handling, evaluator arithmetic,
   comparison logic, invalid input, and an end-to-end CLI workflow.
 
@@ -322,7 +322,7 @@ Smoke-config step economics: `batch_size=8 × block_size=64 × accum_steps=4`
 
 ## 11. Current evaluation and testing approach
 
-**Testing (automated, 85 tests: 47 Project 001 + 38 tokenizer, ~15 s on CPU, `pytest -q`;
+**Testing (automated, 89 tests: 47 Project 001 + 38 tokenizer + 4 repo-hygiene, ~15 s on CPU, `pytest -q`;
 `ruff check .` clean):**
 
 - Model: shapes and initial loss near `ln(vocab)`; **causality** (changing tokens after
@@ -490,3 +490,8 @@ python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
 6. **Device-agnostic code only.** No `if cuda:` in the model or loop.
 7. **Ask before big jumps** (new dependencies, new subsystems, large refactors, anything
    that changes Project 001's behavior).
+8. **Never trust "tests pass" as proof the repository is complete.** An unanchored
+   `.gitignore` rule once excluded `src/frontier_ai/data/` from git entirely: local tests
+   passed, the branch was pushed, and only a fresh checkout showed `import frontier_ai.data`
+   failing. `tests/test_repo_hygiene.py` now guards against it (D-023). Anchor any new
+   ignore rule that could match a source path.

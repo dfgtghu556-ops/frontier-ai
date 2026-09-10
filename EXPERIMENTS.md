@@ -177,9 +177,12 @@ first step is Stage 1 from [ROADMAP.md](ROADMAP.md): make runs reproducible and 
 (determinism, config+git+data-hash capture, per-byte normalization so tokenizer changes can
 be compared), then a real tokenizer and data pipeline.
 
-**Artifacts:** `out/cpu-smoke/train.jsonl`, `out/cpu-smoke/{best,last}/`, 
+**Artifacts:** `out/cpu-smoke/train.jsonl`, `out/cpu-smoke/{best,last}/`,
 `out/cpu-smoke/config.json` (regenerating this run overwrites them; timings are
-machine-dependent).
+machine-dependent). A later re-run on the same config (fresh environment, 200k-char
+corpus, 200 steps) produced `best_val=1.3230` instead of `1.3776`; the corpus and seed are
+fixed but thread scheduling is not, so small run-to-run differences like this are expected
+and are why headline claims here are quoted from a specific recorded run.
 
 ---
 
@@ -306,7 +309,8 @@ python scripts/evaluate.py --ckpt out/cpu-smoke/best --data data/synthetic.bin
 cat out/cpu-smoke/train.jsonl
 ```
 
-Expected on comparable hardware: val loss ≈ 1.38 after 200 steps in under a minute. Exact
+Expected on comparable hardware: val loss ≈ 1.3–1.4 after 200 steps in under a minute
+(we have observed 1.3776 and 1.3230 on the same config across runs — see below). Exact
 numbers vary with thread count and CPU; the corpus and seed are fixed, so loss curves should
 be close but are **not** guaranteed bit-identical unless `train.deterministic=true`.
 

@@ -503,6 +503,35 @@ exclude lossy tokenizers entirely (we still want to see their numbers for diagno
 **Revisit when:** never — this is a standing rule for tokenizer comparisons.
 
 
+---
+
+## D-023 — Source code must never be git-ignored; artifact rules are anchored
+**Date:** 2026-09-10 · **Status:** accepted
+
+**Decision:** Ignore rules for generated artifacts are written anchored to the repository
+root (`/data/`, `/out/`, `/artifacts/`), and `tests/test_repo_hygiene.py` fails the build if
+any `.py` file under `src/`, `scripts/` or `tests/` is untracked or matched by
+`git check-ignore`.
+
+**Rationale:** The original `.gitignore` contained an unanchored `data/` rule intended for
+prepared corpora at the repo root. Git matches such a pattern at *any* depth, so it also
+matched `src/frontier_ai/data/` — the data package (tokenizers, token store, synthetic
+corpus) was never committed. Everything worked locally, tests passed, and the branch was
+pushed; only a **fresh checkout** revealed that `import frontier_ai.data` failed and four
+test modules could not even be collected. The pushed PR was broken for anyone who cloned it.
+
+**Alternatives considered:** remembering to be careful (no); relying on review (the diff
+looked complete because the files were simply absent); negating rules with `!src/**/data/`
+(harder to reason about than anchoring).
+
+**Consequences:** Artifact directories at the root are still ignored; source directories
+cannot be accidentally ignored. The hygiene tests depend on a git working tree and skip
+cleanly when there isn't one.
+
+**Revisit when:** never — this is a standing rule. Any new ignore pattern for a name that
+could exist inside `src/` must be anchored.
+
+
 ## Open items to decide later (not yet decisions)
 
 | ID | Question | Deferred to |
