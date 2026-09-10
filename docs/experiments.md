@@ -48,6 +48,10 @@ print(outcome.path, outcome.record.content_fingerprint())
 exception**: on failure it writes a `status="failed"` record (error type, message,
 traceback tail) and re-raises.
 
+To run the same experiment across several seeds and get `mean ± spread`, see
+[§8 Multi-seed sweeps](#8-multi-seed-sweeps-mean--spread) (`run_sweep` /
+`scripts/experiment_sweep.py`).
+
 ### CLI
 
 ```bash
@@ -242,7 +246,113 @@ Both entry points are usable from Python and from the CLI, with identical semant
 
 ---
 
-## 8. What determinism is actually verified here
+## 8. Multi-seed sweeps (mean ± spread)
+
+A sweep runs **one experiment specification across several seeds** and answers: *how much
+does the measured result vary across independent seeds?* It is the mechanism behind the
+roadmap rule "report mean ± spread for any headline number".
+
+Python:
+
+```python
+from frontier_ai.experiments import ExperimentSpec, run_sweep
+
+spec = ExperimentSpec(experiment_id="EXP-004", seed=1, name="cpu-smoke",
+                      output_dir="out/sweeps/EXP-004", data_paths=["data/synthetic.bin"],
+                      config_path="configs/cpu_smoke.json")
+
+outcome = run_sweep(spec, [1, 2, 3, 4, 5], my_experiment_fn, metric="final_val_loss")
+print(outcome.record.statistics["mean"], outcome.record.statistics["spread"])
+```
+
+CLI (follows the Project 001/002/003 conventions; everything after `--` is the per-seed
+command, with `{seed}` substituted):
+
+```bash
+python scripts/experiment_sweep.py --exp-id EXP-004 --seeds 1,2,3,4,5 \
+    --metric final_val_loss --config configs/cpu_smoke.json --data data/synthetic.bin \
+    --out out/sweeps/EXP-004-train --tag project-001 -- \
+    python scripts/train.py --config configs/cpu_smoke.json --max-steps 50 \
+        --set train.seed={seed}
+```
+
+Exit codes: `0` every seed usable, `2` partial (some seeds failed), `1` no seed usable.
+The sweep record is written in all three cases.
+
+### Individual runs are preserved
+
+Every seed gets its own **normal experiment record** under
+`out/sweeps/<id>/seed-<zero-padded seed>/experiment.json` with the same sections as any
+other run: experiment identity, its own seed, git provenance, data provenance,
+configuration, environment, execution status, result and content fingerprint. The
+aggregate never replaces them, and the per-seed directories are distinct by construction,
+so two seeds cannot overwrite each other's outputs. Duplicate seeds in the list are
+de-duplicated rather than run twice into the same directory.
+
+### What the aggregate records (`sweep.json`, schema `1.0`)
+
+| section | contents |
+|---|---|
+| `sweep` | id, name, tags, notes, **status**, metric, `seeds`, `successful_seeds`, `failed_seeds`, `requested_count`, `successful_count`, `failed_count` |
+| `configuration` | the template spec (seed/output_dir replaced per run), `seeds_requested`, overrides, embedded config file |
+| `code` / `data` / `environment` | the same provenance captured once for the whole sweep |
+| `statistics` | `metric`, `n`, per-seed `values`, `mean`, `spread`, `spread_kind`, `spread_definition`, `min`, `max` |
+| `runs` | per seed: status, `seed_used`, `metric_value`, `metric_source`, record path (relative), fingerprint, error |
+| `execution` | start/finish, duration, cwd, pid |
+
+`sweep.txt` holds a rendered human summary.
+
+### Mean and spread
+
+* **mean** — arithmetic mean of the values from the *usable* runs.
+* **spread** — **sample standard deviation**, `sqrt(Σ(xᵢ − mean)² / (n − 1))`, computed with
+  the standard library (`statistics`); NumPy is not needed for a mean and a stdev.
+* Spread is **undefined, and recorded as `null`, for fewer than two usable runs** — never
+  `0.0`. A single-run sweep reports `mean = that value`, `spread = null`.
+* **Spread is not a confidence interval**, and is never reported as one: no interval is
+  computed. The definition travels with the record in `statistics.spread_definition`.
+* Missing values are **never substituted with zero**.
+
+### Seed order does not matter
+
+The seed list is normalised (integers, validated range, de-duplicated, **sorted ascending**)
+before anything runs, statistics are computed over values sorted by seed, and the template
+spec is recorded with the first canonical seed. So `[1, 2, 3]` and `[3, 1, 2]` produce the
+same statistics and the same sweep fingerprint, while each run still records the seed it
+actually used.
+
+### Failure semantics
+
+* A seed that raises keeps its **failed experiment record** (written by the runner before it
+  re-raises), is listed in `failed_seeds` with its error type and message, and does **not**
+  stop the other seeds.
+* A seed counts as successful only if it ran **and** produced a numeric value for the
+  requested metric. A run that succeeded but has no such value is marked
+  `status="metric_missing"` and is counted as failed for aggregation.
+* Sweep status: `success` (all seeds usable), `partial` (some usable), `failed` (none
+  usable). A partial sweep never reports `success`, and a failed sweep reports
+  `mean = null`, `spread = null` instead of a misleading number.
+* `run_sweep(..., continue_on_error=False)` stops at the first failure (the sweep record is
+  still written, then the original exception is re-raised). The CLI always continues.
+
+### Reproducibility
+
+Running the same sweep twice with the same code, configuration, data and seed list
+reproduces the individual metric values, the per-run fingerprints, the aggregate statistics
+and the sweep **content fingerprint** — which, like the run fingerprint, excludes
+timestamps, duration, pid, cwd, output paths and log tails. Per-run record references in
+the aggregate are stored relative to the sweep directory for the same reason.
+
+### Metric resolution
+
+`--metric` / `metric=` is looked up in the run record's `results` first (dotted paths such
+as `eval.val_loss` work), and — for wrapped commands, whose `results` only contain
+`exit_code` and log tails — in the **last JSON object the command printed**, which is the
+convention `scripts/train.py --eval-only` and `scripts/evaluate.py` already use. Which
+source was used is recorded per run as `metric_source`. A command with no `{seed}`
+placeholder runs identically for every seed; the CLI warns about it.
+
+## 9. What determinism is actually verified here
 
 Measured on this branch (CPU, torch 2.14.0+cu130), two runs of the same spec, same seed,
 `tiny_training_experiment(steps=10)` — a real Project 001 `Trainer` run:
@@ -254,6 +364,14 @@ step 1 loss 3.9337 · step 10 loss 3.2253 · content fingerprint fec05faa136aca3
 
 and two runs of `reference_experiment` (synthetic corpus + CharTokenizer + python/numpy
 draws) → content fingerprint `b053048d589e2a50…` (equal).
+
+Sweeps are held to the same standard (measured 2026-09-10, EXP-004): a 5-seed sweep of a
+real Project 001 training run gave `mean 3.2626182`, `spread 0.0476365` over
+`final_val_loss`, and repeating it reproduced every per-run fingerprint, the statistics and
+the sweep fingerprint (`d8c2565c964ceb59…`). A 3-seed CLI sweep reproduced identically
+(`d4f498b9977a6f94…`) and produced the **same** fingerprint when its seeds were supplied in
+reverse order. A partial sweep (seed 2 exiting non-zero) reported `partial`, kept the failed
+seed's record, and averaged only the two usable runs (`n=2`).
 
 `pytest tests/test_experiments.py` covers: spec defaults/explicit/round-trip/invalid
 values/unknown keys/overrides, seeding stability and recorded limitations, git provenance
@@ -279,7 +397,7 @@ improve on that fixture. Nothing about the model or the training algorithm chang
 
 ---
 
-## 9. Module map
+## 10. Module map
 
 | file | responsibility |
 |---|---|
@@ -290,14 +408,16 @@ improve on that fixture. Nothing about the model or the training algorithm chang
 | `environment.py` | `capture_environment()`, `EXCLUDED_BY_POLICY` |
 | `record.py` | `ExperimentRecord` — sections, fingerprint, save/load/render |
 | `runner.py` | `run_experiment()`, `run_command()`, `ExperimentContext` |
+| `sweep.py` | `run_sweep()`, `run_command_sweep()`, `SweepRecord`, mean ± spread |
 | `examples.py` | reference experiments used by the docs and determinism tests |
 
 `examples.py` is intentionally **not** imported by the package `__init__` (it pulls in the
 training stack); import it directly when you need it.
 
-## 10. Not done (Stage 1 is infrastructure only)
+## 11. Not done (Stage 1 is infrastructure only)
 
-* Multi-seed sweeps (`mean ± spread`) and sweep orchestration — Stage 1/4 work (Q-8).
+* Multi-configuration (2-config) sweep orchestration — Stage 1/4 work (Q-8). Multi-seed
+  sweeps are implemented (§8); what is missing is sweeping *configurations*, not seeds.
 * An external experiment tracker / dashboard; records are plain JSON files on disk.
 * Comparable loss reporting: bits-per-byte / per-character normalization so a char-level
   and a BPE model can be compared fairly.

@@ -40,7 +40,10 @@ resume, sampling, JSONL metrics, 47 tests, CI example.
   directory with config, metrics, environment, and a one-line summary.
 - Fix loss/perplexity reporting to be comparable across tokenizers (bits per *byte* or
   per character, not just per token) so a char-level and a BPE model can be compared fairly.
-- Multi-seed support: report mean ± spread for any headline number.
+- Multi-seed support: report mean ± spread for any headline number. **Delivered
+  (2026-09-10, Stage 1A):** `run_sweep()` / `scripts/experiment_sweep.py` run one spec
+  across an explicit seed list, keep one full record per seed, and aggregate as
+  mean ± sample standard deviation (D-028).
 - Better smoke-test data: keep the synthetic corpus, add a small **real, clearly licensed**
   corpus for sanity checks.
 
@@ -63,17 +66,30 @@ runs unattended; every run directory is self-describing and diffable.
   the Project 001/002 CLI conventions.
 - No new dependencies (stdlib + existing torch/numpy). 31 new tests; Project 001 and 002
   suites unchanged in behaviour and still green.
-- Documented in [docs/experiments.md](docs/experiments.md); decisions **D-024…D-026**;
-  verification recorded as **EXP-003** (infrastructure verification, not a benchmark).
+- Documented in [docs/experiments.md](docs/experiments.md); decisions **D-024…D-028**;
+  verification recorded as **EXP-003** and **EXP-004** (infrastructure verification, not
+  benchmarks).
 - **Bug found and fixed in Project 001:** batch sampling called `torch.Generator.seed()`,
   which *re-seeds* from OS entropy rather than reading the seed, so training was not
   reproducible despite a fixed seed. Fixed; two identical runs now match exactly
   (`final_val_loss 3.24484`, equal content fingerprints).
 
+**What Project 003 Stage 1A added (2026-09-10): multi-seed sweeps**
+
+- `src/frontier_ai/experiments/sweep.py` + `scripts/experiment_sweep.py`: one spec across an
+  explicit seed list; **one full experiment record per seed** (own directory, own
+  fingerprint), plus a `sweep.json` aggregate with the seed list, successful/failed seeds,
+  per-seed metric values and fingerprints, mean and spread.
+- Spread = **sample standard deviation** (`n − 1`), `null` when undefined, never called a
+  confidence interval; missing values are never replaced by zero; status is
+  `success` / `partial` / `failed` so a lost seed can never be reported as success; the
+  aggregate is independent of seed order (D-028).
+- 25 new tests; stdlib `statistics` only — no new dependencies.
+
 **Still open before this stage can close** (deliberately not started):
 
-- Multi-seed sweeps: `mean ± spread` for headline numbers, and unattended 2-config sweeps
-  (the runner records one run at a time; no sweep orchestrator yet — **Q-8**).
+- Unattended **2-configuration** sweeps (the runner sweeps *seeds*, not configurations —
+  **Q-8**).
 - Bits-per-byte / per-character loss reporting so char-level and BPE models compare fairly.
 - Real, clearly licensed smoke-test corpora (needs Stage 3 data work).
 - Wiring the existing `scripts/train.py` and `scripts/tokenizer_*.py` entry points to write

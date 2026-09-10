@@ -392,6 +392,123 @@ models can be compared fairly. Do not start Project 004 on the basis of this ent
 `tests/test_experiments.py`, [docs/experiments.md](docs/experiments.md). Run directories
 are git-ignored; the records are regenerable with the commands above.
 
+### EXP-004 — Multi-seed sweeps: does the aggregate reproduce, and does it report spread honestly? ✅
+
+> **This entry validates infrastructure, not a model.** The loss numbers below are from an
+> 8–12 step run on a 35,552-parameter model over the synthetic smoke corpus. They are a
+> *test signal* for the sweep machinery — they say nothing about model quality, no
+> tokenizer or architecture decision is involved, and no scientific conclusion about
+> training is drawn from them.
+
+- **Status:** complete (infrastructure verification)
+- **Date:** 2026-09-10
+- **Objective:** verify the Stage 1A multi-seed sweep: that one specification executed
+  across several seeds keeps a full record per seed, aggregates a metric as
+  **mean ± spread**, is independent of seed order, reproduces when repeated, and reports
+  failures without hiding them.
+- **Hypothesis:** (a) identical sweeps reproduce exactly (per-run fingerprints, statistics
+  and sweep fingerprint); (b) the aggregate does not depend on the order seeds are supplied
+  in; (c) a failed seed keeps its failed record, is listed separately, and makes the sweep
+  `partial` rather than `success`; (d) with zero usable runs no mean or spread is reported;
+  (e) spread is the *sample* standard deviation and is `null` (not 0) when undefined.
+- **Baseline:** EXP-003 (single-run provenance). EXP-001/EXP-002 numbers must be unaffected.
+
+**Configuration**
+
+- Hardware: 2 CPU cores, 3 GB RAM, Python 3.11.2, torch 2.14.0+cu130, numpy (CPU only,
+  `train.num_threads=1`)
+- Sweep: experiment id `EXP-004`, metric `final_val_loss`, seeds `1,2,3,4,5` (Python API)
+  and `1,2,3` (CLI); statistics computed with the standard library `statistics` module
+- Work per seed: a real Project 001 `Trainer` run (2 layers, 2 heads, `n_embd=32`,
+  `block_size=32`, 8–12 steps, fp32, `num_threads=1`) on `data/synthetic.bin`
+- Code revision: dirty working tree on `arena/01a08a78-frontier-ai` (commit `0e5521d`);
+  records therefore show `reproducible_from_commit=false`, as designed (D-026)
+- Commands (exact):
+
+```bash
+# 1. Python API: 5-seed sweep of a real training run, executed twice
+python3 - <<'SCRIPT'   # (helper: /tmp/verify_sweep.py, not committed)
+from frontier_ai.experiments import ExperimentSpec, run_sweep
+from frontier_ai.experiments.examples import tiny_training_experiment
+spec = ExperimentSpec(experiment_id="EXP-004", seed=1, name="5-seed training sweep",
+                      output_dir="/tmp/exp004/sweep-a", data_paths=["data/synthetic.bin"],
+                      config_path="configs/cpu_smoke.json")
+run_sweep(spec, [1, 2, 3, 4, 5],
+          lambda ctx: dict(tiny_training_experiment(ctx, steps=8)), "final_val_loss")
+SCRIPT
+
+# 2. CLI: 3-seed sweep of a per-seed training command, twice, and once in reverse order
+python scripts/experiment_sweep.py --exp-id EXP-004 --seeds 1,2,3 \
+    --metric final_val_loss --name "cli training sweep" --out /tmp/exp004/cli-a \
+    --data data/synthetic.bin --tag project-001 --quiet -- \
+    python3 /tmp/seed_train.py "{seed}"
+
+# 3. CLI: partial failure (seed 2 exits 3)
+python scripts/experiment_sweep.py --exp-id EXP-004 --seeds 1,2,3 \
+    --metric final_val_loss --out /tmp/exp004/partial2 --data data/synthetic.bin --quiet -- \
+    python3 -c "import sys, subprocess; seed=int(sys.argv[1]); sys.exit(3) if seed==2 else \
+        subprocess.run([sys.executable, '/tmp/seed_train.py', str(seed)], check=True)" "{seed}"
+```
+
+`/tmp/seed_train.py` is a local (uncommitted) helper that trains the same tiny model with the
+seed given on its command line and prints `{"final_val_loss": ...}` — it exists only to give
+the CLI something real to sweep.
+
+**Metrics**
+
+| check | expected | observed | verdict |
+|---|---|---|---|
+| 5-seed training sweep (Python API) | 5 usable runs, mean ± spread reported | mean **3.2626182**, spread **0.0476365** (sample stdev), range 3.213519 … 3.328338 | pass |
+| same sweep repeated | identical per-run fingerprints, statistics and sweep fingerprint | per-run fingerprints equal, statistics equal, sweep fingerprint `d8c2565c964ceb59…` both | pass |
+| CLI sweep × 2 | identical aggregate | mean 3.1639953, spread 0.0653497, fingerprint `d4f498b9977a6f94…` both | pass |
+| CLI sweep, seeds `3,2,1` vs `1,2,3` | identical aggregate | same mean, spread **and** sweep fingerprint `d4f498b9977a6f94…` | pass |
+| per-seed values | each run records the seed it used | seed 1: 3.262067 · 2: 3.287883 · 3: 3.221284 · 4: 3.328338 · 5: 3.213519 | pass |
+| individual records | one full record per seed | `seed-0000000001…0000000005/experiment.json`, each with git/data/environment/configuration/randomness and its own fingerprint | pass |
+| partial failure (seed 2 exits 3) | `partial`, failed record kept, others continue | status `partial`, successful `[1, 3]`, failed `[2]`, `n=2`, mean 3.1636875, spread 0.0924153, CLI exit code **2**; `seed-0000000002/experiment.json` exists with `status=failed` and the `CalledProcessError` | pass |
+| all seeds failing | no mean, no spread | status `failed`, `mean=null`, `spread=null`, note says "null, not zero"; CLI exit code **1** | pass (test suite + CLI run) |
+| missing / non-numeric metric | never substituted with zero | run marked `metric_missing`, `metric_value=null`, counted as failed; sweep becomes `partial` | pass |
+| one-seed sweep | mean = that value, spread undefined | `spread=null` with an explanatory note | pass |
+| spread definition | `n − 1` denominator | equals `statistics.stdev`, differs from `statistics.pstdev`; definition text states it is not a confidence interval | pass |
+| Project 001 / 002 regression | unchanged | `pytest -q` → **145 passed**; `ruff check .` clean; EXP-002 metrics re-verified unchanged | pass |
+
+**Results:** The sweep machinery behaves as specified. Seed-to-seed variation in
+`final_val_loss` on this 8-step toy run is small but real (spread ≈ 0.048 around a mean of
+3.263, i.e. ~1.5%), which is exactly the kind of number a single-seed run cannot show.
+
+**Observations:**
+
+- Both sweeps ran on a **dirty** working tree, so their records honestly state
+  `reproducible_from_commit=false`. The numbers above are evidence about the *machinery*,
+  not a claim that anyone can reproduce them from a commit.
+- Order-independence required normalising the recorded template spec: the sweep embeds the
+  base spec with the **first canonical** (smallest) seed. Before that, `[1,2,3]` and
+  `[3,1,2]` differed in `configuration.spec.seed` and produced different fingerprints — the
+  same class of bug as the Project 001 generator bug: metadata that varies without changing
+  the experiment.
+- Command-mode runs only record `exit_code` and log tails, so `--metric` additionally reads
+  the last JSON object the command printed (the convention `scripts/train.py --eval-only`
+  and `scripts/evaluate.py` already use); the source used is recorded per run as
+  `metric_source` (`stdout_json` in these sweeps).
+- Spread from `n = 2` or `n = 3` seeds is a rough dispersion estimate. The implementation
+  deliberately does **not** convert it into a confidence interval, which would assume
+  normality we have not tested.
+
+**Conclusion:** Hypothesis confirmed on all five points. Multi-seed sweeps now make
+seed-sensitivity measurable and reproducible, and the aggregate cannot silently hide a lost
+seed. This is Stage 1 item 1 of 4; items 2–4 (2-config sweeps, bits-per-byte reporting, real
+licensed corpora) are untouched.
+
+**Next action:** use a sweep for any number that will be quoted as a headline result
+(`--seeds 1,2,3,4,5`), and treat `spread` as a dispersion estimate, not an error bar. Then
+continue Stage 1 with item 2 (unattended 2-config sweeps, **Q-8**). Do not start Project 004
+on the basis of this entry.
+
+**Artifacts:** `/tmp/exp004/sweep-a/sweep.json` (+ `sweep.txt` and one
+`seed-*/experiment.json` per seed), `/tmp/exp004/cli-a/sweep.json`,
+`/tmp/exp004/partial2/sweep.json`, `tests/test_sweeps.py`,
+[docs/experiments.md §8](docs/experiments.md). Run directories are git-ignored; the sweeps
+are regenerable with the commands above.
+
 ## 5. Log index
 
 | ID | Title | Status | Date | Key metric |
@@ -399,6 +516,7 @@ are git-ignored; the records are regenerable with the commands above.
 | EXP-001 | CPU smoke test: end-to-end pipeline verification | complete | 2026-09-10 | val loss 3.93 → 1.378 (ppl 3.97) on synthetic corpus |
 | EXP-002 | Tokenizer baselines on the Indian-language probe fixture | complete | 2026-09-10 | lossless byte-BPE (0 round-trip failures) vs char 128/179 and word 160/179 failures; en 1.83 vs pa 0.80 chars/token |
 | EXP-003 | **Infrastructure verification** (not a benchmark): does the experiment record reproduce runs? | complete | 2026-09-10 | identical runs → identical fingerprints (`f54881c68513f295…` twice, `best_val=2.9223`); EXP-002 metrics reproduce exactly; a Project 001 determinism bug found and fixed |
+| EXP-004 | **Infrastructure verification** (not a benchmark): do multi-seed sweeps reproduce and report spread honestly? | complete | 2026-09-10 | 5 seeds: mean 3.2626 ± 0.0476 (sample stdev); repeated and reversed-order sweeps give identical fingerprints `d4f498b9977a6f94…`; partial failure → `partial` + exit 2 |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -460,6 +578,22 @@ cat out/experiments/EXP-003-same/experiment.json
 ```
 
 Run it twice: the `fingerprint` in the last line of the output must be identical across the
-two runs. This is recorded here because the rules require every run to be logged — it
+two runs.
+
+**EXP-004 (multi-seed sweeps)**
+
+```bash
+. .venv/bin/activate
+python scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
+python scripts/experiment_sweep.py --exp-id EXP-004 --seeds 1,2,3,4,5 \
+    --metric final_val_loss --data data/synthetic.bin --out out/sweeps/EXP-004 -- \
+    python my_per_seed_command.py --seed "{seed}"   # must print JSON with final_val_loss
+cat out/sweeps/EXP-004/sweep.json                   # mean, spread, per-seed values
+ls out/sweeps/EXP-004/seed-*/experiment.json        # one full record per seed
+```
+
+Run it twice (and once with the seeds in reverse order): `mean`, `spread` and the sweep
+`fingerprint` must be identical every time. Add a seed that exits non-zero to see
+`status=partial` with exit code 2 and the failed seed's own record preserved. This is recorded here because the rules require every run to be logged — it
 verifies the *infrastructure*, not model quality. Its own record will show `dirty=true`
 whenever the working tree is dirty; that is the point, not a defect.

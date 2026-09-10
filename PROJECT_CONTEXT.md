@@ -23,9 +23,10 @@ data) is NOT done.**
 - **Project 003** = reproducible experiment infrastructure (`src/frontier_ai/experiments/`):
   experiment specs, one seeding mechanism with documented limits, git/data/environment
   provenance, a JSON experiment record with a content fingerprint, a runner with a
-  validate → record lifecycle, and `scripts/experiment_record.py`. Documented in
-  [docs/experiments.md](docs/experiments.md); validation recorded as **EXP-003**
-  (infrastructure verification, *not* a benchmark).
+  validate → record lifecycle, `scripts/experiment_record.py`, and multi-seed sweeps
+  (one record per seed + a mean ± spread aggregate, `scripts/experiment_sweep.py`).
+  Documented in [docs/experiments.md](docs/experiments.md); validation recorded as
+  **EXP-003** and **EXP-004** (infrastructure verification, *not* benchmarks).
 - All three are committed on branch `arena/01a08a78-frontier-ai` and open as **PR #1**
   against `main`. PR #1 is **not merged** — the human merges it.
 - The most likely next steps are finishing ROADMAP Stage 1 (multi-seed sweeps with
@@ -39,6 +40,10 @@ data) is NOT done.**
   [DECISIONS.md](DECISIONS.md), [EXPERIMENTS.md](EXPERIMENTS.md),
   [docs/tokenization.md](docs/tokenization.md), [docs/experiments.md](docs/experiments.md)
   and [README.md](README.md).
+- Report any headline number as **mean ± spread over seeds** (D-028), not as a single
+  lucky run: `python scripts/experiment_sweep.py --exp-id EXP-00N --seeds 1,2,3,4,5
+  --metric <field> -- <command with {seed}>`. Spread is the sample standard deviation and
+  is `null` (never zero) when fewer than two runs are usable.
 - Record any new number through an experiment record (`scripts/experiment_record.py`) so
   the run carries its own code/data/seed/environment provenance.
 - Record any experiment you run in [EXPERIMENTS.md](EXPERIMENTS.md) using the standard
@@ -199,9 +204,17 @@ difference is measured, not assumed — see EXP-002.
   passes its seeded generator); two identical runs now give bit-identical results
   (`final_val_loss 3.24484`, equal fingerprints). Reproducibility is only claimed under a
   recorded environment, not across machines, versions or thread counts.
+- **Stage 1A (multi-seed sweeps):** `sweep.py` + `scripts/experiment_sweep.py` run one spec
+  across an explicit seed list. Each seed keeps its own full record under
+  `seed-<seed>/experiment.json`; the aggregate (`sweep.json`) carries the seed list,
+  per-seed values and fingerprints, mean and **sample** standard deviation. Sample
+  standard deviation is used because sweeps here are small (`n` of 3–5); it is `null` when
+  undefined, is never called a confidence interval, and missing values are never replaced
+  by zero. Status is `success` / `partial` / `failed`, so a lost seed can never be reported
+  as a success. The aggregate is independent of the order seeds were supplied in.
 
-Full details: [docs/experiments.md](docs/experiments.md) · decisions **D-024…D-026** ·
-validation **EXP-003**.
+Full details: [docs/experiments.md](docs/experiments.md) · decisions **D-024…D-028** ·
+validation **EXP-003** and **EXP-004**.
 
 ## 7. Current repository structure
 
@@ -223,6 +236,7 @@ scripts/
     tokenizer_evaluate.py         evaluate artifact(s) -> JSON metrics per tokenizer
     tokenizer_compare.py          compare 2+ artifacts on the same corpus -> JSON + table
     experiment_record.py       Project 003: record provenance for any experiment command
+    experiment_sweep.py        Project 003: run one experiment across seeds, aggregate
 src/frontier_ai/
     config.py                 dataclass configs, JSON load/save, --set overrides, validation
     data/
@@ -249,6 +263,7 @@ src/frontier_ai/
         environment.py          selected environment metadata (no env dumps)
         record.py               ExperimentRecord: sections, fingerprint, save/load/render
         runner.py               run_experiment / run_command lifecycle
+        sweep.py                run_sweep / run_command_sweep: one record per seed + aggregate
         examples.py             reference experiments used by docs + determinism tests
     engine/
         trainer.py            the training loop
@@ -264,6 +279,7 @@ tests/
     test_engine.py            schedules, checkpoint round-trips, config overrides
     test_train_smoke.py       end-to-end train / resume / sample / accumulation
     test_experiments.py       Project 003: spec, seeding, git, hashing, record, runner, CLI
+    test_sweeps.py            Project 003: multi-seed sweeps, statistics, failures, CLI
     test_repo_hygiene.py      no source file may be git-ignored (D-023)
 PROJECT_CONTEXT.md            this file
 ROADMAP.md                    staged plan from here to frontier scale
@@ -455,7 +471,7 @@ orthography category, with multi-tokenizer comparison. See
 | Precision | only fp32 has actually run; bf16/fp16 paths are written but unexercised |
 | Sampling | temperature + top-k + top-p only; no repetition penalty, no batch generation, no stop tokens (no EOS in the tokenizer) |
 | Evaluation | loss/perplexity on the training corpus distribution; no benchmarks, no task eval, no human eval |
-| Experiment tooling | **Project 003 infrastructure exists** (specs, seeding with recorded limits, git/data/env provenance, JSON records with fingerprints, runner + `scripts/experiment_record.py`); model-training sweeps, multi-seed support (mean ± spread), bits-per-byte reporting, an ablation runner and a tracker (WandB/TensorBoard) still do not exist; the Project 001/002 entry points do not write records themselves (the CLI wraps them) |
+| Experiment tooling | **Project 003 infrastructure exists**: specs, seeding with recorded limits, git/data/env provenance, JSON records with fingerprints, a runner (`scripts/experiment_record.py`) and **multi-seed sweeps** (mean ± sample standard deviation, `scripts/experiment_sweep.py`); 2-configuration sweeps, bits-per-byte reporting, an ablation runner and a tracker (WandB/TensorBoard) still do not exist; the Project 001/002 entry points do not write records themselves (the CLI wraps them) |
 | CI | workflow committed as `docs/ci.yml.example`; it has never run on GitHub Actions (the App used to push lacks the `workflows` permission) |
 | Post-training | none: no SFT, preference optimization, reasoning, or safety work |
 | Reproducibility | runs are reproducible **under a recorded environment only** (same code, data, seed, command, library versions, thread count). cuDNN, thread-dependent FP order and RNGs outside python/numpy/torch are not covered — every record states this (D-025) |
@@ -512,7 +528,7 @@ results at the current size (see [ROADMAP.md](ROADMAP.md)).
 ```bash
 python -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]"                       # CPU torch; the PyTorch CDN may be blocked (see D-012)
-pytest -q                                     # 120 tests, ~20 s
+pytest -q                                     # 145 tests, ~30 s
 ruff check .                                  # lint
 python scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
 python scripts/train.py --config configs/cpu_smoke.json                     # ~10 s, val loss 3.9 -> ~1.38
@@ -533,6 +549,13 @@ python scripts/experiment_record.py --exp-id EXP-003 --seed 1337 \
     --config configs/cpu_smoke.json --data data/synthetic.bin \
     --out out/experiments/EXP-003-train -- \
     python scripts/train.py --config configs/cpu_smoke.json --max-steps 50
+
+# multi-seed sweep: mean +/- spread over seeds (Project 003 Stage 1A)
+python scripts/experiment_sweep.py --exp-id EXP-004 --seeds 1,2,3,4,5 \
+    --metric final_val_loss --config configs/cpu_smoke.json --data data/synthetic.bin \
+    --out out/sweeps/EXP-004 -- \
+    python scripts/train.py --config configs/cpu_smoke.json --max-steps 50 \
+        --set train.seed={seed}
 ```
 
 ## 19. Conventions for future agents

@@ -614,7 +614,89 @@ commit — the flag says so. CI and release runs should still be clean.
 **Revisit when:** we need release-grade provenance (then fail the run on dirty, as a
 policy *above* this layer, not inside it).
 
+## D-027 — Environment provenance is a selected field set, never an environment dump
+
+**Status:** accepted (2026-09-10, Project 003; implemented since Stage 1 and recorded here
+retroactively — `src/frontier_ai/experiments/environment.py` already refers to this ID)
+
+**Decision:** `capture_environment()` records a deliberately small, stable set of fields:
+python version and implementation, platform/system/release/machine, the versions of the
+packages that can plausibly change a numerical result (`torch`, `numpy`, `tokenizers`,
+`frontier-ai`), and a torch section (version, CUDA availability, device count, thread
+count). Hostname, username, environment variables and full `pip freeze` output are
+excluded, and the exclusions are themselves recorded in the artifact as
+`excluded_by_policy` so that a reader can see they were deliberate.
+
+**Rationale:** A record is read by humans and diffed by machines. Environment dumps are
+noisy, change between runs on the same machine, leak information about the user, and make
+two otherwise identical records look different — which destroys the value of a content
+fingerprint. The fields that remain are exactly the ones needed to answer "could this
+difference be a version or thread-count effect?".
+
+**Alternatives considered:** recording `pip freeze` (rejected: hundreds of irrelevant lines
+per record); recording the whole `os.environ` (rejected: leaks secrets and varies with the
+shell); recording nothing (rejected: version and thread-count effects are the most common
+cause of "it doesn't reproduce").
+
+**Consequences:** If a result depends on something outside the recorded fields (a BLAS
+library, a driver version, an env var), the record will not show it. That is accepted
+boundedness, consistent with D-025 — and the fix is to add one more selected field, not to
+start dumping environments.
+
+**Revisit when:** a real reproducibility failure is traced to something outside the recorded
+fields, or when GPU runs need driver/CUDA-runtime detail that `torch` does not expose.
+
+## D-028 — Multi-seed sweeps: one record per seed, sample standard deviation as spread
+
+**Status:** accepted (2026-09-10, Project 003 Stage 1A)
+
+**Decision:** A sweep (`src/frontier_ai/experiments/sweep.py`,
+`scripts/experiment_sweep.py`) runs one `ExperimentSpec` across an explicit list of seeds
+and writes **both** one normal experiment record per seed (`seed-<seed>/experiment.json`,
+with full git/data/environment/configuration provenance and its own content fingerprint)
+**and** an aggregate `sweep.json` (schema `1.0`). Specifically:
+
+* **Spread is the sample standard deviation** (`n − 1` denominator), computed with the
+  standard library. It is recorded as `null` — never `0` — when fewer than two runs are
+  usable, and it is **not** reported as a confidence interval, because none is computed.
+* **A seed counts as usable only if it ran and produced a numeric value** for the requested
+  metric. Missing or non-numeric values are never replaced by zero.
+* **Sweep status is `success` / `partial` / `failed`**, so a sweep that lost a seed can never
+  report success.
+* **Seed order does not matter:** the seed list is validated, de-duplicated and sorted
+  before anything runs, values are aggregated in seed order, and the template spec is
+  recorded with the first canonical seed. `[1, 2, 3]` and `[3, 1, 2]` give the same
+  aggregate and the same sweep fingerprint.
+* Seeds run in **separate directories**, so they cannot overwrite each other's outputs.
+
+**Rationale:** The roadmap asks for "mean ± spread" on headline numbers. Aggregating in a
+way that hides individual runs would make the aggregate unverifiable; reporting a
+population standard deviation would understate dispersion for small `n`; and calling it a
+confidence interval would claim a coverage we never compute. Keeping one record per seed
+also means a sweep costs nothing in provenance terms compared with running the seeds by
+hand.
+
+**Alternatives considered:** collapsing the runs into a single aggregate record (rejected:
+loses per-seed provenance and the per-seed fingerprints that make the aggregate checkable);
+population standard deviation (rejected: biased low for the 3–5 seed sweeps we can afford);
+reporting a 95% CI from a t-distribution (rejected as over-claiming at these sample sizes —
+a t-interval on 3 seeds assumes normality we have not tested); NumPy for the statistics
+(rejected: `statistics.fmean`/`stdev` are sufficient and the project favours stdlib where
+it is enough — D-024); stopping the sweep at the first failure (kept available as
+`continue_on_error=False`, but not the default: an expensive sweep should not be lost to
+one bad seed, as long as the failure is visible).
+
+**Consequences:** The mean of a partial sweep is computed over a subset of the requested
+seeds; readers must look at `successful_count` and `failed_seeds`. Spread from three seeds
+is a rough dispersion estimate, not an inferential statistic — conclusions that need
+tight error bars require more seeds than this repository's CPU budget allows so far.
+
+**Revisit when:** we run sweeps large enough (`n >= 10`) for interval estimates to be
+meaningful, or when a sweep over *configurations* (Q-8) needs a shared aggregation layer
+with this one.
+
 ## Open items to decide later (not yet decisions)
+
 
 | ID | Question | Deferred to |
 |---|---|---|
