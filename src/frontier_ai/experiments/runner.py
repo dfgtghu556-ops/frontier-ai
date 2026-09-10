@@ -16,16 +16,25 @@ looks like a success.
 The runner is usable from Python (:func:`run_experiment`) and from the CLI
 (:func:`run_command`, exposed by ``scripts/experiment_record.py``). Neither requires any
 change to Project 001 or Project 002 — they are just commands or callables wrapped here.
+
+Nested runs
+-----------
+Project 001/002 CLIs can also record themselves (``frontier_ai.experiments.autowire``).
+To keep one run = one record, the runner exports the active run directory through
+:data:`EXPERIMENT_ENV_VAR` while the body executes — subprocesses inherit it — and a
+self-recording script that sees it writes no record of its own. The **outer** run owns
+the record (D-032).
 """
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import subprocess
 import time
 import traceback
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
@@ -38,6 +47,38 @@ from .seeding import DEFAULT_COMPONENTS, seed_everything
 from .spec import ExperimentSpec
 
 OUTPUT_TAIL_LINES = 20
+
+# Nested runs: a script that can record itself needs to know when it is already
+# inside a run (scripts/experiment_record.py, a sweep, a Python caller), so one run
+# never produces two records. The runner exports the active run's directory through
+# this variable for the duration of the experiment body; child processes inherit it.
+# Ownership rule (D-032): the **outer** run owns the record.
+EXPERIMENT_ENV_VAR = "FRONTIER_AI_EXPERIMENT_DIR"
+
+
+def active_experiment_dir() -> Path | None:
+    """Directory of the experiment currently in progress, if any."""
+    value = os.environ.get(EXPERIMENT_ENV_VAR, "")
+    return Path(value) if value else None
+
+
+def experiment_is_active() -> bool:
+    """True when this process is already running inside an experiment lifecycle."""
+    return active_experiment_dir() is not None
+
+
+@contextlib.contextmanager
+def _activated(output_dir: str | Path) -> Iterator[None]:
+    """Export the active run's directory for the duration of the body (and children)."""
+    previous = os.environ.get(EXPERIMENT_ENV_VAR)
+    os.environ[EXPERIMENT_ENV_VAR] = str(Path(output_dir).resolve())
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop(EXPERIMENT_ENV_VAR, None)
+        else:
+            os.environ[EXPERIMENT_ENV_VAR] = previous
 
 
 @dataclass
@@ -165,8 +206,14 @@ def run_experiment(
     status = "success"
     error: dict[str, Any] | None = None
     try:                                                             # 7. execute
-        results = dict(experiment_fn(ctx) or {})
-    except Exception as exc:                                         # 8/9. capture + re-raise
+        with _activated(out_dir):
+            results = dict(experiment_fn(ctx) or {})
+    # BaseException, not Exception: a CLI body that calls sys.exit() (or a Ctrl-C) must
+    # still produce a *failed* record. Catching only Exception here would let SystemExit
+    # fall through to the finally block, which would then write status="success" for a
+    # run that never completed - exactly the silent success this lifecycle exists to
+    # prevent. The exception is re-raised either way.
+    except BaseException as exc:                                      # 8/9. capture + re-raise
         status = "failed"
         error = {
             "type": type(exc).__name__,

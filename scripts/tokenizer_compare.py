@@ -21,6 +21,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from frontier_ai.experiments import ExperimentSpec  # noqa: E402
+from frontier_ai.experiments.autowire import run_self_recorded, stable_results  # noqa: E402
 from frontier_ai.tokenization.cli import (  # noqa: E402
     corpus_meta,
     load_tokenizer_artifacts,
@@ -41,6 +43,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--out", default="out/tokenizer/compare.json", help="output JSON path")
     p.add_argument("--exp-id", default="EXP-000", help="experiment id recorded in each report")
     p.add_argument("--quiet", action="store_true", help="write the JSON without printing the table")
+    p.add_argument("--no-record", action="store_true",
+                   help="do not write an experiment record for this run")
     return p.parse_args()
 
 
@@ -50,36 +54,72 @@ def main() -> int:
         raise SystemExit("[compare] provide at least two --tokenizer artifacts")
 
     corpus_dir = resolve_corpus_dir(args.corpus)
-    examples, manifest = load_corpus(corpus_dir)
-    loaded = load_tokenizer_artifacts(args.tokenizer, args.label)
-    labels = [label for label, _, _ in loaded]
 
-    reports = [
-        evaluate_tokenizer(
-            tokenizer,
-            examples,
-            manifest,
-            experiment_id=args.exp_id,
-            tokenizer_meta={
-                "artifact_dir": str(art.artifact_dir or ""),
-                "train_params": art.train_params,
-                "impl_version_recorded": art.impl_version,
-            },
+    def body() -> dict:
+        examples, manifest = load_corpus(corpus_dir)
+        loaded = load_tokenizer_artifacts(args.tokenizer, args.label)
+        labels = [label for label, _, _ in loaded]
+
+        reports = [
+            evaluate_tokenizer(
+                tokenizer,
+                examples,
+                manifest,
+                experiment_id=args.exp_id,
+                tokenizer_meta={
+                    "artifact_dir": str(art.artifact_dir or ""),
+                    "train_params": art.train_params,
+                    "impl_version_recorded": art.impl_version,
+                },
+            )
+            for label, tokenizer, art in loaded
+        ]
+
+        comparison = build_comparison(reports, labels=labels, corpus=corpus_meta(corpus_dir))
+        out_path = Path(args.out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(
+            json.dumps(comparison, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
-        for label, tokenizer, art in loaded
-    ]
 
-    comparison = build_comparison(reports, labels=labels, corpus=corpus_meta(corpus_dir))
-    out_path = Path(args.out)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(comparison, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        if not args.quiet:
+            print(render_comparison(comparison))
+            print()
+        print(
+            f"[compare] corpus={manifest.corpus_id}-{manifest.corpus_version} "
+            f"examples={manifest.n_examples}"
+        )
+        print(f"[compare] wrote {out_path}")
+        stable = stable_results(comparison)
+        return {
+            "corpus_id": manifest.corpus_id,
+            "corpus_version": manifest.corpus_version,
+            "n_examples": manifest.n_examples,
+            "labels": labels,
+            "rows": stable["rows"],
+            "best": stable.get("best", {}),
+            "disqualified": stable.get("disqualified", []),
+            "comparison_path": str(out_path),
+        }
 
-    if not args.quiet:
-        print(render_comparison(comparison))
-        print()
-    print(f"[compare] corpus={manifest.corpus_id}-{manifest.corpus_version} examples={manifest.n_examples}")
-    print(f"[compare] wrote {out_path}")
-    return 0
+    if args.no_record:
+        body()
+        return 0
+
+    # a comparison is a measurement, not just an artifact: record it with the corpus and
+    # every tokenizer artifact it read as inputs.
+    def build_spec() -> ExperimentSpec:
+        return ExperimentSpec(
+            experiment_id=args.exp_id,
+            seed=1337,
+            name="tokenizer comparison",
+            output_dir=str(Path(args.out).parent or "."),
+            params={"corpus": args.corpus, "tokenizers": list(args.tokenizer)},
+            data_paths=[str(corpus_dir), *[str(t) for t in args.tokenizer]],
+            command=list(sys.argv),
+            tags=["project-002", "comparison"],
+        )
+    return run_self_recorded(build_spec, body).exit_code()
 
 
 if __name__ == "__main__":

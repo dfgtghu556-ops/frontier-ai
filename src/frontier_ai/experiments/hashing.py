@@ -23,6 +23,11 @@ Documented rules
 * **Directories**: expanded recursively to files only; empty directories contribute
   nothing.
 * **Symlinks**: ignored (never followed), reported under ``skipped``.
+* **Records are not data** (D-033): expanding a *directory* skips the experiment record
+  files an earlier recorded run wrote (``experiment.json`` / ``experiment.txt``). They are
+  generated output, not source data, and they carry timestamps - hashing them would make
+  every downstream fingerprint depend on *when* the upstream run happened. A record named
+  explicitly in ``data_paths`` is still hashed: that is declared intent.
 * **Missing input**: raises :class:`FileNotFoundError` naming the path. We never silently
   hash an incomplete dataset.
 * **Empty input list**: raises :class:`ValueError` — an experiment with no inputs must say
@@ -36,6 +41,7 @@ import hashlib
 import os
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 # Canonical implementations (Project 002). Re-exported, not reimplemented.
@@ -78,10 +84,23 @@ class DataDigest:
         }
 
 
+@lru_cache(maxsize=1)
+def _record_file_names() -> frozenset[str]:
+    """Names of the files a recorded run writes (D-033).
+
+    Imported lazily because :mod:`frontier_ai.experiments.record` imports this module, so
+    importing it at module scope here would be circular.
+    """
+    from .record import RECORD_FILENAME
+
+    return frozenset({RECORD_FILENAME, Path(RECORD_FILENAME).with_suffix(".txt").name})
+
+
 def _collect(paths: Sequence[str | Path]) -> tuple[list[Path], list[str]]:
     """Expand inputs to a de-duplicated list of files (symlinks skipped)."""
     found: dict[str, Path] = {}
     skipped: list[str] = []
+    record_names = _record_file_names()
 
     for raw in paths:
         path = Path(raw)
@@ -95,6 +114,8 @@ def _collect(paths: Sequence[str | Path]) -> tuple[list[Path], list[str]]:
             continue
         if path.is_dir():
             for child in sorted(path.rglob("*")):
+                if child.name in record_names and child.is_file():
+                    continue                      # generated output, not source data
                 if child.is_symlink():
                     skipped.append(str(child))
                 elif child.is_file():

@@ -874,6 +874,80 @@ data pipeline, which should reuse this manifest's provenance shape.
 
 ---
 
+## D-032 — Experiment-record ownership: the outer run owns the record, and scripts record themselves by default
+
+**Status:** accepted (2026-09-11, Project 003 Stage 1, item 4)
+
+**Decision:** the Project 001/002 CLIs (`scripts/train.py`, `scripts/tokenizer_*.py`) write
+their own standard experiment record through the **existing** lifecycle — no second
+framework — with these two rules:
+
+1. **Ownership.** A script records itself only when it is *not* already inside a run. The
+   runner exports `FRONTIER_AI_EXPERIMENT_DIR` while a body executes, subprocesses inherit
+   it, and a nested script writes no record (`[record] nested inside <dir>; the outer run
+   owns the experiment record` on stderr). So `python scripts/train.py …` records itself,
+   while `python scripts/experiment_record.py … -- python scripts/train.py …` produces
+   exactly **one** record — the wrapper's, whose captured stdout still shows the training
+   metrics.
+2. **Activation.** Recording is default-on for **artifact-producing** runs only. Training
+   records; `--print-model` and `--eval-only` do not (they produce no artifacts), and any
+   script has an explicit `--no-record`. Experiment ids default to `EXP-000` on the
+   scripts that had no `--exp-id`, which is the id the record schema requires.
+
+**Rationale:** the wrapper (`experiment_record.py`) can wrap *any* command, but nothing
+recorded a plain `python scripts/train.py`, which is how these scripts are actually used.
+Wiring them naively would double-record every wrapped run — two records for one run, with
+the inner one invisible to the wrapper. Ownership by the outer run keeps "one run, one
+record" true by construction.
+
+**Alternatives rejected:** (a) scripts never record, only the wrapper does — leaves
+direct invocations unrecorded; (b) scripts always record, wrapper suppresses — the wrapper
+cannot suppress a subprocess's side effects; (c) a per-script record format — rejected
+outright, it would fork the lifecycle and the fingerprint definition.
+
+**Consequences:** there is a new module, `frontier_ai.experiments.autowire`, but it is an
+adapter over `run_experiment` (≈100 lines) rather than a parallel implementation. Failure
+semantics are the runner's: a body that raises produces a `status: "failed"` record and a
+non-zero exit (now also for `SystemExit`, which previously would have fallen through and
+been written as a *success*). Input validation happens before the lifecycle, so a missing
+declared input exits 1 with `[record] FAILED — ExperimentInputError: …` and no record: the
+record would have had to hash inputs that are not there. An experiment id that predates
+the `EXP-<3+ digits>` rule (e.g. `--exp-id EXP-TEST`, used in the Project 002 tests) is not
+recordable, so the run keeps its old behaviour and says `[record] SKIPPED — …`.
+
+**Revisit when:** a script other than a CLI needs to record itself, or a run legitimately
+needs two records (which would mean "run" is the wrong unit).
+
+---
+
+## D-033 — An experiment record inside an input directory is not part of that input's digest
+
+**Status:** accepted (2026-09-11, Project 003 Stage 1, item 4)
+
+**Decision:** when hashing a **directory** of experiment inputs, the files a recorded run
+writes (`experiment.json`, `experiment.txt`) are skipped. A record named explicitly in
+`data_paths` is still hashed — that is declared intent.
+
+**Rationale:** once the CLIs record themselves, the directories that later runs consume
+(corpora, tokenizer artifacts) contain a record whose `started_at`/`finished_at`
+timestamps change on every rebuild. Hashing them would make every downstream fingerprint
+depend on *when* the upstream run happened, which is exactly what a content fingerprint
+exists to ignore. It also matches the rule `hashing.py` already documents: "generated
+output is never hashed as a stand-in for source data" — a record is generated output.
+
+**Alternatives rejected:** (a) hash everything — reintroduces timestamp noise; (b) make the
+downstream scripts list every input file explicitly — brittle, and it would miss the
+artifact's model bytes; (c) strip timestamps from the record before hashing — that is a
+different, weaker guarantee than "do not hash generated output".
+
+**Consequences:** a directory digest can stay stable while a record inside it changes, so
+"the digest changed" now reliably means "the data changed". Records are invisible to
+directory digests unless asked for by name.
+
+**Revisit when:** record files start carrying data that a downstream run genuinely reads.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

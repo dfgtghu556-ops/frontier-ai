@@ -18,6 +18,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from frontier_ai.experiments import ExperimentSpec  # noqa: E402
+from frontier_ai.experiments.autowire import run_self_recorded  # noqa: E402
 from frontier_ai.tokenization.corpus import (  # noqa: E402
     CATEGORIES,
     LANGUAGES,
@@ -37,31 +39,67 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--english-chars", type=int, default=40_000, help="chars of synthetic English training text"
     )
+    p.add_argument("--exp-id", default="EXP-000", help="experiment id for the automatic record")
+    p.add_argument("--no-record", action="store_true",
+                   help="do not write an experiment record for this run")
     return p.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    manifest = write_corpus(
-        args.out,
-        seed=args.seed,
-        sentences_per_language=args.sentences_per_language,
-        english_chars=args.english_chars,
-    )
-    print(
-        f"[corpus] wrote {args.out}/train.txt "
-        f"({manifest.train_chars:,} chars, {manifest.train_lines:,} lines) "
-        f"and eval.jsonl ({manifest.n_examples} examples)"
-    )
-    print(f"[corpus] languages={len(LANGUAGES)} probe_categories={len(CATEGORIES)} seed={manifest.seed}")
-    print(f"[corpus] train_sha256={manifest.train_sha256[:16]}… eval_sha256={manifest.eval_sha256[:16]}…")
-    print(
-        "[corpus] WARNING: this is a hand-written probe fixture. It does NOT represent the "
-        "statistical distribution of any language."
-    )
-    if args.out:
-        print(json.dumps({"corpus_dir": str(Path(args.out)), **manifest.to_dict()}, indent=2))
-    return 0
+
+    def body() -> dict:
+        manifest = write_corpus(
+            args.out,
+            seed=args.seed,
+            sentences_per_language=args.sentences_per_language,
+            english_chars=args.english_chars,
+        )
+        report = manifest.to_dict()
+        print(
+            f"[corpus] wrote {args.out}/train.txt "
+            f"({manifest.train_chars:,} chars, {manifest.train_lines:,} lines) "
+            f"and eval.jsonl ({manifest.n_examples} examples)"
+        )
+        print(
+            f"[corpus] languages={len(LANGUAGES)} "
+            f"probe_categories={len(CATEGORIES)} seed={manifest.seed}"
+        )
+        print(
+            f"[corpus] train_sha256={manifest.train_sha256[:16]}… "
+            f"eval_sha256={manifest.eval_sha256[:16]}…"
+        )
+        print(
+            "[corpus] WARNING: this is a hand-written probe fixture. It does NOT represent "
+            "the statistical distribution of any language."
+        )
+        if args.out:
+            print(json.dumps({"corpus_dir": str(Path(args.out)), **report}, indent=2))
+        return report
+
+    if args.no_record:
+        body()
+        return 0
+
+    # The generated corpus is an input to everything downstream, so its build is worth
+    # recording: the manifest hashes are the fingerprints. It has no inputs of its own,
+    # which the record states explicitly ("data.status": "none").
+    def build_spec() -> ExperimentSpec:
+        return ExperimentSpec(
+            experiment_id=args.exp_id,
+            seed=args.seed,
+            name="tokenizer corpus",
+            output_dir=str(Path(args.out)),
+            params={
+                "sentences_per_language": args.sentences_per_language,
+                "english_chars": args.english_chars,
+                "languages": sorted(LANGUAGES),
+                "categories": sorted(CATEGORIES),
+            },
+            command=list(sys.argv),
+            tags=["project-002", "corpus"],
+        )
+    return run_self_recorded(build_spec, body).exit_code()
 
 
 if __name__ == "__main__":

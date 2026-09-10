@@ -25,6 +25,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from frontier_ai.experiments import ExperimentSpec  # noqa: E402
+from frontier_ai.experiments.autowire import run_self_recorded, stable_results  # noqa: E402
 from frontier_ai.tokenization import available, create  # noqa: E402
 from frontier_ai.tokenization.artifact import save_artifact  # noqa: E402
 from frontier_ai.tokenization.cli import (  # noqa: E402
@@ -64,6 +66,8 @@ def parse_args() -> argparse.Namespace:
         help="[bpe_python] truncate the training text to N characters",
     )
     p.add_argument("--seed", type=int, default=None, help="recorded in the manifest (informational)")
+    p.add_argument("--no-record", action="store_true",
+                   help="do not write an experiment record for this run")
     return p.parse_args()
 
 
@@ -86,36 +90,68 @@ def main() -> int:
     elif args.impl == "bpe_python":
         train_kwargs["max_train_chars"] = args.max_train_chars
 
-    print(f"[train] impl={args.impl} corpus={train_path} vocab_size={args.vocab_size}")
-    tokenizer.train(
+    def body() -> dict:
+        print(f"[train] impl={args.impl} corpus={train_path} vocab_size={args.vocab_size}")
+        tokenizer.train(
         train_path,
-        vocab_size=args.vocab_size,
-        special_tokens=args.special_tokens,
-        **train_kwargs,
-    )
+            vocab_size=args.vocab_size,
+            special_tokens=args.special_tokens,
+            **train_kwargs,
+        )
 
-    manifest = save_artifact(
+        manifest = save_artifact(
         tokenizer,
         args.out,
-        experiment_id=args.exp_id,
-        corpus=corpus_meta(corpus_dir),
-        train_params={
-            "vocab_size": args.vocab_size,
-            "special_tokens": list(args.special_tokens),
-            **train_kwargs,
-        },
-        seed=args.seed,
-    )
+            experiment_id=args.exp_id,
+            corpus=corpus_meta(corpus_dir),
+            train_params={
+                "vocab_size": args.vocab_size,
+                "special_tokens": list(args.special_tokens),
+                **train_kwargs,
+            },
+            seed=args.seed,
+        )
 
-    sample = "मैं स्कूल जा रहा हूँ।"
-    ids = tokenizer.encode(sample)
-    print(
-        f"[train] saved {manifest.artifact_dir} | vocab={manifest.vocab_size} "
-        f"| impl_version={manifest.impl_version}"
-    )
-    print(f"[train] sample: {sample!r} -> {len(ids)} ids -> round_trip_ok={tokenizer.round_trip(sample)}")
-    print(json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False))
-    return 0
+        sample = "मैं स्कूल जा रहा हूँ।"
+        ids = tokenizer.encode(sample)
+        print(
+            f"[train] saved {manifest.artifact_dir} | vocab={manifest.vocab_size} "
+            f"| impl_version={manifest.impl_version}"
+        )
+        print(
+            f"[train] sample: {sample!r} -> {len(ids)} ids "
+            f"-> round_trip_ok={tokenizer.round_trip(sample)}"
+        )
+        print(json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False))
+        return {
+            **stable_results(manifest.to_dict()),
+            "sample_round_trip_ok": bool(tokenizer.round_trip(sample)),
+            "sample_token_count": len(ids),
+        }
+
+    if args.no_record:
+        body()
+        return 0
+
+    # training a tokenizer produces an artifact -> record it. The corpus file is the
+    # input fingerprint; timestamps and paths are stripped from the results.
+    def build_spec() -> ExperimentSpec:
+        return ExperimentSpec(
+            experiment_id=args.exp_id,
+            seed=args.seed if args.seed is not None else 1337,
+            name=f"tokenizer {args.impl}",
+            output_dir=str(args.out),
+            params={
+                "impl": args.impl,
+                "vocab_size": args.vocab_size,
+                "special_tokens": list(args.special_tokens),
+                **train_kwargs,
+            },
+            data_paths=[str(train_path)],
+            command=list(sys.argv),
+            tags=["project-002", "tokenizer"],
+        )
+    return run_self_recorded(build_spec, body).exit_code()
 
 
 if __name__ == "__main__":

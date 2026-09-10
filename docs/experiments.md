@@ -244,6 +244,44 @@ validate → config → git → data → seed → environment → execute → re
 
 Both entry points are usable from Python and from the CLI, with identical semantics.
 
+### 7.1 CLIs that record themselves (D-032)
+
+`scripts/train.py` and `scripts/tokenizer_*.py` write the same record when they are run
+directly, through `frontier_ai.experiments.autowire.run_self_recorded()` — a thin adapter
+over `run_experiment`, not a second lifecycle.
+
+```bash
+python scripts/train.py --config configs/cpu_smoke.json --exp-id EXP-007
+# [record] out/... /experiment.json | fingerprint 98c1b858cfae3e9f…
+
+python scripts/experiment_record.py --exp-id EXP-007 --out out/wrapped -- \
+    python scripts/train.py --config configs/cpu_smoke.json
+# one record, the wrapper's; the training metrics are in its stdout_tail
+```
+
+* **The outer run owns the record.** The runner exports `FRONTIER_AI_EXPERIMENT_DIR` while
+  a body executes; subprocesses inherit it and a nested script writes no record, saying so
+  on stderr. Wrapped runs therefore produce exactly one record, not two.
+* **Artifact-producing runs record by default.** Training and every tokenizer CLI that
+  writes files records; `--print-model` and `--eval-only` do not (no artifacts); every
+  script has `--no-record`. `--exp-id` defaults to `EXP-000`.
+* **What the record contains** is the standard record: command and config (including the
+  config file's contents), master seed, git commit/branch/dirty state, environment
+  (Python/torch/numpy/tokenizers), the digest of the inputs it read (corpus, tokenizer
+  artifacts), the metrics it produced (`best_val`, `best_bpb`, `steps`, `n_params`, …),
+  and success/failure. Paths and timestamps are kept out of `results` so two identical
+  runs fingerprint the same.
+* **Failures never look successful.** A body that raises writes `status: "failed"` (error
+  type, message, traceback tail) and the CLI exits 1; a declared input that is missing
+  aborts before the lifecycle with `[record] FAILED — ExperimentInputError: …`, also exit
+  1. An experiment id that is not `EXP-<3+ digits>` (legacy ids such as `--exp-id
+  EXP-TEST`) is not recordable, so the run keeps working and reports `[record] SKIPPED`.
+* **A record is not data (D-033).** Hashing an input *directory* skips the
+  `experiment.json` / `experiment.txt` of earlier runs, so a downstream digest does not
+  depend on when an upstream run happened.
+
+Tests: [`tests/test_autowire.py`](../tests/test_autowire.py).
+
 ---
 
 ## 8. Sweeps: seeds and configurations (mean ± spread)
@@ -518,7 +556,8 @@ improve on that fixture. Nothing about the model or the training algorithm chang
 | `seeding.py` | `seed_everything()`, `derive_seed()`, `SEED_LIMITATIONS` |
 | `environment.py` | `capture_environment()`, `EXCLUDED_BY_POLICY` |
 | `record.py` | `ExperimentRecord` — sections, fingerprint, save/load/render |
-| `runner.py` | `run_experiment()`, `run_command()`, `ExperimentContext` |
+| `runner.py` | `run_experiment()`, `run_command()`, `ExperimentContext`, `FRONTIER_AI_EXPERIMENT_DIR` nesting signal |
+| `autowire.py` | `run_self_recorded()` — lets a CLI record itself through the same lifecycle (§7.1) |
 | `sweep.py` | `run_sweep()`, `run_command_sweep()`, `SweepRecord`, `SweepConfiguration`, mean ± spread |
 | `metrics.py` | `bits_from_nats()`, `perplexity()`, `bits_per_unit()`, `loss_summary()` (§9) |
 | `examples.py` | reference experiments used by the docs and determinism tests |
@@ -535,9 +574,10 @@ training stack); import it directly when you need it.
 * ~~Real licensed corpora for smoke tests~~ **delivered 2026-09-10 (D-031)** as a licensed
   manifest + acquisition script (`corpora/smoke/`); the corpus files themselves are fetched,
   not committed, and their hashes are pinned only after a verified fetch.
-* Automatic experiment-record wiring for `scripts/train.py` and `scripts/tokenizer_*.py`:
-  today the record is produced by the `experiment_record.py` / `experiment_sweep.py`
-  wrappers, not by the scripts themselves.
+* ~~Automatic experiment-record wiring for `scripts/train.py` and
+  `scripts/tokenizer_*.py`~~ **delivered 2026-09-11 (D-032, D-033)** — see §7.1: the
+  wrappers still work unchanged, and the scripts now record themselves when run directly,
+  with the wrapper's record winning when both apply.
 * Bits-per-byte was on this list; it is implemented (§9, EXP-006) for the char and word
   levels, and will need re-checking when a byte-level BPE enters the training path.
 * Anything that changes the model, the tokenizer, or the research direction.
