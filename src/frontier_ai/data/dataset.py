@@ -44,6 +44,10 @@ class DataMeta:
     n_bytes_val: int | None = None
     n_chars_train: int | None = None
     n_chars_val: int | None = None
+    # Provenance of a real (licensed) corpus, copied verbatim from the file written by
+    # scripts/fetch_smoke_corpus.py. None for the synthetic corpus and for any corpus
+    # prepared without --provenance.
+    source_provenance: dict | None = None
 
     # ------------------------------------------------------------- derived --
     @property
@@ -193,6 +197,7 @@ def write_tokens(
     val_frac: float = 0.1,
     token_bytes: Sequence[int] | None = None,
     token_chars: Sequence[int] | None = None,
+    source_provenance: dict | None = None,
 ) -> DataMeta:
     """Persist encoded ids + metadata. Returns the metadata object.
 
@@ -200,6 +205,10 @@ def write_tokens(
     counts (see :func:`text_lengths`). They are summed over each split so that
     loss can be reported per byte and per character, not only per token. Both
     must be supplied together and must align with ``ids``.
+
+    ``source_provenance`` is the record written by ``scripts/fetch_smoke_corpus.py``
+    for a real licensed corpus; it is copied into the metadata unchanged so every
+    prepared corpus states where it came from and under which licence.
     """
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -233,6 +242,7 @@ def write_tokens(
         n_bytes_val=byte_splits[1],
         n_chars_train=char_splits[0],
         n_chars_val=char_splits[1],
+        source_provenance=dict(source_provenance) if source_provenance else None,
     )
     meta.save(out_path.with_suffix(".meta.json"))
     return meta
@@ -251,4 +261,7 @@ def summary(ds: TokenDataset) -> dict[str, int | float | None]:
         # corpus-wide averages over both splits
         out["bytes_per_token"] = round(ds.meta.n_bytes / ds.meta.n_tokens, 6)
         out["chars_per_token"] = round(ds.meta.n_chars / ds.meta.n_tokens, 6)
+    if ds.meta.source_provenance:
+        out["source_id"] = ds.meta.source_provenance.get("id")
+        out["source_license"] = ds.meta.source_provenance.get("license_id")
     return out

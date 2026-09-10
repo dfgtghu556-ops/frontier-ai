@@ -14,6 +14,8 @@ Examples
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -32,6 +34,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--min-count", type=int, default=1, help="word-level vocab cutoff")
     p.add_argument("--target-chars", type=int, default=200_000, help="synthetic corpus size")
     p.add_argument("--val-frac", type=float, default=0.1, help="fraction held out for validation")
+    p.add_argument(
+        "--provenance",
+        default=None,
+        help="provenance JSON for a real licensed corpus (written by fetch_smoke_corpus.py); "
+             "it is copied into the metadata so the prepared corpus states its source and licence",
+    )
     p.add_argument("--seed", type=int, default=1337, help="synthetic corpus seed")
     return p.parse_args()
 
@@ -67,6 +75,27 @@ def main() -> int:
     tok_path = out_prefix.with_suffix(".tokenizer.json")
     bin_path = out_prefix.with_suffix(".bin")
     tokenizer.save(tok_path)
+    source_provenance = None
+    if args.provenance:
+        prov_path = Path(args.provenance)
+        if not prov_path.exists():
+            raise SystemExit(f"[data] provenance file not found: {prov_path}")
+        source_provenance = json.loads(prov_path.read_text(encoding="utf-8"))
+        for key in ("id", "license_id", "source_url", "sha256"):
+            if key not in source_provenance:
+                raise SystemExit(f"[data] {prov_path} is missing required key {key!r}")
+        print(
+            f"[data] provenance: {source_provenance['id']} "
+            f"({source_provenance['license_id']}) sha256={str(source_provenance['sha256'])[:16]}…"
+        )
+        digest = hashlib.sha256(Path(args.source).read_bytes()).hexdigest()
+        if source_provenance.get("sha256") and digest != source_provenance["sha256"]:
+            print(
+                f"[data] WARNING: {args.source} no longer matches the pinned sha256 "
+                f"({digest[:16]}… vs {str(source_provenance['sha256'])[:16]}…); "
+                f"the prepared corpus is NOT the corpus the provenance describes"
+            )
+
     meta = write_tokens(
         bin_path,
         ids,
@@ -75,6 +104,7 @@ def main() -> int:
         val_frac=args.val_frac,
         token_bytes=token_bytes,
         token_chars=token_chars,
+        source_provenance=source_provenance,
     )
 
     print(

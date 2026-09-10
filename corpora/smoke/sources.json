@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "notes": "Smoke-test corpora for frontier-ai. Every entry must name a source URL, an SPDX licence id from the allow-list in src/frontier_ai/data/corpora.py, and an attribution string. sha256 stays null until scripts/fetch_smoke_corpus.py has actually retrieved the file and its licence marker has been found; nothing here is asserted from memory. Keep the corpus SMALL: it is a fixture, not training data.",
+  "sources": [
+    {
+      "id": "en-alice-pd",
+      "title": "Alice's Adventures in Wonderland",
+      "language": "en",
+      "script": "Latin",
+      "source_url": "https://www.gutenberg.org/cache/epub/11/pg11.txt",
+      "license_id": "PD-US",
+      "license_url": "https://www.gutenberg.org/policy/license.html",
+      "attribution": "Alice's Adventures in Wonderland by Lewis Carroll, text from Project Gutenberg (ebook 11). Public domain in the United States; verify local copyright terms before use elsewhere. This file is a smoke-test fixture, not a redistribution of the Project Gutenberg edition under the Project Gutenberg trademark.",
+      "max_chars": 200000,
+      "kind": "gutenberg",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "English half of the smoke corpus. The Gutenberg header/footer is stripped by clean_gutenberg_text(); the licence is recorded in the provenance file instead."
+    },
+    {
+      "id": "hi-godan-ccbysa",
+      "title": "गोदान (Godaan) — Munshi Premchand",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/wiki/%E0%A4%97%E0%A5%8B%E0%A4%A6%E0%A4%BE%E0%A4%A8?action=raw",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गोदान (Godaan) by Munshi Premchand, via hi.wikisource.org, licensed CC BY-SA 4.0 (assumed conservatively until the page's own licence tag is checked on first fetch).",
+      "max_chars": 120000,
+      "kind": "wikitext",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Devanagari half of the smoke corpus, so the pipeline is exercised on multi-byte UTF-8 real text. Verify the page title and its licence tag on first fetch; if the page carries a PD template, the licence_id may be relaxed to PD-US with a note."
+    },
+    {
+      "id": "bn-gitanjali-ccbysa",
+      "title": "গীতাঞ্জলি (Gitanjali) — Rabindranath Tagore",
+      "language": "bn",
+      "script": "Bengali",
+      "source_url": "https://bn.wikisource.org/wiki/%E0%A6%97%E0%A7%80%E0%A6%A4%E0%A6%BE%E0%A6%9E%E0%A7%8D%E0%A6%9C%E0%A6%B2%E0%A6%BF?action=raw",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Bengali Wikisource contributors, গীতাঞ্জলি (Gitanjali) by Rabindranath Tagore, via bn.wikisource.org, licensed CC BY-SA 4.0 (assumed conservatively until the page's own licence tag is checked on first fetch).",
+      "max_chars": 120000,
+      "kind": "wikitext",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second Indic half (Bengali script). The author died in 1941 and the work is public domain in India, but the edition on Wikisource may carry its own tag; check it on first fetch and record what you find."
+    }
+  ]
+}
