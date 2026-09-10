@@ -34,7 +34,7 @@ Read these first if you are joining the project (human or AI agent):
 | --- | --- |
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
 | [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
-| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-028) and open questions |
+| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-029) and open questions |
 | [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log (EXP-001…EXP-003) |
 | [docs/tokenization.md](docs/tokenization.md) | tokenizer research: why it matters, metrics, Indic/Unicode notes, workflow |
 | [docs/experiments.md](docs/experiments.md) | Project 003: experiment records, seeding and documented limits, git/data/env provenance, the runner |
@@ -154,24 +154,37 @@ spec = ExperimentSpec(experiment_id="EXP-003", seed=1337, name="demo",
 outcome = run_experiment(spec, my_experiment_fn)   # outcome.record, outcome.path
 ```
 
-### Multi-seed sweeps (mean ± spread)
+### Sweeps: seeds and configurations (mean ± spread)
 
-One headline number from one seed is an anecdote. Run the same spec across seeds:
+One headline number from one seed is an anecdote. Run the same spec across seeds — and
+optionally across several named configurations:
 
 ```bash
+# seeds only
 python scripts/experiment_sweep.py --exp-id EXP-004 --seeds 1,2,3,4,5 \
     --metric final_val_loss --config configs/cpu_smoke.json --data data/synthetic.bin \
     --out out/sweeps/EXP-004 -- \
     python scripts/train.py --config configs/cpu_smoke.json --max-steps 50 \
         --set train.seed={seed}
+
+# several configurations, each across the same seeds
+python scripts/experiment_sweep.py --exp-id EXP-005 --seeds 1,2,3 \
+    --configs "lr_low:params.lr=0.005" "lr_high:params.lr=0.05" \
+    --metric final_val_loss --data data/synthetic.bin --out out/sweeps/EXP-005 -- \
+    python my_experiment.py --config-name {config} --seed {seed}
 ```
 
-Each seed keeps its **own full experiment record** in `seed-<seed>/`; the aggregate
-(`sweep.json`) adds the seed list, per-seed values and fingerprints, `mean` and `spread`.
-`spread` is the **sample** standard deviation (`n − 1`) — `null`, never `0`, when fewer than
-two runs are usable, and not a confidence interval. Status is `success` / `partial` /
-`failed`, so a failed seed is never reported as a success, and the aggregate is independent
-of the order you list the seeds in (exit codes: 0 ok, 2 partial, 1 nothing usable).
+Every run keeps its **own full experiment record** (`seed-<seed>/`, or
+`<config>/seed-<seed>/`); the aggregate (`sweep.json`) adds the seed list, per-run values
+and fingerprints, `mean` and `spread`. `spread` is the **sample** standard deviation
+(`n − 1`) — `null`, never `0`, when fewer than two runs are usable, and not a confidence
+interval. Status is `success` / `partial` / `failed`, so a failed run is never reported as a
+success, and the aggregate is independent of the order you list seeds or configurations in
+(exit codes: 0 ok, 2 partial, 1 nothing usable).
+
+With two or more configurations each one is aggregated **separately** and configurations are
+never mixed into a single mean — see
+[docs/experiments.md](docs/experiments.md#multiple-configurations).
 
 Seeding is a single mechanism (master seed + derived per-component seeds) whose limitations
 — cuDNN nondeterminism, thread-dependent FP order, library versions, RNGs outside
@@ -279,7 +292,7 @@ mkdir -p .github/workflows && cp docs/ci.yml.example .github/workflows/ci.yml
 ## Tests
 
 ```bash
-pytest -q        # 145 tests, ~30 s on CPU
+pytest -q        # 170 tests, ~40 s on CPU
 ruff check .     # lint
 make test lint
 ```
@@ -288,16 +301,16 @@ The suite covers the model (causality, architecture variants, KV-cache equivalen
 context-length clamping), data (tokenizer round-trips, split math, deterministic
 corpus), the engine (schedules, checkpoint round-trips, config overrides), the tokenizer
 research subsystem, the experiment infrastructure (spec, seeding, git provenance, data
-hashing, records, runner, multi-seed sweeps, CLI), full train → checkpoint → resume →
-sample runs, and repository
+hashing, records, runner, seed and configuration sweeps, CLI), full train → checkpoint →
+resume → sample runs, and repository
 hygiene (no source file may be git-ignored — see DECISIONS.md D-023). Two tests exist specifically to catch bugs
 found while building this: logged loss must be a *mean* over accumulation steps, and
 repeated `--set` flags must accumulate.
 
 ## Roadmap
 
-- [ ] Finish ROADMAP Stage 1: unattended 2-config sweeps, bits-per-byte loss reporting,
-      real licensed smoke-test corpora (multi-seed sweeps are done)
+- [ ] Finish ROADMAP Stage 1: larger sweep orchestration (Q-8), bits-per-byte loss
+      reporting, real licensed smoke-test corpora (seed and configuration sweeps are done)
 - [ ] DDP launcher + `torchrun` example config (code is DDP-friendly; not yet exercised)
 - [ ] Optional HuggingFace BPE tokenizer behind the same `Tokenizer` interface
 - [ ] WandB / TensorBoard metric sink behind `RunLogger`

@@ -524,6 +524,122 @@ on the basis of this entry.
 [docs/experiments.md §8](docs/experiments.md). Run directories are git-ignored; the sweeps
 are regenerable with the commands above.
 
+### EXP-005 — Multi-configuration sweeps: do two configurations separate, and does the sweep reproduce? ✅
+
+> **This entry validates infrastructure, not a model.** The loss numbers come from 12-step
+> runs of a ~35.6k-parameter model on the synthetic smoke corpus. They are a *test signal*
+> for the sweep machinery: they are not a learning-rate recommendation, not a model-quality
+> measurement, and no scientific conclusion about training is drawn from them.
+
+- **Status:** complete (infrastructure verification)
+- **Date:** 2026-09-10
+- **Objective:** verify the Stage 1B extension: several named configurations, each run
+  across the same seeds, keeping one full record per configuration × seed, aggregating each
+  configuration separately, and refusing to mix configurations — with order independence,
+  reproducibility, and the existing explicit failure semantics intact.
+- **Hypothesis:** (a) two configurations that differ only in a parameter produce different,
+  separately reported means; (b) the sweep reproduces exactly when repeated and when the
+  configuration and seed lists are given in reverse order; (c) a configuration that fails
+  for every seed leaves the sweep `partial`, keeps its failed records, and does not disturb
+  the surviving configuration's aggregate; (d) a seed-only sweep is byte-compatible with
+  Stage 1A (no new fields, EXP-004 fingerprints still reproduce).
+- **Baseline:** EXP-004 (single-configuration seed sweep). EXP-001/EXP-002 numbers must be
+  unaffected.
+
+**Configuration**
+
+- Sweep: `EXP-005`, metric `final_val_loss`, seeds `1,2,3`, configurations
+  `lr_low` (`params.lr=0.005`) and `lr_high` (`params.lr=0.05`)
+- Work per configuration × seed: a real Project 001 `Trainer` run — 2 layers, 2 heads,
+  `n_embd=32`, `block_size=32`, 12 steps, batch 4, fp32, `num_threads=1` — on
+  `data/synthetic.bin` (200,000 chars, seed 1337), driven through
+  `scripts/experiment_sweep.py` with `{config}` and `{seed}` substituted into the command
+- Hardware: 2 CPU cores, 3 GB RAM, Python 3.11.2, torch 2.14.0+cu130
+- Code revision: dirty working tree on `arena/01a08a78-frontier-ai` (commit `c2c88cb`);
+  records therefore show `reproducible_from_commit=false`, as designed (D-026)
+- Commands (exact):
+
+```bash
+python scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
+
+# 2 configurations x 3 seeds, run three times (identical, and once with both lists reversed)
+python scripts/experiment_sweep.py --exp-id EXP-005 --seeds 1,2,3 \
+    --configs "lr_low:params.lr=0.005" "lr_high:params.lr=0.05" \
+    --metric final_val_loss --name "lr two-config sweep" --out out/sweeps/EXP-005-a \
+    --data data/synthetic.bin --tag project-001 -- \
+    python3 /tmp/mc_train.py "{config}" "{seed}"
+
+# partial failure: the lr_high command exits 4 for every seed
+python scripts/experiment_sweep.py --exp-id EXP-005 --seeds 1,2,3 \
+    --configs "lr_low:params.lr=0.005" "lr_high:params.lr=0.05" \
+    --metric final_val_loss --out out/sweeps/EXP-005-partial --data data/synthetic.bin --quiet -- \
+    python3 -c "import sys,subprocess; cfg,seed=sys.argv[1],sys.argv[2]; \
+sys.exit(4) if cfg=='lr_high' else \
+subprocess.run([sys.executable,'/tmp/mc_train.py',cfg,seed],check=True)" "{config}" "{seed}"
+```
+
+`/tmp/mc_train.py` is a local (uncommitted) helper that trains the tiny model with the
+learning rate selected by the configuration name and prints `{"final_val_loss": …}`.
+
+**Measured result (the real 2-configuration sweep)**
+
+| configuration | seeds | final_val_loss per seed | mean | spread (sample stdev) | status |
+|---|---|---|---|---|---|
+| `lr_high` (lr 0.05) | 1, 2, 3 | 3.206224 · 3.190828 · 3.095739 | **3.164264** | **0.059841** | success |
+| `lr_low` (lr 0.005) | 1, 2, 3 | 3.433670 · 3.365153 · 3.296912 | **3.365245** | **0.068379** | success |
+
+Sweep status `success`, 6/6 runs usable, no cross-configuration mean published
+(`statistics.aggregated = false`).
+
+**Metrics**
+
+| check | expected | observed | verdict |
+|---|---|---|---|
+| two configurations separate | different per-configuration means | 3.164264 vs 3.365245; the spread of each (≈0.06) is smaller than the gap (≈0.20) | pass |
+| repeated sweep | identical fingerprints | `f7306163a37b7a83cecfe23b410d76c16eb1fdc4193764f5ea11f84d3bfe81e3` for run a, run b and the reversed run | pass |
+| configuration order reversed | identical aggregate | `--configs lr_high lr_low` + `--seeds 3,1,2` → same means, spreads **and** fingerprint | pass |
+| seed order reversed | identical aggregate | as above | pass |
+| one record per configuration × seed | 6 records | `lr_low/seed-000000000{1,2,3}/experiment.json`, `lr_high/seed-000000000{1,2,3}/experiment.json`, each with git/data/environment/configuration/randomness and its own fingerprint | pass |
+| configurations never mixed | no top-level mean | `statistics = {aggregated: false, note: …never mixed…}`; means only inside `configurations[]` | pass |
+| partial failure | `partial`, exit 2, failed records kept | status `partial`, 3/6 runs, `lr_high` failed for seeds 1–3 with `CalledProcessError`, its records kept; `lr_low` still 3.365245 — the surviving aggregate is untouched | pass |
+| complete failure / missing / non-numeric metrics | existing semantics | `failed` / `metric_missing` per run, per-configuration `failed` status, `mean=null`, `spread=null` (never 0) — covered by the test suite | pass |
+| Stage 1A compatibility | seed-only sweep unchanged | no `configurations` section, no `configuration` key on runs, `seed-<seed>/` layout, top-level statistics aggregated as before; `tests/test_sweeps.py` (25 Stage 1A tests) passes unmodified | pass |
+| Project 001 / 002 regression | unchanged | `pytest -q` → **170 passed**; `ruff check .` clean; EXP-002 metrics re-verified unchanged | pass |
+
+**Results:** A two-configuration sweep now runs unattended, keeps every individual record,
+reports each configuration's own mean ± spread, and refuses to publish a mixed number. On
+this toy run the two learning rates separate by more than their seed spread (0.20 vs ≈0.06),
+which is exactly the comparison a single-seed run could not support.
+
+**Observations:**
+
+- Reversing both lists initially produced a *different* fingerprint even though the
+  statistics were identical: the per-configuration specs were resolved from the caller's
+  spec, which carries whichever seed the CLI listed first. Configurations are now resolved
+  from the canonicalised template (first *sorted* seed), the same class of order leak that
+  D-028 fixed for the template spec. A regression test now varies configuration order and
+  seed order together.
+- A second, similar bug was found and fixed first: `run_experiment`'s new `configuration`
+  parameter was shadowed by the local variable holding the record's configuration *section*,
+  so `ctx.configuration` never reached the experiment body. Both bugs were invisible in
+  "does it run" testing and only showed up in the order/repeat checks.
+- All runs above were made on a **dirty** working tree, so their records honestly state
+  `reproducible_from_commit=false`. The numbers are evidence about the machinery.
+
+**Conclusion:** Hypothesis confirmed on all four points. Stage 1B delivers the roadmap's
+"2-config sweep runs unattended" exit criterion; Stage 1 as a whole is **not** complete
+(bits-per-byte reporting and real licensed corpora remain).
+
+**Next action:** use multi-configuration sweeps for any comparison that must survive seed
+noise, and read per-configuration means (never a mixed mean) from `sweep.json`. Then
+continue Stage 1 with bits-per-byte / per-character loss reporting. Do not start Project 004
+on the basis of this entry.
+
+**Artifacts:** `out/sweeps/EXP-005-{a,b,rev}/sweep.json` (+ `sweep.txt` and six
+`<config>/seed-*/experiment.json` per sweep), `out/sweeps/EXP-005-partial/sweep.json`,
+`tests/test_sweep_configs.py`, [docs/experiments.md §8](docs/experiments.md). Run
+directories are git-ignored; the sweeps are regenerable with the commands above.
+
 ## 5. Log index
 
 | ID | Title | Status | Date | Key metric |
@@ -532,6 +648,7 @@ are regenerable with the commands above.
 | EXP-002 | Tokenizer baselines on the Indian-language probe fixture | complete | 2026-09-10 | lossless byte-BPE (0 round-trip failures) vs char 128/179 and word 160/179 failures; en 1.83 vs pa 0.80 chars/token |
 | EXP-003 | **Infrastructure verification** (not a benchmark): does the experiment record reproduce runs? | complete | 2026-09-10 | identical runs → identical fingerprints (`f54881c68513f295…` twice, `best_val=2.9223`); EXP-002 metrics reproduce exactly; a Project 001 determinism bug found and fixed |
 | EXP-004 | **Infrastructure verification** (not a benchmark): do multi-seed sweeps reproduce and report spread honestly? | complete | 2026-09-10 | 5 seeds: mean 3.2626 ± 0.0476 (sample stdev); repeated and reversed-order sweeps give identical fingerprints `d4f498b9977a6f94…`; partial failure → `partial` + exit 2 |
+| EXP-005 | **Infrastructure verification** (not a benchmark): do multi-configuration sweeps separate configurations and reproduce? | complete | 2026-09-10 | 2 configs × 3 seeds: `lr_high` 3.164264 ± 0.059841 vs `lr_low` 3.365245 ± 0.068379; identical fingerprint `f7306163a37b7a83…` across repeats and reversed order; one config failing → `partial`, 3/6 runs |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -609,6 +726,24 @@ ls out/sweeps/EXP-004/seed-*/experiment.json        # one full record per seed
 
 Run it twice (and once with the seeds in reverse order): `mean`, `spread` and the sweep
 `fingerprint` must be identical every time. Add a seed that exits non-zero to see
-`status=partial` with exit code 2 and the failed seed's own record preserved. This is recorded here because the rules require every run to be logged — it
+`status=partial` with exit code 2 and the failed seed's own record preserved.
+
+**EXP-005 (multi-configuration sweeps)**
+
+```bash
+. .venv/bin/activate
+python scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
+python scripts/experiment_sweep.py --exp-id EXP-005 --seeds 1,2,3 \
+    --configs "lr_low:params.lr=0.005" "lr_high:params.lr=0.05" \
+    --metric final_val_loss --data data/synthetic.bin --out out/sweeps/EXP-005 -- \
+    python my_experiment.py --config-name "{config}" --seed "{seed}"
+cat out/sweeps/EXP-005/sweep.json        # per-configuration mean ± spread
+ls out/sweeps/EXP-005/*/seed-*/experiment.json   # one full record per configuration x seed
+```
+
+Each configuration is aggregated **separately**; with two or more configurations the
+top-level `statistics` reports `aggregated: false` and publishes no mixed mean. Reversing
+the `--configs` order or the `--seeds` order must not change the means, the spreads or the
+sweep fingerprint. This is recorded here because the rules require every run to be logged — it
 verifies the *infrastructure*, not model quality. Its own record will show `dirty=true`
 whenever the working tree is dirty; that is the point, not a defect.

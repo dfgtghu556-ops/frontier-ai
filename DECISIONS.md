@@ -695,7 +695,61 @@ tight error bars require more seeds than this repository's CPU budget allows so 
 meaningful, or when a sweep over *configurations* (Q-8) needs a shared aggregation layer
 with this one.
 
+## D-029 — Multi-configuration sweeps: one record per configuration × seed, never a mixed aggregate
+
+**Status:** accepted (2026-09-10, Project 003 Stage 1B)
+
+**Decision:** A sweep may take **named configurations** in addition to a seed list
+(`run_sweep(..., configurations={"lr_low": {"params": {"lr": 0.005}}, …})`,
+`scripts/experiment_sweep.py --configs NAME:key=value`). Specifically:
+
+* Each configuration is a named variant that may override `params.<name>`, `config_path`,
+  `name` and `notes` — and nothing else. Seed, `output_dir`, `experiment_id`, `data_paths`
+  and the command are sweep-level and cannot be overridden per configuration.
+* Every configuration runs across **all** seeds; each configuration × seed gets its own
+  normal experiment record in its own directory (`<config>/seed-<seed>/`), and its run
+  record is tagged `config:<name>`.
+* Each configuration is aggregated **separately** (mean ± sample standard deviation, the
+  D-028 definitions). With two or more configurations the top-level `statistics` section
+  states `aggregated: false` and publishes no mean or spread: results from different
+  configurations are never mixed.
+* Status is computed per configuration and for the sweep (`success` / `partial` /
+  `failed`), and every failure mode uses the existing explicit semantics (failed run,
+  `metric_missing`, non-numeric metric, `continue_on_error`).
+* Configurations are sorted by name and seeds are normalised as before, so neither order
+  affects the result or the fingerprint.
+* **Backward compatibility:** the sweep schema stays `1.0`. The `configurations` section
+  and the per-run `configuration` key are emitted **only** when named configurations are
+  supplied, so a seed-only sweep is byte-identical to a Stage 1A sweep — same sections,
+  same layout, same fingerprint (EXP-004's recorded fingerprints still reproduce).
+
+**Rationale:** The roadmap's Stage 1 exit criterion is "a 2-config sweep runs unattended",
+and a headline number is only meaningful next to its seed spread and next to the
+alternative it was compared against. Aggregating across configurations would produce a
+number that describes no real experiment; keeping one record per run keeps the aggregate
+checkable and preserves the per-run provenance that D-024/D-028 exist to guarantee.
+
+**Alternatives considered:** a single aggregated mean over all runs (rejected: describes
+no configuration); nested sweep objects per configuration with a separate schema (rejected:
+duplicates the lifecycle and splits provenance); bumping the schema to 1.1 and always
+emitting the new section (rejected: it would invalidate every Stage 1A fingerprint already
+recorded in EXP-004 for no functional gain — the additive rule keeps both eras readable by
+the same loader); letting configurations override data paths (rejected: the sweep records
+one data digest for all runs, so differing corpora would make that digest a lie — that
+belongs to the real-corpora item, Stage 3).
+
+**Consequences:** A configuration can only vary what the experiment reads from
+`ctx.spec.params` / `config_path`; a sweep whose configurations differ in data or command
+shape still needs two sweeps. Per-configuration `spec` entries embed absolute output paths,
+which are excluded from the fingerprint like every other output location.
+
+**Revisit when:** sweeps need per-configuration data or command variants (then extend the
+allow-list *and* record a per-configuration data digest), or when the number of
+configurations grows enough that a comparison table (not just per-configuration means)
+becomes the primary artefact.
+
 ## Open items to decide later (not yet decisions)
+
 
 
 | ID | Question | Deferred to |

@@ -48,9 +48,9 @@ print(outcome.path, outcome.record.content_fingerprint())
 exception**: on failure it writes a `status="failed"` record (error type, message,
 traceback tail) and re-raises.
 
-To run the same experiment across several seeds and get `mean ± spread`, see
-[§8 Multi-seed sweeps](#8-multi-seed-sweeps-mean--spread) (`run_sweep` /
-`scripts/experiment_sweep.py`).
+To run the same experiment across several seeds (and optionally several configurations)
+and get `mean ± spread`, see [§8 Sweeps](#8-sweeps-seeds-and-configurations-mean--spread)
+(`run_sweep` / `scripts/experiment_sweep.py`).
 
 ### CLI
 
@@ -246,11 +246,13 @@ Both entry points are usable from Python and from the CLI, with identical semant
 
 ---
 
-## 8. Multi-seed sweeps (mean ± spread)
+## 8. Sweeps: seeds and configurations (mean ± spread)
 
-A sweep runs **one experiment specification across several seeds** and answers: *how much
-does the measured result vary across independent seeds?* It is the mechanism behind the
-roadmap rule "report mean ± spread for any headline number".
+A sweep runs **one experiment specification across several seeds**, and optionally across
+several **named configurations**, and answers: *how much does the measured result vary
+across independent seeds, and between configurations?* It is the mechanism behind the
+roadmap rule "report mean ± spread for any headline number" and the Stage 1 exit criterion
+"a 2-config sweep runs unattended".
 
 Python:
 
@@ -297,7 +299,8 @@ de-duplicated rather than run twice into the same directory.
 | `configuration` | the template spec (seed/output_dir replaced per run), `seeds_requested`, overrides, embedded config file |
 | `code` / `data` / `environment` | the same provenance captured once for the whole sweep |
 | `statistics` | `metric`, `n`, per-seed `values`, `mean`, `spread`, `spread_kind`, `spread_definition`, `min`, `max` |
-| `runs` | per seed: status, `seed_used`, `metric_value`, `metric_source`, record path (relative), fingerprint, error |
+| `runs` | per run: status, `seed_used`, `metric_value`, `metric_source`, record path (relative), fingerprint, error — plus `configuration` for multi-configuration sweeps |
+| `configurations` | **multi-configuration sweeps only**: one entry per configuration with its own status, seed lists, counts, resolved spec and `statistics` |
 | `execution` | start/finish, duration, cwd, pid |
 
 `sweep.txt` holds a rendered human summary.
@@ -323,25 +326,76 @@ actually used.
 
 ### Failure semantics
 
-* A seed that raises keeps its **failed experiment record** (written by the runner before it
+* A run that raises keeps its **failed experiment record** (written by the runner before it
   re-raises), is listed in `failed_seeds` with its error type and message, and does **not**
-  stop the other seeds.
+  stop the other runs.
 * A seed counts as successful only if it ran **and** produced a numeric value for the
   requested metric. A run that succeeded but has no such value is marked
   `status="metric_missing"` and is counted as failed for aggregation.
-* Sweep status: `success` (all seeds usable), `partial` (some usable), `failed` (none
-  usable). A partial sweep never reports `success`, and a failed sweep reports
+* Sweep status: `success` (all runs usable), `partial` (some usable), `failed` (none
+  usable). Multi-configuration sweeps report the same three states per configuration as
+  well, and are `partial` when any configuration lost a run — see
+  [Multiple configurations](#multiple-configurations). A partial sweep never reports `success`, and a failed sweep reports
   `mean = null`, `spread = null` instead of a misleading number.
 * `run_sweep(..., continue_on_error=False)` stops at the first failure (the sweep record is
   still written, then the original exception is re-raised). The CLI always continues.
 
 ### Reproducibility
 
-Running the same sweep twice with the same code, configuration, data and seed list
-reproduces the individual metric values, the per-run fingerprints, the aggregate statistics
-and the sweep **content fingerprint** — which, like the run fingerprint, excludes
+Running the same sweep twice with the same code, configuration, data, configuration list
+and seed list reproduces the individual metric values, the per-run fingerprints, the
+aggregate statistics and the sweep **content fingerprint** — which, like the run fingerprint, excludes
 timestamps, duration, pid, cwd, output paths and log tails. Per-run record references in
 the aggregate are stored relative to the sweep directory for the same reason.
+
+### Multiple configurations
+
+A sweep can evaluate several **named configurations**, each across the same seed list —
+this is the roadmap's "2-config sweep runs unattended" case: *does the ranking of two
+configurations survive seed noise?*
+
+```bash
+python scripts/experiment_sweep.py --exp-id EXP-005 --seeds 1,2,3 \
+    --configs "lr_low:params.lr=0.005" "lr_high:params.lr=0.05" \
+    --metric final_val_loss --data data/synthetic.bin --out out/sweeps/EXP-005 -- \
+    python my_experiment.py --config-name {config} --seed {seed}
+```
+
+From Python:
+
+```python
+outcome = run_sweep(spec, [1, 2, 3], my_experiment_fn, "final_val_loss",
+                    configurations={"lr_low": {"params": {"lr": 0.005}},
+                                    "lr_high": {"params": {"lr": 0.05}}})
+for cfg in outcome.record.configurations:
+    print(cfg["name"], cfg["status"], cfg["statistics"]["mean"], cfg["statistics"]["spread"])
+```
+
+Rules (D-029):
+
+* A configuration may override `params.<name>`, `config_path`, `name` and `notes`. Seed,
+  output directory, experiment id, data paths and the command are sweep-level.
+* Each configuration × seed gets its own record in `<sweep>/<config>/seed-<seed>/`, tagged
+  `config:<name>`, so every run is independently identifiable.
+* **Configurations are never mixed.** With two or more configurations the top-level
+  `statistics` section is `{"aggregated": false, …}` and publishes no mean: every mean and
+  spread lives in the `configurations` entry that produced it.
+* Status is reported per configuration **and** for the sweep (`success` / `partial` /
+  `failed`); the sweep is `partial` if any configuration lost a run.
+* Configuration order and seed order both do not matter: configurations are sorted by name
+  and seeds by value before anything runs, and the same sweep repeated (or written with the
+  lists reversed) gives the same statistics and the same fingerprint.
+* **Backward compatibility:** the extra fields (`configurations`, the per-run
+  `configuration` key, `configuration_names` / `runs_requested` on the sweep) appear **only**
+  when named configurations are used. A seed-only sweep is byte-identical to a Stage 1A
+  sweep — same layout, same sections, same fingerprint — and the schema version stays `1.0`.
+
+Per-configuration section (`configurations[]`): `name`, `status`, `metric`, `seeds`,
+`successful_seeds`, `failed_seeds`, the three counts, the resolved `spec`, the `overrides`
+that were applied, and that configuration's own `statistics` (mean, spread, per-seed
+values, min/max). The flat `runs` list still contains every run, each carrying its
+`configuration`, `seed`, status, `metric_value`, `metric_source`, relative record path and
+fingerprint.
 
 ### Metric resolution
 
@@ -412,7 +466,7 @@ improve on that fixture. Nothing about the model or the training algorithm chang
 | `environment.py` | `capture_environment()`, `EXCLUDED_BY_POLICY` |
 | `record.py` | `ExperimentRecord` — sections, fingerprint, save/load/render |
 | `runner.py` | `run_experiment()`, `run_command()`, `ExperimentContext` |
-| `sweep.py` | `run_sweep()`, `run_command_sweep()`, `SweepRecord`, mean ± spread |
+| `sweep.py` | `run_sweep()`, `run_command_sweep()`, `SweepRecord`, `SweepConfiguration`, mean ± spread |
 | `examples.py` | reference experiments used by the docs and determinism tests |
 
 `examples.py` is intentionally **not** imported by the package `__init__` (it pulls in the
@@ -420,8 +474,9 @@ training stack); import it directly when you need it.
 
 ## 11. Not done (Stage 1 is infrastructure only)
 
-* Multi-configuration (2-config) sweep orchestration — Stage 1/4 work (Q-8). Multi-seed
-  sweeps are implemented (§8); what is missing is sweeping *configurations*, not seeds.
+* Larger sweep orchestration (many configurations, scheduling, resuming a half-finished
+  sweep) — Stage 1/4 work (Q-8). Seed sweeps and multi-configuration sweeps are implemented
+  (§8).
 * An external experiment tracker / dashboard; records are plain JSON files on disk.
 * Comparable loss reporting: bits-per-byte / per-character normalization so a char-level
   and a BPE model can be compared fairly.

@@ -23,10 +23,11 @@ data) is NOT done.**
 - **Project 003** = reproducible experiment infrastructure (`src/frontier_ai/experiments/`):
   experiment specs, one seeding mechanism with documented limits, git/data/environment
   provenance, a JSON experiment record with a content fingerprint, a runner with a
-  validate → record lifecycle, `scripts/experiment_record.py`, and multi-seed sweeps
-  (one record per seed + a mean ± spread aggregate, `scripts/experiment_sweep.py`).
-  Documented in [docs/experiments.md](docs/experiments.md); validation recorded as
-  **EXP-003** and **EXP-004** (infrastructure verification, *not* benchmarks).
+  validate → record lifecycle, `scripts/experiment_record.py`, and sweeps over seeds **and
+  configurations** (one record per run + a mean ± spread aggregate,
+  `scripts/experiment_sweep.py`). Documented in
+  [docs/experiments.md](docs/experiments.md); validation recorded as **EXP-003**,
+  **EXP-004** and **EXP-005** (infrastructure verification, *not* benchmarks).
 - All three are committed on branch `arena/01a08a78-frontier-ai` and open as **PR #1**
   against `main`. PR #1 is **not merged** — the human merges it.
 - The most likely next steps are finishing ROADMAP Stage 1 (multi-seed sweeps with
@@ -204,6 +205,12 @@ difference is measured, not assumed — see EXP-002.
   passes its seeded generator); two identical runs now give bit-identical results
   (`final_val_loss 3.24484`, equal fingerprints). Reproducibility is only claimed under a
   recorded environment, not across machines, versions or thread counts.
+- **Stage 1B (multi-configuration sweeps):** the same sweeps now take **named
+  configurations** (`--configs NAME:key=value`), each run across the whole seed list. One
+  record per configuration × seed; every configuration is aggregated **separately** and
+  configurations are never mixed (the top-level `statistics` says `aggregated: false` when
+  there are two or more). The sweep schema stays `1.0` and the new fields appear only for
+  named configurations, so seed-only sweeps stay byte-identical to Stage 1A (D-029).
 - **Stage 1A (multi-seed sweeps):** `sweep.py` + `scripts/experiment_sweep.py` run one spec
   across an explicit seed list. Each seed keeps its own full record under
   `seed-<seed>/experiment.json`; the aggregate (`sweep.json`) carries the seed list,
@@ -213,8 +220,8 @@ difference is measured, not assumed — see EXP-002.
   by zero. Status is `success` / `partial` / `failed`, so a lost seed can never be reported
   as a success. The aggregate is independent of the order seeds were supplied in.
 
-Full details: [docs/experiments.md](docs/experiments.md) · decisions **D-024…D-028** ·
-validation **EXP-003** and **EXP-004**.
+Full details: [docs/experiments.md](docs/experiments.md) · decisions **D-024…D-029** ·
+validation **EXP-003**, **EXP-004** and **EXP-005**.
 
 ## 7. Current repository structure
 
@@ -236,7 +243,7 @@ scripts/
     tokenizer_evaluate.py         evaluate artifact(s) -> JSON metrics per tokenizer
     tokenizer_compare.py          compare 2+ artifacts on the same corpus -> JSON + table
     experiment_record.py       Project 003: record provenance for any experiment command
-    experiment_sweep.py        Project 003: run one experiment across seeds, aggregate
+    experiment_sweep.py        Project 003: run one experiment across seeds/configurations
 src/frontier_ai/
     config.py                 dataclass configs, JSON load/save, --set overrides, validation
     data/
@@ -263,7 +270,7 @@ src/frontier_ai/
         environment.py          selected environment metadata (no env dumps)
         record.py               ExperimentRecord: sections, fingerprint, save/load/render
         runner.py               run_experiment / run_command lifecycle
-        sweep.py                run_sweep / run_command_sweep: one record per seed + aggregate
+        sweep.py                run_sweep / run_command_sweep: one record per run + aggregate
         examples.py             reference experiments used by docs + determinism tests
     engine/
         trainer.py            the training loop
@@ -280,6 +287,7 @@ tests/
     test_train_smoke.py       end-to-end train / resume / sample / accumulation
     test_experiments.py       Project 003: spec, seeding, git, hashing, record, runner, CLI
     test_sweeps.py            Project 003: multi-seed sweeps, statistics, failures, CLI
+    test_sweep_configs.py     Project 003: multi-configuration sweeps, compatibility, CLI
     test_repo_hygiene.py      no source file may be git-ignored (D-023)
 PROJECT_CONTEXT.md            this file
 ROADMAP.md                    staged plan from here to frontier scale
@@ -471,7 +479,7 @@ orthography category, with multi-tokenizer comparison. See
 | Precision | only fp32 has actually run; bf16/fp16 paths are written but unexercised |
 | Sampling | temperature + top-k + top-p only; no repetition penalty, no batch generation, no stop tokens (no EOS in the tokenizer) |
 | Evaluation | loss/perplexity on the training corpus distribution; no benchmarks, no task eval, no human eval |
-| Experiment tooling | **Project 003 infrastructure exists**: specs, seeding with recorded limits, git/data/env provenance, JSON records with fingerprints, a runner (`scripts/experiment_record.py`) and **multi-seed sweeps** (mean ± sample standard deviation, `scripts/experiment_sweep.py`); 2-configuration sweeps, bits-per-byte reporting, an ablation runner and a tracker (WandB/TensorBoard) still do not exist; the Project 001/002 entry points do not write records themselves (the CLI wraps them) |
+| Experiment tooling | **Project 003 infrastructure exists**: specs, seeding with recorded limits, git/data/env provenance, JSON records with fingerprints, a runner (`scripts/experiment_record.py`) and **sweeps over seeds and configurations** (mean ± sample standard deviation, `scripts/experiment_sweep.py`); large-scale sweep orchestration (Q-8), bits-per-byte reporting, an ablation runner and a tracker (WandB/TensorBoard) still do not exist; the Project 001/002 entry points do not write records themselves (the CLI wraps them) |
 | CI | workflow committed as `docs/ci.yml.example`; it has never run on GitHub Actions (the App used to push lacks the `workflows` permission) |
 | Post-training | none: no SFT, preference optimization, reasoning, or safety work |
 | Reproducibility | runs are reproducible **under a recorded environment only** (same code, data, seed, command, library versions, thread count). cuDNN, thread-dependent FP order and RNGs outside python/numpy/torch are not covered — every record states this (D-025) |
@@ -528,7 +536,7 @@ results at the current size (see [ROADMAP.md](ROADMAP.md)).
 ```bash
 python -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]"                       # CPU torch; the PyTorch CDN may be blocked (see D-012)
-pytest -q                                     # 145 tests, ~30 s
+pytest -q                                     # 170 tests, ~40 s
 ruff check .                                  # lint
 python scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
 python scripts/train.py --config configs/cpu_smoke.json                     # ~10 s, val loss 3.9 -> ~1.38
@@ -556,6 +564,12 @@ python scripts/experiment_sweep.py --exp-id EXP-004 --seeds 1,2,3,4,5 \
     --out out/sweeps/EXP-004 -- \
     python scripts/train.py --config configs/cpu_smoke.json --max-steps 50 \
         --set train.seed={seed}
+
+# several configurations, each across the same seeds (Project 003 Stage 1B)
+python scripts/experiment_sweep.py --exp-id EXP-005 --seeds 1,2,3 \
+    --configs "lr_low:params.lr=0.005" "lr_high:params.lr=0.05" \
+    --metric final_val_loss --data data/synthetic.bin --out out/sweeps/EXP-005 -- \
+    python my_experiment.py --config-name {config} --seed {seed}
 ```
 
 ## 19. Conventions for future agents

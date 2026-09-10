@@ -48,7 +48,8 @@ resume, sampling, JSONL metrics, 47 tests, CI example.
   corpus for sanity checks.
 
 **Exit criteria:** two runs with the same seed produce identical metrics; a 2-config sweep
-runs unattended; every run directory is self-describing and diffable.
+runs unattended (**met for seed/config sweeps: see Stage 1A and Stage 1B below**); every run
+directory is self-describing and diffable.
 
 **Risk:** none technical — this is discipline work. It is the highest-leverage stage.
 
@@ -66,9 +67,9 @@ runs unattended; every run directory is self-describing and diffable.
   the Project 001/002 CLI conventions.
 - No new dependencies (stdlib + existing torch/numpy). 31 new tests; Project 001 and 002
   suites unchanged in behaviour and still green.
-- Documented in [docs/experiments.md](docs/experiments.md); decisions **D-024…D-028**;
-  verification recorded as **EXP-003** and **EXP-004** (infrastructure verification, not
-  benchmarks).
+- Documented in [docs/experiments.md](docs/experiments.md); decisions **D-024…D-029**;
+  verification recorded as **EXP-003**, **EXP-004** and **EXP-005** (infrastructure
+  verification, not benchmarks).
 - **Bug found and fixed in Project 001:** batch sampling called `torch.Generator.seed()`,
   which *re-seeds* from OS entropy rather than reading the seed, so training was not
   reproducible despite a fixed seed. Fixed; two identical runs now match exactly
@@ -86,10 +87,27 @@ runs unattended; every run directory is self-describing and diffable.
   aggregate is independent of seed order (D-028).
 - 25 new tests; stdlib `statistics` only — no new dependencies.
 
+**What Project 003 Stage 1B added (2026-09-10): multi-configuration sweeps**
+
+- `sweep.py` + `scripts/experiment_sweep.py --configs NAME:key=value` run several **named
+  configurations**, each across the full seed list: one normal experiment record per
+  configuration × seed (`<config>/seed-<seed>/`, tagged `config:<name>`), and one
+  `configurations[]` entry per configuration with its own status, seed lists, resolved spec
+  and mean ± spread.
+- **Configurations are never mixed**: with two or more configurations the top-level
+  `statistics` section reports `aggregated: false` and publishes no mean; every mean and
+  spread lives with the configuration that produced it (D-029).
+- Configuration order, like seed order, does not affect the result or the fingerprint. The
+  sweep schema stays `1.0`: the new fields appear only for named configurations, so
+  seed-only sweeps remain byte-identical to Stage 1A and EXP-004's fingerprints still
+  reproduce.
+- 25 new tests in `tests/test_sweep_configs.py`; `tests/test_sweeps.py` (Stage 1A) is the
+  backward-compatibility suite and is unchanged.
+
 **Still open before this stage can close** (deliberately not started):
 
-- Unattended **2-configuration** sweeps (the runner sweeps *seeds*, not configurations —
-  **Q-8**).
+- Larger sweep orchestration: many configurations, scheduling, resuming an interrupted
+  sweep (**Q-8**). Two-configuration sweeps themselves are delivered.
 - Bits-per-byte / per-character loss reporting so char-level and BPE models compare fairly.
 - Real, clearly licensed smoke-test corpora (needs Stage 3 data work).
 - Wiring the existing `scripts/train.py` and `scripts/tokenizer_*.py` entry points to write
