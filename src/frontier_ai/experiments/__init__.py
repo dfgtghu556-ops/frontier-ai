@@ -18,7 +18,7 @@ Components:
     environment.py  selected, stable environment metadata (no env dumps)
     record.py       the experiment record: sections, fingerprint, save/load, render
     runner.py       lifecycle runner for Python callables and subprocess commands
-    sweep.py        multi-seed sweeps: one record per seed + a mean ± spread aggregate
+    sweep.py        sweeps over seeds and configurations: one record per run + mean ± spread
     examples.py     small reference experiments used by docs and determinism tests
 """
 
@@ -30,14 +30,19 @@ from .runner import ExperimentContext, ExperimentInputError, RunOutcome, run_com
 from .seeding import SEED_LIMITATIONS, derive_seed, derive_seeds, seed_everything
 from .spec import SPEC_SCHEMA_VERSION, ExperimentSpec, ExperimentSpecError
 from .sweep import (
+    CONFIG_PLACEHOLDER,
     SWEEP_FILENAME,
     SWEEP_RECORD_TYPE,
     SWEEP_SCHEMA_VERSION,
+    SweepConfiguration,
     SweepMetricError,
     SweepOutcome,
     SweepRecord,
     SweepRecordError,
+    command_has_config_placeholder,
+    normalize_configurations,
     normalize_seeds,
+    parse_configuration_list,
     parse_seed_list,
     run_command_sweep,
     run_sweep,
@@ -78,6 +83,11 @@ __all__ = [
     "SweepMetricError",
     "SweepOutcome",
     "SWEEP_SCHEMA_VERSION",
+    "SweepConfiguration",
+    "parse_configuration_list",
+    "normalize_configurations",
+    "command_has_config_placeholder",
+    "CONFIG_PLACEHOLDER",
     "SWEEP_RECORD_TYPE",
     "SWEEP_FILENAME",
     "parse_seed_list",

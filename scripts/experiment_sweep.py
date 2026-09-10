@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Run one experiment across several seeds and aggregate the result as mean ± spread.
+"""Run one experiment across seeds (and optionally across named configurations) and aggregate
+the result as mean ± spread.
 
-Every seed produces its own normal experiment record (``seed-<seed>/experiment.json`` with
-git, data, environment and configuration provenance); the sweep then writes ``sweep.json``
-with the aggregate. Follows the Project 001/002/003 CLI conventions (argparse, ``--exp-id``,
-``--out``, ``--set``), and everything after ``--`` is the command to run per seed.
+Every configuration × seed produces its own normal experiment record
+(``[<config>/]seed-<seed>/experiment.json`` with git, data, environment and configuration
+provenance); the sweep then writes ``sweep.json`` with the aggregate. Follows the
+Project 001/002/003 CLI conventions (argparse, ``--exp-id``, ``--out``, ``--set``), and
+everything after ``--`` is the command to run per configuration × seed.
 
 Examples
 --------
@@ -20,9 +22,19 @@ Examples
         --metric eval.val_loss --out out/sweeps/EXP-004 -- \\
         python scripts/my_experiment.py --seed {seed}
 
-Use ``{seed}`` in the command where the seed must reach the experiment. A command without
-it runs identically for every seed, which is almost never what a seed sweep means; the
-recorder prints a warning in that case.
+    # several named configurations, each across every seed ({config} and {seed})
+    python scripts/experiment_sweep.py --exp-id EXP-005 --seeds 1,2,3 \\
+        --configs "lr_high:params.lr=0.02" "lr_low:params.lr=0.005" \\
+        --metric final_val_loss --out out/sweeps/EXP-005 -- \\
+        python scripts/my_experiment.py --lr-config {config} --seed {seed}
+
+Use ``{seed}`` in the command where the seed must reach the experiment, and ``{config}``
+where the configuration name must reach it. A command without ``{seed}`` runs identically
+for every seed, and one without ``{config}`` runs identically for every configuration;
+the recorder prints a warning in both cases.
+
+With ``--configs`` each configuration is aggregated separately (mean ± sample standard
+deviation per configuration); results from different configurations are never mixed.
 
 Exit codes: 0 = every seed produced a usable metric, 2 = partial (some seeds failed),
 1 = no seed produced a usable metric. The sweep record is written in all three cases.
@@ -39,6 +51,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from frontier_ai.experiments import (  # noqa: E402
     ExperimentSpec,
+    parse_configuration_list,
     parse_seed_list,
     run_command_sweep,
 )
@@ -65,6 +78,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--exp-id", required=True, help="experiment id, e.g. EXP-004")
     p.add_argument("--seeds", nargs="+", required=True, metavar="SEED",
                    help="seeds to run: '1,2,3' or '1 2 3' (order does not affect the result)")
+    p.add_argument("--configs", nargs="+", action="extend", default=[], metavar="NAME:key=value",
+                   help="named configurations, each run across every seed, e.g. "
+                        "'lr_high:params.lr=0.02' (repeat the flag; keys: params.<name>, "
+                        "config_path, name, notes; order does not affect the result)")
     p.add_argument("--metric", required=True,
                    help="result field to aggregate from each run (dotted path allowed)")
     p.add_argument("--name", default="", help="short human-readable sweep name")
@@ -88,6 +105,7 @@ def main() -> int:
     args = parse_args(recorder_argv)
 
     seeds = parse_seed_list(args.seeds)
+    configs = parse_configuration_list(args.configs) if args.configs else None
     out_dir = args.out or f"out/sweeps/{args.exp_id}"
 
     spec = ExperimentSpec(
@@ -105,7 +123,8 @@ def main() -> int:
 
     try:
         outcome = run_command_sweep(
-            spec, seeds, args.metric, command, output_dir=args.out, timeout=args.timeout
+            spec, seeds, args.metric, command, output_dir=args.out, timeout=args.timeout,
+            configurations=configs,
         )
     except SystemExit:  # pragma: no cover - defensive
         raise
@@ -117,6 +136,9 @@ def main() -> int:
     if not command_has_seed(command):
         print("[sweep] WARNING: the command contains no '{seed}' placeholder, so every seed "
               "runs the same command.", file=sys.stderr)
+    if configs and not command_has_config(command):
+        print("[sweep] WARNING: --configs was given but the command contains no '{config}' "
+              "placeholder, so every configuration runs the same command.", file=sys.stderr)
 
     status = outcome.record.sweep["status"]
     if not args.quiet:
@@ -128,10 +150,15 @@ def main() -> int:
         "status": status,
         "sweep": str(outcome.path),
         "metric": args.metric,
-        "mean": outcome.record.statistics["mean"],
-        "spread": outcome.record.statistics["spread"],
+        "mean": outcome.record.statistics.get("mean"),
+        "spread": outcome.record.statistics.get("spread"),
         "successful_seeds": outcome.record.sweep["successful_seeds"],
         "failed_seeds": outcome.record.sweep["failed_seeds"],
+        "configurations": [
+            {"name": cfg["name"], "status": cfg["status"],
+             "mean": cfg["statistics"]["mean"], "spread": cfg["statistics"]["spread"]}
+            for cfg in outcome.record.configurations
+        ],
         "fingerprint": outcome.record.content_fingerprint(),
     }))
 
@@ -142,6 +169,10 @@ def main() -> int:
 
 def command_has_seed(command: list[str]) -> bool:
     return any("{seed}" in arg for arg in command)
+
+
+def command_has_config(command: list[str]) -> bool:
+    return any("{config}" in arg for arg in command)
 
 
 if __name__ == "__main__":

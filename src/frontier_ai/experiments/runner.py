@@ -48,6 +48,10 @@ class ExperimentContext:
     output_dir: Path
     seed: int
     derived_seeds: dict[str, int] = field(default_factory=dict)
+    # Name of the sweep configuration this run belongs to ("" outside a sweep, or in a
+    # single-configuration sweep). Informational: the configuration is also visible in the
+    # run's params/config_path and in its `config:<name>` tag.
+    configuration: str = ""
 
     def derived(self, name: str, fallback: int | None = None) -> int:
         """Component-specific seed derived from the master seed."""
@@ -125,8 +129,16 @@ def run_experiment(
     components: Sequence[str] = DEFAULT_COMPONENTS,
     overrides: Sequence[str] | None = None,
     extra_packages: tuple[str, ...] = (),
+    configuration: str = "",
 ) -> RunOutcome:
-    """Run ``experiment_fn`` inside the standard provenance lifecycle."""
+    """Run ``experiment_fn`` inside the standard provenance lifecycle.
+
+    ``configuration`` names the sweep configuration this run belongs to, if any; it is
+    passed through to :class:`ExperimentContext` and is not part of the record.
+    """
+    # captured before the local `configuration` variable is reused for the record's
+    # configuration *section* below (shadowing it would silently drop the name)
+    configuration_name = str(configuration or "")
     validate_inputs(spec)
     out_dir = Path(output_dir or spec.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -144,6 +156,7 @@ def run_experiment(
         output_dir=out_dir,
         seed=spec.seed,
         derived_seeds=dict(randomness.get("derived_seeds", {})),
+        configuration=configuration_name,
     )
 
     started = time.time()

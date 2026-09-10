@@ -1,37 +1,53 @@
-"""Multi-seed experiment sweeps (Project 003, ROADMAP Stage 1).
+"""Experiment sweeps: one specification across seeds and configurations (ROADMAP Stage 1).
 
-A sweep answers one question: **how much does the measured result vary across independent
-seeds?** One experiment specification is executed once per seed, and the results are
-summarised as ``mean ± spread``.
+A sweep answers: **how much does the measured result vary across independent seeds, and
+between configurations?** It is the mechanism behind the roadmap rule "report mean ± spread
+for any headline number" and "a 2-config sweep runs unattended".
 
-Design rules (D-028)
---------------------
+Two shapes, one implementation
+------------------------------
+* **Seed sweep** (Stage 1A, D-028): one specification, one seed list, one record per seed.
+* **Configuration × seed sweep** (Stage 1B, D-029): several *named configurations*, each run
+  across the same seed list, one record per configuration × seed.
+
+Backward compatibility (D-029): a sweep with no named configurations is byte-identical to a
+Stage 1A sweep — same directories (``seed-<seed>/``), same record sections, no
+``configurations`` section, no ``configuration`` key on run entries, same fingerprint. The
+extra fields appear **only** when named configurations are supplied.
+
+Design rules (D-028, D-029)
+---------------------------
 Metric resolution: ``metric`` is read from the run record's ``results`` first, and — for
 wrapped commands, which only record ``exit_code`` and log tails — from the last JSON object
 the command printed (the convention ``scripts/train.py --eval-only`` and
 ``scripts/evaluate.py`` already use). The source actually used is recorded per run as
 ``metric_source``.
 
-Design rules (D-028)
---------------------
-1. **Individual runs are never collapsed.** Every seed produces its own normal
-   :class:`~frontier_ai.experiments.record.ExperimentRecord` — same sections, same git/data/
-   environment provenance, same content fingerprint — written to its own directory
-   (``seed-<zero-padded seed>/``) so seeds cannot collide.
-2. **Seed order does not matter.** The seed list is normalised (ints, de-duplicated, sorted
-   ascending) before anything runs, and statistics are computed over values sorted by seed,
-   so ``[1, 2, 3]`` and ``[3, 1, 2]`` produce the same aggregate. Each run still records the
-   seed it actually used.
-3. **Failures are recorded, not discarded.** A seed that raises keeps its failed record, is
-   listed in ``failed_seeds`` with its error, and does not stop the other seeds. The sweep
-   status is ``success`` (all seeds), ``partial`` (some seeds) or ``failed`` (no seed
-   produced a usable metric). It never reports success when a seed is missing.
+1. **Individual runs are never collapsed.** Every configuration × seed produces its own
+   normal :class:`~frontier_ai.experiments.record.ExperimentRecord` — same sections, same
+   git/data/environment provenance, same content fingerprint — written to its own directory
+   (``<config>/seed-<zero-padded seed>/``, or ``seed-<seed>/`` for a seed-only sweep) so
+   runs cannot collide.
+2. **Order does not matter.** Configurations are sorted by name and seeds are normalised
+   (ints, de-duplicated, sorted ascending) before anything runs, and statistics are computed
+   over values sorted by seed. ``{"a": …, "b": …}`` and ``{"b": …, "a": …}`` (and
+   ``[1, 2, 3]`` vs ``[3, 1, 2]``) give the same statistics and the same fingerprint. Each
+   run still records the seed and configuration it actually used.
+3. **Failures are recorded, not discarded.** A run that raises keeps its failed record, is
+   listed in ``failed_seeds`` with its error, and does not stop the other runs. Status is
+   ``success`` (all usable), ``partial`` (some usable) or ``failed`` (none usable) — for each
+   configuration and for the sweep as a whole. A sweep never reports success with runs
+   missing.
 4. **No silent substitution.** A run that succeeded but did not produce a *numeric* value
-   for the requested metric is counted as failed for aggregation; missing values are never
-   replaced by zero.
+   for the metric is counted as failed for aggregation; missing values are never replaced by
+   zero.
 5. **Spread is the sample standard deviation** (``n - 1`` denominator), undefined — and
-   explicitly ``null`` — for fewer than two successful runs. It is not a confidence
-   interval and is never called one.
+   explicitly ``null`` — for fewer than two usable runs. It is not a confidence interval and
+   is never called one.
+6. **Configurations are never mixed.** With two or more configurations the top-level
+   ``statistics`` section states that no cross-configuration aggregate was computed, and
+   every mean/spread lives in the ``configurations`` section next to the configuration that
+   produced it.
 
 Reuses, does not reimplement: the runner lifecycle (:mod:`.runner`), the record format and
 fingerprint (:mod:`.record`), data hashing (:mod:`.hashing`) and seeding (:mod:`.seeding`).
@@ -61,7 +77,7 @@ from .runner import (
     validate_inputs,
 )
 from .seeding import DEFAULT_COMPONENTS
-from .spec import SEED_MAX, SEED_MIN, ExperimentSpec, ExperimentSpecError
+from .spec import SEED_MAX, SEED_MIN, ExperimentSpec, ExperimentSpecError, coerce_value
 
 SWEEP_SCHEMA_VERSION = "1.0"
 SWEEP_RECORD_TYPE = "frontier-ai.experiment-sweep"
@@ -75,6 +91,25 @@ SAMPLE_STDEV_DEFINITION = (
 
 SEED_DIR_TEMPLATE = "seed-{seed:010d}"
 SEED_PLACEHOLDER = "{seed}"
+CONFIG_PLACEHOLDER = "{config}"
+
+# Configuration names become directory names, so they are restricted rather than escaped.
+CONFIGURATION_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+# What a configuration variant is allowed to change. Seed, output_dir, experiment_id,
+# data_paths and command are sweep-level and are deliberately not overridable here.
+CONFIGURATION_KEYS = ("params", "config_path", "name", "notes")
+CONFIG_TAG_PREFIX = "config:"
+
+NO_CROSS_CONFIG_NOTE = (
+    "two or more configurations: no cross-configuration mean or spread is computed "
+    "(results from different configurations are never mixed, D-029); see the "
+    "'configurations' section for each configuration's own mean ± spread"
+)
+SEED_STATUS_NOTE = (
+    "sweep-level seed lists are seed-wise across configurations: a seed counts as "
+    "successful only if every configuration produced a usable metric for it. "
+    "Per-configuration seed lists are in the 'configurations' section."
+)
 
 
 class SweepRecordError(ValueError):
@@ -86,7 +121,7 @@ class SweepMetricError(ValueError):
 
 
 # ---------------------------------------------------------------------------
-# seeds
+# seeds and configurations
 # ---------------------------------------------------------------------------
 def parse_seed_list(values: Sequence[str | int]) -> list[int]:
     """Parse CLI seed arguments: ``--seeds 1,2,3``, ``--seeds 1 2 3`` or a mix."""
@@ -115,6 +150,106 @@ def normalize_seeds(seeds: Sequence[int]) -> list[int]:
         raise ExperimentSpecError("a sweep needs at least one seed")
     # sorted + de-duplicated: the aggregate must not depend on input order (D-028)
     return sorted(set(cleaned))
+
+
+@dataclass
+class SweepConfiguration:
+    """One named configuration inside a sweep, resolved to a full spec."""
+
+    name: str
+    spec: ExperimentSpec
+    overrides: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {"name": self.name, "spec": self.spec.to_dict(), "overrides": self.overrides}
+
+
+def parse_configuration_list(values: Sequence[str]) -> dict[str, dict[str, Any]]:
+    """Parse CLI configuration arguments: ``NAME:params.lr=0.01,config_path=a.json``.
+
+    Keys may be ``params.<name>``, ``config_path``, ``name`` or ``notes``; values are
+    JSON-coerced (so ``0.01`` is a float and ``"tiny"`` stays a string).
+    """
+    configs: dict[str, dict[str, Any]] = {}
+    for raw in values:
+        text = str(raw).strip()
+        if ":" not in text:
+            raise ExperimentSpecError(
+                f"configuration must look like NAME:key=value, got {raw!r}"
+            )
+        name, rest = text.split(":", 1)
+        name = name.strip()
+        if not CONFIGURATION_NAME_RE.match(name):
+            raise ExperimentSpecError(
+                f"invalid configuration name {name!r}: use letters, digits, '.', '_' or '-' "
+                "(it becomes a directory name)"
+            )
+        if name in configs:
+            raise ExperimentSpecError(f"duplicate configuration name: {name!r}")
+        parsed: dict[str, Any] = {"params": {}}
+        for item in rest.split(","):
+            if not item.strip():
+                continue
+            if "=" not in item:
+                raise ExperimentSpecError(
+                    f"configuration {name!r}: override must look like key=value, got {item!r}"
+                )
+            key, value = (part.strip() for part in item.split("=", 1))
+            if key.startswith("params."):
+                parsed["params"][key[len("params."):]] = coerce_value(value)
+            elif key in CONFIGURATION_KEYS:
+                parsed[key] = coerce_value(value)
+            else:
+                raise ExperimentSpecError(
+                    f"configuration {name!r} cannot override {key!r}; allowed: "
+                    "params.<name>, " + ", ".join(CONFIGURATION_KEYS[1:])
+                )
+        configs[name] = parsed
+    if not configs:
+        raise ExperimentSpecError("a multi-configuration sweep needs at least one configuration")
+    return configs
+
+
+def normalize_configurations(
+    spec: ExperimentSpec, configurations: Mapping[str, Mapping[str, Any]] | None
+) -> list[SweepConfiguration]:
+    """Resolve configurations into specs, sorted by name (order-independent).
+
+    ``None`` (or an empty mapping) means the single, unnamed configuration: the sweep then
+    behaves exactly like a Stage 1A seed sweep.
+    """
+    if not configurations:
+        return [SweepConfiguration(name="", spec=spec, overrides={})]
+
+    resolved: list[SweepConfiguration] = []
+    for name in sorted(configurations):  # sorted: the aggregate must not depend on order
+        if not CONFIGURATION_NAME_RE.match(str(name)):
+            raise ExperimentSpecError(
+                f"invalid configuration name {name!r}: use letters, digits, '.', '_' or '-' "
+                "(it becomes a directory name)"
+            )
+        variant = configurations[name]
+        if not isinstance(variant, Mapping):
+            raise ExperimentSpecError(f"configuration {name!r} must be a mapping of overrides")
+        unknown = set(variant) - set(CONFIGURATION_KEYS)
+        if unknown:
+            raise ExperimentSpecError(
+                f"configuration {name!r} has unsupported keys {sorted(unknown)}; "
+                f"allowed: {sorted(CONFIGURATION_KEYS)}"
+            )
+        params = dict(spec.params)
+        params.update(variant.get("params") or {})
+        merged = ExperimentSpec.from_dict({
+            **spec.to_dict(),
+            "params": params,
+            "config_path": str(variant.get("config_path", spec.config_path)),
+            "name": str(variant.get("name", spec.name)),
+            "notes": str(variant.get("notes", spec.notes)),
+        })
+        resolved.append(SweepConfiguration(name=str(name), spec=merged, overrides=dict(variant)))
+    if not resolved:
+        raise ExperimentSpecError("a multi-configuration sweep needs at least one configuration")
+    return resolved
 
 
 # ---------------------------------------------------------------------------
@@ -212,7 +347,7 @@ def _metric_value(results: Mapping[str, Any], metric: str) -> float:
 # ---------------------------------------------------------------------------
 @dataclass
 class SweepRecord:
-    """Machine-readable aggregate of one multi-seed sweep."""
+    """Machine-readable aggregate of one sweep (seeds, or configurations × seeds)."""
 
     sweep: dict[str, Any]
     configuration: dict[str, Any] = field(default_factory=dict)
@@ -222,18 +357,25 @@ class SweepRecord:
     statistics: dict[str, Any] = field(default_factory=dict)
     runs: list[dict[str, Any]] = field(default_factory=list)
     execution: dict[str, Any] = field(default_factory=dict)
+    # Present only for multi-configuration sweeps (D-029): omitted entirely otherwise, so a
+    # seed-only sweep keeps the Stage 1A record shape and fingerprint.
+    configurations: list[dict[str, Any]] = field(default_factory=list)
     schema_version: str = SWEEP_SCHEMA_VERSION
     record_type: str = SWEEP_RECORD_TYPE
 
     _SECTIONS = ("sweep", "configuration", "code", "data", "environment", "statistics",
-                 "runs", "execution")
+                 "runs", "execution", "configurations")
 
     def to_dict(self) -> dict:
-        return {
+        payload: dict[str, Any] = {
             "schema_version": self.schema_version,
             "record_type": self.record_type,
-            **{name: getattr(self, name) for name in self._SECTIONS},
         }
+        for name in self._SECTIONS:
+            if name == "configurations" and not self.configurations:
+                continue  # backward compatibility: no empty section in seed-only sweeps
+            payload[name] = getattr(self, name)
+        return payload
 
     def save(self, path: str | Path) -> Path:
         path = Path(path)
@@ -255,7 +397,8 @@ class SweepRecord:
         if extra:
             raise SweepRecordError(f"unknown sweep sections: {sorted(extra)}")
         return cls(
-            **{name: data.get(name, [] if name == "runs" else {}) for name in cls._SECTIONS},
+            **{name: data.get(name, [] if name in {"runs", "configurations"} else {})
+               for name in cls._SECTIONS},
             schema_version=SWEEP_SCHEMA_VERSION,
             record_type=str(data.get("record_type", SWEEP_RECORD_TYPE)),
         )
@@ -273,49 +416,72 @@ class SweepRecord:
         sweep = self.sweep
         stats = self.statistics
         git = self.code.get("git", {})
+        metric = sweep.get("metric")
+        multi = bool(self.configurations)
         mean = stats.get("mean")
-        spread = stats.get("spread")
 
         lines = [
             f"Sweep {sweep.get('id')} — {sweep.get('name') or '(unnamed)'}",
             "=" * 60,
             f"status        : {sweep.get('status')} "
             f"({sweep.get('successful_count')}/{sweep.get('requested_count')} seeds usable)",
-            f"metric        : {sweep.get('metric')}",
+            f"metric        : {metric}",
             f"code          : {_fmt_git(git)}",
             f"data          : {_fmt_data(self.data)}",
             f"seeds         : {len(sweep.get('seeds') or [])} requested · "
             f"{sweep.get('successful_count')} succeeded · {sweep.get('failed_count')} failed",
         ]
-        if mean is None:
-            lines.append("mean          : undefined (no usable runs)")
-            lines.append("spread        : undefined (no usable runs)")
-        else:
-            lines.append(f"mean          : {mean:.6f}")
+        if multi:
             lines.append(
-                f"spread        : {spread:.6f} (sample stdev, n-1)"
-                if spread is not None
-                else "spread        : undefined (needs at least 2 usable runs)"
+                f"configurations: {len(self.configurations)} · "
+                f"{sweep.get('runs_successful')}/{sweep.get('runs_requested')} runs usable"
             )
-            lines.append(f"range         : {stats.get('min'):.6f} … {stats.get('max'):.6f}")
+            for cfg in self.configurations:
+                cfg_stats = cfg.get("statistics") or {}
+                cfg_mean = cfg_stats.get("mean")
+                cfg_spread = cfg_stats.get("spread")
+                summary = (
+                    f"mean {cfg_mean:.6f} ± {cfg_spread:.6f} (sample stdev, n={cfg_stats.get('n')})"
+                    if cfg_mean is not None and cfg_spread is not None
+                    else (f"mean {cfg_mean:.6f}, spread undefined (n={cfg_stats.get('n')})"
+                          if cfg_mean is not None else "no usable runs")
+                )
+                lines.append(
+                    f"  {cfg.get('name'):<16} {cfg.get('status'):<8} "
+                    f"{cfg.get('successful_count')}/{cfg.get('requested_count')} seeds   {summary}"
+                )
+        else:
+            if mean is None:
+                lines.append("mean          : undefined (no usable runs)")
+            else:
+                lines.append(f"mean          : {mean:.6f}")
+                lines.append(
+                    f"spread        : {stats.get('spread'):.6f} (sample stdev, n-1)"
+                    if stats.get("spread") is not None
+                    else "spread        : undefined (needs at least 2 usable runs)"
+                )
+                lines.append(f"range         : {stats.get('min'):.6f} … {stats.get('max'):.6f}")
 
         lines.append("")
-        lines.append("per-seed:")
+        lines.append("per-run:")
         for run in self.runs:
             value = run.get("metric_value")
             shown = f"{value:.6f}" if isinstance(value, float) else str(value)
+            label = f"{run.get('configuration')}/{run.get('seed')}" if multi else f"seed {run.get('seed')}"
             lines.append(
-                f"  seed {run.get('seed'):<12} {run.get('status'):<15} "
-                f"{sweep.get('metric')}={shown}  {str(run.get('fingerprint') or '')[:8]}"
+                f"  {label:<28} {run.get('status'):<15} {metric}={shown}  "
+                f"{str(run.get('fingerprint') or '')[:8]}"
             )
         failures = [r for r in self.runs if r.get("status") != "success"]
         if failures:
             lines.append("")
-            lines.append("failed/incomplete seeds:")
+            lines.append("failed/incomplete runs:")
             for run in failures:
                 error = run.get("error") or {}
+                where = (f"{run.get('configuration')}/seed {run.get('seed')}" if multi
+                         else f"seed {run.get('seed')}")
                 lines.append(
-                    f"  seed {run.get('seed')}: {error.get('type', 'unknown')}: {error.get('message', '')}"
+                    f"  {where}: {error.get('type', 'unknown')}: {error.get('message', '')}"
                 )
 
         lines.append("")
@@ -342,27 +508,37 @@ def _seed_dir(root: Path, seed: int) -> Path:
     return root / SEED_DIR_TEMPLATE.format(seed=seed)
 
 
-def _fill_seed(argv: Sequence[str], seed: int) -> list[str]:
-    """Substitute the ``{seed}`` placeholder in a command template."""
-    return [arg.replace(SEED_PLACEHOLDER, str(seed)) for arg in argv]
+def _fill_template(argv: Sequence[str], seed: int, configuration: str) -> list[str]:
+    """Substitute the ``{seed}`` and ``{config}`` placeholders in a command template."""
+    return [
+        str(arg).replace(SEED_PLACEHOLDER, str(seed)).replace(CONFIG_PLACEHOLDER, str(configuration))
+        for arg in argv
+    ]
+
+
+def _status_of(successful: int, failed: int) -> str:
+    if not failed:
+        return "success"
+    return "partial" if successful else "failed"
 
 
 def _run_sweep(
     spec: ExperimentSpec,
     seeds: Sequence[int],
     metric: str,
-    execute_one: Callable[[ExperimentSpec, Path], RunOutcome],
+    execute_one: Callable[[ExperimentSpec, Path, str], RunOutcome],
     repo_path: str | Path = ".",
     output_dir: str | Path | None = None,
     overrides: Sequence[str] | None = None,
     extra_packages: tuple[str, ...] = (),
     continue_on_error: bool = True,
+    configurations: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> SweepOutcome:
-    """Shared sweep implementation: provenance once, then one run per seed."""
+    """Shared sweep implementation: provenance once, then one run per configuration × seed."""
     if not str(metric).strip():
         raise ExperimentSpecError("a sweep needs the name of the result field to aggregate")
     canonical_seeds = normalize_seeds(seeds)
-    validate_inputs(spec)  # fail before spending compute on any seed
+    validate_inputs(spec)  # fail before spending compute on any run
 
     out_dir = Path(output_dir or spec.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -370,6 +546,13 @@ def _run_sweep(
     # The template spec is recorded with the *first canonical* seed so that the sweep's own
     # configuration cannot depend on the order the seeds were supplied in.
     template = ExperimentSpec.from_dict({**spec.to_dict(), "seed": canonical_seeds[0]})
+    # Configurations are resolved from the *template*, never from the raw spec: the raw
+    # spec carries whichever seed the caller happened to list first, which would make the
+    # record depend on seed order (the same class of bug as D-028's template fix).
+    configs = normalize_configurations(template, configurations)
+    # A sweep with named configurations is "multi": it gets the extra sections and the
+    # <config>/seed-<seed>/ layout. A seed-only sweep keeps the Stage 1A shape exactly.
+    multi = any(cfg.name for cfg in configs)
     configuration = configuration_section(template, overrides)  # 2. configuration
     configuration["seeds_requested"] = list(canonical_seeds)
     configuration["spec_is_template"] = True
@@ -385,58 +568,122 @@ def _run_sweep(
     started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     outcomes: list[RunOutcome] = []
     entries: list[dict[str, Any]] = []
-    values: list[tuple[int, float]] = []
+    entries_by_config: dict[str, list[dict[str, Any]]] = {cfg.name: [] for cfg in configs}
 
-    for seed in canonical_seeds:                                # 5+7. seed and execute per seed
-        seed_dir = _seed_dir(out_dir, seed)
-        # one spec per seed: same configuration, its own seed and its own output directory
-        seed_spec = ExperimentSpec.from_dict(
-            {**template.to_dict(), "seed": int(seed), "output_dir": str(seed_dir)}
-        )
-        entry: dict[str, Any] = {"seed": int(seed)}
-        try:
-            outcome = execute_one(seed_spec, seed_dir)
-            outcomes.append(outcome)
-            record = outcome.record
-            try:
-                value, source = extract_metric(record.results, metric)
-            except SweepMetricError as exc:
-                entry.update(status="metric_missing", metric_value=None, metric_source=None,
-                             error={"type": type(exc).__name__, "message": str(exc)})
-            else:
-                entry.update(status="success", metric_value=value, metric_source=source,
-                             error=None)
-                values.append((int(seed), value))
-        except Exception as exc:  # noqa: BLE001 - recorded, then the sweep continues
-            record = _load_partial(seed_dir)
-            entry.update(
-                status="failed",
-                metric_value=None,
-                error={"type": type(exc).__name__, "message": str(exc)},
+    for cfg in configs:                                          # 5+7. seed and execute
+        cfg_dir = out_dir / cfg.name if multi else out_dir
+        for seed in canonical_seeds:
+            seed_dir = _seed_dir(cfg_dir, seed)
+            # one spec per run: this configuration's params, its own seed and output dir
+            run_spec = ExperimentSpec.from_dict(
+                {**cfg.spec.to_dict(), "seed": int(seed), "output_dir": str(seed_dir)}
             )
-            if not continue_on_error:
-                entries.append(_finish_entry(entry, record, seed_dir, out_dir))
-                _write_sweep(out_dir, spec, metric, canonical_seeds, configuration, code, data,
-                             environment, entries, started_at, started, status="failed",
-                             extra_note=f"stopped after seed {seed} (continue_on_error=False)")
-                raise
+            if multi and f"{CONFIG_TAG_PREFIX}{cfg.name}" not in run_spec.tags:
+                run_spec = ExperimentSpec.from_dict(
+                    {**run_spec.to_dict(),
+                     "tags": [*run_spec.tags, f"{CONFIG_TAG_PREFIX}{cfg.name}"]}
+                )
+            entry: dict[str, Any] = {"seed": int(seed)}
+            if multi:
+                entry["configuration"] = cfg.name
+            record: ExperimentRecord | None = None
+            try:
+                outcome = execute_one(run_spec, seed_dir, cfg.name)
+                outcomes.append(outcome)
+                record = outcome.record
+                try:
+                    value, source = extract_metric(record.results, metric)
+                except SweepMetricError as exc:
+                    entry.update(status="metric_missing", metric_value=None, metric_source=None,
+                                 error={"type": type(exc).__name__, "message": str(exc)})
+                else:
+                    entry.update(status="success", metric_value=value, metric_source=source,
+                                 error=None)
+            except Exception as exc:  # noqa: BLE001 - recorded, then the sweep continues
+                record = _load_partial(seed_dir)
+                entry.update(
+                    status="failed",
+                    metric_value=None,
+                    error={"type": type(exc).__name__, "message": str(exc)},
+                )
+                if not continue_on_error:
+                    entries.append(_finish_entry(entry, record, seed_dir, out_dir))
+                    entries_by_config[cfg.name].append(entries[-1])
+                    _write_sweep(out_dir, template, metric, canonical_seeds, configuration, code,
+                                 data, environment, entries, started_at, started, status="failed",
+                                 multi=multi, configs=configs,
+                                 entries_by_config=entries_by_config,
+                                 extra_note=f"stopped after {cfg.name or 'seed'}/{seed} "
+                                            "(continue_on_error=False)")
+                    raise
 
-        entries.append(_finish_entry(entry, record, seed_dir, out_dir))
+            entries.append(_finish_entry(entry, record, seed_dir, out_dir))
+            entries_by_config[cfg.name].append(entries[-1])
 
-    successful = [e["seed"] for e in entries if e["status"] == "success"]
-    failed = [e["seed"] for e in entries if e["status"] != "success"]
-    if not failed:
-        status = "success"
-    elif successful:
-        status = "partial"
+    if multi:
+        usable_per_seed = {seed: 0 for seed in canonical_seeds}
+        for entry in entries:
+            if entry["status"] == "success":
+                usable_per_seed[entry["seed"]] += 1
+        successful = [s for s in canonical_seeds if usable_per_seed[s] == len(configs)]
+        failed = [s for s in canonical_seeds if usable_per_seed[s] != len(configs)]
+        status = _status_of(
+            sum(1 for e in entries if e["status"] == "success"),
+            sum(1 for e in entries if e["status"] != "success"),
+        )
     else:
-        status = "failed"
+        successful = [e["seed"] for e in entries if e["status"] == "success"]
+        failed = [e["seed"] for e in entries if e["status"] != "success"]
+        status = _status_of(len(successful), len(failed))
 
     record, path, rendered = _write_sweep(
         out_dir, template, metric, canonical_seeds, configuration, code, data, environment,
-        entries, started_at, started, status=status,
+        entries, started_at, started, status=status, multi=multi, configs=configs,
+        entries_by_config=entries_by_config,
     )
     return SweepOutcome(record=record, path=path, rendered=rendered, runs=outcomes)
+
+
+def _configuration_sections(
+    configs: Sequence[SweepConfiguration],
+    metric: str,
+    seeds: Sequence[int],
+    out_dir: Path,
+    multi: bool,
+    entries_by_config: Mapping[str, Sequence[dict[str, Any]]],
+    extra_note: str = "",
+) -> list[dict[str, Any]]:
+    """Per-configuration status, counts and mean ± spread (D-029)."""
+    sections: list[dict[str, Any]] = []
+    for cfg in configs:
+        cfg_entries = list(entries_by_config.get(cfg.name, ()))
+        successful = [e["seed"] for e in cfg_entries if e["status"] == "success"]
+        failed = [e["seed"] for e in cfg_entries if e["status"] != "success"]
+        section: dict[str, Any] = {
+            "name": cfg.name,
+            "status": _status_of(len(successful), len(failed)),
+            "metric": metric,
+            "seeds": list(seeds),
+            "successful_seeds": successful,
+            "failed_seeds": failed,
+            "requested_count": len(seeds),
+            "successful_count": len(successful),
+            "failed_count": len(failed),
+            # relative, like runs[].record_dir: a sweep record must not embed machine paths
+            "output_dir": cfg.name if multi else ".",
+            "spec": cfg.spec.to_dict(),
+            "overrides": cfg.overrides,
+            "statistics": summarize_metric(
+                metric,
+                sorted((e["seed"], e["metric_value"])
+                       for e in cfg_entries if e["metric_value"] is not None),
+            ),
+        }
+        if extra_note:
+            note = section["statistics"].get("note")
+            section["statistics"]["note"] = " ".join(filter(None, [note, extra_note]))
+        sections.append(section)
+    return sections
 
 
 def _load_partial(seed_dir: Path) -> ExperimentRecord | None:
@@ -474,35 +721,69 @@ def _write_sweep(
     started_at: str,
     started: float,
     status: str,
+    multi: bool = False,
+    configs: Sequence[SweepConfiguration] = (),
+    entries_by_config: Mapping[str, Sequence[dict[str, Any]]] | None = None,
     extra_note: str = "",
 ) -> tuple[SweepRecord, Path, str]:
-    successful = [e["seed"] for e in entries if e["status"] == "success"]
-    failed = [e["seed"] for e in entries if e["status"] != "success"]
-    statistics_section = summarize_metric(
-        metric,
-        sorted((e["seed"], e["metric_value"]) for e in entries if e["metric_value"] is not None),
-    )
-    if extra_note:
-        statistics_section["note"] = " ".join(
-            filter(None, [statistics_section.get("note"), extra_note])
+    config_sections = _configuration_sections(configs, metric, seeds, out_dir, multi,
+                                              entries_by_config or {}, extra_note=extra_note)
+
+    if multi:
+        # never mix configurations: state explicitly that no cross-config aggregate exists
+        statistics_section: dict[str, Any] = {
+            "metric": metric,
+            "aggregated": False,
+            "note": NO_CROSS_CONFIG_NOTE if not extra_note else f"{NO_CROSS_CONFIG_NOTE} {extra_note}",
+        }
+    else:
+        statistics_section = summarize_metric(
+            metric,
+            sorted((e["seed"], e["metric_value"]) for e in entries if e["metric_value"] is not None),
+        )
+        if extra_note:
+            statistics_section["note"] = " ".join(
+                filter(None, [statistics_section.get("note"), extra_note])
+            )
+
+    if multi:
+        usable_per_seed = {seed: 0 for seed in seeds}
+        for entry in entries:
+            if entry["status"] == "success":
+                usable_per_seed[entry["seed"]] += 1
+        successful = [s for s in seeds if usable_per_seed[s] == len(config_sections)]
+        failed = [s for s in seeds if usable_per_seed[s] != len(config_sections)]
+    else:
+        successful = [e["seed"] for e in entries if e["status"] == "success"]
+        failed = [e["seed"] for e in entries if e["status"] != "success"]
+
+    sweep_section: dict[str, Any] = {
+        "id": spec.experiment_id,
+        "name": spec.name,
+        "status": status,
+        "metric": metric,
+        "tags": list(spec.tags),
+        "notes": spec.notes,
+        "output_dir": str(out_dir),
+        "seeds": list(seeds),
+        "successful_seeds": successful,
+        "failed_seeds": failed,
+        "requested_count": len(seeds),
+        "successful_count": len(successful),
+        "failed_count": len(failed),
+    }
+    if multi:
+        sweep_section.update(
+            configuration_names=[cfg["name"] for cfg in config_sections],
+            configuration_count=len(config_sections),
+            runs_requested=len(seeds) * len(config_sections),
+            runs_successful=sum(1 for e in entries if e["status"] == "success"),
+            runs_failed=sum(1 for e in entries if e["status"] != "success"),
+            seed_status_note=SEED_STATUS_NOTE,
         )
 
     record = SweepRecord(
-        sweep={
-            "id": spec.experiment_id,
-            "name": spec.name,
-            "status": status,
-            "metric": metric,
-            "tags": list(spec.tags),
-            "notes": spec.notes,
-            "output_dir": str(out_dir),
-            "seeds": list(seeds),
-            "successful_seeds": successful,
-            "failed_seeds": failed,
-            "requested_count": len(seeds),
-            "successful_count": len(successful),
-            "failed_count": len(failed),
-        },
+        sweep=sweep_section,
         configuration=configuration,
         code=code,
         data=data,
@@ -516,6 +797,7 @@ def _write_sweep(
             "cwd": str(Path.cwd()),
             "pid": __import__("os").getpid(),
         },
+        configurations=config_sections if multi else [],
     )
     path = record.save(out_dir / SWEEP_FILENAME)
     rendered = record.render()
@@ -534,26 +816,38 @@ def run_sweep(
     overrides: Sequence[str] | None = None,
     extra_packages: tuple[str, ...] = (),
     continue_on_error: bool = True,
+    *,
+    configurations: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> SweepOutcome:
-    """Run ``experiment_fn`` once per seed and aggregate ``metric`` as mean ± spread.
+    """Run ``experiment_fn`` once per configuration × seed and aggregate ``metric``.
 
-    Each seed gets a full :class:`ExperimentRecord` under ``<output_dir>/seed-<seed>/``.
-    Per-seed failures are recorded and (by default) do not stop the remaining seeds.
+    With ``configurations=None`` (the default) this is exactly the Stage 1A seed sweep:
+    every seed gets a full :class:`ExperimentRecord` under ``<output_dir>/seed-<seed>/``.
+    With ``configurations={"a": {...}, "b": {...}}`` each named configuration is run across
+    all seeds under ``<output_dir>/<config>/seed-<seed>/``, and each configuration is
+    aggregated separately — results from different configurations are never mixed.
+
+    A configuration may override ``params.<name>``, ``config_path``, ``name`` and ``notes``;
+    the experiment body reads its configuration from ``ctx.spec.params`` (and
+    ``ctx.configuration``). Per-run failures are recorded and, by default, do not stop the
+    remaining runs.
     """
-    def execute_one(seed_spec: ExperimentSpec, seed_dir: Path) -> RunOutcome:
+    def execute_one(run_spec: ExperimentSpec, run_dir: Path, configuration: str) -> RunOutcome:
         return run_experiment(
-            seed_spec,
+            run_spec,
             experiment_fn,
             repo_path=repo_path,
-            output_dir=seed_dir,
+            output_dir=run_dir,
             components=components,
             overrides=overrides,
             extra_packages=extra_packages,
+            configuration=configuration,
         )
 
     return _run_sweep(
         spec, seeds, metric, execute_one, repo_path=repo_path, output_dir=output_dir,
         overrides=overrides, extra_packages=extra_packages, continue_on_error=continue_on_error,
+        configurations=configurations,
     )
 
 
@@ -568,23 +862,26 @@ def run_command_sweep(
     extra_packages: tuple[str, ...] = (),
     timeout: float | None = None,
     continue_on_error: bool = True,
+    *,
+    configurations: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> SweepOutcome:
-    """Run a command once per seed, substituting ``{seed}`` in the argv.
+    """Run a command once per configuration × seed.
 
-    A command with no ``{seed}`` placeholder runs identically for every seed, which is
-    almost never what a seed sweep means — the caller is warned (see the CLI).
+    ``{seed}`` and ``{config}`` in the argv are substituted per run. A command with no
+    ``{seed}`` placeholder runs identically for every seed — the CLI warns about that, and
+    about a missing ``{config}`` placeholder when several configurations are requested.
     """
     argv = list(command or spec.command)
 
-    def execute_one(seed_spec: ExperimentSpec, seed_dir: Path) -> RunOutcome:
-        argv_filled = _fill_seed(argv, int(seed_spec.seed))
-        # record the exact argv that ran (seed substituted), not the {seed} template
-        seed_spec = ExperimentSpec.from_dict({**seed_spec.to_dict(), "command": argv_filled})
+    def execute_one(run_spec: ExperimentSpec, run_dir: Path, configuration: str) -> RunOutcome:
+        argv_filled = _fill_template(argv, int(run_spec.seed), configuration)
+        # record the exact argv that ran (placeholders substituted), not the template
+        run_spec = ExperimentSpec.from_dict({**run_spec.to_dict(), "command": argv_filled})
         return run_command(
-            seed_spec,
+            run_spec,
             argv_filled,
             repo_path=repo_path,
-            output_dir=seed_dir,
+            output_dir=run_dir,
             cwd=cwd,
             extra_packages=extra_packages,
             timeout=timeout,
@@ -593,12 +890,18 @@ def run_command_sweep(
     return _run_sweep(
         spec, seeds, metric, execute_one, repo_path=repo_path, output_dir=output_dir,
         extra_packages=extra_packages, continue_on_error=continue_on_error,
+        configurations=configurations,
     )
 
 
 def command_has_seed_placeholder(command: Sequence[str]) -> bool:
     """True if a command template will actually differ between seeds."""
     return any(SEED_PLACEHOLDER in str(arg) for arg in command)
+
+
+def command_has_config_placeholder(command: Sequence[str]) -> bool:
+    """True if a command template will actually differ between configurations."""
+    return any(CONFIG_PLACEHOLDER in str(arg) for arg in command)
 
 
 # ---------------------------------------------------------------------------
@@ -617,4 +920,3 @@ def _fmt_data(data: dict[str, Any]) -> str:
     if isinstance(digest, dict):
         return f"{digest.get('file_count')} file(s), {digest.get('digest', '')[:12]}…"
     return str(digest)
-

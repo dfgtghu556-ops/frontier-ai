@@ -123,7 +123,7 @@ class ExperimentSpec:
                 raise ExperimentSpecError(f"override must look like key=value, got '{item}'")
             key, raw = item.split("=", 1)
             if key.startswith("params."):
-                spec.params[key[len("params.") :]] = _coerce(raw)
+                spec.params[key[len("params.") :]] = coerce_value(raw)
                 continue
             if key not in {"seed", "name", "output_dir", "notes",
                            "config_path", "deterministic_mode"}:
@@ -141,8 +141,12 @@ class ExperimentSpec:
         return spec
 
 
-def _coerce(raw: str) -> Any:
-    """Parse a CLI string into a JSON value (falling back to the raw string)."""
+def coerce_value(raw: str) -> Any:
+    """Parse a CLI string into a JSON value (falling back to the raw string).
+
+    Public because the sweep CLI parses ``--config NAME:params.x=...`` with the same rules
+    as ``--set params.x=...``; two parsers that disagree would be a bug.
+    """
     try:
         return json.loads(raw)
     except json.JSONDecodeError:

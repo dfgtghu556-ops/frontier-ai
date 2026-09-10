@@ -82,6 +82,11 @@ def tiny_training_experiment(ctx, steps: int = 10) -> Mapping[str, Any]:
     from ..data.tokenizer import CharTokenizer
     from ..engine.trainer import Trainer
 
+    # A configuration sweep (Stage 1B) sets these through spec.params; the defaults keep
+    # the Stage 1A behaviour and its recorded fingerprints exactly as they were.
+    steps = int(ctx.spec.params.get("steps", steps))
+    lr = float(ctx.spec.params.get("lr", 0.01))
+
     text = generate_corpus(target_chars=6000, seed=ctx.derived("data"))
     tokenizer = CharTokenizer.fit(text)
     tmp_dir = ctx.output_dir / "data"
@@ -93,17 +98,17 @@ def tiny_training_experiment(ctx, steps: int = 10) -> Mapping[str, Any]:
         model=ModelConfig(vocab_size=tokenizer.vocab_size, n_layer=2, n_head=2,
                           n_embd=32, block_size=32),
         data=DataConfig(path=str(tokens_path), batch_size=2, seed=ctx.derived("data")),
-        optim=OptimConfig(lr=0.01, warmup_steps=1),
+        optim=OptimConfig(lr=lr, warmup_steps=1),
         train=TrainConfig(
             out_dir=str(ctx.output_dir / "tiny-run"),
             max_steps=steps,
+            num_threads=1,
             accum_steps=1,
             eval_interval=0,
             log_interval=max(1, steps),
             device="cpu",
             precision="fp32",
             seed=ctx.seed,
-            num_threads=1,
         ),
     )
     trainer = Trainer(cfg, dataset)
