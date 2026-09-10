@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import sys
 from pathlib import Path
 
@@ -18,6 +17,7 @@ from frontier_ai.config import ExperimentConfig  # noqa: E402
 from frontier_ai.data.dataset import TokenDataset  # noqa: E402
 from frontier_ai.data.tokenizer import Tokenizer  # noqa: E402
 from frontier_ai.engine import checkpoint as ckpt  # noqa: E402
+from frontier_ai.engine.metrics import bits_from_nats, bpb_note, loss_summary  # noqa: E402
 from frontier_ai.engine.trainer import Trainer  # noqa: E402
 from frontier_ai.utils.device import resolve_spec  # noqa: E402
 from frontier_ai.utils.seed import set_seed  # noqa: E402
@@ -60,21 +60,30 @@ def main() -> int:
 
     trainer = Trainer(cfg, ds, model=model, logger=None)
     val = trainer.evaluate(max_iters=cfg.train.eval_iters)
-    bits_per_token = val / math.log(2)
-    print(
-        json.dumps(
-            {
-                "ckpt": str(ckpt_dir),
-                "step": meta.get("step"),
-                "val_loss": round(val, 5),
-                "val_ppl": round(math.exp(min(20.0, val)), 3),
-                "bits_per_token": round(bits_per_token, 3),
-                "n_params": model.n_params(),
-                "device": spec.describe(),
+    tokens_per_byte = ds.tokens_per_byte("val")
+    tokens_per_char = ds.tokens_per_char("val")
+    report = loss_summary(val, tokens_per_byte=tokens_per_byte, tokens_per_char=tokens_per_char)
+    # keep the precision of the pre-bits-per-byte fields so historical records
+    # (EXP-001 onwards) stay comparable with new ones
+    report["val_loss"] = round(val, 5)
+    report["bits_per_token"] = round(bits_from_nats(val), 3)
+    report.update(
+        {
+            "ckpt": str(ckpt_dir),
+            "step": meta.get("step"),
+            "n_params": model.n_params(),
+            "device": spec.describe(),
+            "corpus": {
+                "path": str(ds.path),
+                "level": ds.meta.level,
+                "n_val_tokens": ds.n_val,
+                "n_val_bytes": ds.meta.n_bytes_val,
+                "n_val_chars": ds.meta.n_chars_val,
             },
-            indent=2,
-        )
+            "note": bpb_note(tokens_per_byte is not None),
+        }
     )
+    print(json.dumps(report, indent=2))
 
     if args.sample:
         tok_path = args.tokenizer or cfg.data.tokenizer

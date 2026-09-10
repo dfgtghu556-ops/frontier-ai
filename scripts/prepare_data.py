@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from frontier_ai.data.dataset import write_tokens  # noqa: E402
+from frontier_ai.data.dataset import text_lengths, write_tokens  # noqa: E402
 from frontier_ai.data.synthetic import generate_corpus  # noqa: E402
 from frontier_ai.data.tokenizer import fit_tokenizer  # noqa: E402
 
@@ -57,15 +57,34 @@ def main() -> int:
     if len(ids) < 1000:
         raise SystemExit(f"[data] only {len(ids)} tokens - need a larger corpus")
 
+    # Byte/character counts per token, measured on the tokenizer's own pieces so
+    # they add up to the source text. That is what makes bits-per-byte (rather
+    # than per-token loss) comparable between a char-level and a BPE corpus.
+    token_bytes, token_chars = text_lengths(tokenizer.tokenize(text))
+    assert len(token_bytes) == len(ids) and len(token_chars) == len(ids)
+
     out_prefix = Path(args.out)
     tok_path = out_prefix.with_suffix(".tokenizer.json")
     bin_path = out_prefix.with_suffix(".bin")
     tokenizer.save(tok_path)
-    meta = write_tokens(bin_path, ids, tokenizer.vocab_size, args.level, val_frac=args.val_frac)
+    meta = write_tokens(
+        bin_path,
+        ids,
+        tokenizer.vocab_size,
+        args.level,
+        val_frac=args.val_frac,
+        token_bytes=token_bytes,
+        token_chars=token_chars,
+    )
 
     print(
         f"[data] vocab={tokenizer.vocab_size} ({args.level}) tokens={meta.n_tokens:,} "
         f"train={meta.n_train:,} val={meta.n_val:,}"
+    )
+    print(
+        f"[data] bytes={meta.n_bytes:,} chars={meta.n_chars:,} "
+        f"bytes/token={meta.n_bytes / meta.n_tokens:.4f} "
+        f"chars/token={meta.n_chars / meta.n_tokens:.4f}"
     )
     print(f"[data] wrote {bin_path}  {tok_path}  {bin_path.with_suffix('.meta.json')}")
     return 0

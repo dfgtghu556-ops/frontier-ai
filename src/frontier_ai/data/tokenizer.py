@@ -36,6 +36,14 @@ class Tokenizer:
     def vocab_size(self) -> int:
         return len(self.itos)
 
+    def tokenize(self, text: str) -> list[str]:
+        """Split `text` into the surface pieces this tokenizer encodes.
+
+        The pieces must concatenate back to the original text: that is what makes
+        byte/character counting exact (bits per byte, Project 003 Stage 1).
+        """
+        raise NotImplementedError
+
     def encode(self, text: str) -> list[int]:
         raise NotImplementedError
 
@@ -72,8 +80,11 @@ class CharTokenizer(Tokenizer):
 
     kind = "char"
 
+    def tokenize(self, text: str) -> list[str]:
+        return list(text)
+
     def encode(self, text: str) -> list[int]:
-        return [self.stoi[ch] if ch in self.stoi else self.stoi.get("\ufffd", -1) for ch in text]
+        return [self.stoi.get(piece, self.stoi.get("\ufffd", -1)) for piece in self.tokenize(text)]
 
     @classmethod
     def fit(cls, text: str) -> CharTokenizer:
@@ -93,8 +104,13 @@ class WordTokenizer(Tokenizer):
         self.unk = unk
         self.unk_id = self.stoi.get(unk, 0)
 
+    def tokenize(self, text: str) -> list[str]:
+        # WORD_RE partitions the text (words, digits, whitespace runs, single
+        # characters), so the pieces concatenate back to the original string.
+        return WORD_RE.findall(text)
+
     def encode(self, text: str) -> list[int]:
-        return [self.stoi.get(tok, self.unk_id) for tok in WORD_RE.findall(text)]
+        return [self.stoi.get(tok, self.unk_id) for tok in self.tokenize(text)]
 
     def decode(self, ids: Iterable[int]) -> str:
         return "".join(self.itos[int(i)] for i in ids)

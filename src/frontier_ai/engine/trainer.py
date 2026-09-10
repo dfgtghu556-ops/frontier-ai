@@ -25,6 +25,7 @@ from ..utils.device import DeviceSpec, resolve_spec, threads_for
 from ..utils.logging import RunLogger, fmt_tokens_per_sec
 from ..utils.seed import set_seed
 from . import checkpoint as ckpt
+from .metrics import loss_summary
 from .optim import LRScheduler, build_optimizer
 
 
@@ -202,6 +203,7 @@ class Trainer:
                     val_ppl=round(math.exp(min(20.0, val)), 3),
                     best=round(self.state.best_val, 5),
                     improved=improved,
+                    **self._comparable_fields(val),
                 )
                 if cfg.train.save_best and improved:
                     self.save("best")
@@ -214,15 +216,37 @@ class Trainer:
         self.save("last")
         total_min = (time.time() - t_start) / 60
         mean_tps = self.state.tokens_seen / max(time.time() - t_start, 1e-9)
+        best_bpb = self.loss_report(self.state.best_val)["bits_per_byte"]
         self.logger.log(
             event="run.end",
             steps=self.state.step,
             best_val=round(self.state.best_val, 5),
+            best_bpb=best_bpb,
             minutes=round(total_min, 2),
             mean_tps=round(mean_tps, 1),
             throughput=fmt_tokens_per_sec(mean_tps),
         )
-        return {"best_val": self.state.best_val, "steps": self.state.step}
+        return {"best_val": self.state.best_val, "steps": self.state.step, "best_bpb": best_bpb}
+
+    # ------------------------------------------------------------ reporting --
+    def loss_report(self, nats: float, split: str = "val") -> dict[str, float | None]:
+        """Per-token loss *and* the tokenizer-independent bits per byte/character.
+
+        The per-token numbers are what the optimiser sees; the per-byte and
+        per-character numbers are the ones that can be compared between a
+        char-level, word-level or BPE corpus. They are ``None`` when the corpus
+        does not record byte/character counts.
+        """
+        return loss_summary(
+            nats,
+            tokens_per_byte=self.ds.tokens_per_byte(split),
+            tokens_per_char=self.ds.tokens_per_char(split),
+        )
+
+    def _comparable_fields(self, nats: float, split: str = "val") -> dict[str, float]:
+        """Log-friendly bits-per-byte/char, present only when they are known."""
+        report = self.loss_report(nats, split)
+        return {k: v for k, v in report.items() if k.startswith("bits_per_") and v is not None}
 
     # ---------------------------------------------------------------- eval --
     @torch.no_grad()

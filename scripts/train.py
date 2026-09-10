@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -96,11 +97,17 @@ def main() -> int:
     trainer = Trainer(cfg, ds, model=model)
     if args.eval_only:
         val = trainer.evaluate()
-        print(json.dumps({"val_loss": round(val, 5), "val_ppl": round(__import__("math").exp(val), 3)}))
+        report = trainer.loss_report(val)
+        # historical precision for the two pre-bits-per-byte fields
+        report["val_loss"] = round(val, 5)
+        report["val_ppl"] = round(math.exp(val), 3)
+        print(json.dumps(report, indent=2))
         return 0
 
     result = trainer.fit()
-    print(f"[train] done. best_val={result['best_val']:.4f} checkpoints in {out_dir}")
+    bpb = result.get("best_bpb")
+    bpb_txt = f" best_bpb={bpb:.4f}" if bpb is not None else " (bits/byte unknown: no corpus byte counts)"
+    print(f"[train] done. best_val={result['best_val']:.4f}{bpb_txt} checkpoints in {out_dir}")
     return 0
 
 
