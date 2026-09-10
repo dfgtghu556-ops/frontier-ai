@@ -8,8 +8,10 @@
 
 ## CURRENT POSITION — START HERE
 
-**Project 001 and Project 002 are COMPLETE. The next development task is Project 003,
-which has NOT started yet.**
+**Projects 001 and 002 are COMPLETE. Project 003 (ROADMAP Stage 1: reproducible experiment
+infrastructure) is IN PROGRESS — Stage 1 infrastructure is built, tested and documented;
+the rest of Stage 1 (multi-seed sweeps, comparable loss reporting, real licensed smoke-test
+data) is NOT done.**
 
 - **Project 001** = the CPU-first, GPU-ready PyTorch GPT training pipeline
   (data → model → training loop → evaluation → checkpointing → sampling, plus 47 tests).
@@ -18,17 +20,27 @@ which has NOT started yet.**
   Indian-language evaluation fixture, and an evaluator/comparator that produce
   machine-readable metrics. Documented in [docs/tokenization.md](docs/tokenization.md);
   results recorded as **EXP-002** in [EXPERIMENTS.md](EXPERIMENTS.md).
-- Both are committed on branch `arena/01a08a78-frontier-ai` and open as **PR #1** against `main`.
-- **Do not start Project 003 until the user explicitly asks for it.**
-- The most likely next steps are ROADMAP Stage 1 (make experiments
-  trustworthy: determinism, config+git+data-hash capture, an experiment runner) and
-  continuing Stage 2/3 (vocabulary sweeps and real licensed data). Confirm the actual
-  scope with the user before writing code; the roadmap is a proposal, not an approved plan.
+- **Project 003** = reproducible experiment infrastructure (`src/frontier_ai/experiments/`):
+  experiment specs, one seeding mechanism with documented limits, git/data/environment
+  provenance, a JSON experiment record with a content fingerprint, a runner with a
+  validate → record lifecycle, and `scripts/experiment_record.py`. Documented in
+  [docs/experiments.md](docs/experiments.md); validation recorded as **EXP-003**
+  (infrastructure verification, *not* a benchmark).
+- All three are committed on branch `arena/01a08a78-frontier-ai` and open as **PR #1**
+  against `main`. PR #1 is **not merged** — the human merges it.
+- The most likely next steps are finishing ROADMAP Stage 1 (multi-seed sweeps with
+  mean ± spread, bits-per-byte reporting so char and BPE models compare fairly, real
+  licensed smoke-test data) and continuing Stage 2/3 (vocabulary sweeps and real data).
+  Confirm the actual scope with the user before writing code; the roadmap is a proposal,
+  not an approved plan.
 - **Project 002 did NOT choose a production tokenizer.** It built the framework for that
   decision and took the first measurements. Do not treat EXP-002 as a verdict.
 - Before changing any code, read: this file, [ROADMAP.md](ROADMAP.md),
   [DECISIONS.md](DECISIONS.md), [EXPERIMENTS.md](EXPERIMENTS.md),
-  [docs/tokenization.md](docs/tokenization.md) and [README.md](README.md).
+  [docs/tokenization.md](docs/tokenization.md), [docs/experiments.md](docs/experiments.md)
+  and [README.md](README.md).
+- Record any new number through an experiment record (`scripts/experiment_record.py`) so
+  the run carries its own code/data/seed/environment provenance.
 - Record any experiment you run in [EXPERIMENTS.md](EXPERIMENTS.md) using the standard
   template. Never record a number you did not actually observe.
 
@@ -165,6 +177,32 @@ tokenizers match letters and numbers but **not** combining marks, so "मैं"
 repaired. `bpe_python` treats marks as word characters; the HF baseline does not. This
 difference is measured, not assumed — see EXP-002.
 
+## 6A. What Project 003 built (experiment infrastructure)
+
+**Status: Stage 1 infrastructure complete and tested; Stage 1 as a whole is not.**
+
+- `src/frontier_ai/experiments/` — experiment spec, git/data/environment provenance,
+  seeding with recorded limitations, the experiment record, and the runner
+  (validate → config → git → data → seed → environment → execute → results → write).
+- `scripts/experiment_record.py` — CLI wrapper that records provenance for any command and
+  propagates its exit code.
+- **No new dependencies**: stdlib plus the torch/numpy already required by Project 001.
+  Data hashing re-uses Project 002's `sha256_file`/`sha256_text` (D-024), so there is one
+  hashing implementation in the repository.
+- Every run writes `experiment.json` (8 sections: experiment/code/data/configuration/
+  randomness/environment/execution/results, `schema_version 1.0`) plus a rendered
+  `experiment.txt`. `content_fingerprint()` hashes the record with timestamps, pid, paths
+  and log tails removed, so identical runs have identical fingerprints.
+- **What this proved about Project 001:** training was *not* reproducible despite a fixed
+  seed, because `TokenDataset.get_batch` called `generator.seed()` — which re-seeds a torch
+  generator from OS entropy instead of reading it. Fixed (and `Trainer.evaluate()` now
+  passes its seeded generator); two identical runs now give bit-identical results
+  (`final_val_loss 3.24484`, equal fingerprints). Reproducibility is only claimed under a
+  recorded environment, not across machines, versions or thread counts.
+
+Full details: [docs/experiments.md](docs/experiments.md) · decisions **D-024…D-026** ·
+validation **EXP-003**.
+
 ## 7. Current repository structure
 
 ```
@@ -174,6 +212,7 @@ configs/
 docs/
     ci.yml.example            GitHub Actions workflow (copy to .github/workflows to enable)
     tokenization.md           Project 002: tokenizer research guide, metrics, limitations
+    experiments.md            Project 003: experiment infrastructure, provenance, limits
 scripts/
     prepare_data.py           text or synthetic corpus -> tokens.bin + tokenizer.json + meta.json
     train.py                  build model from config, run training, save checkpoints
@@ -183,6 +222,7 @@ scripts/
     tokenizer_train.py            train a tokenizer from a local corpus -> versioned artifact
     tokenizer_evaluate.py         evaluate artifact(s) -> JSON metrics per tokenizer
     tokenizer_compare.py          compare 2+ artifacts on the same corpus -> JSON + table
+    experiment_record.py       Project 003: record provenance for any experiment command
 src/frontier_ai/
     config.py                 dataclass configs, JSON load/save, --set overrides, validation
     data/
@@ -201,6 +241,15 @@ src/frontier_ai/
         compare.py              multi-tokenizer comparison + rendered table
         artifact.py             tokenizer files + provenance manifest
         cli.py                  shared CLI helpers
+    experiments/            Project 003: reproducible experiment infrastructure
+        spec.py                 ExperimentSpec: validated, serializable experiment definition
+        gitinfo.py              git commit/branch/dirty capture (never invents a SHA)
+        hashing.py              input digests (re-uses Project 002's sha256_file)
+        seeding.py              one master seed + derived seeds + documented limitations
+        environment.py          selected environment metadata (no env dumps)
+        record.py               ExperimentRecord: sections, fingerprint, save/load/render
+        runner.py               run_experiment / run_command lifecycle
+        examples.py             reference experiments used by docs + determinism tests
     engine/
         trainer.py            the training loop
         optim.py              AdamW builder + warmup/cosine LR scheduler
@@ -214,6 +263,8 @@ tests/
     test_data.py              tokenizer round-trips, split math, memmap integrity
     test_engine.py            schedules, checkpoint round-trips, config overrides
     test_train_smoke.py       end-to-end train / resume / sample / accumulation
+    test_experiments.py       Project 003: spec, seeding, git, hashing, record, runner, CLI
+    test_repo_hygiene.py      no source file may be git-ignored (D-023)
 PROJECT_CONTEXT.md            this file
 ROADMAP.md                    staged plan from here to frontier scale
 DECISIONS.md                  architectural decision records
@@ -404,9 +455,10 @@ orthography category, with multi-tokenizer comparison. See
 | Precision | only fp32 has actually run; bf16/fp16 paths are written but unexercised |
 | Sampling | temperature + top-k + top-p only; no repetition penalty, no batch generation, no stop tokens (no EOS in the tokenizer) |
 | Evaluation | loss/perplexity on the training corpus distribution; no benchmarks, no task eval, no human eval |
-| Experiment tooling | tokenizer experiments are recorded and machine-readable; model-training sweeps, an ablation runner, and a tracker (WandB/TensorBoard) still do not exist; no multi-seed support |
+| Experiment tooling | **Project 003 infrastructure exists** (specs, seeding with recorded limits, git/data/env provenance, JSON records with fingerprints, runner + `scripts/experiment_record.py`); model-training sweeps, multi-seed support (mean ± spread), bits-per-byte reporting, an ablation runner and a tracker (WandB/TensorBoard) still do not exist; the Project 001/002 entry points do not write records themselves (the CLI wraps them) |
 | CI | workflow committed as `docs/ci.yml.example`; it has never run on GitHub Actions (the App used to push lacks the `workflows` permission) |
 | Post-training | none: no SFT, preference optimization, reasoning, or safety work |
+| Reproducibility | runs are reproducible **under a recorded environment only** (same code, data, seed, command, library versions, thread count). cuDNN, thread-dependent FP order and RNGs outside python/numpy/torch are not covered — every record states this (D-025) |
 
 ## 15. CPU-first development was intentional
 
@@ -447,6 +499,7 @@ results at the current size (see [ROADMAP.md](ROADMAP.md)).
   - `e467eb0` — Project 001: "Add CPU-first, GPU-ready PyTorch GPT training pipeline"
   - `4ede476` — "Add permanent project documentation for long-term development"
   - a third commit adds Project 002 (tokenizer research subsystem) — see `git log`
+  - further commits on the same branch add Project 003 (experiment infrastructure) — see `git log`
 - **PR: #1** — OPEN, not a draft, mergeable:
   https://github.com/dfgtghu556-ops/frontier-ai/pull/1
 - CI: no checks have ever run on the branch (workflow not installable under
@@ -459,7 +512,7 @@ results at the current size (see [ROADMAP.md](ROADMAP.md)).
 ```bash
 python -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]"                       # CPU torch; the PyTorch CDN may be blocked (see D-012)
-pytest -q                                     # 47 tests, ~10 s
+pytest -q                                     # 120 tests, ~20 s
 ruff check .                                  # lint
 python scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
 python scripts/train.py --config configs/cpu_smoke.json                     # ~10 s, val loss 3.9 -> ~1.38
@@ -474,6 +527,12 @@ python scripts/tokenizer_train.py --corpus data/tokenizer/indic-v1 --impl bpe_hf
 python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
     --tokenizer artifacts/tokenizers/char artifacts/tokenizers/bpe_hf_1024 \
     --out out/tokenizer/compare.json
+
+# experiment provenance (Project 003)
+python scripts/experiment_record.py --exp-id EXP-003 --seed 1337 \
+    --config configs/cpu_smoke.json --data data/synthetic.bin \
+    --out out/experiments/EXP-003-train -- \
+    python scripts/train.py --config configs/cpu_smoke.json --max-steps 50
 ```
 
 ## 19. Conventions for future agents
@@ -488,9 +547,13 @@ python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
 5. **Add tests with behavior changes**, especially around data handling, masking, caching,
    and loss normalization — those are where the bugs have been so far.
 6. **Device-agnostic code only.** No `if cuda:` in the model or loop.
-7. **Ask before big jumps** (new dependencies, new subsystems, large refactors, anything
+7. **Run experiments through `scripts/experiment_record.py`** (or
+   `frontier_ai.experiments.run_experiment`) so the run carries its own provenance, and
+   never claim reproducibility beyond the recorded limitations (D-025). Do not weaken a
+   failing assertion to make it pass — if a test loses significance, add statistical power.
+8. **Ask before big jumps** (new dependencies, new subsystems, large refactors, anything
    that changes Project 001's behavior).
-8. **Never trust "tests pass" as proof the repository is complete.** An unanchored
+9. **Never trust "tests pass" as proof the repository is complete.** An unanchored
    `.gitignore` rule once excluded `src/frontier_ai/data/` from git entirely: local tests
    passed, the branch was pushed, and only a fresh checkout showed `import frontier_ai.data`
    failing. `tests/test_repo_hygiene.py` now guards against it (D-023). Anchor any new

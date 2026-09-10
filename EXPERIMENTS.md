@@ -285,12 +285,120 @@ whitespace attachment); (3) repeat on real licensed Indic data once Stage 3 deli
 committed; regenerate with the commands in §3.
 
 
+### EXP-003 — Experiment infrastructure: does the provenance system actually reproduce runs? ✅
+
+> **This entry validates infrastructure, not a model.** There is no quality benchmark here,
+> no tokenizer verdict and no scaling claim. It answers one question: *if we record a run,
+> does the record let us reproduce it — and does it refuse to lie when it cannot?*
+
+- **Status:** complete (infrastructure verification)
+- **Date:** 2026-09-10
+- **Objective:** verify that the Project 003 experiment infrastructure (ROADMAP Stage 1)
+  captures code, data, configuration, seed, environment and command faithfully, that two
+  identical runs produce identical results and identical record fingerprints, and that
+  failures are recorded rather than swallowed.
+- **Hypothesis:** (a) with a fixed seed and fixed inputs, two runs of the *same* spec
+  produce bit-identical results and equal content fingerprints; (b) changing inputs or
+  seed changes the fingerprint; (c) a failing command is recorded as `failed` **and**
+  re-raised; (d) Project 001 and Project 002 results are unchanged by the new code, except
+  where the new code fixes a genuine determinism bug.
+- **Baseline:** EXP-001 (Project 001 pipeline) and EXP-002 (tokenizer baselines) as
+  recorded above — their numbers must still reproduce.
+
+**Configuration**
+
+- Hardware: 2 CPU cores, 3 GB RAM, Python 3.11.2, torch 2.14.0+cu130, numpy (CPU only,
+  `train.num_threads=1` for the determinism runs)
+- Seed: 1337 (master); derived component seeds `data=1270167219`, `model=3236282298`,
+  `sampling=1345220995` (`sha256("<master>|<component>") mod 2**32`)
+- Deterministic: yes, under the recorded limitations — cuDNN, thread count, library
+  versions and RNGs outside python/numpy/torch are **not** covered (D-025)
+- Code revision: dirty working tree on `arena/01a08a78-frontier-ai` (commit `10e7aa9c`);
+  the record flagged `reproducible_from_commit=false`, as designed (D-026)
+- Commands (exact):
+
+```bash
+# 1. in-process: a reference experiment and a real Project 001 Trainer run, twice each
+python3 - <<'SCRIPT'
+from frontier_ai.experiments import ExperimentSpec, run_experiment
+from frontier_ai.experiments.examples import reference_experiment, tiny_training_experiment
+for i in range(2):
+    spec = ExperimentSpec(experiment_id="EXP-003", seed=1337, name="reference",
+                          output_dir=f"/tmp/expdemo/ref{i}", component="reference")
+    print(run_experiment(spec, reference_experiment).record.content_fingerprint())
+    spec = ExperimentSpec(experiment_id="EXP-003", seed=1337, name="tiny-train",
+                          output_dir=f"/tmp/expdemo/tr{i}", component="training")
+    out = run_experiment(spec, lambda ctx: tiny_training_experiment(ctx, steps=10))
+    print(out.record.content_fingerprint(), out.record.results)
+SCRIPT
+
+# 2. the real Project 001 pipeline wrapped by the CLI, run twice into the same directory
+python3 scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
+python3 scripts/experiment_record.py --exp-id EXP-003 --seed 1337 --name "identical runs" \
+    --out out/experiments/EXP-003-same --config configs/cpu_smoke.json \
+    --data data/synthetic.bin --tag project-001 -- \
+    python3 scripts/train.py --config configs/cpu_smoke.json --max-steps 30 \
+        --set train.num_threads=1
+```
+
+**Metrics**
+
+| check | expected | observed | verdict |
+|---|---|---|---|
+| `reference_experiment` × 2 | equal fingerprints | `b053048d589e2a50…` both | pass |
+| Project 001 `Trainer` run × 2 (10 steps) | equal fingerprints, equal results | `fec05faa136aca33…` both; `final_val_loss 3.24484`, step-1 loss 3.9337, step-10 loss 3.2253 | pass |
+| CLI-wrapped `scripts/train.py` × 2 (30 steps) | equal fingerprints | `f54881c68513f2957600188b5912d89684a02a9a65149e3e414ed8aa810f1dbc` both; `best_val=2.9223` | pass |
+| same run, different output dir | identical metrics, **different** fingerprint | loss 3.9706 / 3.1482 / 2.6112, `best_val=2.4691` in both; fingerprints differ because the command differs | pass (by design) |
+| data change detected | digest changes | two-file digest `8b15610be1cc…`; editing a file changes the digest | pass |
+| failing command | record `status="failed"`, error + traceback, exit code propagated, exception re-raised | observed on a deliberately invalid `scripts/train.py --out …` invocation | pass |
+| missing declared input | fails before compute | `ExperimentInputError` naming the path | pass |
+| dirty tree | flagged, not hidden | `dirty=true`, `reproducible_from_commit=false`, warning printed | pass |
+| EXP-002 regression (`bpe_py_1024`) | reproduces recorded numbers | chars/token 0.977165 (recorded 0.977), tokens/word 6.182353 (6.182), en 1.507, hi 0.893, pa 0.714, 0 round-trip failures — all match | pass |
+| Project 001 + 002 test suites | green | `pytest -q` → 120 passed; `ruff check .` clean | pass |
+
+**Results:** The infrastructure does what it claims: identical specs give identical results
+and identical fingerprints; any change to code, data, seed, config or command changes the
+fingerprint; failures are visible instead of silent.
+
+**Observations:**
+
+- **A real determinism bug in Project 001 was found by this work.** `TokenDataset.get_batch`
+  called `torch.Generator.seed()` to obtain a seed for its NumPy RNG, but that method
+  *re-seeds* the generator from OS entropy — it is not a getter. Batch sampling was
+  therefore random regardless of the configured seed (two identical runs gave
+  `final_val_loss` 3.367474 vs 3.20499). It now draws an integer *from* the generator, and
+  `Trainer.evaluate()` passes the trainer's seeded generator. No model or algorithm change.
+- With that fixed, one pre-existing test failed: `test_resume_continues_from_checkpoint`
+  had been passing on lucky 4-batch evaluations (3.17683 against a 3.14035 threshold).
+  +15 steps cannot reliably beat a noisy estimate on that fixture; it was re-powered to
+  `max_steps=60, eval_iters=8` after measuring that ≥30 extra steps reliably improve
+  (3.1523 → 2.9035 at +50). Assertions were strengthened, not loosened.
+- The two CLI runs that differ **only** in output directory produce different fingerprints.
+  That is intended — the command is part of an experiment's identity — but it means
+  "same fingerprint" is a statement about *identical* runs, not merely equivalent ones.
+- All verification ran on a dirty tree, so these records honestly say
+  `reproducible_from_commit=false`. Nothing here is claimed as reproducible from a commit.
+
+**Conclusion:** Hypothesis confirmed on all four points. Reproducibility is now a property
+we can *test*, and every record states its own limits (D-025, D-026). This makes later
+stages' numbers comparable; it does not by itself make any model or tokenizer better.
+
+**Next action:** finish ROADMAP Stage 1 — multi-seed sweeps with mean ± spread and an
+unattended 2-config sweep (Q-8), plus bits-per-byte loss reporting so char-level and BPE
+models can be compared fairly. Do not start Project 004 on the basis of this entry.
+
+**Artifacts:** `out/experiments/EXP-003-same/experiment.json` (+ `experiment.txt`),
+`out/experiments/EXP-003-train{1,2}/experiment.json`, `out/tokenizer/verify.json`,
+`tests/test_experiments.py`, [docs/experiments.md](docs/experiments.md). Run directories
+are git-ignored; the records are regenerable with the commands above.
+
 ## 5. Log index
 
 | ID | Title | Status | Date | Key metric |
 |---|---|---|---|---|
 | EXP-001 | CPU smoke test: end-to-end pipeline verification | complete | 2026-09-10 | val loss 3.93 → 1.378 (ppl 3.97) on synthetic corpus |
 | EXP-002 | Tokenizer baselines on the Indian-language probe fixture | complete | 2026-09-10 | lossless byte-BPE (0 round-trip failures) vs char 128/179 and word 160/179 failures; en 1.83 vs pa 0.80 chars/token |
+| EXP-003 | **Infrastructure verification** (not a benchmark): does the experiment record reproduce runs? | complete | 2026-09-10 | identical runs → identical fingerprints (`f54881c68513f295…` twice, `best_val=2.9223`); EXP-002 metrics reproduce exactly; a Project 001 determinism bug found and fixed |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -337,3 +445,21 @@ python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
 The corpus is deterministic (seed 1337) and BPE merge selection is deterministic, so token
 counts reproduce exactly. `bpe_hf` requires the optional `tokenizers` package; without it,
 drop that row.
+
+**EXP-003 (infrastructure verification)**
+
+```bash
+. .venv/bin/activate
+python scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
+python scripts/experiment_record.py --exp-id EXP-003 --seed 1337 --name "identical runs" \
+    --out out/experiments/EXP-003-same --config configs/cpu_smoke.json \
+    --data data/synthetic.bin --tag project-001 -- \
+    python scripts/train.py --config configs/cpu_smoke.json --max-steps 30 \
+        --set train.num_threads=1
+cat out/experiments/EXP-003-same/experiment.json
+```
+
+Run it twice: the `fingerprint` in the last line of the output must be identical across the
+two runs. This is recorded here because the rules require every run to be logged — it
+verifies the *infrastructure*, not model quality. Its own record will show `dirty=true`
+whenever the working tree is dirty; that is the point, not a defect.

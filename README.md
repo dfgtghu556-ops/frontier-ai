@@ -34,9 +34,10 @@ Read these first if you are joining the project (human or AI agent):
 | --- | --- |
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
 | [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
-| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-017) and open questions |
-| [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log (EXP-001, EXP-002) |
+| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-026) and open questions |
+| [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log (EXP-001…EXP-003) |
 | [docs/tokenization.md](docs/tokenization.md) | tokenizer research: why it matters, metrics, Indic/Unicode notes, workflow |
+| [docs/experiments.md](docs/experiments.md) | Project 003: experiment records, seeding and documented limits, git/data/env provenance, the runner |
 
 The rest of this README is the technical quickstart.
 
@@ -122,6 +123,42 @@ python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
 See [docs/tokenization.md](docs/tokenization.md). **No production tokenizer has been
 selected** — Project 002 built the framework for that decision and recorded the first
 measurements as EXP-002.
+
+## Experiment provenance (Project 003)
+
+Every run can be wrapped so it records **exactly what code, configuration, data, seed,
+environment and command produced it**:
+
+```bash
+python scripts/experiment_record.py --exp-id EXP-003 --seed 1337 \
+    --config configs/cpu_smoke.json --data data/synthetic.bin \
+    --out out/experiments/EXP-003-train --tag project-001 -- \
+    python scripts/train.py --config configs/cpu_smoke.json --max-steps 50
+```
+
+Each run directory gets `experiment.json` (sections: experiment, code, data, configuration,
+randomness, environment, execution, results) plus a rendered `experiment.txt`. Two identical
+runs produce the same `content_fingerprint()` — timestamps, pid, paths and log tails are
+excluded deliberately — so reproducibility is testable, not asserted. Failures are recorded
+as `status="failed"` with the error **and** re-raised; a dirty working tree is flagged
+(`reproducible_from_commit=false`) rather than hidden, and a missing git binary yields an
+explicit "unavailable" instead of an invented SHA.
+
+From Python:
+
+```python
+from frontier_ai.experiments import ExperimentSpec, run_experiment
+
+spec = ExperimentSpec(experiment_id="EXP-003", seed=1337, name="demo",
+                      output_dir="out/experiments/demo", data_paths=["data/synthetic.bin"])
+outcome = run_experiment(spec, my_experiment_fn)   # outcome.record, outcome.path
+```
+
+Seeding is a single mechanism (master seed + derived per-component seeds) whose limitations
+— cuDNN nondeterminism, thread-dependent FP order, library versions, RNGs outside
+python/numpy/torch — are written into every record. We claim reproducibility **under the
+recorded environment**, never bit-identity across machines or versions. Full details and the
+hashing/seeding rules: [docs/experiments.md](docs/experiments.md).
 
 ## Layout
 
@@ -223,7 +260,7 @@ mkdir -p .github/workflows && cp docs/ci.yml.example .github/workflows/ci.yml
 ## Tests
 
 ```bash
-pytest -q        # 89 tests, ~15 s on CPU
+pytest -q        # 120 tests, ~20 s on CPU
 ruff check .     # lint
 make test lint
 ```
@@ -231,13 +268,16 @@ make test lint
 The suite covers the model (causality, architecture variants, KV-cache equivalence,
 context-length clamping), data (tokenizer round-trips, split math, deterministic
 corpus), the engine (schedules, checkpoint round-trips, config overrides), the tokenizer
-research subsystem, full train → checkpoint → resume → sample runs, and repository
+research subsystem, the experiment infrastructure (spec, seeding, git provenance, data
+hashing, records, runner, CLI), full train → checkpoint → resume → sample runs, and repository
 hygiene (no source file may be git-ignored — see DECISIONS.md D-023). Two tests exist specifically to catch bugs
 found while building this: logged loss must be a *mean* over accumulation steps, and
 repeated `--set` flags must accumulate.
 
 ## Roadmap
 
+- [ ] Finish ROADMAP Stage 1: multi-seed sweeps (mean ± spread), unattended 2-config
+      sweeps, bits-per-byte loss reporting, real licensed smoke-test corpora
 - [ ] DDP launcher + `torchrun` example config (code is DDP-friendly; not yet exercised)
 - [ ] Optional HuggingFace BPE tokenizer behind the same `Tokenizer` interface
 - [ ] WandB / TensorBoard metric sink behind `RunLogger`

@@ -532,6 +532,88 @@ cleanly when there isn't one.
 could exist inside `src/` must be anchored.
 
 
+## D-024 — One provenance mechanism, no new dependencies
+
+**Status:** accepted (2026-09-10, Project 003)
+
+**Decision:** Experiment infrastructure lives in `src/frontier_ai/experiments/` and is
+stdlib-only apart from the torch/numpy Project 001 already requires. Data hashing
+**re-exports** `sha256_file`/`sha256_text` from `frontier_ai.tokenization.corpus` (Project
+002) rather than re-implementing them, and seeding goes through the existing
+`frontier_ai.utils.seed.set_seed` rather than adding a parallel seeding helper.
+
+**Rationale:** Duplicate hashing or seeding implementations would silently diverge — a
+"reproducible" run whose digest disagrees with the corpus manifest is worse than no
+provenance at all. A test asserts the new multi-file digest agrees with Project 002's
+`sha256_file`, so divergence is caught. Standard-library `dataclasses`/`json`/`hashlib`
+are sufficient for specs and records; a config framework or experiment tracker would add
+a dependency and a migration burden before we know what we need (**Q-8**).
+
+**Alternatives considered:** Hydra/pydantic for configuration (rejected: new dependency,
+and Project 001 already owns `--set` override conventions); MLflow/W&B for tracking
+(rejected for now: the record is a plain JSON file that is already diffable, and choosing
+a tracker before running real experiments is premature — tracked as Q-8); a second hashing
+module local to `experiments/` (rejected: two implementations of "the hash of our data").
+
+**Consequences:** Adding a field to the record requires bumping `schema_version`; unknown
+sections and mismatched schema versions are rejected on load rather than ignored.
+
+**Revisit when:** we adopt a tracker (Q-8), or a record field proves insufficient for a
+real experiment (then bump the schema, do not silently extend it).
+
+## D-025 — Reproducibility claims are bounded by the recorded environment
+
+**Status:** accepted (2026-09-10, Project 003)
+
+**Decision:** The system claims reproducibility **under the recorded environment**, never
+bit-identity across machines, library versions or thread counts. Known limits (cuDNN
+nondeterminism, thread-dependent FP summation order, version sensitivity, RNGs outside
+python/numpy/torch) are stored in every record as `randomness.limitations`, and the
+content fingerprint deliberately excludes timestamps, pid, paths and log tails.
+
+**Rationale:** A provenance system that over-claims is worse than none: it converts
+"we don't know" into "this definitely reproduces". Recording the limits in the same file
+as the claim makes the boundary impossible to miss, and excluding genuinely variable
+metadata is what makes the fingerprint usable as a determinism test.
+
+**Alternatives considered:** claiming full bit-reproducibility (false on CUDA and under
+different thread counts); excluding nothing and comparing whole files (fingerprints would
+differ between every run, so they could never be used as a regression test).
+
+**Consequences:** Two runs are comparable through `content_fingerprint()`; a run on
+different hardware or a different torch version is *documented* as not comparable, and the
+environment section is what makes that judgement possible.
+
+**Revisit when:** we run our first multi-machine or multi-seed experiment and learn which
+of these limits actually bites.
+
+## D-026 — Dirty trees and missing git are recorded, never hidden or guessed
+
+**Status:** accepted (2026-09-10, Project 003)
+
+**Decision:** Git provenance captures commit, branch, dirty flag, up to 50 dirty paths,
+commit subject and remote. A dirty tree sets `reproducible_from_commit=false` and prints a
+warning, but the run proceeds and is recorded. If git is unavailable (not a repository, no
+commits, git binary missing, timeout), the record stores `available=false` with a
+human-readable reason and **empty** commit/branch — we never invent or abbreviate a SHA
+into a field that looks authoritative. Detached HEAD records `branch=None`.
+
+**Rationale:** Most real research runs happen on dirty trees; refusing to run would push
+people back to unrecorded runs, and silently marking them clean would make the record lie.
+An empty-but-explicit "unavailable" is honest, whereas a fabricated or partially-derived
+SHA is indistinguishable from a real one in a report.
+
+**Alternatives considered:** refusing to run on a dirty tree (rejected: drives work
+outside the system); recording only `git describe` output (rejected: ambiguous, and
+fails in the detached/no-tags case); raising on unavailable git (rejected: provenance
+capture must never break the experiment it is describing).
+
+**Consequences:** A record from a dirty tree must not be cited as reproducible from its
+commit — the flag says so. CI and release runs should still be clean.
+
+**Revisit when:** we need release-grade provenance (then fail the run on dirty, as a
+policy *above* this layer, not inside it).
+
 ## Open items to decide later (not yet decisions)
 
 | ID | Question | Deferred to |
@@ -543,7 +625,7 @@ could exist inside `src/` must be anchored.
 | Q-5 | SFT data sourcing: licensed vs synthetic vs human-written | Stage 7 |
 | Q-6 | RL method for reasoning (GRPO/PPO family) | Stage 8 |
 | Q-7 | Model/weights license for released checkpoints | Stage 9 |
-| Q-8 | Whether to adopt an experiment tracker, and which | Stage 1/4 |
+| Q-8 | Whether to adopt an experiment tracker (and sweep orchestration) on top of the JSON records, and which | Stage 1/4 |
 | Q-9 | Pre-tokenization: mark-aware vs GPT-2-style regex, whitespace attachment, script-aware initial alphabets | Stage 2 (EXP-002 flagged this as the main difference between our BPE and the HF baseline) |
 | Q-10 | Vocabulary sizing policy for Indic multilingual models | Stage 2, on real data |
 | Q-11 | Unicode normalization policy (NFC/NFD/None) as a tokenizer-level decision | Stage 2 |

@@ -1,0 +1,305 @@
+# Experiment infrastructure (Project 003 — ROADMAP Stage 1)
+
+**Purpose:** make every run answerable by one question — *exactly what code, configuration,
+data, random seed, environment and command produced this result?*
+
+This is **infrastructure only**. It changes no research direction, makes no production
+tokenizer or model decision, and does not touch the numerical core of Project 001 or 002.
+It is the mechanism that lets every later stage be trusted.
+
+Package: [`src/frontier_ai/experiments/`](../src/frontier_ai/experiments/)
+CLI: [`scripts/experiment_record.py`](../scripts/experiment_record.py)
+Tests: [`tests/test_experiments.py`](../tests/test_experiments.py)
+
+| | |
+|---|---|
+| Python | 3.9+ (`from __future__ import annotations`) |
+| New dependencies | **none** — stdlib plus the torch/numpy already required by Project 001 |
+
+---
+
+## 1. Quickstart
+
+### Python
+
+```python
+from frontier_ai.experiments import ExperimentSpec, run_experiment
+
+spec = ExperimentSpec(
+    experiment_id="EXP-003",          # must match ^EXP-\d{3,}$
+    seed=1337,                        # one master seed, [0, 2**32-1]
+    name="cpu-smoke",
+    output_dir="out/experiments/EXP-003",
+    data_paths=["data/synthetic.bin"],
+    config_path="configs/cpu_smoke.json",
+    params={"max_steps": 50, "lr": 3e-4},
+    tags=["project-001"],
+)
+
+def my_experiment(ctx):
+    ...                               # ctx.derived("data") -> a per-component seed
+    return {"val_loss": 1.37}
+
+outcome = run_experiment(spec, my_experiment)
+print(outcome.path, outcome.record.content_fingerprint())
+```
+
+`run_experiment` returns a `RunOutcome(record, path, rendered)` and **never swallows an
+exception**: on failure it writes a `status="failed"` record (error type, message,
+traceback tail) and re-raises.
+
+### CLI
+
+```bash
+. .venv/bin/activate
+
+# wrap an existing Project 001 training run
+python scripts/experiment_record.py --exp-id EXP-003 --seed 1337 \
+    --config configs/cpu_smoke.json --data data/synthetic.bin \
+    --out out/experiments/EXP-003-train --tag project-001 -- \
+    python scripts/train.py --config configs/cpu_smoke.json --max-steps 50
+
+# wrap a Project 002 tokenizer run
+python scripts/experiment_record.py --exp-id EXP-003 --seed 1337 \
+    --data data/tokenizer/indic-v1/train.txt --out out/experiments/EXP-003-tok -- \
+    python scripts/tokenizer_train.py --corpus data/tokenizer/indic-v1 \
+        --impl bpe_hf --vocab-size 1024 --out artifacts/tokenizers/bpe_hf_1024
+
+# provenance only (no command): describe the current code + data state
+python scripts/experiment_record.py --exp-id EXP-003 --data data/synthetic.bin \
+    --out out/experiments/inspect
+```
+
+Everything after `--` is the recorded command; its exit code is propagated. Flags follow the
+Project 001/002 conventions: `--help`, `--exp-id`, `--seed`, `--name`, `--out`, `--config`,
+`--data`, `--set key=value`, `--tag`, `--notes`, `--deterministic`, `--timeout`, `--quiet`.
+
+Real output from this repository (wrapped command, dirty working tree):
+
+```
+Experiment EXP-003 — docs example
+============================================================
+status        : success
+code          : 10e7aa9c on arena/01a08a78-frontier-ai (dirty)
+data          : 2 file(s), 8b15610be1cc…
+seed          : 1337 (deterministic mode: False)
+environment   : python 3.11.2 / torch 2.14.0+cu130 / Linux
+execution     : success
+duration      : 0.011s
+command       : python3 -c print('hello from the wrapped command')
+tags          : docs
+
+results:
+  exit_code                0
+  stdout_tail              ['hello from the wrapped command']
+  stderr_tail              []
+
+content fingerprint: c8af7658ca2deea1… (timestamps excluded)
+WARNING: ran from a dirty working tree — not reproducible from the commit alone
+
+{"experiment_id": "EXP-003", "record": "out/experiments/.../experiment.json",
+ "fingerprint": "c8af7658ca2deea1f6520b7de579b8130efd24688732204b1c23a2b77435edea"}
+```
+
+---
+
+## 2. The experiment record
+
+One JSON file per run, `experiment.json` (plus a rendered `experiment.txt` twin), written
+deterministically with sorted keys and fixed separators.
+
+| section | contents |
+|---|---|
+| `schema_version` | `"1.0"` — bumped on any breaking section change |
+| `record_type` | `"experiment"` |
+| `experiment` | id, name, tags, notes, **status**, output dir |
+| `code` | git commit / branch / dirty flag / dirty files / remote / reproducibility flag |
+| `data` | input paths, SHA-256 digest, per-file digests, sizes, skipped symlinks |
+| `configuration` | the full spec, CLI overrides, embedded config file |
+| `randomness` | master seed, deterministic-mode flag, seeded RNGs, derived seeds, limitations |
+| `environment` | python, platform, selected package versions, torch/device summary |
+| `execution` | command argv, status, exit code, duration, stdout/stderr tails, error |
+| `results` | whatever the experiment function returned (JSON-serializable) |
+
+Loading validates the schema version and rejects unknown sections
+(`ExperimentRecordError`), so a record written by a future version fails loudly instead of
+being silently misinterpreted.
+
+### Content fingerprint
+
+`record.content_fingerprint()` is the SHA-256 of the canonical JSON with **variable
+metadata removed**:
+
+```
+started_at, finished_at, duration_seconds, pid, cwd, output_dir, artifact_dir,
+record_path, stdout/stderr tails
+```
+
+Two identical runs therefore produce the **same fingerprint** on different machines and at
+different times; a change in code, data, seed, config or results changes it. This is what
+the determinism tests assert.
+
+---
+
+## 3. Seeding — one master seed, honest limits
+
+`seed_everything(seed, deterministic=False, components=("data", "model", "sampling"))`
+
+* Seeds `random`, `numpy.random`, `torch` (CPU) and `torch.cuda` through the **existing**
+  `frontier_ai.utils.seed.set_seed` — one mechanism, no parallel seeding code (D-024).
+* Global RNGs receive the **master** seed itself, so results are stable if you already rely
+  on `set_seed`.
+* Each component gets an independent derived stream:
+  `derive_seed(master, *components) = sha256("<master>|<components joined by />") mod 2**32`.
+  Derivation is SHA-256 based, so it is stable across processes, machines and Python
+  versions (Python's `hash()` is deliberately not used).
+* `--deterministic` / `deterministic=True` additionally asks torch for deterministic
+  algorithms (`warn_only`, since some ops have no deterministic kernel).
+
+**Documented limitations** (stored in the record, not hidden in a comment):
+
+1. CUDA/cuDNN kernels may stay nondeterministic even in deterministic mode.
+2. CPU results depend on thread count — multithreaded reductions change FP summation order.
+3. Library versions can change results for the same seed (hence the environment section).
+4. Only Python/NumPy/Torch RNGs are seeded: subprocesses, third-party samplers and
+   OS-level nondeterminism are not covered.
+
+We claim *reproducibility under the recorded environment*, not bit-identity across
+machines, versions or thread counts.
+
+---
+
+## 4. Git provenance
+
+`capture_git_info()` runs `git` in the repository and returns
+`GitInfo(available, commit, branch, dirty, dirty_files, commit_subject, remote, reason)`.
+
+* **Never invents a SHA.** If git is missing, the directory is not a repository, there are
+  no commits, or the call times out, it returns `available=False` with a human-readable
+  `reason` and empty commit/branch.
+* **Dirty trees are visible, not fatal:** `dirty=True` plus the first 50 changed paths, and
+  `reproducible_from_commit=False`. The rendered record prints a warning; the runner keeps
+  going. A result produced from uncommitted code is still recorded — just not claimable as
+  reproducible from the commit.
+* Detached HEAD yields `branch=None` rather than a fabricated name.
+
+---
+
+## 5. Data provenance
+
+`hash_paths(paths, root=None)` → `DataDigest`. The byte-level helpers
+(`sha256_file`, `sha256_text`) are **re-exported** from Project 002's
+`frontier_ai.tokenization.corpus`; there is exactly one hashing implementation in the
+repository (a test asserts the digests agree).
+
+Documented rules:
+
+* **Algorithm**: SHA-256 over raw file bytes, hex digest.
+* **One input file** → the digest is that file's content digest, independent of its path.
+* **Several files or a directory** → the digest covers a manifest of
+  `relative path + size + content digest` lines, so names and structure are part of the
+  identity.
+* **Ordering**: manifest lines are sorted by relative POSIX path; argument order and
+  filesystem enumeration order cannot change the digest.
+* **Relative to**: `root` if given, else the **common ancestor** of the inputs, so digests
+  never depend on absolute machine paths.
+* **Directories**: expanded recursively, files only; empty dirs contribute nothing.
+* **Symlinks**: skipped, never followed; listed under `skipped`.
+* **Missing input**: `FileNotFoundError` naming the path — we never hash an incomplete
+  dataset, and the runner's `validate_inputs` fails *before* any compute is spent.
+* **Empty input list**: `ValueError` (say explicitly that there are no inputs).
+* **Generated output is never hashed as a stand-in for source data.**
+
+---
+
+## 6. Environment provenance
+
+`capture_environment()` records a **stable, selected** set of fields: python version and
+implementation, platform/system/release/machine, versions of `torch`, `numpy`, `tokenizers`
+and `frontier-ai`, plus a torch section (version, `cuda_available`, device count, thread
+count). No hostname, username, environment-variable dump or full `pip freeze` —
+`EXCLUDED_BY_POLICY` names what is deliberately left out so the omission is visible.
+
+---
+
+## 7. Runner lifecycle
+
+`run_experiment(spec, fn)` and `run_command(spec, argv)` execute the same nine steps:
+
+```
+validate → config → git → data → seed → environment → execute → results → write record
+```
+
+* **validate** — inputs exist before anything runs (`ExperimentInputError`).
+* **seed** — the experiment body runs only after seeding; `ExperimentContext` exposes
+  `ctx.seed`, `ctx.derived_seeds`, `ctx.derived(name)` and `ctx.write_artifact()`.
+* **execute** — exceptions are recorded *and re-raised*; a failed run writes
+  `status="failed"` with the error, its type and a traceback tail, and the human summary
+  shows it. No run ever ends with a misleading "success".
+* **write record** — `experiment.json` + `experiment.txt` in the run directory.
+
+Both entry points are usable from Python and from the CLI, with identical semantics.
+
+---
+
+## 8. What determinism is actually verified here
+
+Measured on this branch (CPU, torch 2.14.0+cu130), two runs of the same spec, same seed,
+`tiny_training_experiment(steps=10)` — a real Project 001 `Trainer` run:
+
+```
+steps=10  n_params=35552  tokens_seen=640  final_val_loss=3.24484
+step 1 loss 3.9337 · step 10 loss 3.2253 · content fingerprint fec05faa136aca33… (equal)
+```
+
+and two runs of `reference_experiment` (synthetic corpus + CharTokenizer + python/numpy
+draws) → content fingerprint `b053048d589e2a50…` (equal).
+
+`pytest tests/test_experiments.py` covers: spec defaults/explicit/round-trip/invalid
+values/unknown keys/overrides, seeding stability and recorded limitations, git provenance
+(commit compared against `git rev-parse HEAD` in a fixture repo — **no hard-coded SHA**;
+dirty vs clean; detached HEAD; unavailable), hashing (determinism, content sensitivity,
+argument-order independence, directory expansion, missing input, agreement with Project
+002's `sha256_file`), record sections/round-trip/schema rejection/fingerprint semantics,
+runner success/failure/input validation/lifecycle order, and the CLI (`--help`, success,
+failure, provenance-only).
+
+### Bug found and fixed while building this
+
+Building the infrastructure exposed a **real determinism bug in Project 001**:
+`TokenDataset.get_batch` used `int(generator.seed() % 2**32)` to build its NumPy RNG, but
+`torch.Generator.seed()` is *not* a getter — it **re-seeds the generator with fresh OS
+entropy**. Every batch was therefore sampled randomly and training was not reproducible
+despite a fixed seed (two identical runs: val loss 3.367474 vs 3.20499). It now draws an
+integer *from* the generator, and `Trainer.evaluate()` passes the trainer's seeded
+generator to `get_batch`. The fix surfaced a second issue: `test_resume_continues_from_
+checkpoint` had been passing by luck on noisy 4-batch evaluations; it was re-powered
+(`max_steps` 25 → 60, `eval_iters=8`) after measuring that ≥30 extra steps reliably
+improve on that fixture. Nothing about the model or the training algorithm changed.
+
+---
+
+## 9. Module map
+
+| file | responsibility |
+|---|---|
+| `spec.py` | `ExperimentSpec` — validated, serializable experiment definition |
+| `gitinfo.py` | `capture_git_info()` — commit/branch/dirty, unavailable states |
+| `hashing.py` | `hash_paths()` / `digest_paths()`, re-exporting Project 002's SHA-256 |
+| `seeding.py` | `seed_everything()`, `derive_seed()`, `SEED_LIMITATIONS` |
+| `environment.py` | `capture_environment()`, `EXCLUDED_BY_POLICY` |
+| `record.py` | `ExperimentRecord` — sections, fingerprint, save/load/render |
+| `runner.py` | `run_experiment()`, `run_command()`, `ExperimentContext` |
+| `examples.py` | reference experiments used by the docs and determinism tests |
+
+`examples.py` is intentionally **not** imported by the package `__init__` (it pulls in the
+training stack); import it directly when you need it.
+
+## 10. Not done (Stage 1 is infrastructure only)
+
+* Multi-seed sweeps (`mean ± spread`) and sweep orchestration — Stage 1/4 work (Q-8).
+* An external experiment tracker / dashboard; records are plain JSON files on disk.
+* Comparable loss reporting: bits-per-byte / per-character normalization so a char-level
+  and a BPE model can be compared fairly.
+* Real licensed corpora for smoke tests (Stage 3).
+* Anything that changes the model, the tokenizer, or the research direction.

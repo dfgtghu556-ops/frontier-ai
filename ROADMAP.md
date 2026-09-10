@@ -30,7 +30,7 @@ resume, sampling, JSONL metrics, 47 tests, CI example.
 
 ---
 
-## Stage 1 — Make experiments trustworthy
+## Stage 1 🔶 IN PROGRESS — Make experiments trustworthy
 
 **Goal:** before scaling anything, make results reproducible, comparable, and cheap to run.
 
@@ -48,6 +48,36 @@ resume, sampling, JSONL metrics, 47 tests, CI example.
 runs unattended; every run directory is self-describing and diffable.
 
 **Risk:** none technical — this is discipline work. It is the highest-leverage stage.
+
+**What Project 003 delivered (2026-09-10) — the infrastructure half of this stage:**
+
+- `src/frontier_ai/experiments/`: experiment spec; **one** seeding mechanism (master seed +
+  derived component seeds) with its limitations recorded in every run; git provenance that
+  never invents a SHA and flags dirty trees; data provenance re-using Project 002's SHA-256
+  helpers; selected environment metadata (no env dumps); a JSON experiment record with
+  eight separated sections, a schema version and a content fingerprint that ignores
+  timestamps; and a runner implementing validate → config → git → data → seed →
+  environment → execute → results → write record, which records failures and **re-raises**
+  them instead of writing a misleading success.
+- `scripts/experiment_record.py`: wraps any command and records its provenance, following
+  the Project 001/002 CLI conventions.
+- No new dependencies (stdlib + existing torch/numpy). 31 new tests; Project 001 and 002
+  suites unchanged in behaviour and still green.
+- Documented in [docs/experiments.md](docs/experiments.md); decisions **D-024…D-026**;
+  verification recorded as **EXP-003** (infrastructure verification, not a benchmark).
+- **Bug found and fixed in Project 001:** batch sampling called `torch.Generator.seed()`,
+  which *re-seeds* from OS entropy rather than reading the seed, so training was not
+  reproducible despite a fixed seed. Fixed; two identical runs now match exactly
+  (`final_val_loss 3.24484`, equal content fingerprints).
+
+**Still open before this stage can close** (deliberately not started):
+
+- Multi-seed sweeps: `mean ± spread` for headline numbers, and unattended 2-config sweeps
+  (the runner records one run at a time; no sweep orchestrator yet — **Q-8**).
+- Bits-per-byte / per-character loss reporting so char-level and BPE models compare fairly.
+- Real, clearly licensed smoke-test corpora (needs Stage 3 data work).
+- Wiring the existing `scripts/train.py` and `scripts/tokenizer_*.py` entry points to write
+  experiment records themselves (today the CLI wraps them from outside).
 
 ## Stage 2 — Tokenizer 🔶 FRAMEWORK BUILT, DECISION PENDING (Project 002)
 
