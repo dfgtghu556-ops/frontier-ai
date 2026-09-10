@@ -9,16 +9,35 @@ git clone https://github.com/dfgtghu556-ops/frontier-ai.git && cd frontier-ai
 pip install -e ".[dev]"
 
 make data                # prepare a synthetic corpus (no downloads)
-make train               # ~10 s on a laptop CPU: 139k-param GPT, val loss 3.9 -> 1.3
+make train               # ~10 s on a laptop CPU: 139k-param GPT, val loss 3.9 -> 1.38
 make generate            # sample from the checkpoint
 ```
 
 ```text
-[    0.1s] event=train  step=20   loss=6.2112  ppl=497.0    lr=2.9e-03  gnorm=0.50
-[    2.0s] event=eval   step=50   val_loss=1.86  val_ppl=6.4   improved=True
-[    7.6s] event=eval   step=200  val_loss=1.28  val_ppl=3.6   improved=True
-[    7.6s] event=run.end  steps=200  best_val=1.2787  throughput=53.6k tok/s
+[    0.8s] event=train  step=20   loss=3.1401  ppl=23.11   lr=2.85e-03  gnorm=0.56
+[    2.0s] event=eval   step=50   val_loss=2.3264  val_ppl=10.24  improved=True
+[    5.8s] event=eval   step=150  val_loss=1.4719  val_ppl=4.36   improved=True
+[    7.7s] event=eval   step=200  val_loss=1.3776  val_ppl=3.97   improved=True
+[    7.7s] event=run.end  steps=200  best_val=1.3776  throughput=53.2k tok/s
 ```
+
+Verbatim from `out/cpu-smoke/train.jsonl` (experiment **EXP-001**, see
+[EXPERIMENTS.md](EXPERIMENTS.md)): 138,752 parameters, 2 CPU cores, fp32, ~8 s.
+
+---
+
+## Project documentation
+
+Read these first if you are joining the project (human or AI agent):
+
+| Document | What it covers |
+| --- | --- |
+| [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
+| [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
+| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-017) and open questions |
+| [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log (EXP-001…) |
+
+The rest of this README is the technical quickstart.
 
 ---
 
