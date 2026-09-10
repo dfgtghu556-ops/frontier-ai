@@ -34,7 +34,7 @@ Read these first if you are joining the project (human or AI agent):
 | --- | --- |
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
 | [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
-| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-030) and open questions |
+| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-031) and open questions |
 | [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log (EXP-001…EXP-003) |
 | [docs/tokenization.md](docs/tokenization.md) | tokenizer research: why it matters, metrics, Indic/Unicode notes, workflow |
 | [docs/experiments.md](docs/experiments.md) | Project 003: experiment records, seeding and documented limits, git/data/env provenance, the runner |
@@ -208,6 +208,28 @@ python/numpy/torch — are written into every record. We claim reproducibility *
 recorded environment**, never bit-identity across machines or versions. Full details and the
 hashing/seeding rules: [docs/experiments.md](docs/experiments.md).
 
+### Real, licensed smoke corpora (Project 003, Stage 1)
+
+The synthetic corpus is the default fixture. For the occasional run on **real text**,
+`corpora/smoke/sources.json` declares small licensed sources and a script acquires them
+with provenance:
+
+```bash
+python scripts/fetch_smoke_corpus.py --list                 # what is configured, is it verified?
+python scripts/fetch_smoke_corpus.py --fetch --pin          # fetch, then pin the measured hashes
+python scripts/fetch_smoke_corpus.py --check                # verify what is on disk
+python scripts/prepare_data.py --source data/raw/smoke/en-alice-pd.txt \
+    --provenance data/raw/smoke/en-alice-pd.provenance.json --out data/smoke-en
+```
+
+Sources: Project Gutenberg (public domain in the US) for English, Hindi and Bengali
+Wikisource for multi-byte Indic text (CC BY-SA 4.0, assumed conservatively until the
+page's own licence tag is checked). Licences are restricted to an allow-list, an
+attribution string is mandatory, and **no hash is stored unless it was measured** — the
+manifest ships with `sha256: null` and the script refuses to pin a hash when the download
+shows no licence marker. The corpus text is never committed (`data/` is git-ignored); see
+[corpora/smoke/README.md](corpora/smoke/README.md).
+
 ## Layout
 
 ```
@@ -308,7 +330,7 @@ mkdir -p .github/workflows && cp docs/ci.yml.example .github/workflows/ci.yml
 ## Tests
 
 ```bash
-pytest -q        # 194 tests, ~45 s on CPU
+pytest -q        # 220 tests, ~65 s on CPU (1 skipped: needs a fetched corpus)
 ruff check .     # lint
 make test lint
 ```

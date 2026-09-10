@@ -48,7 +48,12 @@ resume, sampling, JSONL metrics, 47 tests, CI example.
   across an explicit seed list, keep one full record per seed, and aggregate as
   mean ± sample standard deviation (D-028).
 - Better smoke-test data: keep the synthetic corpus, add a small **real, clearly licensed**
-  corpus for sanity checks.
+  corpus for sanity checks. **Delivered (2026-09-10):** `corpora/smoke/sources.json`
+  declares three licensed sources (Project Gutenberg, public domain; Hindi and Bengali
+  Wikisource, CC BY-SA 4.0 assumed conservatively), `scripts/fetch_smoke_corpus.py`
+  acquires them with provenance, and `prepare_data.py --provenance` carries the licence
+  into `*.meta.json`. Hashes are pinned only after a verified fetch, so the manifest ships
+  unpinned and nothing was invented (D-031).
 
 **Exit criteria:** two runs with the same seed produce identical metrics; a 2-config sweep
 runs unattended (**met for seed/config sweeps: see Stage 1A and Stage 1B below**); every run
@@ -130,7 +135,10 @@ directory is self-describing and diffable.
   sweep (**Q-8**). Two-configuration sweeps themselves are delivered.
 - ~~Bits-per-byte / per-character loss reporting~~ **delivered 2026-09-10 (D-030, EXP-006)**
   for the char and word levels; re-check when a byte-level BPE enters the training path.
-- Real, clearly licensed smoke-test corpora (needs Stage 3 data work).
+- ~~Real, clearly licensed smoke-test corpora~~ **delivered 2026-09-10 (D-031)** — with one
+  caveat recorded rather than hidden: the corpus text itself is fetched, not committed, so
+  a checkout has no corpus until `scripts/fetch_smoke_corpus.py --fetch --pin` has run in an
+  environment that can reach gutenberg.org / wikisource.org.
 - Wiring the existing `scripts/train.py` and `scripts/tokenizer_*.py` entry points to write
   experiment records themselves (today the CLI wraps them from outside).
 

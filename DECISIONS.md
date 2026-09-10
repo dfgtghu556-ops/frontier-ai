@@ -813,6 +813,67 @@ comparison as an experiment.
 
 ---
 
+## D-031 — Real smoke corpora: a licensed manifest with hashes pinned only after a verified fetch
+
+**Status:** accepted (2026-09-10, Project 003 Stage 1, item 3)
+
+**Decision:** The repository gains a **second** smoke fixture next to the synthetic
+generator: real text with a recorded licence, described by a manifest and acquired by a
+script. Specifically:
+
+* `corpora/smoke/sources.json` (committed, schema `1.0`) is the only place sources are
+  declared. Each entry carries `id`, `title`, `language`, `script`, `source_url`,
+  `license_id`, `license_url`, `attribution`, `kind`, `max_chars` and — once measured —
+  `sha256` + `verified`. `corpora/smoke/README.md` documents all of it in prose.
+* Licences are restricted to an allow-list in `src/frontier_ai/data/corpora.py`
+  (`CC0-1.0`, `CC-BY-4.0`, `CC-BY-SA-4.0`, `PD-US`). `validate_source()` refuses anything
+  else, and refuses http URLs, unsourced attributions and oversized entries.
+* `scripts/fetch_smoke_corpus.py` fetches, cleans (Gutenberg header/footer, wikitext
+  markup), trims to `max_chars`, writes `data/raw/smoke/<id>.txt` plus
+  `<id>.provenance.json`, and verifies/pins hashes. It refuses to pin a hash unless the
+  raw download carries a marker for the licence we claim, and it never overwrites a file
+  whose pinned hash does not match (exit codes 0/1/2/3 are documented in its help).
+* `scripts/prepare_data.py --provenance <file>` copies the provenance into the prepared
+  `*.meta.json` (`source_provenance`) and re-hashes the source text, warning loudly on any
+  drift. No other pipeline change was needed: a real corpus is just a UTF-8 `.txt`.
+* The corpus text is **not** committed. `data/` is git-ignored by design; the manifest,
+  the pinned hash and the provenance make the bytes reproducible.
+
+**Rationale:** D-011 keeps the synthetic corpus as the default CI fixture (no network, no
+licence questions, byte-identical everywhere) — that stays. But a pipeline that has only
+ever seen generated text can hide real-world problems: uneven punctuation, multi-byte
+scripts, numbers and proper names. The roadmap therefore asks for one small real corpus.
+Legal clarity is the whole point of the item, so provenance must travel with the bytes,
+and a hash that nobody measured is worse than no hash: it turns a licence/version drift
+into a silent pass. Hence "pin only after a verified fetch", and hence the manifest ships
+with `sha256: null` for every entry.
+
+**Alternatives considered:** committing the corpus text into the repository (rejected:
+`data/` is ignored on purpose, third-party text inside the source tree makes licence review
+harder and grows the repo with derived artefacts); downloading silently at test time
+(rejected: network dependency, version drift, and a licence surprise can land in CI
+unreviewed); scraping (rejected outright by the task and by every earlier decision here);
+pinning hashes from memory (rejected: that is fabrication, and the sandbox this was built
+in can reach `pypi.org` only — `gutenberg.org`, `wikisource.org`, `unicode.org` and
+`huggingface.co` are all unreachable, so no hash could be measured); a new "dataset
+framework" with plugins and registries (rejected: one JSON manifest, one script and one
+provenance record are enough for three small files).
+
+**Consequences:** In a fresh checkout the real corpus does not exist, and the tests that
+need it skip with a clear message rather than pretending. The Wikisource entries assume
+**CC BY-SA 4.0** conservatively — if a page turns out to be public domain, relax
+`license_id` and record what you saw in `notes`. The Wikisource page titles themselves are
+unverified for the same network reason; the fetch script says what it found and refuses to
+pin on a missing licence marker. The corpus is capped and is a fixture, not training data.
+
+**Revisit when:** the first successful fetch happens — compare the page's own licence tag
+against the manifest, pin the hashes, commit the updated `sources.json`, and then run
+`scripts/prepare_data.py --provenance ...` on the real files (the tests for that path are
+already written and will un-skip themselves). Also revisit when Stage 3 builds the real
+data pipeline, which should reuse this manifest's provenance shape.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

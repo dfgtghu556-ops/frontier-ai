@@ -532,7 +532,9 @@ training stack); import it directly when you need it.
   sweep) — Stage 1/4 work (Q-8). Seed sweeps and multi-configuration sweeps are implemented
   (§8).
 * An external experiment tracker / dashboard; records are plain JSON files on disk.
-* Real licensed corpora for smoke tests (Stage 3).
+* ~~Real licensed corpora for smoke tests~~ **delivered 2026-09-10 (D-031)** as a licensed
+  manifest + acquisition script (`corpora/smoke/`); the corpus files themselves are fetched,
+  not committed, and their hashes are pinned only after a verified fetch.
 * Automatic experiment-record wiring for `scripts/train.py` and `scripts/tokenizer_*.py`:
   today the record is produced by the `experiment_record.py` / `experiment_sweep.py`
   wrappers, not by the scripts themselves.
