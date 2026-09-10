@@ -87,7 +87,7 @@ def validate_inputs(spec: ExperimentSpec) -> None:
         raise ExperimentInputError(f"declared config file is missing: {spec.config_path}")
 
 
-def _configuration_section(spec: ExperimentSpec, overrides: Sequence[str] | None = None) -> dict:
+def configuration_section(spec: ExperimentSpec, overrides: Sequence[str] | None = None) -> dict:
     section: dict[str, Any] = {"spec": spec.to_dict(), "overrides": list(overrides or [])}
     if spec.config_path:
         path = Path(spec.config_path)
@@ -106,7 +106,7 @@ def _configuration_section(spec: ExperimentSpec, overrides: Sequence[str] | None
     return section
 
 
-def _data_section(spec: ExperimentSpec) -> dict:
+def data_section(spec: ExperimentSpec) -> dict:
     if not spec.data_paths:
         return {
             "status": "none",
@@ -131,9 +131,9 @@ def run_experiment(
     out_dir = Path(output_dir or spec.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    configuration = _configuration_section(spec, overrides)          # 2. configuration
+    configuration = configuration_section(spec, overrides)          # 2. configuration
     code = {"git": git_section(capture_git_info(repo_path)), "repository": "frontier-ai"}  # 3. git
-    data = _data_section(spec)                                       # 4. data
+    data = data_section(spec)                                       # 4. data
     randomness = seed_everything(                                    # 5. randomness
         spec.seed, deterministic=spec.deterministic_mode, components=components
     )

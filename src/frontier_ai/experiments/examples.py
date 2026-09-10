@@ -50,6 +50,24 @@ def reference_experiment(ctx) -> Mapping[str, Any]:
     }
 
 
+def seeded_metric_experiment(ctx, draws: int = 8) -> Mapping[str, Any]:
+    """Cheap, seed-sensitive reference experiment used by the sweep tests and docs.
+
+    Returns a synthetic ``score`` whose value is a deterministic function of the master
+    seed (a mean of seeded NumPy draws plus a small seeded Python jitter), so a sweep over
+    seeds has something to average — and something whose spread is meaningful. It measures
+    nothing about language modelling; it exists to exercise the sweep machinery cheaply.
+    """
+    rng = random.Random(ctx.seed)
+    values = np.random.default_rng(ctx.derived("model")).random(draws)
+    jitter = rng.uniform(-0.05, 0.05)
+    return {
+        "score": round(float(values.mean()) + jitter, 6),
+        "draws": int(draws),
+        "seed": int(ctx.seed),
+    }
+
+
 def tiny_training_experiment(ctx, steps: int = 10) -> Mapping[str, Any]:
     """Train a tiny GPT for a few steps with the Project 001 trainer.
 

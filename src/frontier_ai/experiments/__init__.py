@@ -18,6 +18,7 @@ Components:
     environment.py  selected, stable environment metadata (no env dumps)
     record.py       the experiment record: sections, fingerprint, save/load, render
     runner.py       lifecycle runner for Python callables and subprocess commands
+    sweep.py        multi-seed sweeps: one record per seed + a mean ± spread aggregate
     examples.py     small reference experiments used by docs and determinism tests
 """
 
@@ -28,6 +29,22 @@ from .record import RECORD_FILENAME, RECORD_SCHEMA_VERSION, ExperimentRecord, Ex
 from .runner import ExperimentContext, ExperimentInputError, RunOutcome, run_command, run_experiment
 from .seeding import SEED_LIMITATIONS, derive_seed, derive_seeds, seed_everything
 from .spec import SPEC_SCHEMA_VERSION, ExperimentSpec, ExperimentSpecError
+from .sweep import (
+    SWEEP_FILENAME,
+    SWEEP_RECORD_TYPE,
+    SWEEP_SCHEMA_VERSION,
+    SweepMetricError,
+    SweepOutcome,
+    SweepRecord,
+    SweepRecordError,
+    normalize_seeds,
+    parse_seed_list,
+    run_command_sweep,
+    run_sweep,
+    sample_mean,
+    sample_stdev,
+    summarize_metric,
+)
 
 __all__ = [
     "ExperimentSpec",
@@ -54,4 +71,18 @@ __all__ = [
     "derive_seeds",
     "SEED_LIMITATIONS",
     "capture_environment",
+    "run_sweep",
+    "run_command_sweep",
+    "SweepRecord",
+    "SweepRecordError",
+    "SweepMetricError",
+    "SweepOutcome",
+    "SWEEP_SCHEMA_VERSION",
+    "SWEEP_RECORD_TYPE",
+    "SWEEP_FILENAME",
+    "parse_seed_list",
+    "normalize_seeds",
+    "sample_mean",
+    "sample_stdev",
+    "summarize_metric",
 ]

@@ -120,7 +120,7 @@ class ExperimentRecord:
     # ------------------------------------------------------- fingerprint --
     def content_dict(self) -> dict:
         """Record with variable runtime metadata removed."""
-        return _strip_variable(self.to_dict())
+        return strip_variable(self.to_dict())
 
     def content_fingerprint(self) -> str:
         """Stable SHA-256 over the *content* of the experiment.
@@ -128,8 +128,7 @@ class ExperimentRecord:
         Two runs of the same experiment (same code, data, config, seed, environment and
         command) produce the same fingerprint even though their timestamps differ.
         """
-        canonical = json.dumps(self.content_dict(), sort_keys=True, ensure_ascii=False, default=str)
-        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        return content_fingerprint_of(self.to_dict())
 
     # -------------------------------------------------------------- view --
     def render(self) -> str:
@@ -176,13 +175,27 @@ class ExperimentRecord:
         return "\n".join(lines)
 
 
-def _strip_variable(payload: Any) -> Any:
-    """Recursively drop keys listed in :data:`VARIABLE_FIELD_NAMES`."""
+def strip_variable(payload: Any) -> Any:
+    """Recursively drop keys listed in :data:`VARIABLE_FIELD_NAMES`.
+
+    Public because other record types (see :mod:`frontier_ai.experiments.sweep`) must strip
+    exactly the same fields — two record types that disagree about what is variable would
+    break the whole point of a fingerprint.
+    """
     if isinstance(payload, dict):
-        return {k: _strip_variable(v) for k, v in payload.items() if k not in VARIABLE_FIELD_NAMES}
+        return {k: strip_variable(v) for k, v in payload.items() if k not in VARIABLE_FIELD_NAMES}
     if isinstance(payload, list):
-        return [_strip_variable(v) for v in payload]
+        return [strip_variable(v) for v in payload]
     return payload
+
+
+def content_fingerprint_of(payload: Mapping[str, Any]) -> str:
+    """SHA-256 over the canonical JSON of ``payload`` with variable fields removed.
+
+    Shared by every record type so "the same experiment" means the same thing everywhere.
+    """
+    canonical = json.dumps(strip_variable(payload), sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _fmt_git(git: dict[str, Any]) -> str:
