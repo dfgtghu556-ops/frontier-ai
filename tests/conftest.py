@@ -11,13 +11,12 @@ sys.path.insert(0, str(SRC))
 def pinned_threads():
     """Start every test from a single-threaded torch.
 
-    Multi-threaded CPU reductions can change floating-point summation order, and
-    ``Trainer`` sets a thread count of its own (``threads_for``), so a test that
-    trains leaves a different global thread count behind than the one it started
-    with. Experiment records capture ``environment.torch.num_threads`` *before*
-    the run body executes, so without this pin two identical sweeps in one
-    process can record different environments — and therefore different content
-    fingerprints — depending on which test ran first. See Q-13 in DECISIONS.md.
+    This is about **numerical** determinism, not provenance: multi-threaded CPU
+    reductions can change floating-point summation order, so two otherwise identical
+    training runs can differ in the last bits. Provenance is handled by the runner
+    itself, which records the thread count the run actually used and restores the
+    caller's value afterwards (D-034, formerly Q-13) — see
+    ``tests/test_experiments.py`` section F2 and ``tests/test_nested_metrics.py``.
     """
     import torch
 

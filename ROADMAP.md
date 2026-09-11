@@ -30,7 +30,7 @@ resume, sampling, JSONL metrics, 47 tests, CI example.
 
 ---
 
-## Stage 1 🔶 IN PROGRESS — Make experiments trustworthy
+## Stage 1 ✅ COMPLETE — Make experiments trustworthy
 
 **Goal:** before scaling anything, make results reproducible, comparable, and cheap to run.
 
@@ -55,9 +55,9 @@ resume, sampling, JSONL metrics, 47 tests, CI example.
   into `*.meta.json`. Hashes are pinned only after a verified fetch, so the manifest ships
   unpinned and nothing was invented (D-031).
 
-**Exit criteria:** two runs with the same seed produce identical metrics; a 2-config sweep
-runs unattended (**met for seed/config sweeps: see Stage 1A and Stage 1B below**); every run
-directory is self-describing and diffable.
+**Exit criteria:** two runs with the same seed produce identical metrics ✅; a 2-config sweep
+runs unattended ✅ (Stage 1A and Stage 1B below); every run directory is self-describing and
+diffable ✅. All met and re-verified from a fresh clone of the pushed branch (2026-09-11).
 
 **Risk:** none technical — this is discipline work. It is the highest-leverage stage.
 
@@ -129,7 +129,12 @@ directory is self-describing and diffable.
   *before* the run body, so a run that changes torch's thread count makes a later
   in-process run's record differ; the tests pin threads to 1.
 
-**Still open before this stage can close** (deliberately not started):
+**Closed 2026-09-11:** the CLIs now record themselves (`scripts/train.py`,
+`scripts/tokenizer_*.py`), with the outer run owning the record and nested runs publishing
+their metrics instead of writing a second record (**D-032**, **D-033**, **D-034**;
+verification **EXP-007**). Every item of Stage 1 is therefore delivered.
+
+**Still open, deliberately out of scope for this stage** (not started):
 
 - Larger sweep orchestration: many configurations, scheduling, resuming an interrupted
   sweep (**Q-8**). Two-configuration sweeps themselves are delivered.

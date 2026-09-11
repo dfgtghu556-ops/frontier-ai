@@ -948,6 +948,64 @@ directory digests unless asked for by name.
 
 ---
 
+## D-034 — A nested run publishes its metrics; the body owns torch's thread count
+
+**Status:** accepted (2026-09-11, Project 003 Stage 1, fixes F-1 and F-2/Q-13 from the final
+audit)
+
+**Decision, part 1 — nested metric propagation.** D-032 stands: **the outer run owns the
+record**, and a nested script writes none. But owning the record used to mean losing the
+inner run's numbers, so a swept `scripts/train.py` could not be aggregated on `best_val`
+(the per-seed record held only `exit_code` and log tails, and the sweep reported
+`metric_missing`). A nested self-recording script therefore **publishes** its results:
+
+* `frontier_ai.experiments.autowire.run_self_recorded()` prints **one** JSON line on stdout
+  when it is nested, carrying `{"frontier_ai_nested_results": {"schema": "1.0", "script": …,
+  "results": {…}}}`.
+* `run_command()` recognises only that marker (never log text), merges the published
+  results into the outer record's `results`, and never overwrites its own keys
+  (`exit_code`, `stdout_tail`, `stderr_tail`). When two nested runs publish the same key
+  the first one wins, so the merge is order-stable.
+* Sweeps need no change: `extract_metric()` already reads `results` first, so
+  `--metric best_val` now resolves with `metric_source: "results"`.
+
+**Alternatives rejected:** (a) let the nested script write a second record — breaks
+one-run-one-record; (b) parse the human-readable `[train] done. best_val=…` line — exactly
+the log scraping this forbids; (c) a per-script results file the wrapper globs for — more
+plumbing and a new failure mode for the same information; (d) inspect the command's argv —
+the runner must not know what a command's flags mean.
+
+**Decision, part 2 — torch thread provenance (resolves Q-13).** Ownership: **the experiment
+body owns torch's CPU thread count** (`train.num_threads`, or the device policy in
+`threads_for`). The runner neither imposes nor overrides a value. Instead:
+
+* the `environment` section is captured **after** the body, so `torch.num_threads` is the
+  value the run actually used (previously it recorded whatever the caller happened to have);
+* the value the caller had is **restored** afterwards, so a run cannot change the provenance
+  — or the fingerprint — of the next run in the same process;
+* explicit configuration is preserved and now visible: a run with `train.num_threads=2`
+  records `2`, which the old code recorded as the caller's value.
+
+**Alternatives rejected:** (a) have the runner pin threads for the body — overrides explicit
+user configuration, which is the opposite of the requirement; (b) record both before and
+after values — doubles the surface for one number that only has one true answer; (c) drop
+`torch.num_threads` from the record — removes provenance instead of correcting it; (d) keep
+pinning threads in the test suite — that hid the problem instead of fixing it (the
+`pinned_threads` fixture stays, but its job is now *numerical* determinism, not provenance).
+
+**Consequences:** the documented lifecycle changes one step —
+`… seed → execute → environment → results → write record` — and the environment section now
+describes the run as executed. Nothing else in the record or sweep schema changes: both
+additions (published results, captured-after environment) are backwards compatible, and
+existing records keep their schema version `1.0`.
+
+**Revisit when:** a nested run needs to publish something other than a flat metrics mapping
+(artifacts, per-epoch series), or a body changes environment state that is not restored
+today (cuDNN determinism flags, MPS/CPU affinity).
+
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 
@@ -966,7 +1024,6 @@ directory digests unless asked for by name.
 | Q-10 | Vocabulary sizing policy for Indic multilingual models | Stage 2, on real data |
 | Q-11 | Unicode normalization policy (NFC/NFD/None) as a tokenizer-level decision | Stage 2 |
 | Q-12 | BPE vs Unigram for our data mix | Stage 2 |
-| Q-13 | `environment.torch.num_threads` is captured *before* the run body executes, so a run that changes torch's global thread count (any `Trainer` with `num_threads` set) makes a **later run in the same process** record a different environment and therefore a different content fingerprint. Options: capture after the body, record both, or have the runner pin the thread count. | Stage 1 (tests pin threads to 1 in the meantime; see the conftest note) |
 
 ## How to add a decision
 

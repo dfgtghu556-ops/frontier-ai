@@ -9,9 +9,10 @@
 ## CURRENT POSITION — START HERE
 
 **Projects 001 and 002 are COMPLETE. Project 003 (ROADMAP Stage 1: reproducible experiment
-infrastructure) is IN PROGRESS — Stage 1 infrastructure is built, tested and documented;
-the rest of Stage 1 (multi-seed sweeps, comparable loss reporting, real licensed smoke-test
-data) is NOT done.**
+infrastructure) is COMPLETE — every Stage 1 item is built, tested, documented and verified
+from a fresh clone of the branch: provenance records, multi-seed and multi-configuration
+sweeps, loss per byte/character, real licensed smoke-test data, and CLIs that record
+themselves. It is open as PR #1, which the human merges.**
 
 - **Project 001** = the CPU-first, GPU-ready PyTorch GPT training pipeline
   (data → model → training loop → evaluation → checkpointing → sampling, plus 47 tests).
@@ -31,11 +32,11 @@ data) is NOT done.**
   *not* benchmarks).
 - All three are committed on branch `arena/01a08a78-frontier-ai` and open as **PR #1**
   against `main`. PR #1 is **not merged** — the human merges it.
-- The most likely next steps are finishing ROADMAP Stage 1 (multi-seed sweeps with
-  mean ± spread, bits-per-byte reporting so char and BPE models compare fairly, real
-  licensed smoke-test data) and continuing Stage 2/3 (vocabulary sweeps and real data).
-  Confirm the actual scope with the user before writing code; the roadmap is a proposal,
-  not an approved plan.
+- The most likely next steps are ROADMAP Stage 2/3: the tokenizer decision (vocabulary
+  sweeps, pre-tokenization, Unicode policy) and real data. What remains of Stage 1 is the
+  deliberate out-of-scope list — sweep orchestration beyond seeds/configurations (Q-8) and
+  an external tracker. Confirm the actual scope with the user before writing code; the
+  roadmap is a proposal, not an approved plan.
 - **Project 002 did NOT choose a production tokenizer.** It built the framework for that
   decision and took the first measurements. Do not treat EXP-002 as a verdict.
 - Before changing any code, read: this file, [ROADMAP.md](ROADMAP.md),
@@ -186,7 +187,10 @@ difference is measured, not assumed — see EXP-002.
 
 ## 6A. What Project 003 built (experiment infrastructure)
 
-**Status: Stage 1 infrastructure complete and tested; Stage 1 as a whole is not.**
+**Status: Stage 1 complete and tested (2026-09-11).** Verified end to end from a fresh clone
+of the pushed branch: 250 tests (248 passed, 1 skipped without a fetched corpus, plus the
+repo-hygiene suite), `ruff` clean, sweeps over seeds and configurations, and CLIs that
+record themselves.
 
 - `src/frontier_ai/experiments/` — experiment spec, git/data/environment provenance,
   seeding with recorded limitations, the experiment record, and the runner
@@ -239,12 +243,26 @@ difference is measured, not assumed — see EXP-002.
   by zero. Status is `success` / `partial` / `failed`, so a lost seed can never be reported
   as a success. The aggregate is independent of the order seeds were supplied in.
 
-Full details: [docs/experiments.md](docs/experiments.md) · decisions **D-024…D-031** ·
-validation **EXP-003**, **EXP-004**, **EXP-005** and **EXP-006**.
+- **CLIs that record themselves (Stage 1 item 4):** `scripts/train.py` and
+  `scripts/tokenizer_*.py` write the standard record when run directly, through
+  `frontier_ai.experiments.autowire` — a thin adapter over `run_experiment`, not a second
+  framework. The **outer** run owns the record (D-032): the runner exports
+  `FRONTIER_AI_EXPERIMENT_DIR` for the duration of a body, subprocesses inherit it, and a
+  nested script writes no record — but it publishes its metrics as one JSON line on stdout
+  that `run_command()` merges into the outer record, so a swept `train.py` still aggregates
+  on `best_val` (D-034). Records are not data: hashing an input directory skips the
+  `experiment.json`/`experiment.txt` of earlier runs (D-033). Torch's thread count is owned
+  by the experiment body, recorded as used, and restored afterwards (D-034, resolved Q-13).
+
+Full details: [docs/experiments.md](docs/experiments.md) · decisions **D-024…D-034** ·
+validation **EXP-003**, **EXP-004**, **EXP-005**, **EXP-006** and **EXP-007**.
 
 ## 7. Current repository structure
 
 ```
+corpora/
+    smoke/sources.json        D-031: licensed smoke-corpus manifest (hashes unpinned until fetched)
+    smoke/README.md           licences, attributions and how to acquire the corpora
 configs/
     cpu_smoke.json            tiny config: 139k params, trains in ~10 s on CPU
     gpu_1x.json               single-GPU config (~124M params) — UNTESTED on real hardware
@@ -263,9 +281,11 @@ scripts/
     tokenizer_compare.py          compare 2+ artifacts on the same corpus -> JSON + table
     experiment_record.py       Project 003: record provenance for any experiment command
     experiment_sweep.py        Project 003: run one experiment across seeds/configurations
+    fetch_smoke_corpus.py      acquire a licensed smoke corpus (D-031), pin hashes after a verified fetch
 src/frontier_ai/
     config.py                 dataclass configs, JSON load/save, --set overrides, validation
     data/
+        corpora.py            D-031: licensed smoke-corpus manifest, validation, provenance
         tokenizer.py          CharTokenizer / WordTokenizer, save/load
         dataset.py            memmap token store, train/val split, batch sampling
         synthetic.py          deterministic pseudo-English corpus (a test fixture)
@@ -282,6 +302,7 @@ src/frontier_ai/
         artifact.py             tokenizer files + provenance manifest
         cli.py                  shared CLI helpers
     experiments/            Project 003: reproducible experiment infrastructure
+        autowire.py             lets a CLI record itself through the same lifecycle (D-032/D-034)
         spec.py                 ExperimentSpec: validated, serializable experiment definition
         gitinfo.py              git commit/branch/dirty capture (never invents a SHA)
         hashing.py              input digests (re-uses Project 002's sha256_file)
@@ -295,6 +316,7 @@ src/frontier_ai/
         trainer.py            the training loop
         optim.py              AdamW builder + warmup/cosine LR scheduler
         checkpoint.py         save / load / find_latest / build model from config
+        metrics.py            loss per token / byte / character (D-030)
     utils/
         device.py             device + dtype + GradScaler policy resolution
         seed.py               seeding helpers
@@ -307,6 +329,10 @@ tests/
     test_experiments.py       Project 003: spec, seeding, git, hashing, record, runner, CLI
     test_sweeps.py            Project 003: multi-seed sweeps, statistics, failures, CLI
     test_sweep_configs.py     Project 003: multi-configuration sweeps, compatibility, CLI
+    test_autowire.py          Project 003: CLIs that record themselves (D-032/D-033)
+    test_nested_metrics.py    Project 003: nested runs publish metrics, one record (D-034)
+    test_loss_reporting.py    Project 003: bits per token / byte / character (D-030)
+    test_smoke_corpus.py      Project 003: licensed corpora, provenance, pinning (D-031)
     test_repo_hygiene.py      no source file may be git-ignored (D-023)
 PROJECT_CONTEXT.md            this file
 ROADMAP.md                    staged plan from here to frontier scale
@@ -498,7 +524,7 @@ orthography category, with multi-tokenizer comparison. See
 | Precision | only fp32 has actually run; bf16/fp16 paths are written but unexercised |
 | Sampling | temperature + top-k + top-p only; no repetition penalty, no batch generation, no stop tokens (no EOS in the tokenizer) |
 | Evaluation | loss/perplexity on the training corpus distribution; no benchmarks, no task eval, no human eval |
-| Experiment tooling | **Project 003 infrastructure exists**: specs, seeding with recorded limits, git/data/env provenance, JSON records with fingerprints, a runner (`scripts/experiment_record.py`) and **sweeps over seeds and configurations** (mean ± sample standard deviation, `scripts/experiment_sweep.py`); large-scale sweep orchestration (Q-8), bits-per-byte reporting, an ablation runner and a tracker (WandB/TensorBoard) still do not exist; the Project 001/002 entry points do not write records themselves (the CLI wraps them) |
+| Experiment tooling | **Project 003 (Stage 1) is complete**: specs, seeding with recorded limits, git/data/env provenance, JSON records with fingerprints, a runner (`scripts/experiment_record.py`), **sweeps over seeds and configurations** (mean ± sample standard deviation, `scripts/experiment_sweep.py`), loss per byte/character, licensed smoke corpora, and CLIs (`train.py`, `tokenizer_*.py`) that **record themselves** while nested runs still produce exactly one record (D-032…D-034). Still absent by design: large-scale sweep orchestration (Q-8) and an external tracker (WandB/TensorBoard) |
 | CI | workflow committed as `docs/ci.yml.example`; it has never run on GitHub Actions (the App used to push lacks the `workflows` permission) |
 | Post-training | none: no SFT, preference optimization, reasoning, or safety work |
 | Reproducibility | runs are reproducible **under a recorded environment only** (same code, data, seed, command, library versions, thread count). cuDNN, thread-dependent FP order and RNGs outside python/numpy/torch are not covered — every record states this (D-025) |

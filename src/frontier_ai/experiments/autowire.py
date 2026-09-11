@@ -16,6 +16,12 @@ when it is not already inside a run:
 The nesting signal is :data:`~frontier_ai.experiments.runner.EXPERIMENT_ENV_VAR`, exported
 by the runner while the body executes and inherited by subprocesses.
 
+A nested run still has to hand its metrics to the run that owns the record. It does that
+in the one way the project already uses for machine-readable output: a single JSON line on
+stdout carrying :data:`~frontier_ai.experiments.runner.NESTED_RESULTS_MARKER`, which
+:func:`~frontier_ai.experiments.runner.run_command` merges into the outer record's
+``results``. No log scraping, no argv inspection, no second record (D-034).
+
 Failure semantics are the runner's: a body that raises produces a record with
 ``status: "failed"``, the error type/message and a traceback tail, and the exception is
 re-raised. This helper turns it into a non-zero exit code and a message on stderr; a
@@ -31,7 +37,12 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .record import RECORD_FILENAME
-from .runner import active_experiment_dir, experiment_is_active, run_experiment
+from .runner import (
+    active_experiment_dir,
+    experiment_is_active,
+    nested_results_line,
+    run_experiment,
+)
 from .spec import EXPERIMENT_ID_RE, ExperimentSpec, ExperimentSpecError
 
 RECORD_FILENAME_NAME = RECORD_FILENAME
@@ -85,7 +96,12 @@ def run_self_recorded(
                 f"[record] nested inside {outer}; the outer run owns the experiment record",
                 file=sys.stderr,
             )
-        return SelfRecorded(results=dict(body() or {}), nested=True)
+        results = dict(body() or {})
+        if results and not quiet:
+            # No record of our own - so publish the metrics instead of making the outer
+            # run reconstruct them from human-readable logs (D-034).
+            print(nested_results_line(results, script=Path(sys.argv[0]).name))
+        return SelfRecorded(results=results, nested=True)
 
     try:
         experiment = spec() if callable(spec) else spec

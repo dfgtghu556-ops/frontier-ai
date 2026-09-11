@@ -231,7 +231,7 @@ count). No hostname, username, environment-variable dump or full `pip freeze` �
 `run_experiment(spec, fn)` and `run_command(spec, argv)` execute the same nine steps:
 
 ```
-validate → config → git → data → seed → environment → execute → results → write record
+validate → config → git → data → seed → execute → environment → results → write record
 ```
 
 * **validate** — inputs exist before anything runs (`ExperimentInputError`).
@@ -240,6 +240,10 @@ validate → config → git → data → seed → environment → execute → re
 * **execute** — exceptions are recorded *and re-raised*; a failed run writes
   `status="failed"` with the error, its type and a traceback tail, and the human summary
   shows it. No run ever ends with a misleading "success".
+* **environment** — captured **after** the body, because the body owns torch's CPU thread
+  count: only the value the run actually used is true provenance. The caller's value is
+  restored immediately afterwards, so one run in a process cannot change the environment,
+  fingerprint or thread count of the next (D-034, resolved Q-13 — see §10).
 * **write record** — `experiment.json` + `experiment.txt` in the run directory.
 
 Both entry points are usable from Python and from the CLI, with identical semantics.
@@ -262,6 +266,18 @@ python scripts/experiment_record.py --exp-id EXP-007 --out out/wrapped -- \
 * **The outer run owns the record.** The runner exports `FRONTIER_AI_EXPERIMENT_DIR` while
   a body executes; subprocesses inherit it and a nested script writes no record, saying so
   on stderr. Wrapped runs therefore produce exactly one record, not two.
+* **…but the outer run still gets the metrics (D-034).** A nested script publishes its
+  results as one machine-readable JSON line on stdout:
+
+  ```json
+  {"frontier_ai_nested_results": {"schema": "1.0", "script": "train.py",
+                                  "results": {"best_val": 3.4715, "steps": 10, "n_params": 138752}}}
+  ```
+
+  `run_command()` recognises only that marker and merges the results into the outer record's
+  `results` (its own `exit_code`/`stdout_tail`/`stderr_tail` are never overwritten). Sweeps
+  therefore aggregate a swept `train.py` on `best_val` with `metric_source: "results"` — no
+  log scraping, no argv inspection, no second record.
 * **Artifact-producing runs record by default.** Training and every tokenizer CLI that
   writes files records; `--print-model` and `--eval-only` do not (no artifacts); every
   script has `--no-record`. `--exp-id` defaults to `EXP-000`.
@@ -516,11 +532,13 @@ The same sweep, re-run from a **fresh clone of the pushed branch on a clean tree
 `mean 3.1767848`, `spread 0.0534606` and fingerprint `c603596da493d50a…` — identical for a
 second run and for the reversed seed order `5,4,3,2,1` (EXP-004).
 
-**Thread-count caveat (Q-13).** The environment section captures torch's CPU thread count
-*before* the run body executes. A run that changes it (any `Trainer` with `num_threads` set)
-therefore leaves a different value behind, and a *later run in the same process* can record
-a different environment — and a different content fingerprint — with identical metrics. One
-sweep per process is unaffected; the test suite pins threads to 1 to keep it deterministic.
+**Thread-count provenance (D-034, resolved Q-13).** The body owns torch's CPU thread count,
+so the environment is captured *after* it runs and the caller's value is restored immediately
+afterwards. A run with `train.num_threads=2` records `num_threads: 2` — the value it used —
+and identical in-process runs produce identical provenance sections and fingerprints. The
+`pinned_threads` fixture in `tests/conftest.py` remains, but its job is now *numerical*
+determinism (multi-threaded reductions can change floating-point summation order), not
+provenance.
 
 `pytest tests/test_experiments.py` covers: spec defaults/explicit/round-trip/invalid
 values/unknown keys/overrides, seeding stability and recorded limitations, git provenance
@@ -559,8 +577,11 @@ improve on that fixture. Nothing about the model or the training algorithm chang
 | `runner.py` | `run_experiment()`, `run_command()`, `ExperimentContext`, `FRONTIER_AI_EXPERIMENT_DIR` nesting signal |
 | `autowire.py` | `run_self_recorded()` — lets a CLI record itself through the same lifecycle (§7.1) |
 | `sweep.py` | `run_sweep()`, `run_command_sweep()`, `SweepRecord`, `SweepConfiguration`, mean ± spread |
-| `metrics.py` | `bits_from_nats()`, `perplexity()`, `bits_per_unit()`, `loss_summary()` (§9) |
 | `examples.py` | reference experiments used by the docs and determinism tests |
+
+Loss normalisation lives one package over, because Project 001's trainer and `evaluate.py`
+own it: `src/frontier_ai/engine/metrics.py` — `bits_from_nats()`, `perplexity()`,
+`bits_per_unit()`, `loss_summary()` (§9).
 
 `examples.py` is intentionally **not** imported by the package `__init__` (it pulls in the
 training stack); import it directly when you need it.

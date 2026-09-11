@@ -3,8 +3,13 @@
 Lifecycle (ROADMAP Stage 1)::
 
     validate inputs → capture configuration → capture git provenance → capture data
-    provenance → initialise deterministic randomness → capture environment →
-    execute experiment → capture results → write experiment record
+    provenance → initialise deterministic randomness → execute experiment →
+    capture environment → capture results → write experiment record
+
+The environment is captured **after** the body, not before it: torch's CPU thread count is
+owned by the experiment body (a ``Trainer`` sets it), so only the value the run actually
+used is true provenance. The value the caller had is restored afterwards, so one run in a
+process cannot change the environment — or the fingerprint — of the next (D-034, Q-13).
 
 Failure policy
 --------------
@@ -67,6 +72,57 @@ def experiment_is_active() -> bool:
     return active_experiment_dir() is not None
 
 
+# A nested self-recording script writes no record of its own (D-032), so its metrics would
+# be lost to the run that owns the record. Instead of making the outer run scrape
+# human-readable logs, the script prints one machine-readable line on stdout and
+# :func:`run_command` merges it into the outer record's ``results`` (D-034). One line, one
+# JSON object, last-wins-free: existing record and sweep schemas are unchanged.
+NESTED_RESULTS_MARKER = "frontier_ai_nested_results"
+NESTED_RESULTS_SCHEMA = "1.0"
+
+
+def nested_results_line(results: Mapping[str, Any], script: str = "") -> str:
+    """Render ``results`` as the one stdout line a nested run publishes to its outer run."""
+    payload = {
+        NESTED_RESULTS_MARKER: {
+            "schema": NESTED_RESULTS_SCHEMA,
+            "script": script,
+            "results": dict(results or {}),
+        }
+    }
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+
+
+def parse_nested_results(stdout: str) -> dict[str, Any]:
+    """Collect the results published by nested self-recording scripts on ``stdout``.
+
+    Recognises only lines that are JSON objects carrying :data:`NESTED_RESULTS_MARKER`;
+    everything else (log lines, a command's own JSON report) is ignored. When two nested
+    runs publish the same key the **first** one wins, so the merge is order-stable for a
+    given command.
+    """
+    merged: dict[str, Any] = {}
+    for line in (stdout or "").splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("{"):
+            continue
+        try:
+            payload = json.loads(stripped)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        block = payload.get(NESTED_RESULTS_MARKER)
+        if not isinstance(block, dict):
+            continue
+        published = block.get("results")
+        if not isinstance(published, dict):
+            continue
+        for key, value in published.items():
+            merged.setdefault(key, value)
+    return merged
+
+
 @contextlib.contextmanager
 def _activated(output_dir: str | Path) -> Iterator[None]:
     """Export the active run's directory for the duration of the body (and children)."""
@@ -110,6 +166,36 @@ class ExperimentContext:
         path.write_text(json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
                         encoding="utf-8")
         return path
+
+
+def torch_thread_count() -> int | None:
+    """torch's current intra-op thread count, or None when torch is unavailable."""
+    try:
+        import torch
+    except Exception:                                    # torch is optional at import time
+        return None
+    try:
+        return int(torch.get_num_threads())
+    except Exception:                                    # pragma: no cover - defensive
+        return None
+
+
+def restore_torch_threads(count: int | None) -> None:
+    """Put torch's thread count back to ``count`` so a run leaves no global state behind.
+
+    The **body** owns the thread count (a ``Trainer`` sets it from ``train.num_threads`` or
+    a device policy). The runner neither imposes nor overrides a value - it records what
+    the run used and restores what the caller had (D-034).
+    """
+    if count is None:
+        return
+    try:
+        import torch
+
+        if int(torch.get_num_threads()) != int(count):
+            torch.set_num_threads(int(count))
+    except Exception:                                    # pragma: no cover - defensive
+        pass
 
 
 @dataclass
@@ -190,7 +276,10 @@ def run_experiment(
     randomness = seed_everything(                                    # 5. randomness
         spec.seed, deterministic=spec.deterministic_mode, components=components
     )
-    environment = capture_environment(extra_packages)                # 6. environment
+    # 6. environment is captured in the `finally` block, *after* the body: torch's thread
+    # count is chosen by the body, so the value it ran with - not the value the caller
+    # happened to have - is the provenance that belongs in the record (D-034, Q-13).
+    threads_before = torch_thread_count()
 
     ctx = ExperimentContext(
         spec=spec,
@@ -223,6 +312,8 @@ def run_experiment(
         raise
     finally:
         finished = time.time()
+        environment = capture_environment(extra_packages)            # 6. environment
+        restore_torch_threads(threads_before)      # no global thread leakage into the next run
         execution = {
             "started_at": started_at,
             "finished_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -295,11 +386,17 @@ def run_command(
             raise subprocess.CalledProcessError(
                 completed.returncode, argv, output=completed.stdout, stderr=completed.stderr
             )
-        return {
+        results = {
             "exit_code": completed.returncode,
             "stdout_tail": _tail(completed.stdout),
             "stderr_tail": _tail(completed.stderr),
         }
+        # a nested self-recording script published its metrics on stdout (D-034): merge
+        # them so sweeps can aggregate `best_val` without parsing human-readable logs.
+        # The wrapper's own keys win, so the merge can never rewrite exit_code or the tails.
+        for key, value in parse_nested_results(completed.stdout).items():
+            results.setdefault(key, value)
+        return results
 
     return run_experiment(
         spec,

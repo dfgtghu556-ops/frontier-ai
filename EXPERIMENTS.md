@@ -785,6 +785,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-004 | **Infrastructure verification** (not a benchmark): do multi-seed sweeps reproduce and report spread honestly? | complete | 2026-09-10 | 5 seeds: mean 3.2626 ± 0.0476 (sample stdev); repeated and reversed-order sweeps give identical fingerprints `d4f498b9977a6f94…`; partial failure → `partial` + exit 2 |
 | EXP-005 | **Infrastructure verification** (not a benchmark): do multi-configuration sweeps separate configurations and reproduce? | complete | 2026-09-10 | 2 configs × 3 seeds: `lr_high` 3.164264 ± 0.059841 vs `lr_low` 3.365245 ± 0.068379; identical fingerprint `f7306163a37b7a83…` across repeats and reversed order; one config failing → `partial`, 3/6 runs |
 | EXP-006 | **Metric verification** (not a model benchmark): does per-token loss misrank two tokenizations of the same text? | complete | 2026-09-10 | char 1.37519 nats/token but **1.983986 bits/byte** vs word 2.16143 nats/token and **1.546772 bits/byte** — the ranking inverts; EXP-001 numbers reproduce exactly |
+| EXP-007 | **Engineering verification** (not a model benchmark): do the CLIs record themselves, does a swept `train.py` keep its metrics, and is thread provenance stable? | complete | 2026-09-11 | 3-seed swept training run: `best_val` **mean 3.479525 ± 0.013175** (sample stdev), every run resolved from `results` (`metric_source: results`), 3 records and no inner ones, statistics and per-run fingerprints identical on repeat; in-process runs that set 3 threads record `3` and restore `1` |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -902,3 +903,85 @@ corpus predates this bookkeeping they are `null` and the output says to re-run
 `prepare_data.py`. This is recorded here because the rules require every run to be logged — it
 verifies the *infrastructure*, not model quality. Its own record will show `dirty=true`
 whenever the working tree is dirty; that is the point, not a defect.
+
+---
+
+### EXP-007 — CLIs that record themselves: one record, metrics preserved, stable thread provenance ✅
+
+> **This entry is engineering verification of infrastructure, not a model or tokenizer
+> result.** No architecture, tokenizer or hyperparameter is chosen here, and the loss
+> numbers below are a *signal that the plumbing works*, not a claim about model quality.
+> They are reproducible with the commands given; the model is the 139k-parameter CPU smoke
+> config trained for 10 steps on the synthetic corpus.
+
+- **Status:** complete (infrastructure verification)
+- **Date:** 2026-09-11
+- **Objective:** verify Project 003 Stage 1 item 4 (and the two audit findings it closed):
+  (a) `scripts/train.py` and `scripts/tokenizer_*.py` write the standard record when run
+  directly; (b) a run that is wrapped or swept produces **exactly one** record, owned by the
+  outer run; (c) the swept CLI's structured metrics (`best_val`) still reach the sweep;
+  (d) torch thread provenance is stable and honest across in-process runs.
+- **Hypothesis:** (a)–(c) hold by construction once a nested script publishes its results as
+  one JSON line instead of writing a second record (D-034); (d) holds once the environment
+  is captured *after* the body and the caller's thread count is restored (D-034, Q-13).
+- **Baseline:** EXP-004 (multi-seed sweeps, mean ± sample spread) and EXP-006 (bits per
+  byte). Before this work, a swept `train.py` reported `metric_missing` for `best_val`
+  because the per-seed record contained only `exit_code`, `stdout_tail` and `stderr_tail`.
+
+**Configuration**
+
+- Model: `configs/cpu_smoke.json` (2 layers, 2 heads, `n_embd=64`, `block_size=64`),
+  138,752 parameters, 10 steps, seed = sweep seed, `num_threads=1`
+- Data: `data/synthetic.bin` (200,094 chars, vocab 51, seed 1337) — the same corpus as
+  EXP-001, so nothing here is a new data claim
+- Sweep: `scripts/experiment_sweep.py --seeds 1,2,3 --metric best_val`
+- Hardware: 2 CPU cores, 3 GB RAM, Python 3.11.2, torch 2.14.0+cu130
+- Code revision: branch `arena/01a08a78-frontier-ai`, the commit that adds D-034 (see
+  `git log`); the runs below were made on a dirty tree, so their records carry
+  `dirty=true` — that is D-026 working as intended, not a defect
+
+**Commands (exact)**
+
+```bash
+. .venv/bin/activate
+python scripts/prepare_data.py --source synthetic --target-chars 200000 --out data/synthetic
+
+# swept training runs: the CLI records nothing of its own, the sweep owns the records
+python scripts/experiment_sweep.py --exp-id EXP-907 --seeds 1,2,3 --metric best_val \
+    --data data/synthetic.bin --out out/sweeps/EXP-907 -- \
+    python scripts/train.py --config configs/cpu_smoke.json --set train.seed={seed} \
+        --set train.out_dir=out/sweeps/EXP-907-run-{seed} --max-steps 10
+
+# wrapped run: one record, and the training metrics inside it
+python scripts/experiment_record.py --exp-id EXP-907 --data data/synthetic.bin \
+    --out out/experiments/EXP-907-wrapped -- \
+    python scripts/train.py --config configs/cpu_smoke.json --set train.out_dir=out/... --max-steps 3
+```
+
+**Metrics**
+
+| check | expected | observed | verdict |
+|---|---|---|---|
+| swept training run aggregates `best_val` | `metric_source: results`, no `metric_missing` | mean **3.479525**, spread **0.013175** (sample stdev, n=3); per-seed 3.471531 / 3.494731 / 3.472312; all three `metric_source: results` | pass |
+| repeat of the same sweep | identical statistics and records | mean 3.479525, spread 0.013175, per-seed fingerprints `8a71d80d7e616dd9…`, `fa1d86389f710fd6…`, `62b293e2ca449dfb…` reproduced exactly | pass |
+| one record per run | exactly 3 records, none in the training directories | 3 records under `seed-000000000{1,2,3}/experiment.json`; the three training directories contain no `experiment.json` | pass |
+| wrapped run keeps the metrics | outer record carries the training results | `best_val`, `best_bpb`, `steps`, `n_params`, `tokens_seen` present; `exit_code` and the log tails untouched by the merge | pass |
+| wrapped failure | one **failed** record, non-zero exit | record `status: failed`, error `CalledProcessError`, no inner record | pass |
+| wrapped tokenizer run | one record, tokenizer metrics inside it | `impl`, `vocab_size`, `sample_round_trip_ok` present in the wrapper's record; artifact directory has no record | pass |
+| in-process thread provenance (D-034) | the value the body used, restored afterwards | body setting 3 threads → `environment.torch.num_threads = 3` recorded, caller's `1` restored after the run | pass |
+| repeated in-process runs with identical config | identical provenance and fingerprints | two runs that each set 3 threads: equal environments, equal fingerprints | pass |
+
+**Results:** the plumbing is complete in both directions — a script records itself when it
+owns the run, and publishes its metrics when it does not. The 3-seed numbers above are a
+*signal* (spread ≈ 0.013, i.e. ~0.4% around the mean, on a 10-step toy run); they are not a
+model result and nothing in Stage 2 should be decided from them.
+
+**Fresh-clone re-verification:** repeated in a pristine clone of the pushed branch with an
+independently built environment — same suite result and the same swept `best_val` mean and
+spread. See the branch notes for the commit hash.
+
+**Not verified here (recorded rather than hidden):** the D-031 licensed corpora. Their
+manifest ships with `verified: false` and `sha256: null` by design, hashes are pinned only
+after a real fetch, and `tests/test_smoke_corpus.py` skips its end-to-end case until
+`scripts/fetch_smoke_corpus.py --fetch` has been run with network access. No corpus numbers
+are claimed in this entry.

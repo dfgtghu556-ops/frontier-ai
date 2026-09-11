@@ -416,7 +416,7 @@ def test_runner_validates_inputs_before_running(tmp_path):
 
 
 def test_runner_captures_lifecycle_in_order(tmp_path):
-    """Each provenance section is populated before the experiment body runs."""
+    """Seeding and context are ready before the experiment body runs."""
     spec = ExperimentSpec(experiment_id="EXP-906", seed=3, output_dir=str(tmp_path / "run"),
                           data_paths=[str(_write(tmp_path / "d.bin", b"abc"))])
     seen = {}
@@ -438,6 +438,102 @@ def test_runner_captures_lifecycle_in_order(tmp_path):
 def _write(path: Path, payload: bytes) -> Path:
     path.write_bytes(payload)
     return path
+
+
+# ---------------------------------------------------------------------------
+# F2. torch thread provenance (D-034, formerly Q-13)
+#
+# The environment section is captured *after* the body, because the body owns torch's CPU
+# thread count (a Trainer sets it from train.num_threads or a device policy). The runner
+# records what the run actually used and restores what the caller had, so two identical
+# in-process runs cannot disagree about their own provenance.
+# ---------------------------------------------------------------------------
+def _body_using_threads(threads: int):
+    def body(ctx):
+        import torch
+
+        torch.set_num_threads(threads)
+        return {"threads_used": torch.get_num_threads()}
+
+    return body
+
+
+def test_repeated_in_process_runs_record_the_threads_they_used(tmp_path):
+    import torch
+
+    torch.set_num_threads(1)
+
+    def once(tag: str, threads: int):
+        spec = ExperimentSpec(experiment_id="EXP-920", seed=5, output_dir=str(tmp_path / tag))
+        return run_experiment(spec, _body_using_threads(threads))
+
+    a, b = once("a", 3), once("b", 3)
+
+    assert a.record.environment["torch"]["num_threads"] == 3
+    assert b.record.environment["torch"]["num_threads"] == 3
+    # identical configuration -> identical provenance -> identical fingerprint, even
+    # though the second run started with the thread count the first run left behind
+    assert a.record.content_fingerprint() == b.record.content_fingerprint()
+    assert a.record.results == b.record.results
+
+
+def test_thread_count_is_restored_after_the_run(tmp_path):
+    import torch
+
+    torch.set_num_threads(1)
+    spec = ExperimentSpec(experiment_id="EXP-921", seed=5, output_dir=str(tmp_path / "run"))
+    run_experiment(spec, _body_using_threads(3))
+    assert torch.get_num_threads() == 1
+
+
+def test_threads_are_only_restored_not_overridden(tmp_path):
+    """A run that does not touch threads keeps the caller's count; one that does keeps its own."""
+    import torch
+
+    torch.set_num_threads(2)
+    untouched = ExperimentSpec(experiment_id="EXP-922", seed=5,
+                               output_dir=str(tmp_path / "untouched"))
+    record = run_experiment(untouched, lambda ctx: {"ok": True}).record
+    assert record.environment["torch"]["num_threads"] == 2
+    assert torch.get_num_threads() == 2
+
+    explicit = ExperimentSpec(experiment_id="EXP-923", seed=5,
+                              output_dir=str(tmp_path / "explicit"))
+    record = run_experiment(explicit, _body_using_threads(4)).record
+    assert record.environment["torch"]["num_threads"] == 4
+    assert torch.get_num_threads() == 2
+
+
+def test_different_thread_counts_are_recorded_honestly(tmp_path):
+    two = ExperimentSpec(experiment_id="EXP-924", seed=5, output_dir=str(tmp_path / "two"))
+    three = ExperimentSpec(experiment_id="EXP-924", seed=5, output_dir=str(tmp_path / "three"))
+
+    a = run_experiment(two, _body_using_threads(2)).record
+    b = run_experiment(three, _body_using_threads(3)).record
+
+    assert (a.environment["torch"]["num_threads"], b.environment["torch"]["num_threads"]) == (2, 3)
+    # a real provenance difference must remain visible: provenance is not smoothed away
+    assert a.content_fingerprint() != b.content_fingerprint()
+
+
+def test_a_real_training_run_records_the_thread_count_it_used(tmp_path):
+    """End-to-end: a Project 001 Trainer sets threads; the record must agree with it."""
+    import torch
+
+    data = _write(tmp_path / "in.bin", b"thread provenance for a real trainer run")
+    spec = ExperimentSpec(experiment_id="EXP-925", seed=7, output_dir=str(tmp_path / "train"),
+                          data_paths=[str(data)])
+    used: dict[str, int] = {}
+
+    def body(ctx):
+        outcome = dict(tiny_training_experiment(ctx, steps=3))
+        used["threads"] = torch.get_num_threads()
+        return outcome
+
+    record = run_experiment(spec, body).record
+
+    assert used["threads"] >= 1
+    assert record.environment["torch"]["num_threads"] == used["threads"]
 
 
 # ---------------------------------------------------------------------------
