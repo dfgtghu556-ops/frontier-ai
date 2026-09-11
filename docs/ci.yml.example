@@ -1,0 +1,50 @@
+# CI workflow (GitHub Actions).
+#
+# Enable it with:
+#   mkdir -p .github/workflows && cp docs/ci.yml.example .github/workflows/ci.yml
+#
+# It is committed as an example because the GitHub App used by this session does
+# not have the `workflows` permission required to push files under .github/workflows.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install CPU PyTorch
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu || pip install torch
+
+      - name: Install project
+        run: pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Unit tests
+        run: pytest -x -q
+
+      - name: CLI smoke test (prepare -> train -> evaluate -> generate)
+        run: |
+          python scripts/prepare_data.py --source synthetic --target-chars 60000 --out data/ci
+          python scripts/train.py --config configs/cpu_smoke.json \
+            --set data.path=data/ci.bin --set data.tokenizer=data/ci.tokenizer.json \
+            --set train.out_dir=out/ci --max-steps 30 --set train.eval_interval=15
+          python scripts/evaluate.py --ckpt out/ci/best --data data/ci.bin --eval-iters 5 --sample 60
+          python scripts/generate.py --ckpt out/ci/best --tokenizer data/ci.tokenizer.json \
+            --prompt "the quiet cat" --max-new-tokens 80

@@ -1,0 +1,52 @@
+{
+  "_comment": "Tiny default: trains on 2 CPU cores / 3 GB RAM in about a minute. Safe for CI.",
+  "model": {
+    "n_layer": 2,
+    "n_head": 2,
+    "n_embd": 64,
+    "block_size": 64,
+    "dropout": 0.0,
+    "norm": "rmsnorm",
+    "ffn": "swiglu",
+    "pos": "learned",
+    "tie_embeddings": true
+  },
+  "data": {
+    "path": "data/synthetic.bin",
+    "tokenizer": "data/synthetic.tokenizer.json",
+    "level": "char",
+    "val_frac": 0.1,
+    "batch_size": 8,
+    "num_workers": 0,
+    "seed": 1337
+  },
+  "optim": {
+    "lr": 0.003,
+    "min_lr_ratio": 0.1,
+    "weight_decay": 0.1,
+    "betas": [0.9, 0.95],
+    "grad_clip": 1.0,
+    "warmup_steps": 20,
+    "schedule": "cosine"
+  },
+  "train": {
+    "out_dir": "out/cpu-smoke",
+    "max_steps": 200,
+    "accum_steps": 4,
+    "eval_interval": 50,
+    "eval_iters": 10,
+    "log_interval": 20,
+    "save_interval": 0,
+    "save_best": true,
+    "device": "auto",
+    "precision": "fp32",
+    "seed": 1337,
+    "num_threads": 0
+  },
+  "gen": {
+    "max_new_tokens": 200,
+    "temperature": 0.8,
+    "top_k": 20,
+    "top_p": 1.0
+  }
+}

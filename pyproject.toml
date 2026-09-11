@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "frontier-ai"
+version = "0.1.0"
+description = "A small, readable, GPU-ready PyTorch stack for training decoder-only transformer language models"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "frontier-ai contributors" }]
+keywords = ["pytorch", "transformer", "gpt", "language-model", "training"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "torch>=2.0",
+  "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0",
+  "ruff>=0.4",
+]
+# Optional: enables the `bpe_hf` tokenizer baseline in the tokenizer research
+# subsystem (Project 002). Apache-2.0. The core training pipeline does not need it.
+tokenizer = [
+  "tokenizers>=0.20",
+]
+
+[project.urls]
+Repository = "https://github.com/dfgtghu556-ops/frontier-ai"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+src = ["src", "tests", "scripts"]
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+ignore = ["E731", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+"scripts/*" = ["E402"]  # scripts add src/ to sys.path before importing

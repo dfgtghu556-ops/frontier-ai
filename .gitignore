@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Project artifacts: keep raw/prepared datasets and checkpoints out of git.
+# These rules are ANCHORED with a leading "/" on purpose: an unanchored "data/"
+# also matches src/frontier_ai/data/, which silently excluded the data package
+# from version control (caught by a fresh checkout after PR #1).
+/data/
+/out/
+/runs/
+/checkpoints/
+*.bin
+*.pt
+*.pth
+*.npz
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Tokenizer research artifacts (regenerable)
+/artifacts/

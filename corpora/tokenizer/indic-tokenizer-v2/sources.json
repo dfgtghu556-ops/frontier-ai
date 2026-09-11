@@ -1,0 +1,288 @@
+{
+  "schema_version": "1.0",
+  "corpus": {
+    "id": "indic-tokenizer",
+    "version": "v2",
+    "purpose": "Tokenizer-research corpus foundation (Project 004 Stage A). No tokenizer has been selected here, and nothing in this corpus selects one."
+  },
+  "targets": {
+    "sentences_per_language": 500,
+    "characters_per_language": 200000,
+    "note": "Targets from the Project 004 design audit. They are goals, not quotas: a slot below target is reported as INSUFFICIENT with the real amount, never padded."
+  },
+  "split": {
+    "method": "deterministic-hash",
+    "seed": 1337,
+    "heldout_fraction": 0.1,
+    "level": "document",
+    "note": "Each document is assigned by sha256('<seed>:<doc_id>') < heldout_fraction. No global RNG, so the split is reproducible and independent of document order."
+  },
+  "normalization_policy": "none",
+  "cleaning_policy": "prepare_source_text (kind-specific wrapper/markup removal only: Gutenberg header/footer, wikitext markup). Unicode normalization is NOT applied; NFC/NFD/NFKC experiments belong to a later Project 004 stage.",
+  "language_slots": [
+    {
+      "code": "en",
+      "display": "English",
+      "script": "Latin",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [
+        "en-gutenberg-alice-pd"
+      ]
+    },
+    {
+      "code": "hi",
+      "display": "Hindi",
+      "script": "Devanagari",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [
+        "hi-wikisource-godan-ccbysa"
+      ]
+    },
+    {
+      "code": "hi-en",
+      "display": "Hinglish (code-mixed Hindi-English)",
+      "script": "Latin",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "reason": "no licensed, attributable Hinglish corpus identified: published Hinglish/Romanised-Hindi corpora are derived from social media with unclear licences and privacy terms, which the repository licence allow-list (CC0-1.0, CC-BY-4.0, CC-BY-SA-4.0, PD-US) does not permit. Declaring one would require a licence review that has not happened."
+    },
+    {
+      "code": "bn",
+      "display": "Bengali",
+      "script": "Bengali",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [
+        "bn-wikisource-gitanjali-ccbysa"
+      ]
+    },
+    {
+      "code": "mr",
+      "display": "Marathi",
+      "script": "Devanagari",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Marathi Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (mr.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - selecting a work, confirming its licence tag and pinning its hash require network access and a licence review that have not happened."
+    },
+    {
+      "code": "gu",
+      "display": "Gujarati",
+      "script": "Gujarati",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Gujarati Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (gu.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+    },
+    {
+      "code": "ta",
+      "display": "Tamil",
+      "script": "Tamil",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Tamil Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (ta.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+    },
+    {
+      "code": "te",
+      "display": "Telugu",
+      "script": "Telugu",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Telugu Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (te.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+    },
+    {
+      "code": "kn",
+      "display": "Kannada",
+      "script": "Kannada",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Kannada Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (kn.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+    },
+    {
+      "code": "ml",
+      "display": "Malayalam",
+      "script": "Malayalam",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Malayalam Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (ml.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+    },
+    {
+      "code": "pa",
+      "display": "Punjabi",
+      "script": "Gurmukhi",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Punjabi Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (pa.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+    },
+    {
+      "code": "or",
+      "display": "Odia",
+      "script": "Odia",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Odia Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (or.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+    },
+    {
+      "code": "as",
+      "display": "Assamese",
+      "script": "Bengali-Assamese",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Assamese Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (as.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+    },
+    {
+      "code": "ur",
+      "display": "Urdu",
+      "script": "Perso-Arabic",
+      "target_sentences": 500,
+      "target_chars": 200000,
+      "sources": [],
+      "candidates": [
+        {
+          "provider": "Urdu Wikisource",
+          "license_id": "CC-BY-SA-4.0",
+          "note": "family-level candidate; no concrete work declared"
+        }
+      ],
+      "reason": "candidate provider identified (ur.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+    }
+  ],
+  "sources": [
+    {
+      "id": "en-gutenberg-alice-pd",
+      "title": "Alice's Adventures in Wonderland",
+      "language": "en",
+      "script": "Latin",
+      "source_url": "https://www.gutenberg.org/cache/epub/11/pg11.txt",
+      "license_id": "PD-US",
+      "license_url": "https://www.gutenberg.org/policy/license.html",
+      "attribution": "Alice's Adventures in Wonderland by Lewis Carroll, text from Project Gutenberg (ebook 11). Public domain in the United States; verify local copyright terms before use elsewhere. Used here as a tokenizer-research fixture, not as a redistribution.",
+      "max_chars": 400000,
+      "kind": "gutenberg",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "English slot. The Gutenberg header/footer is stripped by clean_gutenberg_text(); the licence is recorded in the provenance file. Hash is pinned only after a verified fetch."
+    },
+    {
+      "id": "hi-wikisource-godan-ccbysa",
+      "title": "गोदान (Godaan) — Munshi Premchand",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/wiki/%E0%A4%97%E0%A5%8B%E0%A4%A6%E0%A4%BE%E0%A4%A8?action=raw",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गोदान (Godaan) by Munshi Premchand, via hi.wikisource.org, licensed CC BY-SA 4.0 (assumed conservatively until the page's own licence tag is checked on first fetch).",
+      "max_chars": 400000,
+      "kind": "wikitext",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Hindi slot, Devanagari. Verify the page title and its licence tag on first fetch; if the page carries a PD template the licence_id may be relaxed to PD-US with a note.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The `?action=raw` payload is bare wikitext and does not contain the CC BY-SA notice, so the wiki's own machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence. This is SITE-level evidence: it proves hi.wikisource.org publishes under CC BY-SA 4.0, not that this specific page carries that tag. The page-level tag still has to be reviewed by a human and recorded before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "bn-wikisource-gitanjali-ccbysa",
+      "title": "গীতাঞ্জলি (Gitanjali) — Rabindranath Tagore",
+      "language": "bn",
+      "script": "Bengali",
+      "source_url": "https://bn.wikisource.org/wiki/%E0%A6%97%E0%A7%80%E0%A6%A4%E0%A6%BE%E0%A6%9E%E0%A7%8D%E0%A6%9C%E0%A6%B2%E0%A6%BF?action=raw",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Bengali Wikisource contributors, গীতাঞ্জলি (Gitanjali) by Rabindranath Tagore, via bn.wikisource.org, licensed CC BY-SA 4.0 (assumed conservatively until the page's own licence tag is checked on first fetch).",
+      "max_chars": 400000,
+      "kind": "wikitext",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Bengali slot. The author died in 1941 and the work is public domain in India, but the edition on Wikisource may carry its own tag; check it on first fetch and record what you find.",
+      "license_evidence": {
+        "url": "https://bn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for bn.wikisource.org, fetched separately from the wikitext payload (which carries no licence notice). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    }
+  ],
+  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets."
+}
