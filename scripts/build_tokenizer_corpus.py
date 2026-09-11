@@ -42,6 +42,7 @@ from frontier_ai.tokenization.research_corpus import (  # noqa: E402
     load_corpus,
     preflight_manifest,
     render_preflight,
+    render_sources,
     validate_manifest,
 )
 
@@ -120,11 +121,13 @@ def _render(result: BuildResult) -> str:
         f"[corpus] output: {result.out_dir}",
         f"[corpus] sources: {len(result.ingested)} ingested, {result.verified_sources} verified",
         f"[corpus] documents: {len(result.train)} train / {len(result.held_out)} held out",
-        "[corpus] coverage (per language slot)",
+        # One line per declared source: what happened, and why if it did not work.
+        render_sources(result),
     ]
     by_status: dict[str, list[str]] = {status: [] for status in STATUS_ORDER}
     for row in result.coverage["languages"]:
         by_status.setdefault(row["status"], []).append(row["language"])
+    lines.append("[corpus] coverage (per language slot)")
     for status in STATUS_ORDER:
         codes = by_status.get(status) or []
         lines.append(f"[corpus]   {status:<14} {len(codes):>2}  {' '.join(codes)}".rstrip())
@@ -217,6 +220,10 @@ def main() -> int:
         print(f"[corpus] {exc}", file=sys.stderr)
         return 2
 
+    # Sources whose content changed since their hash was pinned. They are refused by the
+    # build itself; this only makes the failure visible in the exit code.
+    drifted: list[str] = []
+
     def body() -> dict:
         result = build_corpus(
             args.manifest,
@@ -232,11 +239,25 @@ def main() -> int:
             local_origins=local_origins,
         )
         print(_render(result))
+        drifted.extend(
+            item.source_id for item in result.ingested if item.status == "hash_mismatch"
+        )
         return stable_results(result.results_payload())
+
+    def _report_drift() -> int:
+        if not drifted:
+            return 0
+        for source_id in drifted:
+            print(
+                f"[corpus] REFUSED: {source_id} no longer matches its pinned sha256 — "
+                "it was not used and not re-pinned",
+                file=sys.stderr,
+            )
+        return 1
 
     if args.no_record:
         body()
-        return 0
+        return _report_drift()
 
     def build_spec() -> ExperimentSpec:
         return ExperimentSpec(
@@ -264,7 +285,8 @@ def main() -> int:
             notes=args.notes,
         )
 
-    return run_self_recorded(build_spec, body).exit_code()
+    code = run_self_recorded(build_spec, body).exit_code()
+    return _report_drift() or code
 
 
 if __name__ == "__main__":

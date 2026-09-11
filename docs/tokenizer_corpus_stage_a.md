@@ -28,8 +28,8 @@ normalization, choose a pre-tokenizer, or train anything. Those are Stages B–H
 | `corpora/tokenizer/indic-tokenizer-v2/sources.json` | the corpus manifest (committed): corpus id/version, targets, split spec, policies, 14 language slots, 3 declared sources, licence-evidence endpoints |
 | `src/frontier_ai/tokenization/research_corpus.py` | manifest model + validation, licence evidence, ingestion, document splitting, split, leakage, statistics, coverage, build |
 | `scripts/build_tokenizer_corpus.py` | the CLI (records itself; see §9) |
-| `tests/test_tokenizer_corpus.py`, `tests/tokenizer_corpus_fixtures.py` | 78 tests over all of the above |
-| `data/tokenizer/indic-tokenizer-v2/` | build output (git-ignored): `corpus.json`, `train.jsonl`, `heldout.jsonl`, `stats.json`, `coverage.json`, `leakage.json`, `sources/<id>.txt`, `sources/<id>.provenance.json` |
+| `tests/test_tokenizer_corpus.py`, `tests/tokenizer_corpus_fixtures.py` | 94 tests over all of the above |
+| `data/tokenizer/indic-tokenizer-v2/` | build output (git-ignored): `corpus.json`, `train.jsonl`, `heldout.jsonl`, `stats.json`, `coverage.json`, `leakage.json`, `acquisition.json`, `sources/<id>.txt`, `sources/<id>.provenance.json` |
 
 The manifest reuses `frontier_ai.data.corpora` for everything it already does well:
 fetching (`fetch_text`), kind-specific cleaning (`clean_text`/`trim_text`), provenance
@@ -294,10 +294,10 @@ hash, and `load_corpus()` re-hashes every file it names, so a corpus edited afte
 is rejected rather than trusted.
 
 **Reproducible**: two builds of the same manifest produce byte-identical `train.jsonl`,
-`heldout.jsonl`, `stats.json`, `coverage.json` and `leakage.json` — verified with an empty
-corpus and with ~9,000 documents of local text. `corpus.json` carries a `built_at`
-timestamp and is therefore *not* byte-reproducible by design; that is the only difference
-between two runs.
+`heldout.jsonl`, `stats.json`, `coverage.json`, `leakage.json` and `acquisition.json` —
+verified with an empty corpus and with ~9,000 documents of local text. `corpus.json` carries
+a `built_at` timestamp and is therefore *not* byte-reproducible by design; that is the only
+difference between two runs.
 
 **EXP-008** is the corpus experiment. The CLI records itself through the standard
 lifecycle (`run_self_recorded`), so:
@@ -352,8 +352,9 @@ python scripts/build_tokenizer_corpus.py --print-json --out data/tokenizer/indic
 python scripts/build_tokenizer_corpus.py --preflight
 ```
 
-Exit codes: `0` built, `1` build failed, `2` bad input (invalid manifest, unknown source
-id, local file that matches no declared source).
+Exit codes: `0` built, `1` build failed **or** a pinned source came back with different
+bytes (`hash_mismatch`: refused, not re-pinned), `2` bad input (invalid manifest, unknown
+source id, local file that matches no declared source).
 
 `--pin` rewrites the manifest **only** when at least one source was genuinely verified;
 pinning zero sources leaves the tracked file byte-identical. When it does write, it does
@@ -398,10 +399,24 @@ not add empty `candidates` / `reason` keys to slots that never had them.
 
 **The step-by-step procedure lives in
 [tokenizer_corpus_stage_b_acquisition.md](tokenizer_corpus_stage_b_acquisition.md)** —
-preflight, per-source acquisition, Wikisource index-page safety, licence evidence vs hash
-vs sufficiency, the pinning order, the local-file fallback and the first-fetch checklist.
-It is a procedure, not a report: it was written in an environment that cannot reach any
-corpus host, so none of its steps have been executed against live data.
+§0 is the five-command quick start; the rest covers preflight, per-source acquisition,
+Wikisource index-page safety, licence evidence vs hash vs sufficiency, the pinning order,
+the local-file fallback and the first-fetch checklist. It is a procedure, not a report: it
+was written in an environment that cannot reach any corpus host, so none of its steps have
+been executed against live data.
+
+The acquisition path was made safer for that run without acquiring anything:
+
+* **index/navigation gate** — a `wikitext` payload whose lines are mostly wiki links (a
+  Wikisource contents page) is refused as `index_page_refused`: not verified, not in the
+  split, not pinned. The text is kept under `sources/<id>.txt` for inspection and the
+  provenance records `content_check`.
+* **pinned-hash gate** — a re-fetch that cleans to different bytes than the pinned `sha256`
+  is refused as `hash_mismatch` (exit 1, manifest untouched, bytes unused). New bytes are
+  accepted only by clearing `sha256`/`verified` first, with a note.
+* **per-source acquisition report** — every build prints a `per-source acquisition` block
+  (reachable / content / licence proof / hash / slot sufficiency / reason) and writes the
+  same rows to `acquisition.json`, which is timestamp-free and therefore reproducible.
 
 In summary:
 

@@ -36,6 +36,7 @@ from frontier_ai.tokenization.research_corpus import (
     LicenseEvidence,
     TokenizerCorpusManifest,
     build_corpus,
+    content_shape,
     coverage_report,
     documents_from_text,
     ingest_source,
@@ -44,6 +45,8 @@ from frontier_ai.tokenization.research_corpus import (
     load_corpus,
     preflight_manifest,
     render_preflight,
+    render_sources,
+    source_report,
     split_documents,
     validate_manifest,
 )
@@ -1603,6 +1606,242 @@ def test_cli_preflight_rejects_an_invalid_manifest(tmp_path: Path) -> None:
                      "--preflight"])
     assert done.returncode == 2
     assert "manifest problem" in done.stderr
+
+
+# ---------------------------------------------------------------------------
+# Stage B acquisition gates: content shape, hash drift, per-source report
+# ---------------------------------------------------------------------------
+def _verse_sample() -> str:
+    """Short lines of Bengali verse: no wiki markup, so this is prose, not navigation."""
+    return "\n".join(["আমার এ গান ছেড়েছে তার সকল অলংকার", "তোমার কাছে রাখে নি আর",
+                      "সাজের মায়া।"] * 10)
+
+
+def test_content_shape_counts_only_navigation_lines() -> None:
+    """A line is navigation when it carries markup and almost no prose — verse is prose."""
+    index = content_shape(INDEX_PAGE_SAMPLE, "wikitext")
+    assert index["looks_like_index_page"] is True
+    assert index["link_line_ratio"] > 0.5
+
+    work = content_shape(WORK_PAGE_SAMPLE, "wikitext")
+    assert work["looks_like_index_page"] is False
+    assert work["link_line_ratio"] == 0.0
+
+    verse = content_shape(_verse_sample(), "wikitext")
+    assert verse["looks_like_index_page"] is False, "short verse lines must not look like links"
+    assert verse["link_lines"] == 0
+
+    # the gate is wikitext-only: a Gutenberg text is never judged on wiki links
+    assert content_shape(INDEX_PAGE_SAMPLE, "gutenberg")["looks_like_index_page"] is False
+    # and a handful of link lines among real prose is not an index page
+    mixed = "\n".join([WORK_PAGE_SAMPLE] * 5 + ["[[गोदान/अध्याय १|अध्याय १]]"])
+    assert content_shape(mixed, "wikitext")["looks_like_index_page"] is False
+
+
+def test_ingest_refuses_an_index_page_and_never_pins_it(tmp_path: Path, monkeypatch) -> None:
+    """A contents page is not the work: keep it for inspection, never verify or pin it."""
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(INDEX_PAGE_SAMPLE),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]}],
+    )
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True, pin=True)
+
+    item = result.ingested[0]
+    assert item.status == "index_page_refused"
+    assert item.verified is False
+    assert item.licence_proof == ""
+    assert "contents/index page" in item.error
+    # the payload is kept so a human can look at it, but it never reaches the corpus
+    assert item.path is not None and Path(item.path).exists()
+    assert result.train == [] and result.held_out == []
+    assert json.loads(manifest_path.read_text(encoding="utf-8"))["sources"][0]["sha256"] is None
+    provenance = json.loads(Path(item.provenance_path).read_text(encoding="utf-8"))
+    assert provenance["content_check"]["looks_like_index_page"] is True
+    assert provenance["verification"] == "unverified"
+    assert result.coverage["languages"][0]["status"] == STATUS_UNVERIFIED
+
+
+def test_ingest_accepts_prose_and_short_verse(tmp_path: Path, monkeypatch) -> None:
+    """The gate must not refuse a real work: prose and verse both verify."""
+    for body in (WORK_PAGE_SAMPLE, _verse_sample()):
+        monkeypatch.setattr(
+            "frontier_ai.tokenization.research_corpus.fetch_text",
+            lambda *a, _body=body, **k: fake_wikisource_text(_body),
+        )
+        manifest_path = _manifest(
+            tmp_path,
+            [_source("hi-src", "hi")],
+            slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari",
+                    "sources": ["hi-src"]}],
+        )
+        result = build_corpus(manifest_path, tmp_path / "build", fetch=True)
+        assert result.ingested[0].status == "verified", body[:20]
+        assert result.ingested[0].licence_proof == "payload-marker"
+
+
+def test_pinned_content_that_changes_is_refused(tmp_path: Path, monkeypatch) -> None:
+    """A pinned hash is the source's identity: different bytes are refused, not re-pinned."""
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(HINDI_TEXT),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]}],
+    )
+    first = build_corpus(manifest_path, tmp_path / "build-a", fetch=True, pin=True)
+    pinned = json.loads(manifest_path.read_text(encoding="utf-8"))["sources"][0]
+    assert pinned["verified"] is True and pinned["sha256"] == first.ingested[0].sha256
+
+    # the same URL on a different day serves different bytes
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(HINDI_TEXT + "\nयह एक अतिरिक्त पंक्ति है।"),
+    )
+    second = build_corpus(manifest_path, tmp_path / "build-b", fetch=True, pin=True)
+    item = second.ingested[0]
+    assert item.status == "hash_mismatch"
+    assert item.verified is False
+    assert item.sha256 != pinned["sha256"]
+    assert "content changed" in item.error and pinned["sha256"] in item.error
+    assert second.train == [] and second.held_out == []  # refused content is not the corpus
+    assert json.loads(manifest_path.read_text(encoding="utf-8"))["sources"][0]["sha256"] == (
+        pinned["sha256"]
+    ), "a pin is never silently overwritten"
+    assert second.acquisition["summary"]["hash_mismatch"] == 1
+
+    # …and an unchanged re-fetch of the pinned bytes is still reproducible
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(HINDI_TEXT),
+    )
+    third = build_corpus(manifest_path, tmp_path / "build-c", fetch=True)
+    assert third.ingested[0].status == "verified"
+    assert third.ingested[0].sha256 == pinned["sha256"]
+
+
+def test_acquisition_report_has_one_row_per_declared_source(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(HINDI_TEXT),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi", source_url="https://example.invalid/hi-src.txt"),
+         _source("ta-src", "ta", source_url="https://example.invalid/ta-src.txt")],
+        slots=[
+            {"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]},
+            {"code": "ta", "display": "Tamil", "script": "Tamil", "sources": ["ta-src"]},
+        ],
+    )
+
+    def _boom(url: str, *_args, **_kwargs):
+        if "ta-src" in url:
+            raise OSError("no route to host")
+        return fake_wikisource_text(HINDI_TEXT)
+
+    monkeypatch.setattr("frontier_ai.tokenization.research_corpus.fetch_text", _boom)
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True)
+
+    rows = {row["source_id"]: row for row in source_report(result)}
+    assert set(rows) == {"hi-src", "ta-src"}
+    ok = rows["hi-src"]
+    assert ok["reachable"] is True and ok["content_found"] is True
+    assert ok["verification_status"] == "verified" and ok["verified"] is True
+    assert ok["licence_proof"] == "payload-marker"
+    assert len(ok["sha256"]) == 64
+    assert ok["sufficiency"]["status"] == STATUS_INSUFFICIENT  # targets are not met
+    assert ok["sufficiency"]["sufficient"] is False
+    assert ok["error"] == ""
+
+    failed = rows["ta-src"]
+    assert failed["reachable"] is False and failed["content_found"] is False
+    assert failed["verification_status"] == "fetch_failed"
+    assert failed["sha256"] is None
+    assert "no route to host" in failed["error"]
+
+    written = json.loads((tmp_path / "build" / "acquisition.json").read_text(encoding="utf-8"))
+    assert written["sources"] == source_report(result)
+    assert written["summary"]["verified"] == 1
+    assert written["summary"]["unreachable"] == 1
+    rendered = render_sources(result)
+    assert "hi-src" in rendered and "fetch_failed" in rendered
+    assert "no route to host" in rendered
+    assert "sha256=" in rendered and "slot=hi" in rendered
+
+
+def test_acquisition_report_is_reproducible(tmp_path: Path, monkeypatch) -> None:
+    """Two identical runs produce byte-identical reports (no timestamps in the file)."""
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(HINDI_TEXT),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]}],
+    )
+    first = build_corpus(manifest_path, tmp_path / "build-a", fetch=True)
+    second = build_corpus(manifest_path, tmp_path / "build-b", fetch=True)
+    assert first.files["acquisition.json"]["sha256"] == second.files["acquisition.json"]["sha256"]
+    assert "checked_at" not in json.dumps(first.acquisition)
+
+
+def test_cli_prints_the_per_source_report(tmp_path: Path) -> None:
+    """example.invalid never resolves, so this holds on any machine, with or without a network."""
+    manifest = _manifest(tmp_path, [_source("hi-src", "hi")],
+                         slots=[{"code": "hi", "sources": ["hi-src"]}])
+    done = _run_cli(["--manifest", str(manifest), "--out", str(tmp_path / "out"), "--fetch",
+                     "--no-record", "--timeout", "5"])
+    assert done.returncode == 0, done.stdout
+    assert "[corpus] per-source acquisition" in done.stdout
+    assert "hi-src" in done.stdout and "fetch_failed" in done.stdout
+    assert "reason:" in done.stdout
+    assert "coverage (per language slot)" in done.stdout
+
+
+def test_cli_refuses_and_reports_changed_pinned_content(tmp_path: Path) -> None:
+    """The whole point of pinning: a changed re-acquisition fails loudly, exit code 1."""
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]}],
+    )
+    original = tmp_path / "original.txt"
+    original.write_text(fake_wikisource_text(HINDI_TEXT), encoding="utf-8")
+
+    # Local text is never verified, so a local run cannot pin: take the hash the ingester
+    # computes for these bytes and write the pin the way a verified --fetch --pin would.
+    pinned_hash = ingest_source(
+        TokenizerCorpusManifest.load(manifest_path).sources[0],
+        tmp_path / "raw",
+        local_text=original.read_text(encoding="utf-8"),
+    ).sha256
+    assert pinned_hash and len(pinned_hash) == 64
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload["sources"][0]["sha256"] = pinned_hash
+    payload["sources"][0]["verified"] = True
+    payload["sources"][0]["retrieved_at"] = "2026-01-01T00:00:00Z"
+    manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    changed = tmp_path / "changed.txt"
+    changed.write_text(fake_wikisource_text(HINDI_TEXT + "\nयह एक अतिरिक्त पंक्ति है।"),
+                       encoding="utf-8")
+    done = _run_cli(["--manifest", str(manifest_path), "--out", str(tmp_path / "out"),
+                     "--local-file", f"hi-src={changed}", "--no-record"])
+    assert done.returncode == 1, done.stdout
+    assert "REFUSED" in done.stderr and "hi-src" in done.stderr
+    assert "hash_mismatch" in done.stdout
+    # the pin survived
+    assert json.loads(manifest_path.read_text(encoding="utf-8"))["sources"][0]["sha256"] == (
+        pinned_hash
+    )
 
 
 # ---------------------------------------------------------------------------

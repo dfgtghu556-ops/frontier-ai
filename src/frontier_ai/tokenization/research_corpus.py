@@ -97,6 +97,15 @@ MAX_NGRAM_DOCS = 2_000
 # Preflight reads only a bounded prefix: enough to see what a page is, without
 # downloading a whole book just to ask whether the host is reachable.
 PREFLIGHT_SAMPLE_BYTES = 65_536
+
+# Content-shape gate: a Wikisource *work root* is often just a header plus a list of
+# chapter links. Those lines carry wiki markup and almost no prose, which is what these
+# three numbers measure. The gate is deliberately conservative — a page is only called an
+# index page when a *majority* of at least INDEX_PAGE_MIN_LINES lines are navigation —
+# because refusing a real work is worse than asking a human to look.
+INDEX_PAGE_MIN_LINES = 20
+INDEX_PAGE_MIN_PROSE_CHARS = 20
+INDEX_PAGE_LINK_LINE_RATIO = 0.5
 SAMPLING_RULE = (
     "stratified: an equal per-language budget of limit // n_languages documents "
     "in (language, doc_id) order, then any leftover budget filled in the same order"
@@ -113,6 +122,7 @@ HELD_OUT_FILENAME = "heldout.jsonl"
 STATS_FILENAME = "stats.json"
 COVERAGE_FILENAME = "coverage.json"
 LEAKAGE_FILENAME = "leakage.json"
+ACQUISITION_FILENAME = "acquisition.json"
 
 
 # ---------------------------------------------------------------------------
@@ -464,7 +474,8 @@ class IngestedSource:
     source_id: str
     language: str
     status: str = "not_attempted"      # verified | local_unverified | fetch_failed |
-    #                                  # licence_marker_missing | not_attempted | empty
+    #                                  # licence_marker_missing | index_page_refused |
+    #                                  # hash_mismatch | not_attempted | empty
     path: str | None = None
     provenance_path: str | None = None
     sha256: str | None = None
@@ -514,6 +525,44 @@ def _prepare_source_text(raw: str, source: CorpusSource) -> tuple[str, bool, int
     return prepared, len(prepared) < len(cleaned), len(cleaned)
 
 
+def content_shape(text: str, kind: str) -> dict[str, Any]:
+    """Shape of a raw payload: how much is prose, how much is navigation.
+
+    One implementation, two callers: preflight reports this as a hint, and ingestion uses
+    it as a gate, so a page preflight warns about is a page ingestion refuses.
+
+    A line counts as *navigation* only when it carries wiki markup (``[[…]]`` or ``{{…}}``)
+    **and** has almost no prose left once that markup is removed. Short lines of verse are
+    prose, not navigation, and must never be counted — otherwise the gate would refuse
+    poetry, which is exactly what the Bengali slot is made of.
+    """
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    link_lines = 0
+    for line in lines:
+        if "[[" not in line and "{{" not in line:
+            continue  # plain prose, however short
+        stripped = re.sub(r"\[\[(?:[^\]|]*\|)?([^\]]*)\]\]", r"\1", line)
+        stripped = re.sub(r"\{\{[^{}]*\}\}", "", stripped).strip()
+        if len(stripped) < INDEX_PAGE_MIN_PROSE_CHARS:
+            link_lines += 1
+    ratio = round(link_lines / len(lines), 3) if lines else 0.0
+    return {
+        "sample_chars": len(text),
+        "sample_lines": len(lines),
+        "wiki_links": len(re.findall(r"\[\[[^\]]+\]\]", text)),
+        "wiki_templates": len(re.findall(r"\{\{[^{}]*\}\}", text)),
+        "link_line_ratio": ratio,
+        "link_lines": link_lines,
+        # Conservative hint, not a verdict: a human still has to look.
+        "looks_like_index_page": (
+            kind == "wikitext"
+            and len(lines) >= INDEX_PAGE_MIN_LINES
+            and ratio >= INDEX_PAGE_LINK_LINE_RATIO
+        ),
+        "gutenberg_marker_seen": "*** start of the project gutenberg ebook" in text.lower(),
+    }
+
+
 def ingest_source(
     source: CorpusSource,
     raw_dir: str | Path,
@@ -523,11 +572,13 @@ def ingest_source(
     local_text: str | None = None,
     local_origin: str | None = None,
     license_evidence: LicenseEvidence | None = None,
+    expected_sha256: str | None = None,
 ) -> IngestedSource:
     """Fetch (or accept) one source, clean it, and write text + provenance.
 
-    A source becomes ``verified`` **only** when it produced a non-empty cleaned text and
-    its licence was proven by one of two explicit, recorded mechanisms:
+    A source becomes ``verified`` **only** when it produced a non-empty cleaned text, its
+    content passed the shape gate, and its licence was proven by one of two explicit,
+    recorded mechanisms:
 
     * **payload marker** — the fetched payload itself carries a marker for the licence
       the manifest claims (``licence_proof: "payload-marker"``); or
@@ -539,6 +590,17 @@ def ingest_source(
     Evidence cannot be bypassed, and a failed evidence fetch is a failure, never a
     fallback to trust.
 
+    Two further gates protect the *content* itself:
+
+    * **index/navigation gate** — a payload whose lines are mostly wiki links is a
+      contents page, not the work (``status: "index_page_refused"``). It is still written
+      to disk so a human can look at it, but it is never verified, never split into the
+      corpus and never pinned.
+    * **hash gate** — when the manifest already pins a ``sha256``, a re-fetch that cleans
+      to different bytes is ``status: "hash_mismatch"`` and is refused. This is what makes
+      an acquisition reproducible: a pinned hash describes the bytes, so changing bytes
+      have to be a deliberate, recorded decision (clear ``sha256``/``verified`` first).
+
     Locally supplied text (test fixtures, or text a human lawfully obtained) is ingested
     as ``local_unverified``: its hash is a content hash only and proves nothing about
     licensing, so it cannot make a language slot count as evaluated.
@@ -548,9 +610,11 @@ def ingest_source(
     retrieved_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     evidence_result: dict[str, Any] | None = None
+    shape: dict[str, Any] | None = None
     licence_proof = ""  # set only when a licence marker or evidence endpoint proves it
     if local_text is not None:
-        text, truncated, before_trim = _prepare_source_text(local_text, source)
+        raw = local_text
+        shape = content_shape(raw, source.kind)  # the same gate, local text included
         status = "local_unverified"
     elif fetch:
         try:
@@ -572,7 +636,11 @@ def ingest_source(
                 error=f"{type(exc).__name__}: {exc}",
             )
 
-        if license_marker_found(raw, source):
+        shape = content_shape(raw, source.kind)
+        if shape["looks_like_index_page"]:
+            # Not the work: refuse to verify it, but keep the payload for inspection.
+            licence_proof = ""
+        elif license_marker_found(raw, source):
             licence_proof = "payload-marker"
         elif license_evidence is not None:
             evidence_result = check_license_evidence(source, license_evidence, timeout=timeout)
@@ -580,7 +648,7 @@ def ingest_source(
         else:
             licence_proof = ""
 
-        if not licence_proof:
+        if not licence_proof and not shape["looks_like_index_page"]:
             checked = (
                 f"the licence evidence at {license_evidence.url} did not confirm it "
                 f"({evidence_result['status']})" if evidence_result else
@@ -597,11 +665,11 @@ def ingest_source(
                     f"{source.source_url}, and {checked}; refusing to pin a hash"
                 ),
             )
-        text, truncated, before_trim = _prepare_source_text(raw, source)
         status = "verified"
     else:
         return IngestedSource(source_id=source.id, language=source.language, status="not_attempted")
 
+    text, truncated, before_trim = _prepare_source_text(raw, source)
     if not text.strip():
         return IngestedSource(
             source_id=source.id,
@@ -611,6 +679,44 @@ def ingest_source(
             license_evidence=evidence_result,
             error="cleaned text is empty",
         )
+
+    digest = sha256_text(text)
+    if expected_sha256 and digest != expected_sha256:
+        # The manifest pins what this source *is*. Different bytes are a decision, not a
+        # refresh: refuse to use them and refuse to overwrite the pinned hash.
+        return IngestedSource(
+            source_id=source.id,
+            language=source.language,
+            status="hash_mismatch",
+            retrieved_at=retrieved_at,
+            sha256=digest,
+            chars=len(text),
+            bytes=len(text.encode("utf-8")),
+            truncated=truncated,
+            chars_before_trim=before_trim,
+            licence_proof=licence_proof,
+            license_evidence=evidence_result,
+            local=local_text is not None,
+            local_origin=local_origin if local_text is not None else None,
+            error=(
+                f"content changed: the manifest pins {expected_sha256} but this fetch "
+                f"cleaned to {digest}. Refusing to use it and refusing to re-pin. Clear "
+                "sha256 and verified in the manifest (with a note saying why) to accept "
+                "the new bytes deliberately."
+            ),
+        )
+
+    if shape is not None and shape["looks_like_index_page"]:
+        status = "index_page_refused"
+        error = (
+            f"{source.source_url} looks like a contents/index page, not the work: "
+            f"{shape['link_lines']} of {shape['sample_lines']} sampled lines are wiki "
+            f"links with almost no prose (link_line_ratio={shape['link_line_ratio']}). "
+            "The text was kept for inspection, but it is not verified, not part of the "
+            "corpus and not pinned. Acquire the chapter subpages instead (runbook §3)."
+        )
+    else:
+        error = ""
 
     text_path = raw_dir / f"{source.id}.txt"
     text_path.write_text(text, encoding="utf-8")
@@ -624,6 +730,7 @@ def ingest_source(
         chars_before_trim=before_trim,
         licence_proof=licence_proof,
         license_evidence=evidence_result,
+        content_check=shape,
         local=local_text is not None,
         local_origin=local_origin,
     )
@@ -634,7 +741,7 @@ def ingest_source(
         status=status,
         path=str(text_path),
         provenance_path=str(provenance_path),
-        sha256=sha256_text(text),
+        sha256=digest,
         chars=len(text),
         bytes=len(text.encode("utf-8")),
         retrieved_at=retrieved_at,
@@ -642,6 +749,7 @@ def ingest_source(
         chars_before_trim=before_trim,
         licence_proof=licence_proof,
         license_evidence=evidence_result,
+        error=error,
         local=local_text is not None,
         local_origin=local_origin if local_text is not None else None,
     )
@@ -659,6 +767,7 @@ def _write_provenance(
     license_evidence: dict[str, Any] | None,
     local: bool,
     local_origin: str | None,
+    content_check: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """The shared provenance record, extended (never weakened) with Stage A fields."""
     record = build_provenance(source, text, retrieved_at=retrieved_at)
@@ -673,6 +782,9 @@ def _write_provenance(
             "truncated": truncated,
             "chars_before_trim": chars_before_trim,
             "max_chars": source.max_chars,
+            # What the content-shape gate saw in the raw payload (None for local text that
+            # was never probed). Recorded so the decision can be re-read, not re-guessed.
+            "content_check": content_check,
         }
     )
     target = Path(path)
@@ -1057,6 +1169,191 @@ def coverage_report(
 
 
 # ---------------------------------------------------------------------------
+# per-source acquisition report
+# ---------------------------------------------------------------------------
+def _source_rows(
+    manifest: TokenizerCorpusManifest,
+    ingested: Sequence[IngestedSource],
+    coverage: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """One row per **declared** source: what the run observed, or why it observed nothing.
+
+    Every field is either observed or empty — nothing is inferred. ``reachable`` is
+    ``None`` when the source was not fetched at all (not selected, or supplied locally),
+    never ``False``: "we did not ask" and "we asked and it failed" are different facts.
+    """
+    by_language = {row["language"]: row for row in coverage["languages"]}
+    rows: list[dict[str, Any]] = []
+    for source in manifest.sources:
+        item = next((one for one in ingested if one.source_id == source.id), None)
+        if item is None:  # excluded by --source: nothing was attempted
+            item = IngestedSource(source_id=source.id, language=source.language)
+        evidence = item.license_evidence or {}
+        declared = manifest.evidence_for(source.id)
+        licence_evidence: dict[str, Any] | None = None
+        if declared is not None or evidence:
+            licence_evidence = {
+                "declared": declared is not None,
+                "url": evidence.get("url") or (declared.url if declared else ""),
+                "scope": evidence.get("scope") or (declared.scope if declared else ""),
+                "status": evidence.get("status", "not_checked"),
+                "marker_found": bool(evidence.get("marker_found", False)),
+                "error": evidence.get("error", ""),
+            }
+        if item.status in {"not_attempted", "local_unverified"} or item.local:
+            reachable: bool | None = None  # no fetch was performed for this source
+        else:
+            reachable = item.status != "fetch_failed"
+        slot_row = by_language.get(source.language)
+        rows.append(
+            {
+                "source_id": source.id,
+                "language": source.language,
+                "url": source.source_url,
+                "license_id": source.license_id,
+                "reachable": reachable,
+                # "we got text from this source" — a refused source (changed bytes, index
+                # page) still fetched something, and saying "not found" would be a lie.
+                "content_found": item.chars > 0,
+                "verification_status": item.status,
+                "verified": item.verified,
+                "licence_proof": item.licence_proof,
+                "licence_evidence": licence_evidence,
+                "documents": item.documents,
+                "chars": item.chars,
+                "bytes": item.bytes,
+                "truncated": item.truncated,
+                "chars_before_trim": item.chars_before_trim,
+                "sha256": item.sha256,
+                "pinned_sha256": source.sha256,
+                "hash_matches_pin": (
+                    None
+                    if not (source.sha256 and item.sha256)
+                    else source.sha256 == item.sha256
+                ),
+                "sufficiency": (
+                    None
+                    if slot_row is None
+                    else {
+                        "level": "language_slot",  # targets are per slot, not per source
+                        "language": slot_row["language"],
+                        "status": slot_row["status"],
+                        "sufficient": bool(slot_row["sufficient"]),
+                        "target_sentences": slot_row["target_sentences"],
+                        "target_chars": slot_row["target_chars"],
+                        "actual_sentences": slot_row["actual_sentences"],
+                        "actual_chars": slot_row["actual_chars"],
+                        "reason": slot_row["reason"],
+                    }
+                ),
+                "error": item.error,
+            }
+        )
+    return rows
+
+
+def acquisition_report(
+    manifest: TokenizerCorpusManifest,
+    ingested: Sequence[IngestedSource],
+    coverage: dict[str, Any],
+    *,
+    manifest_path: str | Path | None = None,
+    split_seed: int | None = None,
+) -> dict[str, Any]:
+    """The machine-readable summary of one acquisition run.
+
+    Deliberately timestamp-free at the top level so that two runs over identical inputs
+    produce a byte-identical file: what it reports is *what happened to each source*, and
+    a re-run that reports the same thing is the reproducibility check. Per-source
+    retrieval timestamps live in ``corpus.json`` and the provenance files.
+    """
+    rows = _source_rows(manifest, ingested, coverage)
+    return {
+        "schema_version": MANIFEST_SCHEMA_VERSION,
+        "corpus_id": manifest.corpus_id,
+        "corpus_version": manifest.corpus_version,
+        # No manifest hash on purpose: pinning rewrites retrieved_at, so hashing the
+        # manifest here would make an otherwise identical run produce a different file.
+        # corpus.json already records the manifest hash *after* pinning.
+        "manifest_path": str(manifest_path) if manifest_path else None,
+        "split": {
+            "method": str(manifest.split.get("method", "deterministic-hash")),
+            "seed": manifest.split_seed if split_seed is None else split_seed,
+            "heldout_fraction": manifest.held_out_fraction,
+            "level": "document",
+        },
+        "sources": rows,
+        "summary": {
+            "sources": len(rows),
+            "verified": sum(1 for row in rows if row["verified"]),
+            "content_found": sum(1 for row in rows if row["content_found"]),
+            "unreachable": sum(1 for row in rows if row["reachable"] is False),
+            "not_checked": sum(1 for row in rows if row["reachable"] is None),
+            "licence_missing": sum(
+                1 for row in rows if row["verification_status"] == "licence_marker_missing"
+            ),
+            "index_page_refused": sum(
+                1 for row in rows if row["verification_status"] == "index_page_refused"
+            ),
+            "hash_mismatch": sum(1 for row in rows if row["verification_status"] == "hash_mismatch"),
+            "pinned": sum(1 for row in rows if row["pinned_sha256"]),
+        },
+        "note": (
+            "What one run observed, source by source. A source is only 'verified' when the "
+            "fetch succeeded, the content passed the index-page gate and the licence was "
+            "proven by a recorded mechanism. 'pinned_sha256' is what the manifest records; "
+            "'sha256' is what this run computed. Neither proves a licence."
+        ),
+    }
+
+
+def source_report(result: BuildResult) -> list[dict[str, Any]]:
+    """The per-source rows of a finished build (see :func:`acquisition_report`)."""
+    return _source_rows(result.manifest, result.ingested, result.coverage)
+
+
+def _flag(value: bool | None) -> str:
+    return "n/a" if value is None else ("yes" if value else "no")
+
+
+def render_sources(result: BuildResult) -> str:
+    """Human-readable per-source report: one line per source, then the detail lines."""
+    lines = ["[corpus] per-source acquisition"]
+    for row in source_report(result):
+        lines.append(
+            "[corpus]   {source:<32} {status:<20} {licence:<12} reachable={reachable:<3} "
+            "content={content:<3} proof={proof:<16} chars={chars:>10,}".format(
+                source=row["source_id"],
+                status=row["verification_status"],
+                licence=row["license_id"],
+                reachable=_flag(row["reachable"]),
+                content=_flag(row["content_found"]),
+                proof=row["licence_proof"] or "none",
+                chars=row["chars"],
+            )
+        )
+        detail = [f"sha256={row['sha256'][:16]}…" if row["sha256"] else "sha256=none"]
+        if row["licence_evidence"] is not None:
+            evidence = row["licence_evidence"]
+            detail.append(
+                f"evidence={evidence['scope'] or 'n/a'} {evidence['status']}"
+                f"{' marker=found' if evidence['marker_found'] else ''}"
+            )
+        if row["sufficiency"] is not None:
+            slot = row["sufficiency"]
+            detail.append(
+                f"slot={slot['language']} {slot['status']} "
+                f"sufficient={_flag(slot['sufficient'])}"
+            )
+        if row["truncated"]:
+            detail.append(f"truncated=yes (before trim {row['chars_before_trim']:,} chars)")
+        lines.append("[corpus]       " + "  ".join(detail))
+        if row["error"]:
+            lines.append(f"[corpus]       reason: {row['error']}")
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # build
 # ---------------------------------------------------------------------------
 @dataclass
@@ -1072,6 +1369,7 @@ class BuildResult:
     coverage: dict[str, Any]
     leakage: dict[str, Any]
     files: dict[str, dict[str, Any]]
+    acquisition: dict[str, Any] = field(default_factory=dict)
 
     @property
     def verified_sources(self) -> int:
@@ -1161,6 +1459,9 @@ def build_corpus(
             local_text=local_text,
             local_origin=(local_origins or {}).get(source.id),
             license_evidence=manifest.evidence_for(source.id),
+            # A pinned hash is the recorded identity of this source; a re-fetch that
+            # disagrees is refused rather than silently re-pinned.
+            expected_sha256=source.sha256,
         )
         if item.has_text:
             docs = documents_from_text(source.id, source.language,
@@ -1231,6 +1532,12 @@ def build_corpus(
             ]
             manifest.save(manifest_path)
 
+    # Written after pinning, so its manifest_sha256 describes the manifest as it now is.
+    acquisition = acquisition_report(
+        manifest, ingested, coverage, manifest_path=manifest_path, split_seed=seed
+    )
+    files[ACQUISITION_FILENAME] = _write_json(out_dir / ACQUISITION_FILENAME, acquisition)
+
     corpus_payload = {
         "schema_version": MANIFEST_SCHEMA_VERSION,
         "corpus_id": manifest.corpus_id,
@@ -1282,6 +1589,7 @@ def build_corpus(
         coverage=coverage,
         leakage=leakage,
         files=files,
+        acquisition=acquisition,
     )
 
 
@@ -1338,40 +1646,6 @@ def probe_url(
         "elapsed_s": round(time.monotonic() - started, 3),
         "text": body.decode("utf-8", errors="replace"),
         "error": "",
-    }
-
-
-def _link_line_ratio(lines: list[str]) -> tuple[float, int]:
-    """Share of non-empty lines that are links/templates with almost no prose.
-
-    A Wikisource work root is often just a contents page: lines such as
-    ``[[गोदान/अध्याय १|अध्याय १]]``. Those lines shrink to almost nothing once the
-    markup is removed, which is the signal preflight reports.
-    """
-    if not lines:
-        return 0.0, 0
-    link_lines = 0
-    for line in lines:
-        stripped = re.sub(r"\[\[(?:[^\]|]*\|)?([^\]]*)\]\]", r"\1", line)
-        stripped = re.sub(r"\{\{[^{}]*\}\}", "", stripped).strip()
-        if len(stripped) < 20:
-            link_lines += 1
-    return round(link_lines / len(lines), 3), link_lines
-
-
-def _sample_shape(text: str, kind: str) -> dict[str, Any]:
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    ratio, link_lines = _link_line_ratio(lines)
-    return {
-        "sample_chars": len(text),
-        "sample_lines": len(lines),
-        "wiki_links": len(re.findall(r"\[\[[^\]]+\]\]", text)),
-        "wiki_templates": len(re.findall(r"\{\{[^{}]*\}\}", text)),
-        "link_line_ratio": ratio,
-        "link_lines": link_lines,
-        # Conservative hint, not a verdict: a human still has to look.
-        "looks_like_index_page": kind == "wikitext" and bool(lines) and ratio >= 0.5,
-        "gutenberg_marker_seen": "*** start of the project gutenberg ebook" in text.lower(),
     }
 
 
@@ -1438,7 +1712,7 @@ def preflight_source(
         "notes": [],
     }
     if probe["ok"]:
-        report.update(_sample_shape(probe["text"], source.kind))
+        report.update(content_shape(probe["text"], source.kind))
         report["payload_licence_marker_seen"] = license_marker_found(probe["text"], source)
         if source.kind == "gutenberg" and not report["gutenberg_marker_seen"]:
             report["notes"].append(
