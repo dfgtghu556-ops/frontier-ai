@@ -346,6 +346,10 @@ python scripts/build_tokenizer_corpus.py --local-dir data/local-sources --no-rec
 
 # print a built corpus manifest (re-hashing every file it names)
 python scripts/build_tokenizer_corpus.py --print-json --out data/tokenizer/indic-tokenizer-v2
+
+# READ-ONLY preflight: are the sources and licence-evidence endpoints reachable, and does
+# the payload look like the work? Stores, verifies and pins nothing.
+python scripts/build_tokenizer_corpus.py --preflight
 ```
 
 Exit codes: `0` built, `1` build failed, `2` bad input (invalid manifest, unknown source
@@ -391,6 +395,15 @@ not add empty `candidates` / `reason` keys to slots that never had them.
     recorded, and for later stages to report tokenizer results without it.
 
 ## 12. What Stage B must add
+
+**The step-by-step procedure lives in
+[tokenizer_corpus_stage_b_acquisition.md](tokenizer_corpus_stage_b_acquisition.md)** —
+preflight, per-source acquisition, Wikisource index-page safety, licence evidence vs hash
+vs sufficiency, the pinning order, the local-file fallback and the first-fetch checklist.
+It is a procedure, not a report: it was written in an environment that cannot reach any
+corpus host, so none of its steps have been executed against live data.
+
+In summary:
 
 * real, verified, licensed sources for as many of the 14 slots as possible (network
   access plus a licence review per work); the first fetch must confirm that the

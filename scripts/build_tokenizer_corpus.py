@@ -35,10 +35,13 @@ from frontier_ai.experiments import ExperimentSpec  # noqa: E402
 from frontier_ai.experiments.autowire import run_self_recorded, stable_results  # noqa: E402
 from frontier_ai.tokenization.research_corpus import (  # noqa: E402
     DEFAULT_MANIFEST_PATH,
+    PREFLIGHT_SAMPLE_BYTES,
     BuildResult,
     TokenizerCorpusManifest,
     build_corpus,
     load_corpus,
+    preflight_manifest,
+    render_preflight,
     validate_manifest,
 )
 
@@ -94,6 +97,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--notes", default="", help="notes for the experiment record")
     p.add_argument("--print-json", action="store_true", help="print a built corpus.json and exit")
     p.add_argument("--no-record", action="store_true", help="do not write an experiment record")
+    p.add_argument(
+        "--preflight",
+        action="store_true",
+        help="READ-ONLY probe of every declared source and licence-evidence endpoint: "
+             "reports reachability and content shape, stores nothing, verifies nothing and "
+             "pins nothing. Exit 0 = all endpoints reachable, 1 = at least one unreachable, "
+             "2 = bad input. Combine with --print-json for the machine-readable report.",
+    )
+    p.add_argument(
+        "--sample-bytes",
+        type=int,
+        default=PREFLIGHT_SAMPLE_BYTES,
+        help="[--preflight] bytes to read per endpoint (default: %(default)s)",
+    )
     return p
 
 
@@ -164,7 +181,9 @@ def _parse_local_files(
 def main() -> int:
     args = build_parser().parse_args()
 
-    if args.print_json:
+    # --print-json reports on a built corpus; with --preflight it prints the preflight
+    # report instead (a preflight never builds anything, so there is nothing else to show).
+    if args.print_json and not args.preflight:
         print(json.dumps(load_corpus(args.out), indent=2, ensure_ascii=False))
         return 0
 
@@ -174,6 +193,21 @@ def main() -> int:
         for problem in problems:
             print(f"[corpus] manifest problem: {problem}", file=sys.stderr)
         return 2
+
+    if args.preflight:
+        # Read-only: no output directory, no corpus files, no manifest write, no record.
+        report = preflight_manifest(
+            manifest,
+            timeout=args.timeout,
+            max_bytes=args.sample_bytes,
+            source_ids=args.source_ids,
+        )
+        report["manifest_path"] = str(Path(args.manifest))
+        if args.print_json:
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        else:
+            print(render_preflight(report))
+        return 1 if report["summary"]["unreachable"] else 0
 
     try:
         local_texts, local_origins = _parse_local_files(

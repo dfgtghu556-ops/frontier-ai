@@ -34,6 +34,8 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
+import urllib.request
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field, replace
@@ -91,6 +93,10 @@ _SENTENCE_BOUNDARY = re.compile(r"(?<=[\u0964\u0965।॥.!?])\s+")
 # whitespace), over a deterministically chosen sample so the check is bounded.
 NGRAM_N = 8
 MAX_NGRAM_DOCS = 2_000
+
+# Preflight reads only a bounded prefix: enough to see what a page is, without
+# downloading a whole book just to ask whether the host is reachable.
+PREFLIGHT_SAMPLE_BYTES = 65_536
 SAMPLING_RULE = (
     "stratified: an equal per-language budget of limit // n_languages documents "
     "in (language, doc_id) order, then any leftover budget filled in the same order"
@@ -1277,6 +1283,259 @@ def build_corpus(
         leakage=leakage,
         files=files,
     )
+
+
+# ---------------------------------------------------------------------------
+# preflight (read-only: no acquisition, no verification, no pinning)
+# ---------------------------------------------------------------------------
+def probe_url(
+    url: str,
+    *,
+    max_bytes: int = PREFLIGHT_SAMPLE_BYTES,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Bounded, read-only GET used **only** by preflight.
+
+    Why a second network call exists next to ``fetch_text``: preflight must not download a
+    whole book just to ask "is this reachable, and does it look like the work?". This asks
+    for a byte range and reads at most ``max_bytes`` from the stream even if the server
+    ignores the range.
+
+    It writes nothing, hashes nothing, verifies nothing and never feeds the corpus. The
+    sample is decoded with ``errors="replace"`` because a range cut can land mid-character;
+    that only affects the heuristics below, never any stored text.
+    """
+    started = time.monotonic()
+    request = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "frontier-ai-tokenizer-corpus/1.0",
+            "Range": f"bytes=0-{max_bytes - 1}",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            status = getattr(response, "status", None) or response.getcode()
+            content_type = response.headers.get("Content-Type", "")
+            body = response.read(max_bytes)
+    except Exception as exc:  # noqa: BLE001 - connectivity fails in many ways
+        return {
+            "url": url,
+            "ok": False,
+            "http_status": None,
+            "content_type": "",
+            "bytes_read": 0,
+            "elapsed_s": round(time.monotonic() - started, 3),
+            "text": "",
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+    return {
+        "url": url,
+        "ok": True,
+        "http_status": status,
+        "content_type": content_type,
+        "bytes_read": len(body),
+        "elapsed_s": round(time.monotonic() - started, 3),
+        "text": body.decode("utf-8", errors="replace"),
+        "error": "",
+    }
+
+
+def _link_line_ratio(lines: list[str]) -> tuple[float, int]:
+    """Share of non-empty lines that are links/templates with almost no prose.
+
+    A Wikisource work root is often just a contents page: lines such as
+    ``[[गोदान/अध्याय १|अध्याय १]]``. Those lines shrink to almost nothing once the
+    markup is removed, which is the signal preflight reports.
+    """
+    if not lines:
+        return 0.0, 0
+    link_lines = 0
+    for line in lines:
+        stripped = re.sub(r"\[\[(?:[^\]|]*\|)?([^\]]*)\]\]", r"\1", line)
+        stripped = re.sub(r"\{\{[^{}]*\}\}", "", stripped).strip()
+        if len(stripped) < 20:
+            link_lines += 1
+    return round(link_lines / len(lines), 3), link_lines
+
+
+def _sample_shape(text: str, kind: str) -> dict[str, Any]:
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    ratio, link_lines = _link_line_ratio(lines)
+    return {
+        "sample_chars": len(text),
+        "sample_lines": len(lines),
+        "wiki_links": len(re.findall(r"\[\[[^\]]+\]\]", text)),
+        "wiki_templates": len(re.findall(r"\{\{[^{}]*\}\}", text)),
+        "link_line_ratio": ratio,
+        "link_lines": link_lines,
+        # Conservative hint, not a verdict: a human still has to look.
+        "looks_like_index_page": kind == "wikitext" and bool(lines) and ratio >= 0.5,
+        "gutenberg_marker_seen": "*** start of the project gutenberg ebook" in text.lower(),
+    }
+
+
+def preflight_evidence(
+    source: CorpusSource,
+    evidence: LicenseEvidence,
+    *,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Probe a declared licence-evidence endpoint. Indicative only — see the note."""
+    probe = probe_url(evidence.url, timeout=timeout)
+    marker = evidence.effective_marker(source)
+    result: dict[str, Any] = {
+        "url": evidence.url,
+        "kind": evidence.kind,
+        "scope": evidence.scope,
+        "marker": marker,
+        "ok": probe["ok"],
+        "http_status": probe["http_status"],
+        "bytes_read": probe["bytes_read"],
+        "elapsed_s": probe["elapsed_s"],
+        "marker_seen_in_sample": False,
+        "error": probe["error"],
+    }
+    if probe["ok"]:
+        haystack = probe["text"].lower()
+        result["marker_seen_in_sample"] = marker.lower() in haystack
+        if evidence.kind == "mediawiki-api":
+            try:
+                json.loads(probe["text"])
+            except (json.JSONDecodeError, ValueError):
+                result["error"] = "payload is not valid JSON (truncated sample?)"
+    result["note"] = (
+        "preflight is indicative only: it never verifies a source, never writes a file and "
+        "never pins a hash. Verification happens only during a real build with --fetch."
+    )
+    return result
+
+
+def preflight_source(
+    source: CorpusSource,
+    evidence: LicenseEvidence | None = None,
+    *,
+    timeout: float = 30.0,
+    max_bytes: int = PREFLIGHT_SAMPLE_BYTES,
+) -> dict[str, Any]:
+    """Read-only reachability/shape probe for one declared source (nothing is stored)."""
+    probe = probe_url(source.source_url, max_bytes=max_bytes, timeout=timeout)
+    report: dict[str, Any] = {
+        "source_id": source.id,
+        "language": source.language,
+        "kind": source.kind,
+        "license_id": source.license_id,
+        "url": source.source_url,
+        "ok": probe["ok"],
+        "http_status": probe["http_status"],
+        "content_type": probe["content_type"],
+        "bytes_read": probe["bytes_read"],
+        "elapsed_s": probe["elapsed_s"],
+        "error": probe["error"],
+        "sample_bytes_cap": max_bytes,
+        "truncated_sample": probe["bytes_read"] >= max_bytes,
+        "payload_licence_marker_seen": False,
+        "notes": [],
+    }
+    if probe["ok"]:
+        report.update(_sample_shape(probe["text"], source.kind))
+        report["payload_licence_marker_seen"] = license_marker_found(probe["text"], source)
+        if source.kind == "gutenberg" and not report["gutenberg_marker_seen"]:
+            report["notes"].append(
+                "no Gutenberg START marker in the sampled bytes: this URL may not be a "
+                "Project Gutenberg text file"
+            )
+        if report["looks_like_index_page"]:
+            report["notes"].append(
+                "the sampled lines are mostly wiki links: this looks like a contents/index "
+                "page, not the work itself. Acquire the chapter subpages or use the API "
+                "instead of trusting the work root"
+            )
+        if not report["payload_licence_marker_seen"] and evidence is None:
+            report["notes"].append(
+                "no licence marker in the sampled bytes and no evidence endpoint declared: "
+                "a real build would refuse to verify this source"
+            )
+    else:
+        report["notes"].append(f"unreachable: {probe['error']}")
+    report["evidence"] = preflight_evidence(source, evidence, timeout=timeout) if evidence else None
+    return report
+
+
+def preflight_manifest(
+    manifest: TokenizerCorpusManifest,
+    *,
+    timeout: float = 30.0,
+    max_bytes: int = PREFLIGHT_SAMPLE_BYTES,
+    source_ids: Sequence[str] | None = None,
+) -> dict[str, Any]:
+    """Probe every declared source (and its evidence endpoint). Writes nothing."""
+    selected = [source for source in manifest.sources if not source_ids or source.id in source_ids]
+    endpoints = 0
+    reachable = 0
+    rows = []
+    for source in selected:
+        row = preflight_source(
+            source, manifest.evidence_for(source.id), timeout=timeout, max_bytes=max_bytes
+        )
+        endpoints += 1
+        reachable += 1 if row["ok"] else 0
+        if row["evidence"] is not None:
+            endpoints += 1
+            reachable += 1 if row["evidence"]["ok"] else 0
+        rows.append(row)
+    return {
+        "schema_version": MANIFEST_SCHEMA_VERSION,
+        "corpus_id": manifest.corpus_id,
+        "corpus_version": manifest.corpus_version,
+        "manifest_path": None,
+        "checked_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "sample_bytes_cap": max_bytes,
+        "sources": rows,
+        "summary": {
+            "sources": len(selected),
+            "endpoints": endpoints,
+            "reachable": reachable,
+            "unreachable": endpoints - reachable,
+        },
+        "note": (
+            "Read-only preflight. No text was stored, no source was verified, no hash was "
+            "computed for the corpus and no manifest entry was changed."
+        ),
+    }
+
+
+def render_preflight(report: dict[str, Any]) -> str:
+    """Human-readable preflight table (one line per endpoint)."""
+    lines = [
+        f"[preflight] {report['corpus_id']}/{report['corpus_version']} — read-only probe "
+        f"(first {report['sample_bytes_cap']:,} bytes per endpoint)",
+        "[preflight] nothing is stored, verified or pinned by this command",
+    ]
+    for row in report["sources"]:
+        status = f"OK  http={row['http_status']}" if row["ok"] else "FAIL"
+        detail = (
+            f"lines={row.get('sample_lines', 0)} links={row.get('wiki_links', 0)} "
+            f"licence_marker={'yes' if row.get('payload_licence_marker_seen') else 'no'}"
+            if row["ok"]
+            else str(row["error"])[:70]
+        )
+        lines.append(f"[preflight]   {row['source_id']:<30} {status:<14} {detail}")
+        for note in row.get("notes") or []:
+            lines.append(f"[preflight]       note: {note}")
+        evidence = row.get("evidence")
+        if evidence:
+            marker = "marker seen" if evidence["marker_seen_in_sample"] else "marker NOT seen"
+            state = f"OK  {marker}" if evidence["ok"] else f"FAIL {str(evidence['error'])[:50]}"
+            lines.append(f"[preflight]     evidence ({evidence['scope']}): {state}")
+        elif evidence is None:
+            lines.append("[preflight]     evidence: none declared (payload marker required)")
+    summary = report["summary"]
+    lines.append(
+        f"[preflight] summary: {summary['endpoints']} endpoints, "
+        f"{summary['reachable']} reachable, {summary['unreachable']} unreachable"
+    )
+    return "\n".join(lines)
 
 
 def load_corpus(path: str | Path) -> dict[str, Any]:

@@ -252,6 +252,10 @@ vocabulary-budget problem specific to Indic scripts, and generated a concrete ab
   (`indic-tokenizer/v2`): see [docs/tokenizer_corpus_stage_a.md](tokenizer_corpus_stage_a.md).
   It declares three sources, verifies none of them (no network to the source hosts), and
   therefore **does not** replace this fixture for anything yet.
+- How those sources will later be acquired and verified is written up in
+  [docs/tokenizer_corpus_stage_b_acquisition.md](tokenizer_corpus_stage_b_acquisition.md)
+  (preflight → inspect → licence evidence → content check → hash → pin). No acquisition has
+  been performed.
 - Vocabulary size was **not** swept: 512 and 1024 are demonstrations, not a recommendation.
 - No normalization ablation (NFC/NFD), no Unigram vs BPE comparison, no script-aware
   initialization experiment yet.

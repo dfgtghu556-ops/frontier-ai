@@ -42,6 +42,8 @@ from frontier_ai.tokenization.research_corpus import (
     language_statistics,
     leakage_report,
     load_corpus,
+    preflight_manifest,
+    render_preflight,
     split_documents,
     validate_manifest,
 )
@@ -1419,6 +1421,188 @@ def test_licence_evidence_defaults_to_declaring_the_licence_url() -> None:
     evidence = LicenseEvidence(url="https://example.invalid/api.php", kind="mediawiki-api")
     source = CorpusSource.from_dict(_source("hi-src", "hi"))
     assert evidence.effective_marker(source) == source.license_url
+
+
+# ---------------------------------------------------------------------------
+# preflight (read-only probe: no acquisition, no verification, no pinning)
+# ---------------------------------------------------------------------------
+ALICE_SAMPLE = (
+    "*** START OF THE PROJECT GUTENBERG EBOOK ALICE'S ADVENTURES IN WONDERLAND ***\n"
+    + "\n".join(f"Alice was beginning to get very tired of sitting by her sister {i}." for i in range(400))
+)
+INDEX_PAGE_SAMPLE = "{{header}}\n" + "\n".join(
+    f"[[गोदान/अध्याय {i}|अध्याय {i}]]" for i in range(1, 40)
+)
+WORK_PAGE_SAMPLE = "\n".join(
+    f"होरी का मन आज बहुत उदास था, क्योंकि गाँव में सब कुछ बदल गया था। ({i})" for i in range(400)
+)
+
+
+def _probe(text: str, *, ok: bool = True, status: int = 200, content_type: str = "text/plain"):
+    """A stand-in for ``probe_url``: no sockets, no files, deterministic payloads."""
+
+    def _fake(url: str, max_bytes: int = 65_536, timeout: float = 30.0) -> dict:
+        if not ok:
+            return {
+                "url": url, "ok": False, "http_status": None, "content_type": "",
+                "bytes_read": 0, "elapsed_s": 0.01, "text": "",
+                "error": "URLError: <urlopen error TLS/SSL connection has been closed (EOF)>",
+            }
+        payload = text(url) if callable(text) else text
+        raw = payload.encode("utf-8")[:max_bytes]
+        return {
+            "url": url, "ok": True, "http_status": status, "content_type": content_type,
+            "bytes_read": len(raw), "elapsed_s": 0.02,
+            "text": raw.decode("utf-8", errors="replace"), "error": "",
+        }
+
+    return _fake
+
+
+def test_preflight_reports_reachability_and_writes_nothing(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.probe_url", _probe(ALICE_SAMPLE)
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("en-src", "en", kind="gutenberg", license_id="PD-US",
+                 license_url=LICENSE_URL)],
+        slots=[{"code": "en", "sources": ["en-src"]}],
+    )
+    manifest = TokenizerCorpusManifest.load(manifest_path)
+    report = preflight_manifest(manifest)
+
+    row = report["sources"][0]
+    assert row["ok"] is True and row["http_status"] == 200
+    assert row["payload_licence_marker_seen"] is True
+    assert row["gutenberg_marker_seen"] is True
+    assert row["sample_lines"] > 100
+    assert row["looks_like_index_page"] is False
+    assert report["summary"] == {"sources": 1, "endpoints": 1, "reachable": 1, "unreachable": 0}
+
+    # nothing was stored, verified or pinned
+    assert not (tmp_path / "build").exists()
+    assert manifest_path.read_bytes() == _manifest_bytes(manifest_path)
+    rendered = render_preflight(report)
+    assert "nothing is stored, verified or pinned" in rendered
+    assert "read-only probe" in rendered
+
+
+def _manifest_bytes(path: Path) -> bytes:
+    return Path(path).read_bytes()
+
+
+def test_preflight_reports_unreachable_endpoints(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.probe_url", _probe("", ok=False)
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi", license_evidence={
+            "url": "https://example.invalid/api.php?action=query&meta=siteinfo",
+            "kind": "mediawiki-api", "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "scope": "site"})],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    report = preflight_manifest(TokenizerCorpusManifest.load(manifest_path))
+    row = report["sources"][0]
+    assert row["ok"] is False and row["bytes_read"] == 0
+    assert "unreachable" in row["notes"][0]
+    assert row["evidence"]["ok"] is False
+    assert report["summary"]["unreachable"] == 2  # source endpoint + evidence endpoint
+
+
+def test_preflight_probes_the_evidence_endpoint_separately(tmp_path: Path, monkeypatch) -> None:
+    """Reachable text + reachable evidence, but preflight must still verify nothing."""
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.probe_url",
+        _probe(lambda url: SITEINFO_CC_BY_SA if "api.php" in url else WORK_PAGE_SAMPLE),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi", license_evidence={
+            "url": "https://example.invalid/api.php?action=query&meta=siteinfo",
+            "kind": "mediawiki-api", "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "scope": "site"})],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    manifest = TokenizerCorpusManifest.load(manifest_path)
+    report = preflight_manifest(manifest)
+    evidence = report["sources"][0]["evidence"]
+
+    assert evidence["ok"] is True
+    assert evidence["marker_seen_in_sample"] is True
+    assert evidence["scope"] == "site"
+    assert "never verifies" in evidence["note"]
+    # the source itself is still unverified, and the manifest is untouched
+    assert manifest.sources[0].verified is False and manifest.sources[0].sha256 is None
+    assert manifest_path.read_bytes() == _manifest_bytes(manifest_path)
+
+
+def test_preflight_flags_an_index_like_wikisource_page(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.probe_url", _probe(INDEX_PAGE_SAMPLE)
+    )
+    manifest = TokenizerCorpusManifest.load(
+        _manifest(tmp_path, [_source("hi-src", "hi")],
+                  slots=[{"code": "hi", "sources": ["hi-src"]}])
+    )
+    row = preflight_manifest(manifest)["sources"][0]
+    assert row["looks_like_index_page"] is True
+    assert row["link_line_ratio"] > 0.5
+    assert any("contents/index page" in note for note in row["notes"])
+
+
+def test_preflight_never_fetches_through_the_corpus_path(tmp_path: Path, monkeypatch) -> None:
+    """Preflight must not call fetch_text, which is the acquisition path."""
+    manifest = TokenizerCorpusManifest.load(
+        _manifest(tmp_path, [_source("hi-src", "hi")],
+                  slots=[{"code": "hi", "sources": ["hi-src"]}])
+    )
+
+    def _boom(*_args, **_kwargs):
+        raise AssertionError("preflight must not call fetch_text")
+
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.probe_url", _probe(WORK_PAGE_SAMPLE)
+    )
+    monkeypatch.setattr("frontier_ai.tokenization.research_corpus.fetch_text", _boom)
+    report = preflight_manifest(manifest)
+    assert report["sources"][0]["ok"] is True
+
+
+def test_cli_preflight_reports_unreachable_endpoints_without_writing(tmp_path: Path) -> None:
+    """example.invalid never resolves, so this holds on any machine with or without web access."""
+    out = tmp_path / "out"
+    done = _run_cli(["--manifest", str(_two_language_manifest(tmp_path)), "--preflight",
+                     "--timeout", "5", "--out", str(out)])
+    assert done.returncode == 1, done.stdout
+    assert "[preflight] nothing is stored, verified or pinned" in done.stdout
+    assert "unreachable" in done.stdout
+    assert "summary: 2 endpoints, 0 reachable, 2 unreachable" in done.stdout
+    assert not out.exists(), "preflight must not create an output directory"
+
+
+def test_cli_preflight_print_json_is_read_only(tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    done = _run_cli(["--manifest", str(_two_language_manifest(tmp_path)), "--preflight",
+                     "--print-json", "--timeout", "5", "--out", str(out)])
+    assert done.returncode == 1
+    report = json.loads(done.stdout)
+    assert report["summary"]["endpoints"] == 2
+    assert {row["source_id"] for row in report["sources"]} == {"hi-src", "ta-src"}
+    assert "No text was stored, no source was verified" in report["note"]
+    assert all(row["evidence"] is None for row in report["sources"])
+    assert not out.exists()
+
+
+def test_cli_preflight_rejects_an_invalid_manifest(tmp_path: Path) -> None:
+    done = _run_cli(["--manifest",
+                     str(_manifest(tmp_path, [_source("hi-src", "hi", license_id="GPL-3.0")],
+                                   slots=[{"code": "hi", "sources": ["hi-src"]}])),
+                     "--preflight"])
+    assert done.returncode == 2
+    assert "manifest problem" in done.stderr
 
 
 # ---------------------------------------------------------------------------
