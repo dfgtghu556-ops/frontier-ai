@@ -34,7 +34,8 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from collections.abc import Iterable, Sequence
+from collections import Counter
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -44,18 +45,27 @@ from ..data.corpora import (
     ALLOWED_LICENSES,
     CorpusSource,
     FetchError,
+    build_provenance,
+    clean_text,
     fetch_text,
     license_marker_found,
-    prepare_source_text,
     sha256_file,
     sha256_text,
-    write_provenance,
+    trim_text,
 )
 from .corpus import LANGUAGES
 
 MANIFEST_SCHEMA_VERSION = "1.0"
 CORPUS_ID = "indic-tokenizer"
 CORPUS_VERSION = "v2"
+
+# How the licence of a source may be proven *in addition to* a marker inside the text
+# itself. Some hosts never put their licence in the payload we want: a Wikisource
+# `?action=raw` fetch is bare wikitext, while the CC BY-SA notice lives in the rendered
+# page. Rather than weaken the licence check, a source may declare an auditable evidence
+# endpoint that is fetched, searched and *recorded*.
+EVIDENCE_KINDS = {"mediawiki-api", "html", "plain"}
+EVIDENCE_SCOPES = {"site", "page"}
 
 # The repo's corpus root, resolved relative to this file so the module works from any cwd.
 CORPORA_ROOT = Path(__file__).resolve().parents[3] / "corpora"
@@ -81,6 +91,10 @@ _SENTENCE_BOUNDARY = re.compile(r"(?<=[\u0964\u0965।॥.!?])\s+")
 # whitespace), over a deterministically chosen sample so the check is bounded.
 NGRAM_N = 8
 MAX_NGRAM_DOCS = 2_000
+SAMPLING_RULE = (
+    "stratified: an equal per-language budget of limit // n_languages documents "
+    "in (language, doc_id) order, then any leftover budget filled in the same order"
+)
 
 STATUS_EVALUATED = "EVALUATED"
 STATUS_INSUFFICIENT = "INSUFFICIENT"
@@ -93,6 +107,103 @@ HELD_OUT_FILENAME = "heldout.jsonl"
 STATS_FILENAME = "stats.json"
 COVERAGE_FILENAME = "coverage.json"
 LEAKAGE_FILENAME = "leakage.json"
+
+
+# ---------------------------------------------------------------------------
+# licence evidence
+# ---------------------------------------------------------------------------
+@dataclass
+class LicenseEvidence:
+    """An auditable, separately fetched proof of a source's licence.
+
+    ``url`` is fetched over https, and ``marker`` must occur in what comes back
+    (case-insensitive). ``marker`` defaults to the source's ``license_url``, so the
+    usual check is "the host declares this exact licence". ``kind`` selects how the
+    payload is read:
+
+    * ``mediawiki-api`` — parse JSON, search the serialized document (this is how a
+      wiki publishes its content licence: ``action=query&meta=siteinfo&siprop=rightsinfo``);
+    * ``html`` — search the fetched page (for a rendered licence footer);
+    * ``plain`` — search the fetched text.
+
+    ``scope`` records what the evidence covers: ``page`` (this work only) or ``site``
+    (the host's default content licence). Site-level evidence is weaker and is labelled
+    as such everywhere it is recorded — it never silently upgrades to page-level proof.
+    """
+
+    url: str = ""
+    kind: str = "mediawiki-api"
+    marker: str = ""
+    scope: str = "site"
+    note: str = ""
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> LicenseEvidence:
+        known = set(cls.__dataclass_fields__)
+        unknown = sorted(set(data) - known)
+        if unknown:
+            raise ValueError(f"unknown keys in licence evidence: {unknown}")
+        return cls(**data)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    def effective_marker(self, source: CorpusSource) -> str:
+        return self.marker or source.license_url
+
+
+def check_license_evidence(
+    source: CorpusSource,
+    evidence: LicenseEvidence,
+    *,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Fetch and evaluate the declared licence evidence. Never raises on bad evidence.
+
+    The result is recorded verbatim: what was fetched, what marker was looked for, and
+    whether it was found. A failure of any kind returns ``accepted: False`` — an
+    unreachable or malformed endpoint can never verify a source.
+    """
+    marker = evidence.effective_marker(source)
+    result: dict[str, Any] = {
+        "url": evidence.url,
+        "kind": evidence.kind,
+        "scope": evidence.scope,
+        "marker": marker,
+        "note": evidence.note,
+        "checked_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "status": "not_checked",
+        "marker_found": False,
+        "accepted": False,
+        "error": "",
+    }
+    if not evidence.url.startswith("https://"):
+        result["status"] = "invalid_url"
+        result["error"] = "licence evidence url must be https"
+        return result
+
+    try:
+        payload = fetch_text(evidence.url, timeout=timeout)
+    except Exception as exc:  # noqa: BLE001 - an evidence fetch can fail in many ways
+        result["status"] = "fetch_failed"
+        result["error"] = f"{type(exc).__name__}: {exc}"
+        return result
+
+    if evidence.kind == "mediawiki-api":
+        try:
+            document = json.loads(payload)
+        except (json.JSONDecodeError, ValueError) as exc:
+            result["status"] = "malformed"
+            result["error"] = f"evidence payload is not JSON: {exc}"
+            return result
+        haystack = json.dumps(document, ensure_ascii=False).lower()
+    else:  # html | plain: search the payload as text
+        haystack = payload.lower()
+
+    result["marker_found"] = marker.lower() in haystack
+    result["status"] = "ok" if result["marker_found"] else "marker_not_found"
+    result["accepted"] = bool(result["marker_found"])
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -119,8 +230,16 @@ class LanguageSlot:
             raise ValueError(f"unknown keys in language slot {data.get('code')!r}: {unknown}")
         return cls(**data)
 
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+    def to_dict(self, *, omit_empty_optional: bool = False) -> dict[str, Any]:
+        payload = asdict(self)
+        if omit_empty_optional:
+            # Writing the manifest back must not invent keys that were not there:
+            # an empty candidates/reason pair is noise in a tracked file.
+            if not payload.get("candidates"):
+                payload.pop("candidates", None)
+            if not payload.get("reason"):
+                payload.pop("reason", None)
+        return payload
 
 
 @dataclass
@@ -135,6 +254,9 @@ class TokenizerCorpusManifest:
     cleaning_policy: str = ""
     language_slots: list[LanguageSlot] = field(default_factory=list)
     sources: list[CorpusSource] = field(default_factory=list)
+    # source id -> licence evidence. Kept beside the sources because CorpusSource is the
+    # shared smoke-corpus model and must not grow tokenizer-only fields.
+    license_evidence: dict[str, LicenseEvidence] = field(default_factory=dict)
     notes: str = ""
 
     # ------------------------------------------------------------------ io --
@@ -147,6 +269,15 @@ class TokenizerCorpusManifest:
                 f"unsupported tokenizer corpus manifest schema {version!r} "
                 f"(expected {MANIFEST_SCHEMA_VERSION!r})"
             )
+        evidence: dict[str, LicenseEvidence] = {}
+        sources: list[CorpusSource] = []
+        for item in data.get("sources", []):
+            entry = dict(item)
+            raw_evidence = entry.pop("license_evidence", None)
+            source = CorpusSource.from_dict(entry)
+            sources.append(source)
+            if raw_evidence:
+                evidence[source.id] = LicenseEvidence.from_dict(raw_evidence)
         return cls(
             schema_version=version,
             corpus=dict(data.get("corpus") or {}),
@@ -155,11 +286,12 @@ class TokenizerCorpusManifest:
             normalization_policy=str(data.get("normalization_policy", "none")),
             cleaning_policy=str(data.get("cleaning_policy", "")),
             language_slots=[LanguageSlot.from_dict(item) for item in data.get("language_slots", [])],
-            sources=[CorpusSource.from_dict(item) for item in data.get("sources", [])],
+            sources=sources,
+            license_evidence=evidence,
             notes=str(data.get("notes", "")),
         )
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self, *, omit_empty_optional: bool = False) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
             "corpus": self.corpus,
@@ -167,18 +299,32 @@ class TokenizerCorpusManifest:
             "split": self.split,
             "normalization_policy": self.normalization_policy,
             "cleaning_policy": self.cleaning_policy,
-            "language_slots": [slot.to_dict() for slot in self.language_slots],
-            "sources": [source.to_dict() for source in self.sources],
+            "language_slots": [
+                slot.to_dict(omit_empty_optional=omit_empty_optional) for slot in self.language_slots
+            ],
+            "sources": [self._source_to_dict(source, omit_empty_optional) for source in self.sources],
             "notes": self.notes,
         }
 
-    def save(self, path: str | Path) -> None:
+    def _source_to_dict(self, source: CorpusSource, omit_empty_optional: bool) -> dict[str, Any]:
+        payload = source.to_dict()
+        evidence = self.license_evidence.get(source.id)
+        if evidence is not None:
+            payload["license_evidence"] = evidence.to_dict()
+        return payload
+
+    def save(self, path: str | Path, *, omit_empty_optional: bool = True) -> None:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
-        payload = json.dumps(self.to_dict(), indent=2, ensure_ascii=False) + "\n"
+        payload = json.dumps(
+            self.to_dict(omit_empty_optional=omit_empty_optional), indent=2, ensure_ascii=False
+        ) + "\n"
         tmp = target.with_suffix(target.suffix + ".tmp")
         tmp.write_text(payload, encoding="utf-8")
         tmp.replace(target)
+
+    def evidence_for(self, source_id: str) -> LicenseEvidence | None:
+        return self.license_evidence.get(source_id)
 
     # -------------------------------------------------------------- helpers --
     @property
@@ -239,10 +385,44 @@ def validate_manifest(manifest: TokenizerCorpusManifest) -> list[str]:
             )
 
     known_slots = set(codes)
+
+    seen_ids: set[str] = set()
     for source in manifest.sources:
+        if source.id in seen_ids:
+            problems.append(f"duplicate source id {source.id!r}")
+        seen_ids.add(source.id)
         if source.language not in known_slots:
             problems.append(f"source {source.id!r}: language {source.language!r} has no language slot")
         problems.extend(_validate_source(source))
+
+    # A slot that references a source which does not exist would silently become
+    # NOT_EVALUATED, and an orphan source would never contribute to any slot. Both are
+    # configuration mistakes that must be visible rather than quiet.
+    declared_ids = seen_ids
+    referenced: set[str] = set()
+    for slot in manifest.language_slots:
+        for source_id in slot.sources:
+            if source_id not in declared_ids:
+                problems.append(
+                    f"language slot {slot.code!r} references unknown source id {source_id!r}"
+                )
+            else:
+                referenced.add(source_id)
+    for source_id in sorted(declared_ids - referenced):
+        problems.append(f"source {source_id!r} is not referenced by any language slot")
+
+    for source_id, evidence in manifest.license_evidence.items():
+        if source_id not in declared_ids:
+            problems.append(f"licence evidence declared for unknown source id {source_id!r}")
+            continue
+        if not evidence.url.startswith("https://"):
+            problems.append(f"{source_id}: licence evidence url must be https")
+        if evidence.kind not in EVIDENCE_KINDS:
+            problems.append(f"{source_id}: licence evidence kind must be one of {sorted(EVIDENCE_KINDS)}")
+        if evidence.scope not in EVIDENCE_SCOPES:
+            problems.append(f"{source_id}: licence evidence scope must be one of {sorted(EVIDENCE_SCOPES)}")
+        if not evidence.effective_marker(manifest.source(source_id)):
+            problems.append(f"{source_id}: licence evidence needs a marker or a license_url to look for")
     return problems
 
 
@@ -287,6 +467,20 @@ class IngestedSource:
     documents: int = 0
     retrieved_at: str | None = None
     error: str = ""
+    # Was the cleaned source longer than max_chars? A truncated work is still usable,
+    # but a reader must be able to see that it is partial.
+    truncated: bool = False
+    chars_before_trim: int = 0
+    # Why the licence was accepted: "payload-marker", "licence-evidence" or "" when the
+    # source was not verified.
+    licence_proof: str = ""
+    # The recorded result of the licence-evidence fetch, verbatim (None when not used).
+    license_evidence: dict[str, Any] | None = None
+    # Locally supplied text: a content hash is computed, but it proves nothing about
+    # licensing, so the source stays local_unverified and can never make a slot
+    # EVALUATED.
+    local: bool = False
+    local_origin: str | None = None
 
     @property
     def verified(self) -> bool:
@@ -302,6 +496,18 @@ class IngestedSource:
         return payload
 
 
+def _prepare_source_text(raw: str, source: CorpusSource) -> tuple[str, bool, int]:
+    """``prepare_source_text`` plus the two facts a researcher needs about trimming.
+
+    Returns ``(text, truncated, chars_before_trim)``. This is the same clean-then-trim
+    composition as :func:`~frontier_ai.data.corpora.prepare_source_text`, only reporting
+    whether the trim actually removed anything.
+    """
+    cleaned = clean_text(raw, source.kind)
+    prepared = trim_text(cleaned, source.max_chars)
+    return prepared, len(prepared) < len(cleaned), len(cleaned)
+
+
 def ingest_source(
     source: CorpusSource,
     raw_dir: str | Path,
@@ -309,21 +515,36 @@ def ingest_source(
     fetch: bool = False,
     timeout: float = 30.0,
     local_text: str | None = None,
+    local_origin: str | None = None,
+    license_evidence: LicenseEvidence | None = None,
 ) -> IngestedSource:
     """Fetch (or accept) one source, clean it, and write text + provenance.
 
-    A source becomes ``verified`` **only** when it was fetched over https, carries a
-    marker for the licence it claims, and produced a non-empty cleaned text whose SHA-256
-    is recorded. Locally supplied text (test fixtures, or text a human lawfully obtained)
-    can be ingested but is never auto-verified: it is recorded as ``local_unverified``
-    and cannot make a language slot count as evaluated.
+    A source becomes ``verified`` **only** when it produced a non-empty cleaned text and
+    its licence was proven by one of two explicit, recorded mechanisms:
+
+    * **payload marker** — the fetched payload itself carries a marker for the licence
+      the manifest claims (``licence_proof: "payload-marker"``); or
+    * **licence evidence** — a separately fetched, declared evidence endpoint proves the
+      licence (``licence_proof: "licence-evidence"``), with the full result of that check
+      recorded in ``license_evidence``.
+
+    If neither succeeds the source is ``licence_marker_missing`` and no hash is pinned.
+    Evidence cannot be bypassed, and a failed evidence fetch is a failure, never a
+    fallback to trust.
+
+    Locally supplied text (test fixtures, or text a human lawfully obtained) is ingested
+    as ``local_unverified``: its hash is a content hash only and proves nothing about
+    licensing, so it cannot make a language slot count as evaluated.
     """
     raw_dir = Path(raw_dir)
     raw_dir.mkdir(parents=True, exist_ok=True)
     retrieved_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    evidence_result: dict[str, Any] | None = None
+    licence_proof = ""  # set only when a licence marker or evidence endpoint proves it
     if local_text is not None:
-        text = prepare_source_text(local_text, source)
+        text, truncated, before_trim = _prepare_source_text(local_text, source)
         status = "local_unverified"
     elif fetch:
         try:
@@ -344,18 +565,33 @@ def ingest_source(
                 retrieved_at=retrieved_at,
                 error=f"{type(exc).__name__}: {exc}",
             )
-        if not license_marker_found(raw, source):
+
+        if license_marker_found(raw, source):
+            licence_proof = "payload-marker"
+        elif license_evidence is not None:
+            evidence_result = check_license_evidence(source, license_evidence, timeout=timeout)
+            licence_proof = "licence-evidence" if evidence_result["accepted"] else ""
+        else:
+            licence_proof = ""
+
+        if not licence_proof:
+            checked = (
+                f"the licence evidence at {license_evidence.url} did not confirm it "
+                f"({evidence_result['status']})" if evidence_result else
+                "no licence evidence endpoint is declared for this source"
+            )
             return IngestedSource(
                 source_id=source.id,
                 language=source.language,
                 status="licence_marker_missing",
                 retrieved_at=retrieved_at,
+                license_evidence=evidence_result,
                 error=(
                     f"no {source.license_id} marker found in the first 50,000 characters of "
-                    f"{source.source_url}; refusing to pin a hash"
+                    f"{source.source_url}, and {checked}; refusing to pin a hash"
                 ),
             )
-        text = prepare_source_text(raw, source)
+        text, truncated, before_trim = _prepare_source_text(raw, source)
         status = "verified"
     else:
         return IngestedSource(source_id=source.id, language=source.language, status="not_attempted")
@@ -366,13 +602,25 @@ def ingest_source(
             language=source.language,
             status="empty",
             retrieved_at=retrieved_at,
+            license_evidence=evidence_result,
             error="cleaned text is empty",
         )
 
     text_path = raw_dir / f"{source.id}.txt"
     text_path.write_text(text, encoding="utf-8")
     provenance_path = raw_dir / f"{source.id}.provenance.json"
-    write_provenance(provenance_path, source, text, retrieved_at=retrieved_at)
+    _write_provenance(
+        provenance_path,
+        source,
+        text,
+        retrieved_at=retrieved_at,
+        truncated=truncated,
+        chars_before_trim=before_trim,
+        licence_proof=licence_proof,
+        license_evidence=evidence_result,
+        local=local_text is not None,
+        local_origin=local_origin,
+    )
 
     return IngestedSource(
         source_id=source.id,
@@ -384,7 +632,47 @@ def ingest_source(
         chars=len(text),
         bytes=len(text.encode("utf-8")),
         retrieved_at=retrieved_at,
+        truncated=truncated,
+        chars_before_trim=before_trim,
+        licence_proof=licence_proof,
+        license_evidence=evidence_result,
+        local=local_text is not None,
+        local_origin=local_origin if local_text is not None else None,
     )
+
+
+def _write_provenance(
+    path: str | Path,
+    source: CorpusSource,
+    text: str,
+    *,
+    retrieved_at: str,
+    truncated: bool,
+    chars_before_trim: int,
+    licence_proof: str,
+    license_evidence: dict[str, Any] | None,
+    local: bool,
+    local_origin: str | None,
+) -> dict[str, Any]:
+    """The shared provenance record, extended (never weakened) with Stage A fields."""
+    record = build_provenance(source, text, retrieved_at=retrieved_at)
+    record.update(
+        {
+            "verification": "local_unverified" if local else ("verified" if licence_proof else "unverified"),
+            "local_source": local,
+            "local_origin_path": local_origin,
+            "hash_is_licence_proof": False,  # a hash identifies bytes; it never proves a licence
+            "licence_proof": licence_proof or "none",
+            "license_evidence": license_evidence,
+            "truncated": truncated,
+            "chars_before_trim": chars_before_trim,
+            "max_chars": source.max_chars,
+        }
+    )
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return record
 
 
 # ---------------------------------------------------------------------------
@@ -406,6 +694,11 @@ class CorpusDocument:
     @property
     def bytes(self) -> int:
         return len(self.text.encode("utf-8"))
+
+    @property
+    def text_sha256(self) -> str:
+        """Content identity: the key the split uses so duplicates cannot straddle it."""
+        return sha256_text(self.text)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -459,19 +752,60 @@ def split_documents(
 ) -> tuple[list[CorpusDocument], list[CorpusDocument]]:
     """Deterministic document-level train/held-out split.
 
-    The bucket of a document is ``sha256('<seed>:<doc_id>')`` mapped to ``[0, 1)``. There is
-    no global RNG and no dependence on document order, so the same corpus and seed always
-    produce the same split, and changing the seed re-splits reproducibly.
+    The bucket of a document is ``sha256('<seed>:<content_sha256>')`` mapped to
+    ``[0, 1]``, where ``content_sha256`` is the SHA-256 of the document text. Bucketing on
+    **content** rather than on ``doc_id`` is what guarantees the property later stages
+    rely on: byte-identical text cannot appear on both sides, even when a source repeats
+    a paragraph (refrains, chapter headers, boilerplate). Two copies of the same text
+    hash to the same bucket, so they go to the same side.
+
+    There is no global RNG and no dependence on document order, so the same corpus and
+    seed always produce the same split, and changing the seed re-splits reproducibly.
     """
     if not 0.0 < held_out_fraction < 1.0:
         raise ValueError(f"held_out_fraction must be in (0, 1), got {held_out_fraction!r}")
     train: list[CorpusDocument] = []
     held_out: list[CorpusDocument] = []
     for document in documents:
-        digest = hashlib.sha256(f"{seed}:{document.doc_id}".encode()).hexdigest()
+        digest = hashlib.sha256(f"{seed}:{document.text_sha256}".encode()).hexdigest()
         bucket = int(digest[:16], 16) / 0xFFFFFFFFFFFFFFFF
         (held_out if bucket < held_out_fraction else train).append(document)
     return train, held_out
+
+
+def _sample_documents(documents: Sequence[CorpusDocument], limit: int) -> list[CorpusDocument]:
+    """Deterministic, language-stratified sample of at most ``limit`` documents.
+
+    Rule (recorded in the report as ``sampling_rule``): order documents by
+    ``(language, doc_id)``, give every language present an equal budget of
+    ``limit // n_languages`` documents, then — if any budget is left because some languages
+    had fewer documents — fill from the same deterministic order. No RNG, no dependence on
+    the caller's ordering, and every language contributes whenever data exists.
+    """
+    if limit <= 0 or not documents:
+        return []
+    ordered = sorted(documents, key=lambda document: (document.language, document.doc_id))
+    if len(ordered) <= limit:
+        return ordered
+
+    by_language: dict[str, list[CorpusDocument]] = {}
+    for document in ordered:
+        by_language.setdefault(document.language, []).append(document)
+
+    per_language = max(1, limit // len(by_language))
+    sample: list[CorpusDocument] = []
+    seen: set[str] = set()
+    for language in sorted(by_language):
+        for document in by_language[language][:per_language]:
+            sample.append(document)
+            seen.add(document.doc_id)
+    for document in ordered:  # spend any budget a short language left behind
+        if len(sample) >= limit:
+            break
+        if document.doc_id not in seen:
+            sample.append(document)
+            seen.add(document.doc_id)
+    return sample
 
 
 def _ngrams(text: str, n: int) -> set[str]:
@@ -494,15 +828,19 @@ def leakage_report(
     Two checks, both cheap and both deterministic:
 
     * **exact overlap** — the SHA-256 of every held-out document must not appear in train.
+      The split already makes this impossible; the check is here to catch a regression in
+      that guarantee (and any other path that assembles the two files).
     * **n-gram overlap** — word ``n``-grams (character ``n``-grams when a document has too
-      few words) of the held-out set that also occur in train. This is a *diagnostic*, not a
-      proof: boilerplate, quotations and shared idiom produce genuine overlap. It is here to
-      catch accidental duplication, not to certify independence.
+      few words) of the held-out set that also occur in train. The train side is sampled
+      **stratified by language** (see :func:`_sample_documents`) so that every language in
+      the corpus contributes, instead of only whichever language sorts first. This is a
+      *diagnostic*, not a proof: boilerplate, quotations and shared idiom produce genuine
+      overlap. It is here to catch accidental duplication, not to certify independence.
     """
-    train_digests = {sha256_text(document.text) for document in train}
-    exact = [document.doc_id for document in held_out if sha256_text(document.text) in train_digests]
+    train_digests = {document.text_sha256 for document in train}
+    exact = [document.doc_id for document in held_out if document.text_sha256 in train_digests]
 
-    sample = list(train[:MAX_NGRAM_DOCS])
+    sample = _sample_documents(train, MAX_NGRAM_DOCS)
     train_ngrams: set[str] = set()
     for document in sample:
         train_ngrams |= _ngrams(document.text, n)
@@ -531,9 +869,11 @@ def leakage_report(
         "ngram": {
             "n": n,
             "unit": "word (character fallback)",
+            "sampling_rule": SAMPLING_RULE,
             "train_documents_sampled": len(sample),
             "train_documents_total": len(train),
             "sampled": len(sample) < len(train),
+            "per_language_sampled": dict(sorted(Counter(d.language for d in sample).items())),
             "heldout_documents_checked": total_held_out,
             "heldout_documents_with_overlap": len(hits),
             "overlap_ratio": round(len(hits) / total_held_out, 6) if total_held_out else 0.0,
@@ -556,13 +896,27 @@ def _totals(documents: Iterable[CorpusDocument]) -> dict[str, int]:
 
 def language_statistics(
     manifest: TokenizerCorpusManifest,
-    documents: Sequence[CorpusDocument],
+    train: Sequence[CorpusDocument],
+    held_out: Sequence[CorpusDocument],
     ingested: Sequence[IngestedSource],
 ) -> list[dict[str, Any]]:
-    """Per-language statistics for **every** slot, including the empty ones."""
-    by_language: dict[str, list[CorpusDocument]] = {slot.code: [] for slot in manifest.language_slots}
-    for document in documents:
-        by_language.setdefault(document.language, []).append(document)
+    """Per-language statistics for **every** slot, including the empty ones.
+
+    The counts come from the *already split* document lists, never from re-splitting. An
+    earlier version recomputed the split from the manifest seed, which silently disagreed
+    with the written artifacts whenever a caller overrode the seed. Statistics that cannot
+    disagree with the data are the only kind worth publishing.
+    """
+    by_language_train: dict[str, list[CorpusDocument]] = {
+        slot.code: [] for slot in manifest.language_slots
+    }
+    by_language_held: dict[str, list[CorpusDocument]] = {
+        slot.code: [] for slot in manifest.language_slots
+    }
+    for document in train:
+        by_language_train.setdefault(document.language, []).append(document)
+    for document in held_out:
+        by_language_held.setdefault(document.language, []).append(document)
 
     ingested_by_language: dict[str, list[IngestedSource]] = {}
     for item in ingested:
@@ -570,10 +924,10 @@ def language_statistics(
 
     stats: list[dict[str, Any]] = []
     for slot in manifest.language_slots:
-        docs = by_language.get(slot.code, [])
-        train, held_out = split_documents(
-            docs, seed=manifest.split_seed, held_out_fraction=manifest.held_out_fraction
-        )
+        docs_train = by_language_train.get(slot.code, [])
+        docs_held_out = by_language_held.get(slot.code, [])
+        docs = list(docs_train) + list(docs_held_out)
+        train, held_out = docs_train, docs_held_out
         items = ingested_by_language.get(slot.code, [])
         verified = [item for item in items if item.verified]
         licences = sorted({item.status for item in items})
@@ -593,6 +947,9 @@ def language_statistics(
                 "verification_status": "verified" if verified else "unverified",
                 "ingest_statuses": licences,
                 "examples": _totals(docs)["examples"],
+                "unique_texts": len({document.text_sha256 for document in docs}),
+                "duplicate_documents": len(docs) - len({document.text_sha256 for document in docs}),
+                "truncated_sources": sum(1 for item in items if item.truncated),
                 "chars": _totals(docs)["chars"],
                 "bytes": _totals(docs)["bytes"],
                 "train_examples": _totals(train)["examples"],
@@ -748,6 +1105,8 @@ def build_corpus(
     include_unverified: bool = False,
     timeout: float = 30.0,
     pin: bool = False,
+    local_texts: Mapping[str, str] | None = None,
+    local_origins: Mapping[str, str] | None = None,
 ) -> BuildResult:
     """Ingest the declared sources, split them, and write the corpus artifacts.
 
@@ -762,6 +1121,10 @@ def build_corpus(
     ``include_unverified`` (default ``False``) is the safety valve: unverified text — a
     local fixture, or a file a human supplied — is never part of the research corpus unless
     a caller explicitly asks for it, and even then it cannot make a slot EVALUATED.
+
+    ``local_texts`` maps a source id to text supplied from disk (``--local-file`` /
+    ``--local-dir``). Local text is ingested as ``local_unverified``: its hash identifies
+    the bytes and proves nothing about licensing.
     """
     manifest = TokenizerCorpusManifest.load(manifest_path)
     problems = validate_manifest(manifest)
@@ -783,7 +1146,16 @@ def build_corpus(
     ingested: list[IngestedSource] = []
     documents: list[CorpusDocument] = []
     for source in selected:
-        item = ingest_source(source, raw_dir, fetch=fetch, timeout=timeout)
+        local_text = (local_texts or {}).get(source.id)
+        item = ingest_source(
+            source,
+            raw_dir,
+            fetch=fetch and local_text is None,
+            timeout=timeout,
+            local_text=local_text,
+            local_origin=(local_origins or {}).get(source.id),
+            license_evidence=manifest.evidence_for(source.id),
+        )
         if item.has_text:
             docs = documents_from_text(source.id, source.language,
                                        Path(item.path).read_text(encoding="utf-8"))
@@ -799,7 +1171,7 @@ def build_corpus(
         held_out_fraction=manifest.held_out_fraction if held_out_fraction is None else held_out_fraction,
     )
 
-    statistics = language_statistics(manifest, train + held_out, ingested)
+    statistics = language_statistics(manifest, train, held_out, ingested)
     coverage = coverage_report(manifest, statistics)
     leakage = leakage_report(train, held_out)
 
@@ -839,18 +1211,19 @@ def build_corpus(
         pinned_ids = {
             item.source_id: item for item in ingested if item.verified and item.sha256
         }
-        manifest.sources = [
-            replace(
-                source,
-                sha256=pinned_ids[source.id].sha256,
-                verified=True,
-                retrieved_at=pinned_ids[source.id].retrieved_at,
-            )
-            if source.id in pinned_ids
-            else source
-            for source in manifest.sources
-        ]
-        manifest.save(manifest_path)
+        if pinned_ids:  # nothing pinned => the tracked manifest is not touched at all
+            manifest.sources = [
+                replace(
+                    source,
+                    sha256=pinned_ids[source.id].sha256,
+                    verified=True,
+                    retrieved_at=pinned_ids[source.id].retrieved_at,
+                )
+                if source.id in pinned_ids
+                else source
+                for source in manifest.sources
+            ]
+            manifest.save(manifest_path)
 
     corpus_payload = {
         "schema_version": MANIFEST_SCHEMA_VERSION,

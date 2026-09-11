@@ -60,16 +60,36 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--timeout", type=float, default=30.0, help="per-source fetch timeout")
     p.add_argument("--source", action="append", dest="source_ids", help="ingest only this source id")
     p.add_argument(
+        "--local-file",
+        action="append",
+        dest="local_files",
+        metavar="SOURCE_ID=PATH",
+        help="ingest lawfully obtained local text for a declared source "
+             "(repeatable). Recorded as local_unverified: it is never EVALUATED.",
+    )
+    p.add_argument(
+        "--local-dir",
+        metavar="DIR",
+        help="directory of <source_id>.txt files to ingest as local_unverified text",
+    )
+    p.add_argument(
         "--include-unverified",
         action="store_true",
-        help="also include locally supplied (unverified) text in the split",
+        help="include local_unverified text in the split (off by default; local text is "
+             "ingested and reported either way, and never counts as EVALUATED)",
     )
     p.add_argument(
         "--pin",
         action="store_true",
-        help="write verified sha256 values back into the manifest (never offline)",
+        help="write verified sha256 values back into the manifest (only genuinely "
+             "verified sources; the manifest is left untouched when nothing was pinned)",
     )
-    p.add_argument("--seed", type=int, default=1337, help="split seed override (manifest default 1337)")
+    p.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="override the manifest split seed (default: the manifest's own seed)",
+    )
     p.add_argument("--exp-id", default="EXP-000", help="experiment id (default: %(default)s)")
     p.add_argument("--notes", default="", help="notes for the experiment record")
     p.add_argument("--print-json", action="store_true", help="print a built corpus.json and exit")
@@ -101,6 +121,46 @@ def _render(result: BuildResult) -> str:
     return "\n".join(lines)
 
 
+def _parse_local_files(
+    manifest: TokenizerCorpusManifest, entries: list[str] | None, directory: str | None
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Resolve ``--local-file ID=PATH`` / ``--local-dir DIR`` into text + origin paths.
+
+    Raises ``ValueError`` on anything ambiguous: an unknown source id or a file in
+    ``--local-dir`` that matches no declared source must be a hard error, never a
+    silently ignored input.
+    """
+    declared = {source.id for source in manifest.sources}
+    wanted: dict[str, str] = {}
+    for entry in entries or []:
+        if "=" not in entry:
+            raise ValueError(f"--local-file expects SOURCE_ID=PATH, got {entry!r}")
+        source_id, _, path = entry.partition("=")
+        if source_id not in declared:
+            raise ValueError(f"--local-file: no declared source with id {source_id!r}")
+        wanted[source_id] = path
+
+    if directory:
+        for path in sorted(Path(directory).glob("*.txt")):
+            source_id = path.stem
+            if source_id not in declared:
+                raise ValueError(
+                    f"--local-dir: {path.name} matches no declared source id "
+                    f"(declared: {', '.join(sorted(declared))})"
+                )
+            wanted.setdefault(source_id, str(path))
+
+    texts: dict[str, str] = {}
+    origins: dict[str, str] = {}
+    for source_id, path in wanted.items():
+        target = Path(path)
+        if not target.is_file():
+            raise ValueError(f"--local-file: no such file for {source_id!r}: {path}")
+        texts[source_id] = target.read_text(encoding="utf-8")
+        origins[source_id] = str(target)
+    return texts, origins
+
+
 def main() -> int:
     args = build_parser().parse_args()
 
@@ -108,10 +168,19 @@ def main() -> int:
         print(json.dumps(load_corpus(args.out), indent=2, ensure_ascii=False))
         return 0
 
-    problems = validate_manifest(TokenizerCorpusManifest.load(args.manifest))
+    manifest = TokenizerCorpusManifest.load(args.manifest)
+    problems = validate_manifest(manifest)
     if problems:
         for problem in problems:
             print(f"[corpus] manifest problem: {problem}", file=sys.stderr)
+        return 2
+
+    try:
+        local_texts, local_origins = _parse_local_files(
+            manifest, args.local_files, args.local_dir
+        )
+    except ValueError as exc:
+        print(f"[corpus] {exc}", file=sys.stderr)
         return 2
 
     def body() -> dict:
@@ -125,6 +194,8 @@ def main() -> int:
             include_unverified=args.include_unverified,
             timeout=args.timeout,
             pin=args.pin,
+            local_texts=local_texts,
+            local_origins=local_origins,
         )
         print(_render(result))
         return stable_results(result.results_payload())
@@ -136,18 +207,22 @@ def main() -> int:
     def build_spec() -> ExperimentSpec:
         return ExperimentSpec(
             experiment_id=args.exp_id,
-            seed=args.seed,
+            # args.seed is None when the manifest seed applies; the record then stores
+            # the seed that was actually used.
+            seed=args.seed if args.seed is not None else manifest.split_seed,
             name="tokenizer research corpus",
             # The record follows the documented convention (docs/experiments.md) and
             # stays out of the corpus directory, which is a data artifact.
             output_dir=str(Path("out/experiments") / args.exp_id),
             params={
-                "corpus_id": TokenizerCorpusManifest.load(args.manifest).corpus_id,
-                "corpus_version": TokenizerCorpusManifest.load(args.manifest).corpus_version,
+                "corpus_id": manifest.corpus_id,
+                "corpus_version": manifest.corpus_version,
                 "fetch": bool(args.fetch),
                 "pin": bool(args.pin),
                 "include_unverified": bool(args.include_unverified),
                 "source_ids": sorted(args.source_ids or []),
+                "local_sources": sorted(local_texts),
+                "split_seed": args.seed if args.seed is not None else manifest.split_seed,
             },
             data_paths=[str(Path(args.manifest))],
             command=list(sys.argv),

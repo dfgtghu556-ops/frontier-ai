@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from frontier_ai.data.corpora import license_marker_found
+from frontier_ai.data.corpora import CorpusSource, license_marker_found
 from frontier_ai.tokenization.corpus import CORPUS_ID as FIXTURE_CORPUS_ID
 from frontier_ai.tokenization.corpus import CORPUS_VERSION as FIXTURE_CORPUS_VERSION
 from frontier_ai.tokenization.corpus import (
@@ -26,11 +26,14 @@ from frontier_ai.tokenization.corpus import (
 from frontier_ai.tokenization.research_corpus import (
     CORPUS_ID,
     CORPUS_VERSION,
+    MAX_NGRAM_DOCS,
     MAX_SOURCE_CHARS,
     STATUS_EVALUATED,
     STATUS_INSUFFICIENT,
     STATUS_NOT_EVALUATED,
     STATUS_UNVERIFIED,
+    TRAIN_FILENAME,
+    LicenseEvidence,
     TokenizerCorpusManifest,
     build_corpus,
     coverage_report,
@@ -73,8 +76,9 @@ def _source(
     sha256: str | None = None,
     max_chars: int = 200_000,
     source_url: str = "https://example.invalid/test.txt",
+    license_evidence: dict | None = None,
 ) -> dict:
-    return {
+    payload = {
         "id": source_id,
         "title": f"Test source {source_id}",
         "language": language,
@@ -88,6 +92,28 @@ def _source(
         "sha256": sha256,
         "verified": verified,
     }
+    if license_evidence is not None:
+        payload["license_evidence"] = license_evidence
+    return payload
+
+
+# What hi.wikisource.org's Meta siteinfo endpoint returns for its content licence.
+SITEINFO_CC_BY_SA = json.dumps(
+    {
+        "batchcomplete": True,
+        "query": {
+            "general": {
+                "rightsinfo": {
+                    "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+                    "text": "Creative Commons Attribution-ShareAlike 4.0 License",
+                }
+            }
+        },
+    }
+)
+SITEINFO_OTHER_LICENCE = json.dumps(
+    {"query": {"general": {"rightsinfo": {"url": "https://example.org/some-other-licence"}}}}
+)
 
 
 def _manifest(
@@ -96,12 +122,17 @@ def _manifest(
     *,
     slots: list[dict] | None = None,
     corpus_version: str = CORPUS_VERSION,
+    split_seed: int = 1337,
 ) -> Path:
     payload = {
         "schema_version": "1.0",
         "corpus": {"id": CORPUS_ID, "version": corpus_version, "title": "test"},
         "targets": {"sentences_per_language": 500, "characters_per_language": 200_000},
-        "split": {"method": "deterministic-hash", "seed": 1337, "heldout_fraction": 0.1},
+        "split": {
+            "method": "deterministic-hash",
+            "seed": split_seed,
+            "heldout_fraction": 0.1,
+        },
         "normalization_policy": "none",
         "cleaning_policy": "kind-specific cleaner from frontier_ai.data.corpora",
         "language_slots": slots
@@ -400,7 +431,9 @@ def test_leakage_report_samples_large_train_sets_deterministically() -> None:
 def test_statistics_are_reported_for_every_slot(tmp_path: Path) -> None:
     manifest = TokenizerCorpusManifest.load(_manifest(tmp_path, [_source()]))
     docs = documents_from_text("test-source", "hi", HINDI_TEXT)
-    stats = language_statistics(manifest, docs, [])
+    train, held_out = split_documents(docs, seed=manifest.split_seed,
+                                      held_out_fraction=manifest.held_out_fraction)
+    stats = language_statistics(manifest, train, held_out, [])
     assert {row["language"] for row in stats} == {"hi", "bn"}
     hindi = next(row for row in stats if row["language"] == "hi")
     bengali = next(row for row in stats if row["language"] == "bn")
@@ -415,7 +448,7 @@ def test_statistics_are_reported_for_every_slot(tmp_path: Path) -> None:
 
 def test_coverage_marks_missing_languages_not_evaluated(tmp_path: Path) -> None:
     manifest = TokenizerCorpusManifest.load(_manifest(tmp_path, [_source()]))
-    stats = language_statistics(manifest, [], [])
+    stats = language_statistics(manifest, [], [], [])
     coverage = coverage_report(manifest, stats)
     statuses = {row["language"]: row["status"] for row in coverage["languages"]}
     assert statuses == {"hi": STATUS_UNVERIFIED, "bn": STATUS_NOT_EVALUATED}
@@ -433,7 +466,9 @@ def test_coverage_marks_verified_but_small_corpora_insufficient(tmp_path: Path, 
     )
     item = ingest_source(manifest.sources[0], tmp_path / "raw", fetch=True)
     docs = documents_from_text("test-source", "hi", Path(item.path).read_text(encoding="utf-8"))
-    stats = language_statistics(manifest, docs, [item])
+    train, held_out = split_documents(docs, seed=manifest.split_seed,
+                                      held_out_fraction=manifest.held_out_fraction)
+    stats = language_statistics(manifest, train, held_out, [item])
     coverage = coverage_report(manifest, stats)
     hindi = next(row for row in coverage["languages"] if row["language"] == "hi")
     assert hindi["status"] == STATUS_INSUFFICIENT
@@ -451,7 +486,9 @@ def test_coverage_marks_meeting_targets_evaluated(tmp_path: Path) -> None:
     item = ingest_source(source, tmp_path / "raw", local_text=big_body)
     item.status = "verified"  # simulate a verified fetch of a large licensed source
     docs = documents_from_text("test-source", "hi", Path(item.path).read_text(encoding="utf-8"))
-    stats = language_statistics(manifest, docs, [item])
+    train, held_out = split_documents(docs, seed=manifest.split_seed,
+                                      held_out_fraction=manifest.held_out_fraction)
+    stats = language_statistics(manifest, train, held_out, [item])
     coverage = coverage_report(manifest, stats)
     hindi = next(row for row in coverage["languages"] if row["language"] == "hi")
     assert hindi["status"] == STATUS_EVALUATED
@@ -464,7 +501,9 @@ def test_coverage_never_counts_unverified_text_as_evaluated(tmp_path: Path) -> N
     big = dataclasses.replace(manifest.sources[0], max_chars=MAX_SOURCE_CHARS)
     item = ingest_source(big, tmp_path / "raw", local_text="\n".join([MARATHI_TEXT] * 4_000))
     docs = documents_from_text("test-source", "hi", Path(item.path).read_text(encoding="utf-8"))
-    stats = language_statistics(manifest, docs, [item])
+    train, held_out = split_documents(docs, seed=manifest.split_seed,
+                                      held_out_fraction=manifest.held_out_fraction)
+    stats = language_statistics(manifest, train, held_out, [item])
     coverage = coverage_report(manifest, stats)
     hindi = next(row for row in coverage["languages"] if row["language"] == "hi")
     assert hindi["status"] == STATUS_UNVERIFIED
@@ -739,6 +778,647 @@ def test_cli_rejects_an_invalid_manifest(tmp_path: Path) -> None:
     done = _run_cli(["--manifest", str(manifest), "--out", str(tmp_path / "out")])
     assert done.returncode == 2
     assert "manifest problem" in done.stderr
+
+
+# ---------------------------------------------------------------------------
+# H-1: the statistics must be computed from the split that was actually written
+# ---------------------------------------------------------------------------
+def _jsonl(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+
+
+def _language_counts(path: Path) -> dict[str, dict[str, int]]:
+    counts: dict[str, dict[str, int]] = {}
+    for row in _jsonl(path):
+        bucket = counts.setdefault(row["language"], {"examples": 0, "chars": 0})
+        bucket["examples"] += 1
+        bucket["chars"] += int(row["chars"])
+    return counts
+
+
+def _two_language_manifest(tmp_path: Path, seed: int = 1337) -> Path:
+    return _manifest(
+        tmp_path,
+        [
+            _source("hi-src", "hi", source_url="https://example.invalid/hi-src.txt"),
+            _source("ta-src", "ta", source_url="https://example.invalid/ta-src.txt"),
+        ],
+        slots=[
+            {"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]},
+            {"code": "ta", "display": "Tamil", "script": "Tamil", "sources": ["ta-src"]},
+        ],
+        split_seed=seed,
+    )
+
+
+def _fake_fetch(bodies: dict[str, str], evidence: str | None = None,
+                licence_header: bool = False):
+    """A ``fetch_text`` stand-in that also answers the licence-evidence endpoint.
+
+    ``evidence=None`` means the evidence host is unreachable; ``licence_header`` adds a
+    licence marker to the text payload itself (the Project Gutenberg case).
+    """
+
+    def _fetch(url: str, *_args, **_kwargs) -> str:
+        if "api.php" in url or "meta=siteinfo" in url:
+            if evidence is None:
+                raise OSError("no route to the evidence host")
+            return evidence
+        body = bodies[next(sid for sid in bodies if sid in url)]
+        header = (
+            "This work is licensed under the Creative Commons "
+            "Attribution-ShareAlike 4.0 License.\n"
+            if licence_header
+            else ""
+        )
+        return header + body
+
+    return _fetch
+
+
+AS_SENTENCES = "\n".join(f"অসমীয়া বাক্য {i} ইয়াত আছে।" for i in range(40))
+
+
+def test_statistics_match_the_artifacts_with_a_non_default_seed(tmp_path: Path, monkeypatch) -> None:
+    """H-1: with a non-default seed, stats.json must agree with the JSONL files."""
+    manifest_path = _two_language_manifest(tmp_path)
+    bodies = {
+        "hi-src": "\n".join(f"हिंदी वाक्य संख्या {i} है और यह परीक्षण के लिए है।" for i in range(400)),
+        "ta-src": "\n".join(f"தமிழ் வாக்கியம் எண் {i} இங்கே உள்ளது." for i in range(400)),
+    }
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        _fake_fetch(bodies, licence_header=True),
+    )
+    build_corpus(manifest_path, tmp_path / "build", fetch=True, seed=99)
+
+    stats = json.loads((tmp_path / "build" / "stats.json").read_text())
+    train_counts = _language_counts(tmp_path / "build" / "train.jsonl")
+    heldout_counts = _language_counts(tmp_path / "build" / "heldout.jsonl")
+    assert train_counts and heldout_counts
+
+    for row in stats["languages"]:
+        code = row["language"]
+        assert row["train_examples"] == train_counts.get(code, {}).get("examples", 0), code
+        assert row["evaluation_examples"] == heldout_counts.get(code, {}).get("examples", 0), code
+        assert row["train_chars"] == train_counts.get(code, {}).get("chars", 0), code
+        assert row["evaluation_chars"] == heldout_counts.get(code, {}).get("chars", 0), code
+        assert row["train_examples"] + row["evaluation_examples"] == row["examples"]
+
+    assert stats["split"]["seed"] == 99
+    corpus = json.loads((tmp_path / "build" / "corpus.json").read_text())
+    assert corpus["split"]["seed"] == 99
+
+
+def test_stats_json_totals_equal_the_jsonl_files(tmp_path: Path, monkeypatch) -> None:
+    bodies = {
+        "hi-src": "\n".join(f"हिंदी वाक्य संख्या {i} है और यह परीक्षण के लिए है।" for i in range(400)),
+        "ta-src": "\n".join(f"தமிழ் வாக்கியம் எண் {i} இங்கே உள்ளது." for i in range(400)),
+    }
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        _fake_fetch(bodies, licence_header=True),
+    )
+    build_corpus(_two_language_manifest(tmp_path), tmp_path / "build", fetch=True)
+    stats = json.loads((tmp_path / "build" / "stats.json").read_text())
+    train = _jsonl(tmp_path / "build" / "train.jsonl")
+    heldout = _jsonl(tmp_path / "build" / "heldout.jsonl")
+    assert stats["totals"]["train_examples"] == len(train)
+    assert stats["totals"]["evaluation_examples"] == len(heldout)
+    assert stats["totals"]["examples"] == len(train) + len(heldout)
+    assert stats["totals"]["chars"] == sum(row["chars"] for row in train + heldout)
+    assert stats["totals"]["bytes"] == sum(row["bytes"] for row in train + heldout)
+
+
+def test_cli_honours_the_manifest_seed_when_no_seed_is_given(tmp_path: Path) -> None:
+    manifest_path = _two_language_manifest(tmp_path, seed=4242)
+    out = tmp_path / "out"
+    done = _run_cli(["--manifest", str(manifest_path), "--out", str(out), "--no-record"])
+    assert done.returncode == 0, done.stderr
+    corpus = json.loads((out / "corpus.json").read_text())
+    assert corpus["split"]["seed"] == 4242, "the manifest seed must be the default"
+    stats = json.loads((out / "stats.json").read_text())
+    assert stats["split"]["seed"] == 4242
+
+
+def test_cli_seed_overrides_the_manifest_seed(tmp_path: Path, monkeypatch) -> None:
+    """An explicit --seed must change both the split and the reported seed."""
+    manifest_path = _two_language_manifest(tmp_path, seed=4242)
+    bodies = {
+        "hi-src": "\n".join(f"हिंदी वाक्य संख्या {i} है और यह परीक्षण के लिए है।" for i in range(400)),
+        "ta-src": "\n".join(f"தமிழ் வாக்கியம் எண் {i} இங்கே உள்ளது." for i in range(400)),
+    }
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        _fake_fetch(bodies, licence_header=True),
+    )
+    default = build_corpus(manifest_path, tmp_path / "default", fetch=True)
+    overridden = build_corpus(manifest_path, tmp_path / "seeded", fetch=True, seed=7)
+    assert default.files[TRAIN_FILENAME]["sha256"] != overridden.files[TRAIN_FILENAME]["sha256"]
+    assert json.loads((tmp_path / "seeded" / "corpus.json").read_text())["split"]["seed"] == 7
+
+
+def test_reported_split_seed_is_the_one_used_for_statistics(tmp_path: Path, monkeypatch) -> None:
+    """The seed in stats.json must be the seed the per-language counts came from."""
+    manifest_path = _two_language_manifest(tmp_path)
+    bodies = {
+        "hi-src": "\n".join(f"हिंदी वाक्य संख्या {i} है और यह परीक्षण के लिए है।" for i in range(400)),
+        "ta-src": "\n".join(f"தமிழ் வாக்கியம் எண் {i} இங்கே உள்ளது." for i in range(400)),
+    }
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        _fake_fetch(bodies, licence_header=True),
+    )
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True, seed=99)
+    stats = json.loads((tmp_path / "build" / "stats.json").read_text())
+    train_ids = {row["doc_id"] for row in _jsonl(tmp_path / "build" / "train.jsonl")}
+    recomputed = {
+        document.doc_id
+        for document in split_documents(result.train + result.held_out, seed=99)[0]
+    }
+    assert train_ids == recomputed
+    assert stats["split"]["seed"] == 99
+
+
+# ---------------------------------------------------------------------------
+# M-1: identical documents must not cross the split
+# ---------------------------------------------------------------------------
+def test_identical_documents_land_on_the_same_side() -> None:
+    repeated = "\n".join(["यह वाक्य कई बार दोहराया गया है।"] * 12)
+    docs = documents_from_text("src", "hi", repeated)
+    assert len({d.text_sha256 for d in docs}) == 1
+    train, held_out = split_documents(docs, seed=1337)
+    assert len(train) + len(held_out) == len(docs)
+    assert not ({d.text_sha256 for d in train} & {d.text_sha256 for d in held_out})
+
+
+def test_duplicate_documents_cannot_straddle_the_split(tmp_path: Path, monkeypatch) -> None:
+    """End-to-end: a source full of repeated paragraphs yields disjoint artifacts."""
+    refrain = "राम ने कहा कि काम पूरा हो गया है और अब हम घर जा सकते हैं।"
+    body = "\n".join([refrain] * 60 + [f"अलग अनुच्छेद संख्या {i} यहाँ लिखा है।" for i in range(200)])
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(body),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi", max_chars=MAX_SOURCE_CHARS)],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]}],
+    )
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True)
+
+    train_texts = {row["text"] for row in _jsonl(tmp_path / "build" / "train.jsonl")}
+    heldout_texts = {row["text"] for row in _jsonl(tmp_path / "build" / "heldout.jsonl")}
+    assert refrain in train_texts or refrain in heldout_texts
+    assert not (train_texts & heldout_texts), "identical text appeared on both sides"
+    assert result.leakage["exact"]["overlap_count"] == 0
+    assert result.leakage["exact"]["clean"] is True
+
+    stats = json.loads((tmp_path / "build" / "stats.json").read_text())
+    hindi = next(row for row in stats["languages"] if row["language"] == "hi")
+    assert hindi["duplicate_documents"] > 0
+    assert hindi["unique_texts"] + hindi["duplicate_documents"] == hindi["examples"]
+
+
+# ---------------------------------------------------------------------------
+# M-2: language-aware n-gram sampling
+# ---------------------------------------------------------------------------
+def test_leakage_sampling_is_language_aware() -> None:
+    hi = documents_from_text("hi-src", "hi", "\n".join(f"हिंदी वाक्य {i} है।" for i in range(2_500)))
+    ta = documents_from_text("ta-src", "ta", "\n".join(f"தமிழ் வாக்கியம் {i}." for i in range(2_500)))
+    report = leakage_report(hi + ta, documents_from_text("bn-src", "bn", BENGALI_TEXT))
+    per_language = report["ngram"]["per_language_sampled"]
+    assert per_language.get("hi", 0) > 0
+    assert per_language.get("ta", 0) > 0
+    assert report["ngram"]["train_documents_sampled"] == MAX_NGRAM_DOCS
+    assert report["ngram"]["sampling_rule"].startswith("stratified")
+
+
+def test_leakage_sampling_is_deterministic_and_order_independent() -> None:
+    hi = documents_from_text("hi-src", "hi", "\n".join(f"हिंदी वाक्य {i} है।" for i in range(2_500)))
+    ta = documents_from_text("ta-src", "ta", "\n".join(f"தமிழ் வாக்கியம் {i}." for i in range(2_500)))
+    held_out = documents_from_text("bn-src", "bn", BENGALI_TEXT)
+    first = leakage_report(hi + ta, held_out)
+    second = leakage_report(list(reversed(ta)) + list(reversed(hi)), held_out)
+    assert first["ngram"]["per_language_sampled"] == second["ngram"]["per_language_sampled"]
+    assert first["ngram"]["overlap_ratio"] == second["ngram"]["overlap_ratio"]
+
+
+def test_leakage_sampling_gives_every_language_a_share() -> None:
+    """A language with few documents must not be squeezed out by a big one."""
+    tiny = documents_from_text("as-src", "as", AS_SENTENCES)
+    huge = documents_from_text("hi-src", "hi", "\n".join(f"हिंदी वाक्य {i} है।" for i in range(2_500)))
+    report = leakage_report(huge + tiny, documents_from_text("bn-src", "bn", BENGALI_TEXT))
+    assert report["ngram"]["per_language_sampled"].get("as", 0) == len(tiny)
+
+
+# ---------------------------------------------------------------------------
+# M-5: manifest reference validation
+# ---------------------------------------------------------------------------
+def test_manifest_rejects_unknown_source_reference(tmp_path: Path) -> None:
+    path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "sources": ["hi-typo"]}],
+    )
+    manifest = TokenizerCorpusManifest.load(path)
+    problems = validate_manifest(manifest)
+    assert any("references unknown source id 'hi-typo'" in p for p in problems)
+    with pytest.raises(ValueError, match="unknown source id"):
+        build_corpus(path, tmp_path / "build")
+
+
+def test_manifest_rejects_duplicate_source_ids(tmp_path: Path) -> None:
+    path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi"), _source("hi-src", "hi")],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    manifest = TokenizerCorpusManifest.load(path)
+    assert any("duplicate source id 'hi-src'" in p for p in validate_manifest(manifest))
+
+
+def test_manifest_rejects_orphan_sources(tmp_path: Path) -> None:
+    path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi"), _source("unused-src", "bn")],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    manifest = TokenizerCorpusManifest.load(path)
+    assert any("not referenced by any language slot" in p for p in validate_manifest(manifest))
+
+
+def test_repo_manifest_has_no_dangling_references() -> None:
+    manifest = TokenizerCorpusManifest.load(REPO_MANIFEST)
+    assert validate_manifest(manifest) == []
+    declared = {source.id for source in manifest.sources}
+    referenced = {sid for slot in manifest.language_slots for sid in slot.sources}
+    assert declared == referenced
+    for source_id in manifest.license_evidence:
+        assert source_id in declared
+        assert manifest.license_evidence[source_id].url.startswith("https://")
+
+
+# ---------------------------------------------------------------------------
+# M-6: truncation must be visible
+# ---------------------------------------------------------------------------
+def test_ingestion_records_truncation(tmp_path: Path) -> None:
+    body = "\n".join(f"यह अनुच्छेद संख्या {i} है और काफी लंबा है।" for i in range(2_000))
+    manifest = TokenizerCorpusManifest.load(
+        _manifest(tmp_path, [_source(max_chars=1_000)])
+    )
+    item = ingest_source(manifest.sources[0], tmp_path / "raw", local_text=body)
+    assert item.truncated is True
+    assert item.chars < item.chars_before_trim
+    assert item.chars <= 1_000
+
+    provenance = json.loads(Path(item.provenance_path).read_text())
+    assert provenance["truncated"] is True
+    assert provenance["chars_before_trim"] == item.chars_before_trim
+    assert provenance["max_chars"] == 1_000
+
+    untrimmed = ingest_source(
+        dataclasses.replace(manifest.sources[0], max_chars=MAX_SOURCE_CHARS),
+        tmp_path / "raw",
+        local_text=body,
+    )
+    assert untrimmed.truncated is False
+    assert untrimmed.chars == untrimmed.chars_before_trim
+
+
+def test_build_reports_truncation_per_language(tmp_path: Path) -> None:
+    body = "\n".join(f"यह अनुच्छेद संख्या {i} है और काफी लंबा है।" for i in range(2_000))
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi", max_chars=1_000)],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    (tmp_path / "local.txt").write_text(body, encoding="utf-8")
+    done = _run_cli(
+        [
+            "--manifest", str(manifest_path),
+            "--local-file", f"hi-src={tmp_path / 'local.txt'}",
+            "--include-unverified",
+            "--out", str(tmp_path / "out"),
+            "--no-record",
+        ]
+    )
+    assert done.returncode == 0, done.stderr
+    stats = json.loads((tmp_path / "out" / "stats.json").read_text())
+    hindi = next(row for row in stats["languages"] if row["language"] == "hi")
+    assert hindi["truncated_sources"] == 1
+    corpus = json.loads((tmp_path / "out" / "corpus.json").read_text())
+    assert corpus["sources"][0]["ingest"]["truncated"] is True
+
+
+# ---------------------------------------------------------------------------
+# M-7: --pin must not touch the manifest when it pins nothing
+# ---------------------------------------------------------------------------
+def test_pin_leaves_the_manifest_untouched_when_nothing_is_pinned(tmp_path: Path, monkeypatch) -> None:
+    def _boom(*_args, **_kwargs):
+        raise OSError("no route to the source host")
+
+    monkeypatch.setattr("frontier_ai.tokenization.research_corpus.fetch_text", _boom)
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    before = manifest_path.read_bytes()
+    build_corpus(manifest_path, tmp_path / "build", fetch=True, pin=True)
+    assert manifest_path.read_bytes() == before, "--pin with zero pinned sources must be a no-op"
+
+
+def test_pin_does_not_add_noise_fields(tmp_path: Path, monkeypatch) -> None:
+    """When --pin does write, it must not invent empty candidates/reason keys."""
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(MARATHI_TEXT),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    build_corpus(manifest_path, tmp_path / "build", fetch=True, pin=True)
+    written = json.loads(manifest_path.read_text())
+    assert written["sources"][0]["verified"] is True
+    for slot in written["language_slots"]:
+        if not slot.get("candidates"):
+            assert "candidates" not in slot
+        if not slot.get("reason"):
+            assert "reason" not in slot
+
+
+# ---------------------------------------------------------------------------
+# H-3: local file ingestion
+# ---------------------------------------------------------------------------
+def test_local_file_ingestion_is_local_unverified(tmp_path: Path) -> None:
+    manifest = TokenizerCorpusManifest.load(_manifest(tmp_path, [_source("hi-src", "hi")]))
+    item = ingest_source(
+        manifest.sources[0], tmp_path / "raw", local_text=MARATHI_TEXT,
+        local_origin="/human/supplied/godan.txt",
+    )
+    assert item.status == "local_unverified"
+    assert item.verified is False
+    assert item.local is True
+    assert item.local_origin == "/human/supplied/godan.txt"
+    assert item.licence_proof == ""
+    assert len(item.sha256) == 64  # a content hash, computed but not licence proof
+
+    provenance = json.loads(Path(item.provenance_path).read_text())
+    assert provenance["verification"] == "local_unverified"
+    assert provenance["local_source"] is True
+    assert provenance["local_origin_path"] == "/human/supplied/godan.txt"
+    assert provenance["hash_is_licence_proof"] is False
+    assert provenance["licence_proof"] == "none"
+
+
+def test_local_text_never_becomes_evaluated(tmp_path: Path) -> None:
+    big = "\n".join([MARATHI_TEXT] * 4_000)
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi", max_chars=MAX_SOURCE_CHARS)],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    (tmp_path / "local.txt").write_text(big, encoding="utf-8")
+    done = _run_cli(
+        [
+            "--manifest", str(manifest_path),
+            "--local-file", f"hi-src={tmp_path / 'local.txt'}",
+            "--include-unverified",
+            "--out", str(tmp_path / "out"),
+            "--no-record",
+        ]
+    )
+    assert done.returncode == 0, done.stderr
+
+    corpus = json.loads((tmp_path / "out" / "corpus.json").read_text())
+    assert corpus["sources"][0]["ingest"]["status"] == "local_unverified"
+    assert corpus["sources"][0]["verified"] is False
+    # the text really is in the corpus, and it still is not EVALUATED
+    assert len(_jsonl(tmp_path / "out" / "train.jsonl")) > 500
+    coverage = json.loads((tmp_path / "out" / "coverage.json").read_text())
+    hindi = next(row for row in coverage["languages"] if row["language"] == "hi")
+    assert hindi["status"] == STATUS_UNVERIFIED
+    assert hindi["actual_chars"] >= 200_000
+    assert hindi["sufficient"] is False
+
+
+def test_local_text_is_excluded_until_include_unverified(tmp_path: Path) -> None:
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    (tmp_path / "local.txt").write_text(MARATHI_TEXT, encoding="utf-8")
+    out = tmp_path / "out"
+    done = _run_cli(
+        ["--manifest", str(manifest_path), "--local-file", f"hi-src={tmp_path / 'local.txt'}",
+         "--out", str(out), "--no-record"]
+    )
+    assert done.returncode == 0, done.stderr
+    corpus = json.loads((out / "corpus.json").read_text())
+    assert corpus["sources"][0]["ingest"]["status"] == "local_unverified"
+    assert corpus["totals"]["documents"] == 0, "local text stays out unless asked for"
+
+
+def test_local_dir_ingestion(tmp_path: Path) -> None:
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi"), _source("bn-src", "bn")],
+        slots=[{"code": "hi", "sources": ["hi-src"]}, {"code": "bn", "sources": ["bn-src"]}],
+    )
+    local_dir = tmp_path / "local"
+    local_dir.mkdir()
+    (local_dir / "hi-src.txt").write_text(HINDI_TEXT, encoding="utf-8")
+    (local_dir / "bn-src.txt").write_text(BENGALI_TEXT, encoding="utf-8")
+    out = tmp_path / "out"
+    done = _run_cli(
+        ["--manifest", str(manifest_path), "--local-dir", str(local_dir),
+         "--include-unverified", "--out", str(out), "--no-record"]
+    )
+    assert done.returncode == 0, done.stderr
+    rows = _jsonl(out / "train.jsonl") + _jsonl(out / "heldout.jsonl")
+    assert {row["language"] for row in rows} == {"hi", "bn"}
+
+
+def test_local_dir_rejects_unknown_files(tmp_path: Path) -> None:
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    local_dir = tmp_path / "local"
+    local_dir.mkdir()
+    (local_dir / "not-a-source.txt").write_text(HINDI_TEXT, encoding="utf-8")
+    done = _run_cli(
+        ["--manifest", str(manifest_path), "--local-dir", str(local_dir),
+         "--out", str(tmp_path / "out"), "--no-record"]
+    )
+    assert done.returncode == 2
+    assert "matches no declared source id" in done.stderr
+
+
+def test_local_file_rejects_unknown_source(tmp_path: Path) -> None:
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    (tmp_path / "local.txt").write_text(HINDI_TEXT, encoding="utf-8")
+    done = _run_cli(
+        ["--manifest", str(manifest_path), "--local-file", f"nope={tmp_path / 'local.txt'}",
+         "--out", str(tmp_path / "out"), "--no-record"]
+    )
+    assert done.returncode == 2
+    assert "no declared source with id" in done.stderr
+
+
+# ---------------------------------------------------------------------------
+# H-2: licence evidence
+# ---------------------------------------------------------------------------
+def _evidence_manifest(tmp_path: Path) -> Path:
+    evidence = {
+        "url": "https://example.invalid/api.php?action=query&meta=siteinfo&siprop=rightsinfo",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "site-level rights declaration",
+    }
+    return _manifest(
+        tmp_path,
+        [_source("hi-src", "hi", license_id="CC-BY-SA-4.0",
+                 license_url="https://creativecommons.org/licenses/by-sa/4.0/",
+                 source_url="https://example.invalid/hi-src.txt",
+                 license_evidence=evidence)],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+
+
+def test_licence_evidence_verifies_a_payload_without_a_marker(tmp_path: Path, monkeypatch) -> None:
+    """The Wikisource case: bare wikitext + a separate rights endpoint."""
+    manifest_path = _evidence_manifest(tmp_path)
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        _fake_fetch({"hi-src": HINDI_TEXT}, evidence=SITEINFO_CC_BY_SA),
+    )
+    manifest = TokenizerCorpusManifest.load(manifest_path)
+    item = ingest_source(
+        manifest.sources[0],
+        tmp_path / "raw",
+        fetch=True,
+        license_evidence=manifest.evidence_for("hi-src"),
+    )
+    assert item.status == "verified"
+    assert item.licence_proof == "licence-evidence"
+    assert item.license_evidence["status"] == "ok"
+    assert item.license_evidence["marker_found"] is True
+    assert item.license_evidence["scope"] == "site"
+    assert item.license_evidence["url"].startswith("https://")
+    assert item.license_evidence["checked_at"]
+
+    provenance = json.loads(Path(item.provenance_path).read_text())
+    assert provenance["licence_proof"] == "licence-evidence"
+    assert provenance["license_evidence"]["status"] == "ok"
+    assert provenance["license_evidence"]["scope"] == "site"
+
+
+def test_licence_evidence_failure_keeps_the_source_unverified(tmp_path: Path, monkeypatch) -> None:
+    manifest_path = _evidence_manifest(tmp_path)
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        _fake_fetch({"hi-src": HINDI_TEXT}, evidence=None),  # evidence host unreachable
+    )
+    manifest = TokenizerCorpusManifest.load(manifest_path)
+    item = ingest_source(
+        manifest.sources[0],
+        tmp_path / "raw",
+        fetch=True,
+        license_evidence=manifest.evidence_for("hi-src"),
+    )
+    assert item.status == "licence_marker_missing"
+    assert item.verified is False
+    assert item.sha256 is None
+    assert item.license_evidence["status"] == "fetch_failed"
+    assert "did not confirm it" in item.error
+
+
+def test_licence_evidence_with_the_wrong_licence_is_rejected(tmp_path: Path, monkeypatch) -> None:
+    manifest_path = _evidence_manifest(tmp_path)
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        _fake_fetch({"hi-src": HINDI_TEXT}, evidence=SITEINFO_OTHER_LICENCE),
+    )
+    manifest = TokenizerCorpusManifest.load(manifest_path)
+    item = ingest_source(
+        manifest.sources[0],
+        tmp_path / "raw",
+        fetch=True,
+        license_evidence=manifest.evidence_for("hi-src"),
+    )
+    assert item.status == "licence_marker_missing"
+    assert item.license_evidence["status"] == "marker_not_found"
+    assert item.license_evidence["accepted"] is False
+
+
+def test_licence_evidence_ignores_malformed_payloads(tmp_path: Path, monkeypatch) -> None:
+    manifest_path = _evidence_manifest(tmp_path)
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        _fake_fetch({"hi-src": HINDI_TEXT}, evidence="<html>not json</html>"),
+    )
+    manifest = TokenizerCorpusManifest.load(manifest_path)
+    item = ingest_source(
+        manifest.sources[0],
+        tmp_path / "raw",
+        fetch=True,
+        license_evidence=manifest.evidence_for("hi-src"),
+    )
+    assert item.status == "licence_marker_missing"
+    assert item.license_evidence["status"] == "malformed"
+
+
+def test_no_evidence_and_no_marker_stays_unverified(tmp_path: Path, monkeypatch) -> None:
+    """Without a declared evidence endpoint, an unmarked payload cannot verify."""
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: HINDI_TEXT,  # no licence marker, no evidence configured
+    )
+    manifest = TokenizerCorpusManifest.load(manifest_path)
+    item = ingest_source(manifest.sources[0], tmp_path / "raw", fetch=True)
+    assert item.status == "licence_marker_missing"
+    assert item.license_evidence is None
+    assert "no licence evidence endpoint is declared" in item.error
+
+
+def test_manifest_rejects_invalid_licence_evidence(tmp_path: Path) -> None:
+    path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi", license_evidence={
+            "url": "http://example.invalid/api.php",  # not https
+            "kind": "made-up-kind",
+            "scope": "everywhere",
+        })],
+        slots=[{"code": "hi", "sources": ["hi-src"]}],
+    )
+    manifest = TokenizerCorpusManifest.load(path)
+    problems = validate_manifest(manifest)
+    assert any("licence evidence url must be https" in p for p in problems)
+    assert any("licence evidence kind must be one of" in p for p in problems)
+    assert any("licence evidence scope must be one of" in p for p in problems)
+
+
+def test_licence_evidence_defaults_to_declaring_the_licence_url() -> None:
+    """With no explicit marker, the evidence must confirm the declared licence URL."""
+    evidence = LicenseEvidence(url="https://example.invalid/api.php", kind="mediawiki-api")
+    source = CorpusSource.from_dict(_source("hi-src", "hi"))
+    assert evidence.effective_marker(source) == source.license_url
 
 
 # ---------------------------------------------------------------------------

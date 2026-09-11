@@ -251,7 +251,14 @@
       "sha256": null,
       "verified": false,
       "retrieved_at": null,
-      "notes": "Hindi slot, Devanagari. Verify the page title and its licence tag on first fetch; if the page carries a PD template the licence_id may be relaxed to PD-US with a note."
+      "notes": "Hindi slot, Devanagari. Verify the page title and its licence tag on first fetch; if the page carries a PD template the licence_id may be relaxed to PD-US with a note.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The `?action=raw` payload is bare wikitext and does not contain the CC BY-SA notice, so the wiki's own machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence. This is SITE-level evidence: it proves hi.wikisource.org publishes under CC BY-SA 4.0, not that this specific page carries that tag. The page-level tag still has to be reviewed by a human and recorded before the slot is trusted for redistribution."
+      }
     },
     {
       "id": "bn-wikisource-gitanjali-ccbysa",
@@ -267,8 +274,15 @@
       "sha256": null,
       "verified": false,
       "retrieved_at": null,
-      "notes": "Bengali slot. The author died in 1941 and the work is public domain in India, but the edition on Wikisource may carry its own tag; check it on first fetch and record what you find."
+      "notes": "Bengali slot. The author died in 1941 and the work is public domain in India, but the edition on Wikisource may carry its own tag; check it on first fetch and record what you find.",
+      "license_evidence": {
+        "url": "https://bn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for bn.wikisource.org, fetched separately from the wikitext payload (which carries no licence notice). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
     }
   ],
-  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence marker has been found. Nothing here is asserted from memory. A language slot is only counted as EVALUATED when it has verified sources meeting the targets."
+  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets."
 }
