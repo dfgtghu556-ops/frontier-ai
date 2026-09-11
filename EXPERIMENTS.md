@@ -976,9 +976,16 @@ owns the run, and publishes its metrics when it does not. The 3-seed numbers abo
 *signal* (spread ≈ 0.013, i.e. ~0.4% around the mean, on a 10-step toy run); they are not a
 model result and nothing in Stage 2 should be decided from them.
 
-**Fresh-clone re-verification:** repeated in a pristine clone of the pushed branch with an
-independently built environment — same suite result and the same swept `best_val` mean and
-spread. See the branch notes for the commit hash.
+**Fresh-clone re-verification (code commit `0104eb1`):** in a pristine clone of the pushed
+branch with an independently built environment: `249 passed, 1 skipped`, `ruff check .`
+clean, and the same swept numbers — `best_val` **mean 3.479524850845337**,
+**spread 0.013175015328436988** over per-seed 3.471531 / 3.494731 / 3.472312, every run
+`metric_source: results`. One-record guarantee: 8 records across the swept,
+configuration-swept and wrapped runs, and **0** records inside the training/artifact
+directories they wrapped. Thread provenance in process: three runs whose body sets 3 threads
+recorded `[3, 3, 3]` — the old code, which captured before the body, would have recorded the
+caller's `[1, 1, 1]` — the caller's `1` was restored after each run, and two identical
+in-process runs produced the same fingerprint.
 
 **Not verified here (recorded rather than hidden):** the D-031 licensed corpora. Their
 manifest ships with `verified: false` and `sha256: null` by design, hashes are pinned only
