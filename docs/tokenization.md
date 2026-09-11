@@ -248,6 +248,10 @@ vocabulary-budget problem specific to Indic scripts, and generated a concrete ab
 ## 12. Limitations and open questions
 
 - The corpus is a probe fixture (§9). No claim about real-world quality is made.
+- Project 004 Stage A adds the licensed, versioned foundation for a real corpus
+  (`indic-tokenizer/v2`): see [docs/tokenizer_corpus_stage_a.md](tokenizer_corpus_stage_a.md).
+  It declares three sources, verifies none of them (no network to the source hosts), and
+  therefore **does not** replace this fixture for anything yet.
 - Vocabulary size was **not** swept: 512 and 1024 are demonstrations, not a recommendation.
 - No normalization ablation (NFC/NFD), no Unigram vs BPE comparison, no script-aware
   initialization experiment yet.
