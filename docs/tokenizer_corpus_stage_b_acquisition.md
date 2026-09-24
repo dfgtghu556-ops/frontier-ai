@@ -28,9 +28,12 @@ any of the 38 rendered sources. The fifth fetch (EXP-012) confirmed both: all 40
 exactly chapters 3, 21 and 24 and Gitanjali changed (chapter 3 lost exactly the 9
 characters of `साँचा:GaP`, Gitanjali the 2 of `}}`), the other 36 sources were
 byte-identical to EXP-011, the report's repair counts match every located residue, and
-nothing was flagged. Pinning (step 4) is next.
-**Nothing has been pinned yet.** Run the steps where the network works, and record what you
-actually observe.
+nothing was flagged.
+**Pinned (EXP-013): all 40 `en`/`hi`/`bn` sources.** The operator's `--pin` run wrote their
+hashes (retrieved 2026-09-24T17:04–17:05Z); each begins with the prefix EXP-012's inspection
+reported, and Alice's equals the hash of EXP-008/010/011. Every later fetch compares against
+these pins and refuses changed text (§0.5). The other 11 slots have no sources yet (§9). Run
+the steps where the network works, and record what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
