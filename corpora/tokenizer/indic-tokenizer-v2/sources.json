@@ -1091,7 +1091,7 @@
       "sha256": null,
       "verified": false,
       "retrieved_at": null,
-      "notes": "Chapter 36 of 36. गो-दान/३६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 357–369 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "notes": "Chapter 36 of 36. गो-दान/३६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 357–363 of गो-दान.djvu: the tag on the wiki says to=३६९, but pages 364–369 contribute no text — checked on 2026-09-24, the render ends on पृष्ठ:गो-दान.djvu/३६३ with the novel's last line (…यही इनका गो-दान है / और पछाड़ खाकर गिर पड़ी।) and nothing after it, so no back matter enters the corpus (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
         "kind": "mediawiki-api",

@@ -29,8 +29,11 @@ model.
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
+import logging
 import re
+import time
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass, field
@@ -370,14 +373,57 @@ class FetchError(RuntimeError):
     """Raised when a source cannot be retrieved (no network, 404, bad encoding)."""
 
 
-def fetch_text(url: str, timeout: float = 30.0) -> str:
-    """Download `url` and return it as text. The only network call in the package."""
+_LOG = logging.getLogger(__name__)
+
+# Retrying is only for failures *after* the server answered: the connection dropped in
+# the middle of the body (http.client.IncompleteRead — seen live on gutenberg.org), the
+# server hung up, or it said "busy, try again" (429 / 5xx). A timeout, a DNS failure or a
+# TLS handshake error means there is no route; retrying those would only make an offline
+# run crawl. A partial body is never returned: every attempt reads the whole response.
+FETCH_ATTEMPTS = 3
+FETCH_BACKOFF_S = 2.0
+_RETRY_HTTP_STATUS = frozenset({429, 500, 502, 503, 504})
+_MID_TRANSFER_ERRORS = (http.client.IncompleteRead, ConnectionResetError, ConnectionAbortedError)
+
+
+def _retryable(exc: BaseException) -> bool:
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code in _RETRY_HTTP_STATUS
+    if isinstance(exc, urllib.error.URLError):  # wraps the socket-level cause
+        return isinstance(exc.reason, _MID_TRANSFER_ERRORS)
+    # RemoteDisconnected is a ConnectionResetError; IncompleteRead is an HTTPException
+    return isinstance(exc, _MID_TRANSFER_ERRORS)
+
+
+def fetch_text(
+    url: str,
+    timeout: float = 30.0,
+    *,
+    attempts: int = FETCH_ATTEMPTS,
+    backoff_s: float = FETCH_BACKOFF_S,
+) -> str:
+    """Download `url` and return it as text. The only network call in the package.
+
+    Transient mid-transfer failures are retried up to ``attempts`` times in total (see
+    ``_retryable``); anything else fails at once. Either way the caller gets the complete
+    body or a :class:`FetchError`, never a truncated text.
+    """
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            raw = response.read()
-    except (urllib.error.URLError, OSError, TimeoutError) as exc:
-        raise FetchError(f"could not retrieve {url}: {exc}") from exc
+    for attempt in range(1, max(1, attempts) + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                raw = response.read()
+            break
+        except (urllib.error.URLError, OSError, TimeoutError, http.client.HTTPException) as exc:
+            if attempt < attempts and _retryable(exc):
+                _LOG.warning(
+                    "retrying %s after %s: %s (attempt %d of %d)",
+                    url, type(exc).__name__, exc, attempt + 1, attempts,
+                )
+                time.sleep(backoff_s * attempt)
+                continue
+            tried = f" after {attempt} attempts" if attempt > 1 else ""
+            raise FetchError(f"could not retrieve {url}{tried}: {type(exc).__name__}: {exc}") from exc
     try:
         return raw.decode("utf-8")
     except UnicodeDecodeError as exc:

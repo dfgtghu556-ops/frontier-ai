@@ -6,8 +6,11 @@ a network-enabled machine. **Status (2026-09-24):** the first live fetch (EXP-00
 Alice and refused both Stage A Wikisource roots — `hi` was a localized `#REDIRECT`, `bn` a
 Wikidata/SPARQL infocard — and showed that both works are *scanned-book* transcriptions
 whose chapter pages contain no text of their own. They are now declared as rendered pages
-(§3.1). **Nothing has been pinned yet.** Run the steps where the network works, and record
-what you actually observe.
+(§3.1). The second live fetch (EXP-009) verified 37 of 38 sources: all 36 Godaan chapters
+(764,202 characters — the `hi` slot is `EVALUATED`) and Gitanjali (65,174 characters — `bn`
+is `INSUFFICIENT`, as expected); Alice was lost to a dropped connection
+(`IncompleteRead`), which the fetcher now retries. **Nothing has been pinned yet.** Run the
+steps where the network works, and record what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
@@ -117,10 +120,19 @@ values.
 ### 0.3 Step 3 — inspect before you trust it
 
 ```
+python scripts/inspect_corpus_sources.py
 cat data/tokenizer/indic-tokenizer-v2/acquisition.json
 head -c 600 data/tokenizer/indic-tokenizer-v2/sources/en-gutenberg-alice-pd.txt
 python -c "import json;d=json.load(open('data/tokenizer/indic-tokenizer-v2/coverage.json'));[print(r['language'], r['status'], r['reason']) for r in d['languages']]"
 ```
+
+`inspect_corpus_sources.py` (read-only) prints one line per source — characters, lines, the
+writing system of its letters, the scan pages and proofreading levels of a rendered source,
+a hash prefix — and **flags** anything cleaning should have removed (HTML, wiki markup,
+CSS, `&…;` entities, invisible characters, U+FFFD, long ASCII digit runs in a non-Latin
+text), then shows how the first and last source of every language start and end. It exits
+`1` when anything is flagged. It ignores a text file left over from an earlier run (its hash
+must be the one this run recorded).
 
 **What it does, in plain language:** shows you the report, the first lines of the text that
 was actually acquired, and the status of all 14 language slots. This is the step that
@@ -256,7 +268,7 @@ provenance file and the `reason:` line of the report.
 | **Proofreading** (`mediawiki-parse`) | any rendered scan page is at ProofreadPage level 1 (not proofread) or 2 (problematic) | `unproofread_refused` | No — wait for the wiki's proofreaders, or declare a range without those pages (§3.1) |
 | **Pinned hash** | the manifest pins a `sha256` and this fetch cleans to different bytes | `hash_mismatch` | Only by clearing `sha256`/`verified` in the manifest first, with a note saying why (§5) |
 | **Empty text** | the cleaned text is empty | `empty` | No |
-| **Fetch** | the host could not be reached, the response was not UTF-8, or (`mediawiki-parse`) the API returned an error or incomplete JSON | `fetch_failed` | No |
+| **Fetch** | the host could not be reached, the response was not UTF-8, or (`mediawiki-parse`) the API returned an error or incomplete JSON. A connection dropped mid-body and HTTP 429/5xx are retried (3 attempts in total); timeouts, DNS and TLS failures are not — they mean no route | `fetch_failed` | No |
 
 A refused source is **not** verified, is **not** part of the train/held-out split and is
 **not** pinned. Its text file is still written under `sources/<id>.txt` so you can look at
@@ -736,8 +748,11 @@ evidence of what exists, not a form to be filled in.
   wiki (a redirect and an infocard), and for scanned books it never can (§3.1).
 * ~~Whether the `rightsinfo` evidence resolves~~ — answered by EXP-008: both wikis declare
   CC BY-SA 4.0.
-* The `mediawiki-parse` cleaner has been checked against the real HTML structure of both
-  works (read through the API on 2026-09-24), but its first full run on live payloads is the
-  next `--fetch`. Report anything the §8 checklist catches rather than patching around it.
+* The `mediawiki-parse` cleaner ran on live payloads for the first time in EXP-009 (37
+  sources verified). Checked against the live wiki on 2026-09-24: chapter 1 starts on scan
+  page 11 with the novel's first line; the chapter 1→2 boundary is not duplicated (the
+  shared page's `<section end="1"/><section begin="1"/>` markers split it exactly); chapter
+  36 ends with the novel's last line on page 363 and no back matter follows. The human
+  reading in §8 is still required before `--pin`.
 * No per-language balancing or genre control exists yet; one work per language will
   confound later cross-language comparisons (Stage C) even after acquisition succeeds.
