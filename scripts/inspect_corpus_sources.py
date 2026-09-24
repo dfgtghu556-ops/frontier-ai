@@ -18,6 +18,10 @@ Read-only: it reads ``acquisition.json``, ``stats.json`` and ``sources/<id>.txt`
   ``&…;`` entities, invisible characters (U+200B, U+2060, U+FEFF, U+00AD, bidi controls),
   U+FFFD replacement characters, control characters, URLs, and long ASCII digit runs in a
   non-Latin text (hidden page ids such as ``38655`` look like that);
+* **where to look**: for every flagged source, up to five places per kind of problem, each
+  with the text around it (``«…»`` marks the spot), plus letters from another writing
+  system than the language's own (information, not a flag: an English word can belong in
+  a Hindi novel — a human decides);
 * how the first and last source of every language (and any source named with ``--show``)
   starts and ends — the part a human has to read;
 * identical-document counts per language from ``stats.json``.
@@ -60,6 +64,26 @@ _PATTERNS = {
     "url": re.compile(r"https?://"),
 }
 _ASCII_DIGIT_RUN = re.compile(r"(?<![0-9])[0-9]{4,}(?![0-9])")
+EXAMPLES = 5  # places shown per kind of problem, per source
+OTHER_SCRIPT_EXAMPLES = 3
+CONTEXT = 30  # characters of text shown on each side of a place
+
+
+def _script(char: str) -> str | None:
+    """First word of the Unicode name of a letter or mark (its writing system), else None."""
+    if unicodedata.category(char)[0] not in {"L", "M"}:
+        return None
+    name = unicodedata.name(char, "")
+    return name.split(" ")[0] if name else "UNKNOWN"
+
+
+def _context(text: str, start: int, end: int, mark: str | None = None) -> str:
+    """One line of text around ``text[start:end]``; the spot itself between «…»."""
+    left = text[max(0, start - CONTEXT):start]
+    right = text[end:end + CONTEXT]
+    spot = text[start:end] if mark is None else mark
+    snippet = f"{left}«{spot}»{right}".replace("\n", " | ")
+    return ("…" if start > CONTEXT else "") + snippet + ("…" if end + CONTEXT < len(text) else "")
 
 
 def analyze_text(text: str, language: str) -> dict[str, Any]:
@@ -74,15 +98,56 @@ def analyze_text(text: str, language: str) -> dict[str, Any]:
     dominant, dominant_count = scripts.most_common(1)[0] if scripts else ("NONE", 0)
     expected = EXPECTED_SCRIPT.get(language)
 
-    counts: dict[str, int] = {name: len(pattern.findall(text)) for name, pattern in _PATTERNS.items()}
+    counts: dict[str, int] = {}
+    examples: dict[str, list[str]] = {}
+    for name, pattern in _PATTERNS.items():
+        found = list(pattern.finditer(text))
+        counts[name] = len(found)
+        if found:
+            examples[name] = [_context(text, m.start(), m.end()) for m in found[:EXAMPLES]]
     invisible = Counter(INVISIBLE[char] for char in text if char in INVISIBLE)
     counts["replacement_char"] = text.count("\ufffd")
     counts["control"] = sum(
         1 for char in text if unicodedata.category(char) == "Cc" and char not in "\n\t"
     )
-    counts["ascii_digit_runs"] = (
-        len(_ASCII_DIGIT_RUN.findall(text)) if expected not in {None, "LATIN"} else 0
-    )
+    digit_runs = list(_ASCII_DIGIT_RUN.finditer(text)) if expected not in {None, "LATIN"} else []
+    counts["ascii_digit_runs"] = len(digit_runs)
+    if digit_runs:
+        examples["ascii_digit_runs"] = [_context(text, m.start(), m.end()) for m in digit_runs[:EXAMPLES]]
+    odd: dict[str, list[str]] = {"replacement_char": [], "control": [], "invisible": []}
+    for index, char in enumerate(text):
+        if char == "\ufffd":
+            kind, mark = "replacement_char", None
+        elif char in INVISIBLE:
+            kind, mark = "invisible", INVISIBLE[char]  # the character itself cannot be seen
+        elif unicodedata.category(char) == "Cc" and char not in "\n\t":
+            kind, mark = "control", f"U+{ord(char):04X}"
+        else:
+            continue
+        if len(odd[kind]) < EXAMPLES:
+            odd[kind].append(_context(text, index, index + 1, mark))
+    examples.update({kind: places for kind, places in odd.items() if places})
+
+    # letters from another writing system than the language's own: runs, with context
+    other_letters: Counter[str] = Counter()
+    other_places: list[str] = []
+    if expected:
+        index = 0
+        while index < len(text):
+            script = _script(text[index])
+            if script is None or script == expected:
+                index += 1
+                continue
+            end = index
+            while end < len(text) and _script(text[end]) not in (None, expected):
+                other_letters[_script(text[end]) or "UNKNOWN"] += 1
+                end += 1
+            if len(other_places) < OTHER_SCRIPT_EXAMPLES:
+                other_places.append(_context(text, index, end))
+            index = end
+    counts["other_script_letters"] = sum(other_letters.values())
+    if other_places:
+        examples["other_script"] = other_places
 
     flags: list[str] = []
     for name in ("html", "wiki", "entity", "css", "url", "replacement_char", "control"):
@@ -104,6 +169,8 @@ def analyze_text(text: str, language: str) -> dict[str, Any]:
         "counts": counts,
         "invisible": dict(invisible),
         "flags": flags,
+        "examples": examples,
+        "other_script_letters": dict(other_letters.most_common()),
         # the opening and the ending, across lines (a first line may be just "२")
         "head": " | ".join(lines)[:400],
         "tail": " | ".join(lines)[-400:],
@@ -164,6 +231,28 @@ def inspect_build(out: Path) -> dict[str, Any]:
     }
 
 
+def _where_to_look(rows: list[dict[str, Any]]) -> list[str]:
+    """For each flagged source (or one with letters of another script): the places."""
+    out: list[str] = []
+    for row in rows:
+        analysis = row["analysis"]
+        if analysis is None or not analysis.get("examples"):
+            continue
+        if not out:
+            out.append("[inspect] where to look (up to 5 places per kind; «…» marks the spot, "
+                       "' | ' = line break):")
+        out.append(f"[inspect]   {row['source_id']}")
+        for kind, places in analysis["examples"].items():
+            if kind == "other_script":
+                letters = ", ".join(f"{k} {v}" for k, v in analysis["other_script_letters"].items())
+                label = f"other-script letters ({letters}) — information, not a flag"
+            else:
+                label = kind
+            out.append(f"[inspect]       {label}:")
+            out.extend(f"[inspect]         {place}" for place in places)
+    return out
+
+
 def render(report: dict[str, Any], *, show: list[str], width: int) -> str:
     rows = report["sources"]
     verified = sum(1 for row in rows if row["status"] == "verified")
@@ -205,6 +294,7 @@ def render(report: dict[str, Any], *, show: list[str], width: int) -> str:
         "[inspect] flagged sources: "
         + (", ".join(report["flagged"]) if report["flagged"] else "none")
     )
+    lines.extend(_where_to_look(rows))
 
     # samples: first and last source of each language, plus --show
     by_language: dict[str, list[dict[str, Any]]] = {}

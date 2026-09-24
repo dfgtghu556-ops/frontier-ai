@@ -106,6 +106,7 @@ NBSP = "\u00a0"
 # Deliberately NOT artifacts: they are orthographic in Indic scripts.
 PRESERVED_JOINERS = ("\u200c", "\u200d")
 PAGE_JOIN_BREAK = "page-join <br> -> space"
+BROKEN_GAP = "broken {{gap}} template -> removed"
 
 # ProofreadPage quality levels (the numbers are the extension's, the names ours).
 QUALITY_NAMES = {
@@ -123,6 +124,18 @@ _DISPLAY_NONE = re.compile(r"display\s*:\s*none", re.IGNORECASE)
 # but not U+200B/U+200C/U+200D/U+2060/U+FEFF (they are format characters, not spaces).
 _WHITESPACE = re.compile(r"\s+")
 _ARTIFACTS = re.compile("[" + "".join(ARTIFACT_CHARS) + "]")
+# A mistyped {{gap}} (Wikisource's paragraph-indent template) that MediaWiki cannot parse
+# is printed verbatim: "{{Gap{}", "{{Gap}]", "{{Gap]}", "{Gap}}", "{{Gap))", "{{Gap@))",
+# "{{Gap" running straight into the text, or "<gap>" typed as a tag (all found in गो-दान
+# on 2026-09-24, 20 times on 19 scan pages). A correctly typed {{gap}} renders as a U+2060
+# spacer, which is removed anyway, so dropping the residue yields exactly the text a
+# correctly typed page yields — and the text no longer changes when someone fixes the typo
+# on the wiki. The pattern needs a brace or "<" right before the word and never takes a
+# longer Latin word ("gaps"); anything else odd is left for the inspection report to show.
+_BROKEN_GAP = re.compile(
+    r"\{\{?[ \t]*[Gg]ap(?![A-Za-z])[ \t]*[\]\)\}\{@|]*"
+    r"|</?[ \t]*[Gg]ap[ \t]*/?>"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -430,8 +443,11 @@ def render_html(html: str, *, min_prose_chars: int = 20) -> RenderedPage:
 
     def flush_line() -> bool:
         nonlocal navigation
-        joined = "".join(segment for segment, _link in current)
-        cleaned = _WHITESPACE.sub(" ", _ARTIFACTS.sub("", joined)).strip()
+        joined = _ARTIFACTS.sub("", "".join(segment for segment, _link in current))
+        joined, broken_gaps = _BROKEN_GAP.subn("", joined)
+        if broken_gaps:
+            artifacts[BROKEN_GAP] += broken_gaps
+        cleaned = _WHITESPACE.sub(" ", joined).strip()
         linked = sum(_visible(segment) for segment, is_link in current if is_link)
         total = sum(_visible(segment) for segment, _link in current)
         current.clear()

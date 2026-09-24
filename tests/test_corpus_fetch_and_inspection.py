@@ -170,6 +170,24 @@ def test_analyze_text_flags_everything_that_should_not_survive_cleaning() -> Non
     assert module.analyze_text("क्\u200dष और र्\u200cय", "hi")["flags"] == []
 
 
+def test_analyze_text_shows_where_each_problem_is() -> None:
+    module = _load_inspector()
+    dirty = module.analyze_text(DIRTY_HI, "hi")
+    places = dirty["examples"]
+    assert "«{{»gap}} आगे का पाठ" in places["wiki"][0]  # «…» marks the spot, with its context
+    assert "सुबह«ZWSP» हुई" in places["invisible"][0]  # an invisible character is named
+    assert "«38655»" in places["ascii_digit_runs"][1]
+    assert "«�»" in places["replacement_char"][0]
+    assert all(len(found) <= module.EXAMPLES for found in places.values())
+    # letters of another script are shown (information), counted per script
+    assert dirty["other_script_letters"]["LATIN"] > 0 and places["other_script"]
+    clean = module.analyze_text(CLEAN_HI, "hi")
+    assert clean["examples"] == {} and clean["other_script_letters"] == {}
+    # an English word in a Hindi text is shown but is not a flag
+    mixed = module.analyze_text("होरी ने कहा, Mr. Khanna आज आएँगे और सब ठीक हो जाएगा।", "hi")
+    assert mixed["flags"] == [] and "«Mr»" in mixed["examples"]["other_script"][0]
+
+
 def test_inspection_report_reads_a_build_and_ignores_stale_files(tmp_path: Path, capsys) -> None:
     module = _load_inspector()
     out = _build(tmp_path)
@@ -177,6 +195,9 @@ def test_inspection_report_reads_a_build_and_ignores_stale_files(tmp_path: Path,
     printed = capsys.readouterr().out
     assert code == 1  # a flagged source makes the exit code non-zero
     assert "flagged sources: hi-dirty" in printed
+    assert "where to look" in printed and "«{{»gap}}" in printed
+    where = printed.split("where to look", 1)[1].split("samples (", 1)[0]
+    assert "hi-dirty" in where and "hi-clean" not in where and "en-book" not in where
     assert "११-१२ q3:1,q4:1" in printed
     assert "गाँव में सुबह हुई" in printed  # the sample lines a human must read
     assert "en-stale" in printed and "no text this run" in printed

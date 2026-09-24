@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from frontier_ai.data.corpora import clean_text, sha256_text
 from frontier_ai.data.mediawiki import (
+    BROKEN_GAP,
     clean_mediawiki_parse,
     read_parse_payload,
     render_html,
@@ -198,6 +199,43 @@ def test_page_join_line_breaks_become_spaces_outside_poems() -> None:
     # visible text between the anchor and the <br> means the break is the author's
     kept = render_html(f"<p>{anchor}शीर्षक<br />पहली पंक्ति</p>")
     assert kept.text == "शीर्षक\nपहली पंक्ति"
+
+
+# every residue below was printed verbatim by hi.wikisource for a mistyped {{gap}} in गो-दान
+# (checked 2026-09-24, e.g. पृष्ठ:गो-दान.djvu/११६ "{{Gap{}", /४१ "<gap>", /२२ "{Gap}}")
+GODAAN_BROKEN_GAPS = [
+    "{{Gap{}", "{{Gap{{", "{{Gap}]", "{{gap}]", "{{Gap]}", "{Gap}}", "{{Gap", "{{Gap))",
+    "{{Gap@))", "&lt;gap&gt;",
+]
+
+
+def test_broken_gap_template_residue_is_removed_and_counted() -> None:
+    prose = [f"{residue}{HINDI_PROSE[i % len(HINDI_PROSE)]}" for i, residue in enumerate(GODAAN_BROKEN_GAPS)]
+    html = rendered_chapter_html(prose, qualities=(3,))
+    page = render_html(html)
+    for residue in ("{", "}", "<gap>", "Gap", "gap"):
+        assert residue not in page.text, residue
+    for paragraph in HINDI_PROSE:  # the transcription itself is untouched
+        assert paragraph in page.text
+    assert page.artifacts_removed[BROKEN_GAP] == len(GODAAN_BROKEN_GAPS)
+    # the same text a correctly typed {{gap}} gives (it renders as a removed U+2060 spacer)
+    correct = render_html(rendered_chapter_html(
+        [HINDI_PROSE[i % len(HINDI_PROSE)] for i in range(len(GODAAN_BROKEN_GAPS))], qualities=(3,)))
+    assert page.text == correct.text
+    # the corpus cleaner applies it too
+    assert clean_mediawiki_parse(parse_payload(html)) == page.text
+
+
+def test_broken_gap_rule_leaves_look_alikes_alone() -> None:
+    page = render_html(
+        "<p>The gaps stay, and so does a gap. {gaps} and Gap year too.</p>"
+        "<p>गाँव {{ और }} &lt;gaps&gt; बाकी रहे।</p>"
+    )
+    assert page.text == (
+        "The gaps stay, and so does a gap. {gaps} and Gap year too.\n\n"
+        "गाँव {{ और }} <gaps> बाकी रहे।"
+    )
+    assert BROKEN_GAP not in page.artifacts_removed  # anything else odd is left for inspection
 
 
 def test_render_records_page_quality_and_flags_unproofread_pages() -> None:

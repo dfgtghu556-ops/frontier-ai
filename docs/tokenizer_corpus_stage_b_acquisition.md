@@ -12,8 +12,16 @@ is `INSUFFICIENT`, as expected); Alice was lost to a dropped connection
 (`IncompleteRead`), which the fetcher now retries. Because Alice (144,599 characters) and
 Gitanjali are each below the 200,000-character target, a second work was declared for
 each slot after EXP-009 — Tagore's *Sadhana* (§2.4) and Sarat Chandra's *Devdas* (§2.5) —
-bringing the manifest to 40 sources; neither has been fetched yet. **Nothing has been
-pinned yet.** Run the steps where the network works, and record what you actually observe.
+bringing the manifest to 40 sources. The third live fetch (EXP-010) verified **all 40**
+(Alice 144,599 + Sadhana 206,965; Gitanjali 65,174 + Devdas 152,768 characters): `en`, `hi`
+and `bn` are all `EVALUATED`. All 38 sources fetched before came back byte-identical (37
+match EXP-009, Alice matches EXP-008), so repeated fetches are deterministic. The
+inspection report then flagged 20 verbatim residues of mistyped `{{gap}}` templates on 19
+Godaan scan pages (`{{Gap{}`, `{{Gap}]`, `<gap>` …, all located on the wiki) — the cleaner
+now removes them (§3.1) — plus one leftover piece of wiki markup in Gitanjali, not yet
+located (§12).
+**Nothing has been pinned yet.** Run the steps where the network works, and record what you
+actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
@@ -133,9 +141,12 @@ python -c "import json;d=json.load(open('data/tokenizer/indic-tokenizer-v2/cover
 writing system of its letters, the scan pages and proofreading levels of a rendered source,
 a hash prefix — and **flags** anything cleaning should have removed (HTML, wiki markup,
 CSS, `&…;` entities, invisible characters, U+FFFD, long ASCII digit runs in a non-Latin
-text), then shows how the first and last source of every language start and end. It exits
-`1` when anything is flagged. It ignores a text file left over from an earlier run (its hash
-must be the one this run recorded).
+text), then — under **where to look** — prints up to five places per kind of problem for
+each flagged source, each with the text around it (`«…»` marks the spot), plus letters from
+another writing system than the language's own (information only: an English word may
+belong in a Hindi novel). Finally it shows how the first and last source of every language
+start and end. It exits `1` when anything is flagged. It ignores a text file left over from
+an earlier run (its hash must be the one this run recorded).
 
 **What it does, in plain language:** shows you the report, the first lines of the text that
 was actually acquired, and the status of all 14 language slots. This is the step that
@@ -491,7 +502,15 @@ the manifest until a human puts it there.
 * removes three invisible rendering artifacts — U+200B, U+2060 (from `{{gap}}`), U+FEFF (left
   by OCR imports) — and turns U+00A0 into a space; **keeps U+200C/U+200D** (ZWNJ/ZWJ), which
   decide how Indic conjuncts are written. No NFC/NFD/NFKC. All counts are in
-  `content_check.artifacts_removed`.
+  `content_check.artifacts_removed`;
+* removes the verbatim residue of a **mistyped `{{gap}}`**: MediaWiki prints a template call
+  it cannot parse as plain text, so `{{Gap{}`, `{{Gap}]`, `{{Gap]}`, `{Gap}}`, `{{Gap))`,
+  `{{Gap@))`, `{{Gap` running into the text, or `<gap>` typed as a tag would otherwise
+  reach the corpus (20 of them in Godaan, found by the inspection after EXP-010). A correct
+  `{{gap}}` renders as a U+2060 spacer that is removed anyway, so the cleaned text is the
+  same whether or not the typo is ever fixed on the wiki. Only a brace or `<` directly
+  before the word triggers it; counted as `broken {{gap}} template -> removed`. Any other
+  stray markup is left in place for the inspection report to show.
 
 **Known limitation (not fixed, on purpose):** a word split across two printed pages without
 a hyphenation template renders with ProofreadPage's join space in the middle (`अधि कार` for
@@ -821,5 +840,17 @@ evidence of what exists, not a form to be filled in.
   shared page's `<section end="1"/><section begin="1"/>` markers split it exactly); chapter
   36 ends with the novel's last line on page 363 and no back matter follows. The human
   reading in §8 is still required before `--pin`.
+* **Gitanjali: one leftover piece of wiki markup** (`wiki=1` in the EXP-010 inspection: one
+  `{{`, `}}`, `[[`, `]]` or `__WORD__`) is not located yet. Searching the wiki's page sources
+  did not find it; the pages open a `{{Block center|<poem>` on one page and close it on
+  another, so an unbalanced pair cannot be searched for page by page. The next inspection
+  prints where it is (§0.3, "where to look"); decide then — one such mark in 65,174
+  characters is harmless, but it should be understood before `--pin`.
+* **"Proofread" is not error-free.** ProofreadPage level 3 means one volunteer checked the
+  page; Godaan's level-3 pages still carry OCR confusions (e.g. `हीग` for `हीरा`, `ग्विलाते`
+  for `खिलाते`, `वैठे` for `बैठे` in the opening pages of chapter 9, read on the live wiki on
+  2026-09-24). The pipeline keeps the text as the wiki has it and never "corrects" words;
+  this is a known noise floor for the Hindi slot, worth remembering when comparing
+  tokenizers on it.
 * No per-language balancing or genre control exists yet; one work per language will
   confound later cross-language comparisons (Stage C) even after acquisition succeeds.
