@@ -2,7 +2,7 @@
 
 **This is a procedure, not a report.** It was written in an environment that cannot reach
 any corpus host (every endpoint fails with `TLS/SSL … EOF`); the fetches themselves run on
-a network-enabled machine. **Status (2026-09-24):** the first live fetch (EXP-008) verified
+a network-enabled machine. **Status (2026-09-25):** the first live fetch (EXP-008) verified
 Alice and refused both Stage A Wikisource roots — `hi` was a localized `#REDIRECT`, `bn` a
 Wikidata/SPARQL infocard — and showed that both works are *scanned-book* transcriptions
 whose chapter pages contain no text of their own. They are now declared as rendered pages
@@ -39,8 +39,10 @@ a proofreading-gate gap that is now closed (§3.1: a render that hides page leve
 unchecked). Their first fetch (EXP-015) verified all 47 sources (the 40 pinned ones unchanged)
 and put all four new slots above target: gu 297,628, ml 399,168, or 203,451, as 241,025
 characters. Its inspection found one more wiki typo, a `<poem>` tag printed as text in the
-Odia novel, which the cleaner now removes (§3.1); the new sources are pinned after the next
-fetch (EXP-016) shows it. The other 7 slots have no sources yet (§9).
+Odia novel, which the cleaner now removes (§3.1). The next fetch (EXP-016) confirmed the fix:
+all 47 verified, only the Odia text changed (by exactly the 7 characters of the tag and a
+space, to 203,444), and nothing is flagged except a genuine year in the Malayalam novel. The
+seven new sources are pinned next (EXP-017). The other 7 slots have no sources yet (§9).
 Run the steps where the network works, and record what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
@@ -196,8 +198,10 @@ git diff corpora/tokenizer/indic-tokenizer-v2/sources.json
 
 **What it does, in plain language:** repeats the fetch and, for sources that passed every
 gate *in that run*, writes `sha256`, `verified: true` and `retrieved_at` into the manifest.
-The `git diff` should show nothing but those three fields, for those sources only. If
-nothing verified, the manifest is byte-identical and there is nothing to commit.
+The `git diff` should show nothing but those three fields, for those sources only. A source
+that was already pinned and came back identical keeps its hash; only its `retrieved_at`
+moves (§5.1). If nothing verified, the manifest is byte-identical and there is nothing to
+commit.
 
 ### 0.5 Step 5 — later, re-verify (this is what a pin is for)
 
@@ -489,6 +493,14 @@ kn 60, pa 198 for the next groups). All four works are novels that are public do
   the Gujarati novel, `--o--` ornaments between Odia chapters, an English gloss in Manomati.
   Manomati part 1 types U+09F7 for the danda, so the document splitter now splits there too
   and never cuts a sentence mid-word (document boundaries only; no hash changes).
+* **Second fetch (EXP-016):** all 47 verified, exit 0. The 40 pinned sources and six of the
+  new ones came back byte-identical (every prefix equals its pin or EXP-015's). Only or
+  changed: 203,451 → 203,444 characters (prefix `6a0339ff3ea5` → `83850852f8f4`), its repairs
+  line reads `literal <poem> tag -> removed (1)` and it is no longer flagged; the only flag
+  left is ml's `1033`. Identical documents in as went from 44 to 46 (the new document
+  splitting at U+09F7 and between words; no hash changed). Hash prefixes the pin (EXP-017)
+  is expected to write: gu `c3fe2b7aa706`, `91e688351017`; ml `beb122a5db78`,
+  `db88c28a02b9`; or `83850852f8f4`; as `9876b5c9940e`, `eb4b86b65401`.
 
 ---
 
@@ -870,9 +882,10 @@ unverified and its slot does not become `EVALUATED`.
 - [ ] gu and or: `content_check.page_quality.level_lookup` present with `confirmed` = `asked` and `error: null`; levels 3/4 only
 - [ ] ml: page levels read from the render (no `level_lookup`), and no bracketed page numbers in the text
 - [ ] Each starts with its first chapter (gu `સરસ્વતીચંદ્ર.` / `પ્રકરણ ૧.`, ml `അദ്ധ്യായം ഒന്ന്`, or `ପ୍ରଥମ ପରିଚ୍ଛେଦ`, as `মনোমতী` / `প্ৰথম খণ্ড`); no CSS anywhere
-- [ ] Characters per slot: EXP-015 had gu 297,628, ml 399,168, or 203,451, as 241,025; with the `<poem>` fix only or changes, to 203,444 (all four `EVALUATED`)
+- [ ] Characters per slot: EXP-015 had gu 297,628, ml 399,168, or 203,451, as 241,025; with the `<poem>` fix only or changes, to 203,444 (all four `EVALUATED`) — EXP-016 showed exactly this
 - [ ] or's repairs line shows `literal <poem> tag -> removed (1)`, and nothing is flagged for it any more
 - [ ] `sha256` pinned only after all of the above
+- [ ] After the pin, `git diff` shows `sha256`, `verified` and `retrieved_at` for these 7 and only `retrieved_at` for the 40 pinned before; each new hash begins with its EXP-016 prefix (§2.6)
 
 ---
 
