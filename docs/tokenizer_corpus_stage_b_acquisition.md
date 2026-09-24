@@ -32,8 +32,9 @@ nothing was flagged.
 **Pinned (EXP-013): all 40 `en`/`hi`/`bn` sources.** The operator's `--pin` run wrote their
 hashes (retrieved 2026-09-24T17:04–17:05Z); each begins with the prefix EXP-012's inspection
 reported, and Alice's equals the hash of EXP-008/010/011. Every later fetch compares against
-these pins and refuses changed text (§0.5). The other 11 slots have no sources yet (§9). Run
-the steps where the network works, and record what you actually observe.
+these pins and refuses changed text (§0.5); the first re-verification (EXP-014) exited 0, so
+no pinned source had changed. The other 11 slots have no sources yet (§9). Run the steps
+where the network works, and record what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
