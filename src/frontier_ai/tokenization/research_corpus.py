@@ -365,8 +365,14 @@ class TokenizerCorpusManifest:
         payload = json.dumps(
             self.to_dict(omit_empty_optional=omit_empty_optional), indent=2, ensure_ascii=False
         ) + "\n"
+        # Keep the line endings the file already has: a Windows checkout may hold it with CRLF
+        # (core.autocrlf=true), any other with LF. A pin must change the pinned fields and
+        # nothing else, on every platform, so `git diff` shows only them. (Not write_text:
+        # it would use the platform's ending, and its newline= needs Python 3.10.)
+        newline = "\r\n" if target.exists() and b"\r\n" in target.read_bytes() else "\n"
         tmp = target.with_suffix(target.suffix + ".tmp")
-        tmp.write_text(payload, encoding="utf-8")
+        with open(tmp, "w", encoding="utf-8", newline=newline) as handle:
+            handle.write(payload)
         tmp.replace(target)
 
     def evidence_for(self, source_id: str) -> LicenseEvidence | None:

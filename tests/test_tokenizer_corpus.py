@@ -1192,6 +1192,38 @@ def test_pin_does_not_add_noise_fields(tmp_path: Path, monkeypatch) -> None:
             assert "reason" not in slot
 
 
+@pytest.mark.parametrize("ending", ["\r\n", "\n"], ids=["crlf", "lf"])
+def test_pin_keeps_the_line_endings_the_manifest_already_has(
+    tmp_path: Path, monkeypatch, ending: str
+) -> None:
+    """A Windows checkout may hold the manifest with CRLF endings (core.autocrlf=true), a
+    Linux one with LF. Either way the pin must change the three pinned fields and nothing
+    else, so that `git diff` shows only them - not every line of the file."""
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(MARATHI_TEXT),
+    )
+    manifest_path = _manifest(
+        tmp_path, [_source("hi-src", "hi")], slots=[{"code": "hi", "sources": ["hi-src"]}]
+    )
+    TokenizerCorpusManifest.load(manifest_path).save(manifest_path)  # the project's formatting
+    formatted = manifest_path.read_bytes().decode("utf-8")
+    assert "\r" not in formatted, "a manifest without CRLF endings is written with LF"
+    manifest_path.write_bytes(formatted.replace("\n", ending).encode("utf-8"))
+    before = manifest_path.read_bytes().decode("utf-8").split(ending)
+
+    build_corpus(manifest_path, tmp_path / "build", fetch=True, pin=True)
+
+    written = manifest_path.read_bytes().decode("utf-8")
+    assert written.count(ending) == written.count("\n"), "every line keeps its ending"
+    after = written.split(ending)
+    assert len(after) == len(before)
+    changed = [(old, new) for old, new in zip(before, after) if old != new]
+    assert {new.split(":")[0].strip() for _, new in changed} == {
+        '"sha256"', '"verified"', '"retrieved_at"'
+    }
+
+
 # ---------------------------------------------------------------------------
 # H-3: local file ingestion
 # ---------------------------------------------------------------------------
