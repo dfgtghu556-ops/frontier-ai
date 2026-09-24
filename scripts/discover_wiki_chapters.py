@@ -4,14 +4,7 @@ Run from the repository root after 'git pull':
 
     python scripts/discover_wiki_chapters.py
 
-The script uses the MediaWiki API (with a proper User-Agent so Wikimedia does
-not 403 us) to list subpages for the redirect/SPARQL targets of the hi/bn
-sources, and to probe a few alternative titles for Bengali Gitanjali (whose
-root is an infocard with no subpages).
-
-This is a READ-ONLY diagnostic. It writes nothing, pins nothing and does not
-modify the manifest — it just prints what it finds so a human can decide which
-subpages to declare.
+READ-ONLY diagnostic: prints what it finds; writes and pins nothing.
 """
 from __future__ import annotations
 
@@ -32,11 +25,6 @@ def _get(url: str) -> dict[str, Any]:
 
 
 def subpages(lang: str, prefix: str) -> list[str]:
-    """List main-namespace pages whose title starts with '<prefix>/'.
-
-    Uses the MediaWiki 'allpages' list.  aplimit=500 is generous (a novel with
-    that many chapters is unusual) but bounded.
-    """
     url = (
         f"https://{lang}.wikisource.org/w/api.php?"
         f"action=query&list=allpages&apprefix={urllib.parse.quote(prefix + '/')}"
@@ -46,51 +34,46 @@ def subpages(lang: str, prefix: str) -> list[str]:
     return [p["title"] for p in data["query"]["allpages"]]
 
 
-def page_info(lang: str, title: str) -> dict[str, Any] | None:
-    """Fetch basic info + sections list for a page. Returns None if missing."""
+def raw_len(lang: str, title: str) -> tuple[int | None, str | None]:
+    """Return (length_of_raw_wikitext, redirect_target_if_any)."""
     url = (
         f"https://{lang}.wikisource.org/w/api.php?"
-        f"action=parse&page={urllib.parse.quote(title)}"
-        f"&prop=sections|categories|displaytitle&format=json"
+        f"action=query&titles={urllib.parse.quote(title)}"
+        f"&prop=revisions&rvprop=size|content&rvlimit=1&format=json&redirects"
     )
     try:
-        return _get(url)["parse"]
-    except urllib.error.HTTPError as exc:  # type: ignore[name-defined]
-        if exc.code == 404:
-            return None
-        raise
+        data = _get(url)
+    except Exception as exc:  # noqa: BLE001
+        return None, f"fetch error: {exc}"
+    pages = data["query"]["pages"]
+    # redirects field is present if we were redirected
+    redirects = data["query"].get("redirects", [])
+    redirect_target = redirects[0]["to"] if redirects else None
+    for pid, p in pages.items():
+        if pid == "-1":
+            return None, "missing"
+        revs = p.get("revisions") or []
+        if revs:
+            content = revs[0].get("*", "")
+            return len(content), redirect_target
+        return 0, redirect_target
+    return None, None
 
 
-def search(lang: str, term: str) -> list[str]:
-    """Search titles for the given term (to find Gitanjali if it lives elsewhere)."""
+def search(lang: str, term: str) -> list[dict[str, Any]]:
     url = (
         f"https://{lang}.wikisource.org/w/api.php?"
         f"action=query&list=search&srsearch={urllib.parse.quote(term)}"
-        f"&srnamespace=0&srlimit=30&format=json"
+        f"&srnamespace=0|102|104&srlimit=30&format=json"
     )
     data = _get(url)
-    return [h["title"] for h in data["query"]["search"]]
+    return data["query"]["search"]
 
 
-def probe(lang: str, title: str) -> dict[str, Any]:
-    info = page_info(lang, title)
-    if info is None:
-        return {"title": title, "exists": False}
-    sections = info.get("sections", [])
-    cats = [c["*"] for c in info.get("categories", [])]
-    # Count how many sections look like chapters (numbered headings)
-    numbered = [s for s in sections if s.get("number")]
-    return {
-        "title": title,
-        "exists": True,
-        "displaytitle": info.get("displaytitle", title),
-        "n_sections": len(sections),
-        "n_numbered_sections": len(numbered),
-        "first_section_numbers": [s.get("number") for s in numbered[:6]],
-        "first_section_lines": [s.get("line") for s in sections[:8]],
-        "n_categories": len(cats),
-        "first_cats": cats[:4],
-    }
+def resolve(lang: str, title: str) -> dict[str, Any]:
+    """Follow redirects and return {'title', 'length', 'redirect_from'}"""
+    length, redir = raw_len(lang, title)
+    return {"candidate": title, "length": length, "redirect_to": redir}
 
 
 def banner(msg: str) -> None:
@@ -101,52 +84,65 @@ def banner(msg: str) -> None:
 
 
 def main() -> int:
-    banner("Hindi — गो-दान (Godaan, redirect target of the declared root)")
+    banner("Hindi — गो-दान subpages (Godaan redirect target)")
     hi_pages = subpages("hi", "गो-दान")
-    print(f"Found {len(hi_pages)} subpages:")
-    for p in hi_pages:
-        print(f"  {p}")
-
-    # Separately, probe the root for its sections list so we can tell whether the
-    # numbered pages are chapters vs the 'भाग' pages are real parts.
-    banner("Hindi — content shape of a few candidate pages")
-    for title in ["गो-दान"] + hi_pages[:3] + hi_pages[-3:]:
-        pr = probe("hi", title)
-        if pr["exists"]:
-            print(f"  {pr['title']:<30} sections={pr['n_sections']:>3} "
-                  f"numbered={pr['n_numbered_sections']:>3}  "
-                  f"first={pr['first_section_lines'][:2]}")
+    print(f"Found {len(hi_pages)} subpages of गो-दान/")
+    # Spot-check a few: how large is the raw wikitext?
+    for title in ["गो-दान"] + hi_pages[:4] + hi_pages[-2:]:
+        r = resolve("hi", title)
+        if r["length"] is not None:
+            print(f"  {r['candidate']:<28}  wikitext_len={r['length']:>7}"
+                  f"{'  (redirects to ' + r['redirect_to'] + ')' if r['redirect_to'] else ''}")
         else:
-            print(f"  {title:<30} (not found)")
+            print(f"  {r['candidate']:<28}  -> {r['redirect_to']}")
 
-    banner("Bengali — গীতাঞ্জলি (Gitanjali): declared root and likely alternatives")
-    bn_candidates: list[str] = [
-        "গীতাঞ্জলি",  # declared root (is a SPARQL infocard)
-        "গীতাঞ্জলী",  # alternate spelling with dirgho-I
-        "গীতাঞ্জলি (গ্রন্থ)",  # common "(book)" disambiguation
+    banner("Bengali — Gitanjali: probing candidate titles (raw wikitext size)")
+    bn_candidates = [
+        "গীতাঞ্জলি",
+        "গীতাঞ্জলী",
+        "গীতাঞ্জলি (গ্রন্থ)",
         "গীতাঞ্জলি (রবীন্দ্রনাথ ঠাকুর)",
         "গীতাঞ্জলি/গীতাঞ্জলি",
-        "Index:গীতাঞ্জলি",  # Index: namespace (multipart works)
+        "Index:গীতাঞ্জলি",
+        "Index:Gitanjali",
+        "সঞ্চয়িতা/গীতাঞ্জলি",
+        "গীতাঞ্জলি/১",
+        "গীতাঞ্জলি/গীতাঞ্জলি/১",
+        "গীতাঞ্জলি (কাব্যগ্রন্থ)",
+        "Gitanjali",
     ]
+    seen = set()
     for cand in bn_candidates:
-        pr = probe("bn", cand)
-        if pr["exists"]:
-            print(f"  {cand:<35} EXSTS  sections={pr['n_sections']:>3} "
-                  f"numbered={pr['n_numbered_sections']:>3}  "
-                  f"first={pr['first_section_lines'][:3]}")
-            # Try listing subpages
-            sp = subpages("bn", cand)
-            if sp:
-                print(f"    --> has {len(sp)} subpages, first few: {sp[:5]}")
-        else:
-            print(f"  {cand:<35} missing")
+        if cand in seen:
+            continue
+        seen.add(cand)
+        try:
+            r = resolve("bn", cand)
+            if r["length"] is None:
+                print(f"  {cand:<40}  -> {r['redirect_to']}")
+            else:
+                redir_note = f"  (-> {r['redirect_to']})" if r["redirect_to"] else ""
+                print(f"  {cand:<40}  wikitext_len={r['length']:>7}{redir_note}")
+                # If it's big (>5000 chars), also list subpages
+                if r["length"] > 5000:
+                    sp = subpages("bn", r["redirect_to"] or cand)
+                    if sp:
+                        print(f"      SUBPAGES ({len(sp)}): {sp[:10]}{'...' if len(sp)>10 else ''}")
+        except Exception as exc:  # noqa: BLE001
+            print(f"  {cand:<40}  ERROR: {exc}")
 
-    banner("Bengali — search for Gitanjali-related pages on bn.wikisource")
-    for term in ["গীতাঞ্জলি", "গীতাঞ্জলী"]:
-        hits = search("bn", term)
-        print(f"  search({term!r}) -> {len(hits)} hits:")
-        for h in hits[:15]:
-            print(f"    {h}")
+    banner("Bengali — search for গীতাঞ্জলি (namespaces 0, 102 Index, 104 Page)")
+    for term in ["গীতাঞ্জলি", "গীতাঞ্জলী", "Gitanjali"]:
+        try:
+            hits = search("bn", term)
+            print(f"\n  search('{term}') -> {len(hits)} hits:")
+            for h in hits[:20]:
+                size = h.get("size", "?")
+                title = h["title"]
+                # Show the subpage list for any hit that looks like a container
+                print(f"    size={size:>6}  ns={h.get('ns')}  {title}")
+        except Exception as exc:  # noqa: BLE001
+            print(f"  search('{term}') ERROR: {exc}")
 
     return 0
 
