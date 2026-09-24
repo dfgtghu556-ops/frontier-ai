@@ -24,7 +24,11 @@ sources were byte-identical. Its report's new *where to look* section located th
 red links to misspelt templates that do not exist (`साँचा:GaP`, `GP`, `Gpa`, `GAP` in
 chapters 3, 21 and 24) and Gitanjali's stray `}}` (scan page ১৪৮). The cleaner now removes
 both kinds too (§3.1); by the wikis' own template lists, no other missing template occurs in
-any of the 38 rendered sources.
+any of the 38 rendered sources. The fifth fetch (EXP-012) confirmed both: all 40 verified,
+exactly chapters 3, 21 and 24 and Gitanjali changed (chapter 3 lost exactly the 9
+characters of `साँचा:GaP`, Gitanjali the 2 of `}}`), the other 36 sources were
+byte-identical to EXP-011, the report's repair counts match every located residue, and
+nothing was flagged. Pinning (step 4) is next.
 **Nothing has been pinned yet.** Run the steps where the network works, and record what you
 actually observe.
 
@@ -157,9 +161,10 @@ writing system of its letters, the scan pages and proofreading levels of a rende
 a hash prefix — and **flags** anything cleaning should have removed (HTML, wiki markup,
 CSS, `&…;` entities, invisible characters, U+FFFD, long ASCII digit runs in a non-Latin
 text), then — under **where to look** — prints up to five places per kind of problem for
-each flagged source, each with the text around it (`«…»` marks the spot), plus letters from
-another writing system than the language's own (information only: an English word may
-belong in a Hindi novel). Under **repairs by the cleaner** it lists, per source, what the
+each flagged source, each with the text around it (`«…»` marks the spot), plus up to three
+places with letters from another writing system than the language's own (information
+only: an English word may belong in a Hindi novel); a cut list says so (`3 of 11 places
+shown`). Under **repairs by the cleaner** it lists, per source, what the
 cleaner removed because it was typed wrongly on the wiki (from the provenance), so a fix can
 be checked by its counts. Finally it shows how the first and last source of every language
 start and end. It exits `1` when anything is flagged. It ignores a text file left over from

@@ -19,9 +19,9 @@ Read-only: it reads ``acquisition.json``, ``stats.json`` and ``sources/<id>.txt`
   U+FFFD replacement characters, control characters, URLs, and long ASCII digit runs in a
   non-Latin text (hidden page ids such as ``38655`` look like that);
 * **where to look**: for every flagged source, up to five places per kind of problem, each
-  with the text around it (``«…»`` marks the spot), plus letters from another writing
-  system than the language's own (information, not a flag: an English word can belong in
-  a Hindi novel — a human decides);
+  with the text around it (``«…»`` marks the spot), plus up to three places with letters
+  from another writing system than the language's own (information, not a flag: an
+  English word can belong in a Hindi novel — a human decides);
 * **repairs by the cleaner**: per rendered source, what the cleaner removed because it was
   typed wrongly on the wiki (mistyped ``{{gap}}``, links to missing templates, stray
   ``}}``), read from the provenance — routine invisible characters are not listed;
@@ -248,7 +248,8 @@ def _where_to_look(rows: list[dict[str, Any]]) -> list[str]:
         if analysis is None or not analysis.get("examples"):
             continue
         if not out:
-            out.append("[inspect] where to look (up to 5 places per kind; «…» marks the spot, "
+            out.append(f"[inspect] where to look (up to {EXAMPLES} places per kind, "
+                       f"{OTHER_SCRIPT_EXAMPLES} for letters of another script; «…» marks the spot, "
                        "' | ' = line break):")
         out.append(f"[inspect]   {row['source_id']}")
         for kind, places in analysis["examples"].items():
