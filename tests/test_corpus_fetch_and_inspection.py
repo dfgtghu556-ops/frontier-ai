@@ -141,7 +141,9 @@ def _build(tmp_path: Path) -> Path:
     (out / "sources" / "hi-clean.provenance.json").write_text(json.dumps({"content_check": {
         "page_quality": {"pages": 2, "first_page": "पृष्ठ:W.djvu/११", "last_page": "पृष्ठ:W.djvu/१२",
                          "by_level": {"3": 1, "4": 1}},
-        "artifacts_removed": {"U+2060 WORD JOINER": 2}}}, ensure_ascii=False), encoding="utf-8")
+        "artifacts_removed": {"U+2060 WORD JOINER": 2, "broken {{gap}} template -> removed": 3,
+                              "link to missing template साँचा:GaP -> removed": 1}}}, ensure_ascii=False),
+        encoding="utf-8")
     # a file left over from an earlier run for a source whose fetch failed this time
     (out / "sources" / "en-stale.txt").write_text("text from yesterday", encoding="utf-8")
     rows.append({"source_id": "en-stale", "language": "en", "verification_status": "fetch_failed",
@@ -196,8 +198,14 @@ def test_inspection_report_reads_a_build_and_ignores_stale_files(tmp_path: Path,
     assert code == 1  # a flagged source makes the exit code non-zero
     assert "flagged sources: hi-dirty" in printed
     assert "where to look" in printed and "«{{»gap}}" in printed
-    where = printed.split("where to look", 1)[1].split("samples (", 1)[0]
+    where = printed.split("where to look", 1)[1].split("repairs by the cleaner", 1)[0]
     assert "hi-dirty" in where and "hi-clean" not in where and "en-book" not in where
+    assert "other-script letters (LATIN 61) — information, not a flag — 3 of 13 places shown" in where
+    # repairs are listed from the provenance; routine invisible characters are not
+    repairs = printed.split("repairs by the cleaner", 1)[1].split("samples (", 1)[0]
+    assert ("hi-clean: broken {{gap}} template -> removed (3); "
+            "link to missing template साँचा:GaP -> removed (1)") in repairs
+    assert "WORD JOINER" not in repairs
     assert "११-१२ q3:1,q4:1" in printed
     assert "गाँव में सुबह हुई" in printed  # the sample lines a human must read
     assert "en-stale" in printed and "no text this run" in printed

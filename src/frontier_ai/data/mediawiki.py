@@ -40,6 +40,13 @@ The conversion rules (deterministic, reviewable, tested)
   ``{{gap}}`` indent template and byte-order marks left in OCR imports; none of them is
   part of the printed text. U+00A0 NO-BREAK SPACE (``&nbsp;``/``&#160;`` used for
   layout) becomes an ordinary space. Every removal is counted and recorded.
+* **Mistyped templates removed:** MediaWiki prints what it cannot parse as text, and
+  renders a call to a template that does not exist as a red link to it. Three such traces
+  are removed, each counted: the verbatim residue of a mistyped ``{{gap}}`` (``{{Gap{}``,
+  ``<gap>`` …); a red link into the Template namespace (``साँचा:GaP`` — the link names the
+  missing template, never the work; see :data:`TEMPLATE_NAMESPACE`); and a ``}}`` that
+  closes nothing, on a line without ``{`` or ``|``. Everything else odd stays in the text
+  for the inspection report to show.
 * **Never touched:** U+200C ZERO WIDTH NON-JOINER and U+200D ZERO WIDTH JOINER. In Indic
   scripts they decide how a conjunct is written; removing them would change the text.
   No Unicode normalization (NFC/NFD/NFKC) is applied — that remains a later-stage
@@ -107,6 +114,20 @@ NBSP = "\u00a0"
 PRESERVED_JOINERS = ("\u200c", "\u200d")
 PAGE_JOIN_BREAK = "page-join <br> -> space"
 BROKEN_GAP = "broken {{gap}} template -> removed"
+STRAY_CLOSING_BRACES = "stray }} -> removed"
+MISSING_TEMPLATE = "link to missing template {} -> removed"  # .format(template title)
+
+# The Template namespace (number 10) as each wiki spells it in page titles and links —
+# needed to recognise a call to a template that does not exist (see _missing_template).
+# Checked 2026-09-24 in the API's own answers: hi lists the missing "साँचा:GAP" in namespace
+# 10 (generator=templates), bn lists "টেমপ্লেট:Gap" in namespace 10 (action=parse
+# &prop=templates). Add a wiki here before declaring sources from it: a test checks that
+# every mediawiki-parse host in the repository manifest is listed.
+TEMPLATE_NAMESPACE = {
+    "hi.wikisource.org": "साँचा",
+    "bn.wikisource.org": "টেমপ্লেট",
+}
+_TEMPLATE_PREFIXES = frozenset({"Template", *TEMPLATE_NAMESPACE.values()})
 
 # ProofreadPage quality levels (the numbers are the extension's, the names ours).
 QUALITY_NAMES = {
@@ -136,6 +157,12 @@ _BROKEN_GAP = re.compile(
     r"\{\{?[ \t]*[Gg]ap(?![A-Za-z])[ \t]*[\]\)\}\{@|]*"
     r"|</?[ \t]*[Gg]ap[ \t]*/?>"
 )
+# A "}}" that closes nothing is printed as text too: গীতাঞ্জলি's scan page ১৪৮ (checked
+# 2026-09-24) ends a poem with "২৬ আষাঢ় ১৩১৭}}" although the page opens its block with
+# {{Block center/s}} and closes it with {{block center/e}}. It is removed only from a line
+# with no "{" and no "|" — there it carries nothing; a line with an opening brace or a
+# template argument may be a broken template call, which stays for the inspection to show.
+_STRAY_CLOSING_BRACES = re.compile(r"\}{2,}")
 
 
 # ---------------------------------------------------------------------------
@@ -319,6 +346,7 @@ class _Extractor(HTMLParser):
         self._seen_pages: set[str] = set()
         self.is_redirect = False
         self.has_prp_output = False
+        self.missing_templates: Counter[str] = Counter()  # red links to missing templates
 
     @property
     def _skipping(self) -> bool:
@@ -337,11 +365,17 @@ class _Extractor(HTMLParser):
                 elif tag == "hr":
                     self._boundary("hr")
             return
+        missing = (
+            _missing_template(attributes.get("href", "")) if tag == "a" and "new" in classes else None
+        )
+        if missing and not self._skipping:
+            self.missing_templates[missing] += 1
         skipped = (
             self._skipping
             or tag in SKIP_TAGS
             or bool(classes & SKIP_CLASSES)
             or bool(_DISPLAY_NONE.search(attributes.get("style", "")))
+            or missing is not None
         )
         is_poem = not skipped and "poem" in classes
         self._stack.append((tag, skipped, is_poem))
@@ -406,6 +440,24 @@ class _Extractor(HTMLParser):
             self.has_prp_output = True
 
 
+def _missing_template(href: str) -> str | None:
+    """The title of the template a red link points to, when it is a missing template.
+
+    When a page calls a template that does not exist (a misspelt name such as ``{{GaP}}``
+    for ``{{Gap}}``), MediaWiki renders a red link to it instead — on hi.wikisource
+    ``<a href="/w/index.php?title=साँचा:GaP&action=edit&redlink=1" class="new" …>साँचा:GaP</a>``
+    (पृष्ठ:गो-दान.djvu/२८, 2026-09-24). That link is never text of the work; a correctly spelt
+    ``{{gap}}`` renders as a U+2060 spacer, which is removed anyway. Red links into any other
+    namespace (a missing article, an author page) keep their text.
+    """
+    query = parse_qs(urlsplit(href).query)
+    if query.get("redlink") != ["1"]:
+        return None
+    title = (query.get("title") or [""])[0].replace("_", " ")
+    namespace, colon, name = title.partition(":")
+    return title if colon and name.strip() and namespace in _TEMPLATE_PREFIXES else None
+
+
 def _visible(text: str) -> int:
     """Characters that are neither whitespace nor rendering artifacts."""
     return sum(1 for char in text if not char.isspace() and char not in ARTIFACT_CHARS)
@@ -425,6 +477,8 @@ def render_html(html: str, *, min_prose_chars: int = 20) -> RenderedPage:
     artifacts: Counter[str] = Counter()
     if extractor.page_join_breaks:
         artifacts[PAGE_JOIN_BREAK] = extractor.page_join_breaks
+    for title, count in extractor.missing_templates.items():
+        artifacts[MISSING_TEMPLATE.format(title)] = count
     for kind, data, _in_link in extractor.tokens:
         if kind == "text":
             for char in data:
@@ -447,6 +501,10 @@ def render_html(html: str, *, min_prose_chars: int = 20) -> RenderedPage:
         joined, broken_gaps = _BROKEN_GAP.subn("", joined)
         if broken_gaps:
             artifacts[BROKEN_GAP] += broken_gaps
+        if "{" not in joined and "|" not in joined:
+            joined, stray = _STRAY_CLOSING_BRACES.subn("", joined)
+            if stray:
+                artifacts[STRAY_CLOSING_BRACES] += stray
         cleaned = _WHITESPACE.sub(" ", joined).strip()
         linked = sum(_visible(segment) for segment, is_link in current if is_link)
         total = sum(_visible(segment) for segment, _link in current)

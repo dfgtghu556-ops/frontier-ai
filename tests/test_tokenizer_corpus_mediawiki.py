@@ -11,11 +11,14 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
 
 from frontier_ai.data.corpora import clean_text, sha256_text
 from frontier_ai.data.mediawiki import (
     BROKEN_GAP,
+    MISSING_TEMPLATE,
+    STRAY_CLOSING_BRACES,
+    TEMPLATE_NAMESPACE,
     clean_mediawiki_parse,
     read_parse_payload,
     render_html,
@@ -236,6 +239,77 @@ def test_broken_gap_rule_leaves_look_alikes_alone() -> None:
         "गाँव {{ और }} <gaps> बाकी रहे।"
     )
     assert BROKEN_GAP not in page.artifacts_removed  # anything else odd is left for inspection
+
+
+# verbatim from the rendered पृष्ठ:गो-दान.djvu/२८ (hi.wikisource, 2026-09-24): the page calls
+# {{GaP}}, which does not exist, so MediaWiki printed a red link to it
+GAP_RED_LINK = (
+    '<a href="/w/index.php?title=%E0%A4%B8%E0%A4%BE%E0%A4%81%E0%A4%9A%E0%A4%BE:GaP&amp;action=edit'
+    '&amp;redlink=1" class="new" title="साँचा:GaP (पृष्ठ मौजूद नहीं है)">साँचा:GaP</a>'
+)
+
+
+def _red_link(title: str) -> str:
+    """A red link as MediaWiki renders it for a page that does not exist."""
+    target = quote(title.replace(" ", "_"), safe=":")
+    return (f'<a href="/w/index.php?title={target}&amp;action=edit&amp;redlink=1" class="new"'
+            f' title="{title} (page does not exist)">{title}</a>')
+
+
+def test_red_links_to_missing_templates_are_removed_and_named() -> None:
+    prose = [GAP_RED_LINK + HINDI_PROSE[0], _red_link("साँचा:GAP") + HINDI_PROSE[1],
+             _red_link("साँचा:GAP") + HINDI_PROSE[2]]
+    page = render_html(rendered_chapter_html(prose, qualities=(3,)))
+    for residue in ("साँचा", "GaP", "GAP"):
+        assert residue not in page.text, residue
+    for paragraph in HINDI_PROSE[:3]:  # the transcription itself is untouched
+        assert paragraph in page.text
+    assert page.artifacts_removed[MISSING_TEMPLATE.format("साँचा:GaP")] == 1  # named, counted
+    assert page.artifacts_removed[MISSING_TEMPLATE.format("साँचा:GAP")] == 2
+    # exactly the text a correctly spelt {{gap}} gives (a U+2060 spacer, removed anyway)
+    assert page.text == render_html(rendered_chapter_html(HINDI_PROSE[:3], qualities=(3,))).text
+    assert clean_mediawiki_parse(parse_payload(rendered_chapter_html(prose, qualities=(3,)))) == page.text
+    # Bengali Wikisource spells the namespace টেমপ্লেট; "Template" is valid on every wiki
+    other = render_html(f"<p>{_red_link('টেমপ্লেট:Gpa')}আমার মাথা নত করে দাও</p>"
+                        f"<p>{_red_link('Template:Gap indent')}The text.</p>")
+    assert other.text == "আমার মাথা নত করে দাও\n\nThe text."
+    assert other.artifacts_removed[MISSING_TEMPLATE.format("Template:Gap indent")] == 1
+
+
+def test_other_red_links_and_existing_template_links_keep_their_text() -> None:
+    page = render_html(
+        f"<p>{_red_link('प्रेमचंद')} ने लिखा।</p>"  # a missing article
+        f"<p>{_red_link('लेखक:प्रेमचंद')} की कहानी।</p>"  # a missing author page
+        '<p><a href="/wiki/%E0%A4%B8%E0%A4%BE%E0%A4%81%E0%A4%9A%E0%A4%BE:Gap" title="साँचा:Gap">'
+        "साँचा:Gap</a> नीला लिंक।</p>"  # a template that exists (a blue link)
+    )
+    assert page.text == "प्रेमचंद ने लिखा।\n\nलेखक:प्रेमचंद की कहानी।\n\nसाँचा:Gap नीला लिंक।"
+    assert not any(key.startswith("link to missing template") for key in page.artifacts_removed)
+
+
+def test_a_closing_brace_pair_that_closes_nothing_is_removed() -> None:
+    # গীতাঞ্জলি, scan page ১৪৮ (2026-09-24): the page opens its block with {{Block center/s}}
+    # and closes it with {{block center/e}}, yet ends the poem with "২৬ আষাঢ় ১৩১৭}}"
+    page = render_html(
+        '<div class="poem"><p>কে গো সেথায় স্নিগ্ধ দুনয়নে,<br>অনাদিকাল চাহে আমার তরে।</p></div>'
+        "<p>২৬ আষাঢ় ১৩১৭}}\n</p><p>১১৯</p>"
+    )
+    assert "২৬ আষাঢ় ১৩১৭" in page.lines and "}" not in page.text
+    assert page.artifacts_removed[STRAY_CLOSING_BRACES] == 1
+    # a line with an opening brace or a template argument may be a broken template call:
+    # its braces stay, for the inspection report to show
+    kept = render_html("<p>{rh|১৩৬|গীতাঞ্জলি}}</p><p>যাত্রী | আমি}}</p>")
+    assert kept.text == "{rh|১৩৬|গীতাঞ্জলি}}\n\nযাত্রী | আমি}}"
+    assert STRAY_CLOSING_BRACES not in kept.artifacts_removed
+
+
+def test_every_rendered_wiki_in_the_manifest_has_its_template_namespace_listed() -> None:
+    # without it, a red link to a missing template on that wiki would stay in the text
+    data = json.loads(REPO_MANIFEST.read_text(encoding="utf-8"))
+    hosts = {urlsplit(source["source_url"]).hostname for source in data["sources"]
+             if source.get("kind") == KIND}
+    assert hosts, "the repository manifest declares rendered Wikisource sources"
+    assert hosts <= set(TEMPLATE_NAMESPACE), f"add to TEMPLATE_NAMESPACE: {hosts - set(TEMPLATE_NAMESPACE)}"
 
 
 def test_render_records_page_quality_and_flags_unproofread_pages() -> None:

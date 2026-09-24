@@ -22,6 +22,9 @@ Read-only: it reads ``acquisition.json``, ``stats.json`` and ``sources/<id>.txt`
   with the text around it (``«…»`` marks the spot), plus letters from another writing
   system than the language's own (information, not a flag: an English word can belong in
   a Hindi novel — a human decides);
+* **repairs by the cleaner**: per rendered source, what the cleaner removed because it was
+  typed wrongly on the wiki (mistyped ``{{gap}}``, links to missing templates, stray
+  ``}}``), read from the provenance — routine invisible characters are not listed;
 * how the first and last source of every language (and any source named with ``--show``)
   starts and ends — the part a human has to read;
 * identical-document counts per language from ``stats.json``.
@@ -100,11 +103,13 @@ def analyze_text(text: str, language: str) -> dict[str, Any]:
 
     counts: dict[str, int] = {}
     examples: dict[str, list[str]] = {}
+    totals: dict[str, int] = {}  # how many places there are of each kind shown in examples
     for name, pattern in _PATTERNS.items():
         found = list(pattern.finditer(text))
         counts[name] = len(found)
         if found:
             examples[name] = [_context(text, m.start(), m.end()) for m in found[:EXAMPLES]]
+            totals[name] = len(found)
     invisible = Counter(INVISIBLE[char] for char in text if char in INVISIBLE)
     counts["replacement_char"] = text.count("\ufffd")
     counts["control"] = sum(
@@ -114,6 +119,7 @@ def analyze_text(text: str, language: str) -> dict[str, Any]:
     counts["ascii_digit_runs"] = len(digit_runs)
     if digit_runs:
         examples["ascii_digit_runs"] = [_context(text, m.start(), m.end()) for m in digit_runs[:EXAMPLES]]
+        totals["ascii_digit_runs"] = len(digit_runs)
     odd: dict[str, list[str]] = {"replacement_char": [], "control": [], "invisible": []}
     for index, char in enumerate(text):
         if char == "\ufffd":
@@ -124,6 +130,7 @@ def analyze_text(text: str, language: str) -> dict[str, Any]:
             kind, mark = "control", f"U+{ord(char):04X}"
         else:
             continue
+        totals[kind] = totals.get(kind, 0) + 1
         if len(odd[kind]) < EXAMPLES:
             odd[kind].append(_context(text, index, index + 1, mark))
     examples.update({kind: places for kind, places in odd.items() if places})
@@ -144,6 +151,7 @@ def analyze_text(text: str, language: str) -> dict[str, Any]:
                 end += 1
             if len(other_places) < OTHER_SCRIPT_EXAMPLES:
                 other_places.append(_context(text, index, end))
+            totals["other_script"] = totals.get("other_script", 0) + 1
             index = end
     counts["other_script_letters"] = sum(other_letters.values())
     if other_places:
@@ -170,6 +178,7 @@ def analyze_text(text: str, language: str) -> dict[str, Any]:
         "invisible": dict(invisible),
         "flags": flags,
         "examples": examples,
+        "example_totals": totals,
         "other_script_letters": dict(other_letters.most_common()),
         # the opening and the ending, across lines (a first line may be just "२")
         "head": " | ".join(lines)[:400],
@@ -248,8 +257,32 @@ def _where_to_look(rows: list[dict[str, Any]]) -> list[str]:
                 label = f"other-script letters ({letters}) — information, not a flag"
             else:
                 label = kind
+            total = analysis.get("example_totals", {}).get(kind, len(places))
+            if total > len(places):
+                label += f" — {len(places)} of {total} places shown"
             out.append(f"[inspect]       {label}:")
             out.extend(f"[inspect]         {place}" for place in places)
+    return out
+
+
+def _is_repair(key: str) -> bool:
+    """A cleaning count that repairs a transcription mistake (not a routine invisible artifact)."""
+    return not key.startswith(("U+", "page-join"))
+
+
+def _repairs(rows: list[dict[str, Any]]) -> list[str]:
+    """What the cleaner removed because it was typed wrongly on the wiki, per source."""
+    out: list[str] = []
+    for row in rows:
+        repairs = {key: count for key, count in (row.get("artifacts_removed") or {}).items()
+                   if _is_repair(key)}
+        if not repairs:
+            continue
+        if not out:
+            out.append("[inspect] repairs by the cleaner (markup typed wrongly on the wiki, removed; "
+                       "from provenance):")
+        out.append(f"[inspect]   {row['source_id']}: "
+                   + "; ".join(f"{key} ({count})" for key, count in sorted(repairs.items())))
     return out
 
 
@@ -295,6 +328,7 @@ def render(report: dict[str, Any], *, show: list[str], width: int) -> str:
         + (", ".join(report["flagged"]) if report["flagged"] else "none")
     )
     lines.extend(_where_to_look(rows))
+    lines.extend(_repairs(rows))
 
     # samples: first and last source of each language, plus --show
     by_language: dict[str, list[dict[str, Any]]] = {}

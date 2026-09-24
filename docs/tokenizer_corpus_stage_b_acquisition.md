@@ -18,8 +18,13 @@ and `bn` are all `EVALUATED`. All 38 sources fetched before came back byte-ident
 match EXP-009, Alice matches EXP-008), so repeated fetches are deterministic. The
 inspection report then flagged 20 verbatim residues of mistyped `{{gap}}` templates on 19
 Godaan scan pages (`{{Gap{}`, `{{Gap}]`, `<gap>` …, all located on the wiki) — the cleaner
-now removes them (§3.1) — plus one leftover piece of wiki markup in Gitanjali, not yet
-located (§12).
+now removes them (§3.1) — plus one leftover piece of wiki markup in Gitanjali. The fourth
+fetch (EXP-011) confirmed that fix: exactly those five chapters changed and the other 35
+sources were byte-identical. Its report's new *where to look* section located the rest: 8
+red links to misspelt templates that do not exist (`साँचा:GaP`, `GP`, `Gpa`, `GAP` in
+chapters 3, 21 and 24) and Gitanjali's stray `}}` (scan page ১৪৮). The cleaner now removes
+both kinds too (§3.1); by the wikis' own template lists, no other missing template occurs in
+any of the 38 rendered sources.
 **Nothing has been pinned yet.** Run the steps where the network works, and record what you
 actually observe.
 
@@ -144,7 +149,9 @@ CSS, `&…;` entities, invisible characters, U+FFFD, long ASCII digit runs in a 
 text), then — under **where to look** — prints up to five places per kind of problem for
 each flagged source, each with the text around it (`«…»` marks the spot), plus letters from
 another writing system than the language's own (information only: an English word may
-belong in a Hindi novel). Finally it shows how the first and last source of every language
+belong in a Hindi novel). Under **repairs by the cleaner** it lists, per source, what the
+cleaner removed because it was typed wrongly on the wiki (from the provenance), so a fix can
+be checked by its counts. Finally it shows how the first and last source of every language
 start and end. It exits `1` when anything is flagged. It ignores a text file left over from
 an earlier run (its hash must be the one this run recorded).
 
@@ -509,8 +516,23 @@ the manifest until a human puts it there.
   reach the corpus (20 of them in Godaan, found by the inspection after EXP-010). A correct
   `{{gap}}` renders as a U+2060 spacer that is removed anyway, so the cleaned text is the
   same whether or not the typo is ever fixed on the wiki. Only a brace or `<` directly
-  before the word triggers it; counted as `broken {{gap}} template -> removed`. Any other
-  stray markup is left in place for the inspection report to show.
+  before the word triggers it; counted as `broken {{gap}} template -> removed`;
+* drops a **red link to a missing template**. A misspelt template name (`{{GaP}}` for
+  `{{Gap}}`) makes MediaWiki print a red link to the template that does not exist —
+  `साँचा:GaP` in the middle of the text. Only links marked `redlink=1` whose target lies in
+  the Template namespace are dropped (`साँचा:` on hi, `টেমপ্লেট:` on bn, `Template:` on every
+  wiki — `TEMPLATE_NAMESPACE` in `mediawiki.py`); a red link to a missing article or author
+  page keeps its text. Counted per template as `link to missing template <title> -> removed`.
+  **Declaring a source from a new wiki? Add its Template namespace name there first** — a
+  test fails until you do. A misspelt template that should have *shown* text (say
+  `{{smallcaps|word}}`) loses that text on the wiki itself, so the provenance names every
+  missing template; to list them for a source before fetching, open its `source_url` with
+  `prop=templates` instead of `prop=text…` and look for `"exists": false`;
+* removes a **`}}` that closes nothing** — on a line with no `{` and no `|`, where it carries
+  nothing (Gitanjali's scan page ১৪৮ ends a poem with `২৬ আষাঢ় ১৩১৭}}`); counted as
+  `stray }} -> removed`. A line with an opening brace or a `|` may be a broken template call
+  and keeps its braces. Any other stray markup is left in place for the inspection report
+  to show.
 
 **Known limitation (not fixed, on purpose):** a word split across two printed pages without
 a hyphenation template renders with ProofreadPage's join space in the middle (`अधि कार` for
@@ -840,12 +862,13 @@ evidence of what exists, not a form to be filled in.
   shared page's `<section end="1"/><section begin="1"/>` markers split it exactly); chapter
   36 ends with the novel's last line on page 363 and no back matter follows. The human
   reading in §8 is still required before `--pin`.
-* **Gitanjali: one leftover piece of wiki markup** (`wiki=1` in the EXP-010 inspection: one
-  `{{`, `}}`, `[[`, `]]` or `__WORD__`) is not located yet. Searching the wiki's page sources
-  did not find it; the pages open a `{{Block center|<poem>` on one page and close it on
-  another, so an unbalanced pair cannot be searched for page by page. The next inspection
-  prints where it is (§0.3, "where to look"); decide then — one such mark in 65,174
-  characters is harmless, but it should be understood before `--pin`.
+* ~~Gitanjali: one leftover piece of wiki markup~~ — located by EXP-011's *where to look*: a
+  `}}` typed after the date of poem 118 on scan page ১৪৮, a page that opens and closes its
+  block with `{{Block center/s}}` … `{{block center/e}}`. It closes nothing; the cleaner now
+  removes such braces (§3.1). The page could also be corrected on the wiki itself.
+* **Typos in the transcription are kept.** A stray Latin `l` typed on पृष्ठ:गो-दान.djvu/८९
+  (`पहुँची, lएक वन-पुष्प`) shows up in the report as one letter of another script in chapter
+  7; like the OCR confusions below it is text as the wiki has it, and it stays.
 * **"Proofread" is not error-free.** ProofreadPage level 3 means one volunteer checked the
   page; Godaan's level-3 pages still carry OCR confusions (e.g. `हीग` for `हीरा`, `ग्विलाते`
   for `खिलाते`, `वैठे` for `बैठे` in the opening pages of chapter 9, read on the live wiki on
