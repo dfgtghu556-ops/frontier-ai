@@ -37,7 +37,7 @@ import re
 import time
 import urllib.request
 from collections import Counter
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -1793,8 +1793,13 @@ def build_corpus(
     pin: bool = False,
     local_texts: Mapping[str, str] | None = None,
     local_origins: Mapping[str, str] | None = None,
+    progress: Callable[[int, int, str], None] | None = None,
 ) -> BuildResult:
     """Ingest the declared sources, split them, and write the corpus artifacts.
+
+    ``progress(number, total, source_id)`` is called before each source is downloaded (only
+    when fetching), so a caller can show how much of a long run is left; it never affects
+    what is built.
 
     Files written under ``out_dir``:
 
@@ -1833,8 +1838,10 @@ def build_corpus(
     documents: list[CorpusDocument] = []
     # One accepted licence-evidence fetch per endpoint per build (see ingest_source).
     evidence_cache: dict[tuple[str, str, str, str], dict[str, Any]] = {}
-    for source in selected:
+    for number, source in enumerate(selected, start=1):
         local_text = (local_texts or {}).get(source.id)
+        if progress is not None and fetch and local_text is None:
+            progress(number, len(selected), source.id)
         item = ingest_source(
             source,
             raw_dir,

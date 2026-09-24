@@ -107,6 +107,16 @@ SHA-256 of what it kept, refuses the text if it looks like a contents page, refu
 pinned source whose bytes changed, then writes the text, its provenance and five reports
 under `--out`. **It does not edit the manifest** — that is step 4, on purpose.
 
+**While it runs** it prints one line as it starts on each source, so you can see how much
+is left, e.g. `[corpus] downloading 12 of 40: hi-wikisource-godaan-ch10-ccbysa`. The report
+below appears only once every source is done, followed by `[corpus] this run took 3 min 20 s`
+(both illustrations, not observed values). A `retrying …` line means a download dropped and
+is being tried again (3 attempts, 30 s timeout each): normal, nothing to do. One source makes
+at most two requests (its text, plus its licence page if no earlier source fetched it), so if
+the same `downloading` line stays on screen for more than about 5 minutes something is stuck:
+press Ctrl+C and run the same command again. That is safe: this step never edits the
+manifest, and the rerun overwrites the failed record of the interrupted one.
+
 **What you must read in the output** — the `per-source acquisition` block, one line per
 declared source plus its detail line:
 

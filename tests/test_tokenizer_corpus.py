@@ -545,6 +545,43 @@ def test_build_writes_the_expected_artifacts(tmp_path: Path, monkeypatch) -> Non
     assert corpus["sources"][0]["ingest"]["status"] == "verified"
 
 
+def test_build_reports_progress_while_downloading(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(HINDI_TEXT + "\n" + BENGALI_TEXT),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi"), _source("bn-src", "bn")],
+        slots=[
+            {"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]},
+            {"code": "bn", "display": "Bengali", "script": "Bengali", "sources": ["bn-src"]},
+        ],
+    )
+    seen: list[tuple[int, int, str]] = []
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True,
+                          progress=lambda number, total, source_id: seen.append((number, total, source_id)))
+    assert seen == [(1, 2, "hi-src"), (2, 2, "bn-src")]  # before each download, in order
+    assert result.verified_sources == 2
+    # a report-only build downloads nothing, so it reports no progress
+    seen.clear()
+    build_corpus(manifest_path, tmp_path / "report", fetch=False,
+                 progress=lambda number, total, source_id: seen.append((number, total, source_id)))
+    assert seen == []
+
+
+def test_cli_progress_lines_and_duration_read_plainly(capsys) -> None:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("build_tokenizer_corpus", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module._show_progress(12, 40, "hi-wikisource-godaan-ch10-ccbysa")
+    assert capsys.readouterr().err == "[corpus] downloading 12 of 40: hi-wikisource-godaan-ch10-ccbysa\n"
+    assert [module._took(seconds) for seconds in (0.4, 45, 125.2, 3600)] == [
+        "0 s", "45 s", "2 min 5 s", "60 min 0 s"]
+
+
 def test_build_is_reproducible(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(
         "frontier_ai.tokenization.research_corpus.fetch_text",
