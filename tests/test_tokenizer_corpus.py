@@ -1797,6 +1797,10 @@ def test_tiny_stub_is_refused_after_cleaning(tmp_path: Path, monkeypatch) -> Non
     # payload kept for inspection, never enters corpus
     assert item.path is not None and Path(item.path).exists()
     assert result.train == [] and result.held_out == []
+    # the payload carried a licence marker, but a refused stub is never "verified"
+    provenance = json.loads(Path(item.provenance_path).read_text(encoding="utf-8"))
+    assert item.licence_proof == "payload-marker"
+    assert provenance["verification"] == "unverified"
 
     # Short plain prose (no wiki links/templates) must NOT be refused — a short poem is still prose
     monkeypatch.setattr(

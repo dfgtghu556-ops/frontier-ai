@@ -1,9 +1,13 @@
 # Stage B acquisition runbook — Project 004
 
 **This is a procedure, not a report.** It was written in an environment that cannot reach
-any corpus host (every endpoint fails with `TLS/SSL … EOF`), so **none of the steps below
-have been executed against live data yet**. Nothing here has been acquired, verified or
-pinned. Run it where the network works, and record what you actually observe.
+any corpus host (every endpoint fails with `TLS/SSL … EOF`); the fetches themselves run on
+a network-enabled machine. **Status (2026-09-24):** the first live fetch (EXP-008) verified
+Alice and refused both Stage A Wikisource roots — `hi` was a localized `#REDIRECT`, `bn` a
+Wikidata/SPARQL infocard — and showed that both works are *scanned-book* transcriptions
+whose chapter pages contain no text of their own. They are now declared as rendered pages
+(§3.1). **Nothing has been pinned yet.** Run the steps where the network works, and record
+what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
@@ -48,6 +52,11 @@ pip install -e ".[dev]"         # torch + numpy + pytest + ruff
 * `torch` is a big download, but it is not optional here: the corpus CLI imports the
   experiments package, which imports torch.
 * If you leave the shell, re-run `. .venv/bin/activate` before the commands below.
+* **Windows PowerShell:** activate with `.venv\Scripts\Activate.ps1`, and type each command
+  below on **one line** — PowerShell does not understand the trailing `\` continuation (use a
+  backtick `` ` `` if you must split a line). A URL typed at the prompt is run as a command,
+  not opened: open URLs in a browser, or use the scripts. When a script can write a file, use
+  its `--output` option rather than `>` (PowerShell 5.1 redirection writes UTF-16).
 
 ### 0.1 Step 1 — preflight: can I reach the sources? (read-only)
 
@@ -86,9 +95,11 @@ declared source plus its detail line:
 [corpus] per-source acquisition
 [corpus]   en-gutenberg-alice-pd            verified             PD-US        reachable=yes content=yes proof=payload-marker   chars=   152,089
 [corpus]       sha256=1a2b3c4d5e6f7a8b…  slot=en EVALUATED sufficient=yes
-[corpus]   hi-wikisource-godan-ccbysa       index_page_refused   CC-BY-SA-4.0 reachable=yes content=yes proof=none             chars=       466
-[corpus]       sha256=fcd858968746beff…  evidence=site marker_not_found  slot=hi UNVERIFIED sufficient=no
-[corpus]       reason: …looks like a contents/index page…
+[corpus]   hi-wikisource-godaan-ch01-ccbysa verified             CC-BY-SA-4.0 reachable=yes content=yes proof=licence-evidence chars=    17,480
+[corpus]       sha256=9f8e7d6c5b4a3f2e…  evidence=site ok marker=found  slot=hi INSUFFICIENT sufficient=no
+[corpus]   xx-wikisource-example-ch07-ccbysa unproofread_refused CC-BY-SA-4.0 reachable=yes content=yes proof=licence-evidence chars=    12,003
+[corpus]       sha256=fcd858968746beff…  evidence=site ok marker=found  slot=xx UNVERIFIED sufficient=no
+[corpus]       reason: 2 of the 9 scan pages rendered by … have not been proofread on the wiki: …
 ```
 
 * `reachable` — did the host answer? (`n/a` = no fetch was attempted for this source)
@@ -100,7 +111,8 @@ declared source plus its detail line:
 
 The same information is in `data/tokenizer/indic-tokenizer-v2/acquisition.json`
 (machine-readable, one row per source, timestamp-free so two identical runs produce a
-byte-identical file).
+byte-identical file). The lines above are an *illustration of the format*, not observed
+values.
 
 ### 0.3 Step 3 — inspect before you trust it
 
@@ -153,7 +165,7 @@ verifies nothing, writes nothing into the manifest and creates no output directo
 python scripts/build_tokenizer_corpus.py --preflight
 python scripts/build_tokenizer_corpus.py --preflight --print-json      # machine-readable
 python scripts/build_tokenizer_corpus.py --preflight --timeout 10      # shorter timeout
-python scripts/build_tokenizer_corpus.py --preflight --source hi-wikisource-godan-ccbysa
+python scripts/build_tokenizer_corpus.py --preflight --source hi-wikisource-godaan-ch01-ccbysa
 ```
 
 Per endpoint it reads **at most the first 65,536 bytes** (`--sample-bytes` to change) using
@@ -238,15 +250,20 @@ provenance file and the `reason:` line of the report.
 | Gate | Refuses when | Status shown | Can it be bypassed? |
 |---|---|---|---|
 | **Licence** | no licence marker in the payload **and** the declared evidence endpoint does not confirm it | `licence_marker_missing` | No. A failed evidence fetch is a failure, not a fallback to trust |
-| **Content shape** | a `wikitext` payload where a majority of ≥20 lines are wiki links with <20 characters of prose left | `index_page_refused` | No — acquire the chapter subpages or use `--local-file` (§6) |
+| **Redirect / infocard** | a `wikitext` page whose first line is a `#REDIRECT` in any language (`#पुनर्प्रेषित`…), a Wikidata/SPARQL infocard, or a rendered redirect page | `index_page_refused` | No — name the page that holds the work |
+| **Content shape** | ≥5 lines, of which at least half are link lines with <20 characters of prose left (wiki links, or links in a rendered page) | `index_page_refused` | No — acquire the chapter subpages (§3) or use `--local-file` (§6) |
+| **Tiny stub** | the cleaned text is shorter than 500 characters (for `wikitext`: only when the raw page still carries markup, so a short poem passes) | `index_page_refused` | No |
+| **Proofreading** (`mediawiki-parse`) | any rendered scan page is at ProofreadPage level 1 (not proofread) or 2 (problematic) | `unproofread_refused` | No — wait for the wiki's proofreaders, or declare a range without those pages (§3.1) |
 | **Pinned hash** | the manifest pins a `sha256` and this fetch cleans to different bytes | `hash_mismatch` | Only by clearing `sha256`/`verified` in the manifest first, with a note saying why (§5) |
 | **Empty text** | the cleaned text is empty | `empty` | No |
-| **Fetch** | the host could not be reached or the response was not UTF-8 | `fetch_failed` | No |
+| **Fetch** | the host could not be reached, the response was not UTF-8, or (`mediawiki-parse`) the API returned an error or incomplete JSON | `fetch_failed` | No |
 
 A refused source is **not** verified, is **not** part of the train/held-out split and is
 **not** pinned. Its text file is still written under `sources/<id>.txt` so you can look at
-what you got and decide what to do next. Its provenance says `verification: unverified`
-and records `content_check` (what the shape gate saw) and `hash_is_licence_proof: false`.
+what you got and decide what to do next (except for `fetch_failed`, where nothing usable
+arrived). Its provenance says `verification: unverified` — even when its licence *was*
+proven, which `licence_proof` still records — and records `content_check` (what the gates
+saw) and `hash_is_licence_proof: false`.
 
 What the code **cannot** check, and you must:
 
@@ -271,36 +288,58 @@ What the code **cannot** check, and you must:
   is missing, the file is not a Gutenberg text: stop, do not pin.
 * **Hash + pin** — only after the above.
 
-### 2.2 `hi-wikisource-godan-ccbysa` (Hindi, CC BY-SA 4.0 assumed, kind `wikitext`)
+### 2.2 Godaan — `hi-wikisource-godaan-ch01-ccbysa` … `ch36` (Hindi, kind `mediawiki-parse`)
 
-* **Fetch** — `https://hi.wikisource.org/wiki/गोदान?action=raw`. Expect **bare wikitext**:
-  no licence notice (that is why the evidence endpoint exists).
-* **Inspect — this is the risky one.** A Wikisource *work root* frequently contains only a
-  header template and a list of chapter links. Before accepting it, check
-  `sources/hi-wikisource-godan-ccbysa.txt`: is it prose in Devanagari, or just
-  `[[गोदान/अध्याय १|अध्याय १]]` lines? Preflight's `looks_like_index_page` warning and the
-  `wiki_links` / `sample_lines` counts are the first signal; the ingested file is the
-  ground truth. See §3 for what to do if it is an index page.
-* **Volume** — the target is ≥500 documents and ≥200,000 characters. Godaan is long enough
-  if (and only if) you actually got the chapters.
-* **Licence** — evidence endpoint:
+* **What changed and why.** Stage A declared `hi.wikisource.org/wiki/गोदान?action=raw`. The
+  first live fetch returned one line, `#पुनर्प्रेषित [[गो-दान]]` — a Hindi-localized redirect —
+  and the redirect target is no better: every chapter page `गो-दान/१ … /३६` holds only a
+  ProofreadPage tag (`<pages index="गो-दान.djvu" from=… to=… />`). The prose lives on the
+  scanned pages and exists only once MediaWiki renders the tag. So Godaan is now **36
+  sources, one per chapter, each asking MediaWiki to render its page** (§3.1).
+* **Fetch** — `https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text|revid|categories&…&page=गो-दान/N`
+  (percent-encoded in the manifest). The response is JSON; the cleaner keeps the rendered
+  text and drops the header, page anchors and hidden metadata.
+* **Deliberately not declared:** `गो-दान/ भाग 16` and `गो-दान/ भाग 17`. They render a
+  *different* scan (`गोदान.pdf`, an older transcription) and would put the same chapters
+  into the corpus twice — a train/held-out leak. `scripts/discover_wiki_chapters.py` flags
+  exactly this case.
+* **Inspect** — `sources/hi-wikisource-godaan-ch01-ccbysa.txt` must start with the novel:
+  "होरीराम ने दोनों बैलों को सानी-पानी देकर…". Later chapters normally open with their number
+  on a line of its own (`२`, `४` were checked). The provenance `content_check.page_quality` shows how many
+  scan pages were rendered, their proofreading levels and the `first_page`/`last_page` —
+  compare them with the range in the source notes. Chapters **23 and 24** carry the wiki's
+  "missing scan pages" category (`छूटे स्कैन पृष्ठ`): read them and record what you find.
+* **Volume** — the whole novel is far above the 200,000-character target; this is expected
+  and fine (targets are minimums; balancing is a later stage).
+* **Licence** — evidence endpoint
   `https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json`,
-  marker `https://creativecommons.org/licenses/by-sa/4.0/`, `scope: site`. The result is
-  recorded verbatim in `corpus.json` / the provenance file. **Site-level evidence proves
-  the wiki publishes under CC BY-SA 4.0, not that this edition carries that tag.** Open the
-  work page, read its own licence template (many Premchand works are PD-old), and record
-  what you found in the source `notes` before treating the slot as trustworthy.
-* **Hash + pin** — only after both content and licence checks.
+  marker `https://creativecommons.org/licenses/by-sa/4.0/`, `scope: site`. It is fetched once
+  per build and reused for the other chapters (`reused_within_run: true`). The work page
+  `गो-दान` itself carries `{{PD-India}}`: record that page-level review in the notes before
+  trusting the slot for redistribution.
+* **Hash + pin** — only after content and licence checks, per chapter.
 
-### 2.3 `bn-wikisource-gitanjali-ccbysa` (Bengali, CC BY-SA 4.0 assumed, kind `wikitext`)
+### 2.3 Gitanjali — `bn-wikisource-gitanjali-1913-ccbysa` (Bengali, kind `mediawiki-parse`)
 
-Same procedure as Godaan, with `bn.wikisource.org`, Bengali script, and this extra
-licence wrinkle: **Rabindranath Tagore died in 1941**, so the underlying work is public
-domain in India — but the specific edition on Wikisource may carry its own tag. Record
-what the page actually says; if it is PD, the `license_id` may be relaxed to `PD-US` with
-a note and a fresh verification run (the licence marker list in
-`src/frontier_ai/data/corpora.py` only knows the four allowed ids — do not add a new one
-without a decision record).
+* **What changed and why.** Stage A declared `bn.wikisource.org/wiki/গীতাঞ্জলি?action=raw`,
+  which is a Wikidata/SPARQL infocard, not the work. The 1913 edition lives at
+  `গীতাঞ্জলি (১৯১৩)`: a table of contents whose 157 poems are subpages, each rendering one or
+  two scan pages. A single poem is far below the 500-character stub threshold, so the
+  source renders the **whole poem range in one request** — the same `<pages>` tag the
+  subpages use, from scan page 13 (poem ১) to 190 (poem ১৫৭). The URL's `text=` parameter is
+  validated to contain exactly that one tag and nothing else.
+* **Inspect** — the file must start with poem ১, "আমার মাথা নত করে দাও হে তোমার", one verse
+  per line, poems separated by their number and the composition date (e.g. `১৩১৩`). No CSS
+  (`.mw-parser-output …`) may appear — if it does, the cleaner missed a `<style>` block:
+  stop and report it. `content_check.page_quality` should show 178 pages at level 4.
+* **Licence** — same mechanism as Godaan, on `bn.wikisource.org`. Tagore died in 1941, so
+  the work is public domain in India; record what the edition's page says. If it is PD, the
+  `license_id` may be relaxed to `PD-US` with a note and a fresh verification run (the
+  licence marker list in `src/frontier_ai/data/corpora.py` only knows the four allowed ids —
+  do not add a new one without a decision record).
+* **Volume** — Gitanjali is a short book of verse, well under the 200,000-character target:
+  expect the Bengali slot to be `INSUFFICIENT` until a second Bengali work is added. That is
+  the honest result.
 
 ---
 
@@ -338,11 +377,71 @@ If the root is an index page, the supported options are:
   `--local-file` (§7). Honest and quick, but the source stays `local_unverified`, so the
   slot reports `UNVERIFIED` no matter how much text you supply.
 * **Not implemented (future work)** — a manifest field listing several URLs whose cleaned
-  texts are concatenated into one source. If Stage B needs it, add it deliberately with
-  tests, not by editing URLs in place.
+  texts are concatenated into one source. For scanned books it is not needed: a single
+  `<pages>` render covers any page range (§3.1).
 
 Do **not** change a source's `source_url` to "whatever happens to work" without updating
 the attribution, the notes and the evidence endpoint to match.
+
+### 3.1 Scanned books (ProofreadPage) — the `mediawiki-parse` kind
+
+**How to recognise one.** Most Indic Wikisource works are transcriptions of scanned books.
+Their chapter page's `?action=raw` is ~150 characters: a single tag such as
+`<pages index="गो-दान.djvu" from=18 fromsection="1" to=२२ tosection="1" />`. The text is on
+one `Page:` page per scan (`पृष्ठ:` in Hindi, `পাতা:` in Bengali) and only exists as a whole
+after MediaWiki expands the tag — joining pages, splitting shared pages by section, reading
+Devanagari digits (and even typos such as `from=1१`, which it reads as 11). Re-implementing
+that would be a second, divergent copy of ProofreadPage, so we don't: a `mediawiki-parse`
+source asks MediaWiki for the **rendered** page (`api.php?action=parse`, JSON) and the
+cleaner turns the HTML into text (`src/frontier_ai/data/mediawiki.py`).
+
+**Find the chapters** (read-only; writes nothing unless you ask it to):
+
+```
+python scripts/discover_wiki_chapters.py --lang hi --work "गो-दान"
+python scripts/discover_wiki_chapters.py --lang mr --work "<work title>" --emit-sources mr-wikisource-<work> --output proposed.json
+```
+
+It lists the chapter subpages in numeric order (any script's digits), shows the scan and
+page range each one renders, and flags subpages that render a **different scan** (legacy or
+duplicate transcriptions — never declare them blindly) or no scan at all. `--emit-sources`
+proposes unverified entries (`sha256: null`, `verified: false`) for review; nothing goes into
+the manifest until a human puts it there.
+
+**The two URL forms** (build them with `parse_page_url` / `parse_pages_range_url` from
+`frontier_ai.data.mediawiki`; the manifest validator enforces the rules):
+
+| Form | Use it for | Rule |
+|---|---|---|
+| `…api.php?action=parse&format=json&formatversion=2&prop=text\|revid\|categories&…&page=<title>` | one chapter page | `redirects` is forbidden: a redirect is refused, never followed |
+| `…api.php?action=parse&…&contentmodel=wikitext&title=<work>&text=<pages index="…" from=N to=M />` | a range of scan pages (short poems) | `text=` must be exactly one `<pages>` tag — nothing but wiki content can enter |
+
+**What the cleaner keeps and drops** (every rule is tested):
+
+* drops everything Wikisource marks `ws-noexport` (the header ← previous · title · author ·
+  next →, the hidden `ws-data` block, the inner page anchors), page-number anchors,
+  `<style>`/`<script>` (TemplateStyles CSS is emitted inline!), footnote markers and lists,
+  and `display:none` elements;
+* keeps all other text: `<br>` = line break, blocks (`p`, `div`, headings, …) = paragraph
+  breaks — so verse keeps one line per verse line and prose one line per paragraph;
+* a `<br>` immediately after a page anchor, outside a `<poem>` block, becomes a space: many
+  transcriptions start every page with `<br>` although the printed sentence continues;
+* removes three invisible rendering artifacts — U+200B, U+2060 (from `{{gap}}`), U+FEFF (left
+  by OCR imports) — and turns U+00A0 into a space; **keeps U+200C/U+200D** (ZWNJ/ZWJ), which
+  decide how Indic conjuncts are written. No NFC/NFD/NFKC. All counts are in
+  `content_check.artifacts_removed`.
+
+**Known limitation (not fixed, on purpose):** a word split across two printed pages without
+a hyphenation template renders with ProofreadPage's join space in the middle (`अधि कार` for
+`अधिकार`). That is what the wiki shows; guessing where words continue would be inventing
+text.
+
+**Proofreading gate.** Every rendered page carries its ProofreadPage level (0 without text,
+1 not proofread, 2 problematic, 3 proofread, 4 validated). A source that renders any page at
+level 1 or 2 is `unproofread_refused`: unchecked OCR in an Indic script (broken conjuncts,
+wrong matras) is exactly the noise a tokenizer comparison must not learn from. The text is
+kept under `sources/` so you can see which pages; the `reason:` line names them. Preflight
+warns about it (`WARN UNPROOFED`) from the sampled part of the page.
 
 ---
 
@@ -425,9 +524,10 @@ sequence. Do it in a commit of its own so the change is reviewable.
 Lawfully obtained text can be supplied with no network at all:
 
 ```
-# one file for one declared source
+# one file for one declared source (in that source's raw format: a Gutenberg .txt,
+# wikitext, or — for a mediawiki-parse source — the saved api.php?action=parse JSON)
 python scripts/build_tokenizer_corpus.py \
-    --local-file hi-wikisource-godan-ccbysa=~/godan.txt \
+    --local-file hi-wikisource-godaan-ch01-ccbysa=~/godaan-ch01.json \
     --include-unverified --no-record --out data/tokenizer/indic-tokenizer-v2
 
 # a directory of <source_id>.txt files
@@ -457,7 +557,7 @@ All of these exist today; nothing here is invented.
 # --- preflight (read-only) ------------------------------------------------
 python scripts/build_tokenizer_corpus.py --preflight
 python scripts/build_tokenizer_corpus.py --preflight --print-json
-python scripts/build_tokenizer_corpus.py --preflight --source hi-wikisource-godan-ccbysa --timeout 10
+python scripts/build_tokenizer_corpus.py --preflight --source hi-wikisource-godaan-ch01-ccbysa --timeout 10
 
 # --- list what is declared (no dedicated flag exists) ---------------------
 python3 -c "import json;d=json.load(open('corpora/tokenizer/indic-tokenizer-v2/sources.json'));\
@@ -469,7 +569,7 @@ python scripts/build_tokenizer_corpus.py --no-record
 # --- fetch (acquire) ------------------------------------------------------
 python scripts/build_tokenizer_corpus.py --fetch --exp-id EXP-008 \
     --out data/tokenizer/indic-tokenizer-v2
-python scripts/build_tokenizer_corpus.py --fetch --source hi-wikisource-godan-ccbysa \
+python scripts/build_tokenizer_corpus.py --fetch --source hi-wikisource-godaan-ch01-ccbysa \
     --timeout 60 --no-record --out /tmp/probe-godaan
 
 # --- check a built corpus (re-hashes every file it names) -----------------
@@ -492,13 +592,20 @@ python scripts/build_tokenizer_corpus.py --fetch --exp-id EXP-008 \
     --out data/tokenizer/indic-tokenizer-v2
 
 # --- local ingestion ------------------------------------------------------
-python scripts/build_tokenizer_corpus.py --local-file hi-wikisource-godan-ccbysa=~/godan.txt \
+python scripts/build_tokenizer_corpus.py --local-file hi-wikisource-godaan-ch01-ccbysa=~/godaan-ch01.json \
     --include-unverified --no-record
 python scripts/build_tokenizer_corpus.py --local-dir data/local-sources --include-unverified --no-record
 ```
 
-Not implemented (future work, do not pretend otherwise): `--list-sources`;
-a multi-URL / chapter-set source type; automatic chapter enumeration.
+Chapter discovery (proposes entries for review, never edits the manifest):
+
+```
+python scripts/discover_wiki_chapters.py --lang hi --work "गो-दान"
+```
+
+Not implemented (future work, do not pretend otherwise): `--list-sources`; a multi-URL /
+chapter-set source type (a single `<pages>` range render covers scanned books, §3.1);
+automatic *addition* of discovered chapters to the manifest.
 
 ---
 
@@ -516,26 +623,25 @@ unverified and its slot does not become `EVALUATED`.
 - [ ] Attribution present in `sources/en-gutenberg-alice-pd.provenance.json`
 - [ ] `sha256` pinned **only** via a later `--pin` run, after all of the above
 
-### Godaan — `hi-wikisource-godan-ccbysa`
+### Godaan — `hi-wikisource-godaan-ch01-ccbysa` … `ch36`
 
-- [ ] Status is `verified`, not `index_page_refused` — if the gate fired, the page is a contents page and you need the chapter subpages (§3)
-- [ ] The payload is Devanagari **prose**, not a contents page (`looks_like_index_page` false, or chapters acquired instead — §3)
-- [ ] Language/script correct; wikitext markup removed; no navigation text left
-- [ ] Volume ≥ 500 documents and ≥ 200,000 characters; `truncated: false` (or explained)
-- [ ] Evidence endpoint reachable, `marker_found: true`, result recorded with `scope: site`
-- [ ] **Human licence review of the work page recorded in the manifest notes** (site-level evidence alone is not page-level proof)
-- [ ] Attribution present in the provenance file
+- [ ] All 36 chapters `verified` — none `index_page_refused`, `unproofread_refused` or `fetch_failed` (if one is, read its `reason:` line before doing anything else)
+- [ ] `ch01` starts with "होरीराम ने दोनों बैलों को सानी-पानी देकर…"; a few later chapters open with their number
+- [ ] No header/navigation text (`पीछे`, `आगे`, `प्रेमचंद` on a line of its own), no numbers like `38658`, no CSS anywhere
+- [ ] Spot-check two chapters' `content_check.page_quality`: `first_page`/`last_page` match the range in the source notes; every level is 3 or 4 (or 0)
+- [ ] Chapters 23 and 24 (wiki category "missing scan pages") read and the finding recorded in their notes
+- [ ] Evidence reachable, `marker_found: true`, `scope: site` (chapters 2–36 show `reused_within_run: true`)
+- [ ] **Human licence review of the work page recorded** (`गो-दान` carries `{{PD-India}}`)
 - [ ] `sha256` pinned only after all of the above
 
-### Gitanjali — `bn-wikisource-gitanjali-ccbysa`
+### Gitanjali — `bn-wikisource-gitanjali-1913-ccbysa`
 
-- [ ] Status is `verified`, not `index_page_refused` (§3)
-- [ ] The payload is Bengali **prose**, not a contents page (§3)
-- [ ] Language/script correct; markup removed
-- [ ] Volume ≥ 500 documents and ≥ 200,000 characters; `truncated: false` (or explained)
-- [ ] Evidence endpoint reachable, `marker_found: true`, result recorded with `scope: site`
-- [ ] **Human licence review recorded**: which licence template does this edition actually carry? (Tagore died 1941 — if PD, record it and update `license_id` with a note before re-verifying)
-- [ ] Attribution present in the provenance file
+- [ ] Status `verified`, not `unproofread_refused` / `index_page_refused` / `fetch_failed`
+- [ ] Starts with poem ১ "আমার মাথা নত করে দাও হে তোমার"; one verse per line; no CSS (`.mw-parser-output`) anywhere
+- [ ] `content_check.page_quality`: 178 pages, first `…djvu/১৩`, last `…djvu/১৯০`, all level 4
+- [ ] Evidence reachable, `marker_found: true`, `scope: site`
+- [ ] **Human licence review recorded**: which licence template does this edition carry? (Tagore died 1941 — if PD, record it and update `license_id` with a note before re-verifying)
+- [ ] Slot reported `INSUFFICIENT` (Gitanjali alone is below target) — expected, not a failure
 - [ ] `sha256` pinned only after all of the above
 
 ---
@@ -626,8 +732,12 @@ evidence of what exists, not a form to be filled in.
   Wikisource page is messier than a fixture: if the index-page gate fires on genuine prose,
   report it (with the `link_line_ratio` from the `reason:` line) rather than working around
   it — the thresholds are deliberately conservative.
-* Whether `?action=raw` on `hi.wikisource.org` / `bn.wikisource.org` returns the work or an
-  index page is **unknown** until first fetch (§3).
-* Whether the Wikisource `rightsinfo` evidence resolves is **unknown** until first fetch.
+* ~~Whether `?action=raw` returns the work~~ — answered by EXP-008: it does not, for either
+  wiki (a redirect and an infocard), and for scanned books it never can (§3.1).
+* ~~Whether the `rightsinfo` evidence resolves~~ — answered by EXP-008: both wikis declare
+  CC BY-SA 4.0.
+* The `mediawiki-parse` cleaner has been checked against the real HTML structure of both
+  works (read through the API on 2026-09-24), but its first full run on live payloads is the
+  next `--fetch`. Report anything the §8 checklist catches rather than patching around it.
 * No per-language balancing or genre control exists yet; one work per language will
   confound later cross-language comparisons (Stage C) even after acquisition succeeds.

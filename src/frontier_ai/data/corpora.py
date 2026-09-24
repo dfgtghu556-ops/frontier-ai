@@ -12,7 +12,9 @@ came from:
   from memory.
 * :func:`clean_gutenberg_text` / :func:`clean_wikitext` — deterministic text cleaning
   that strips Project Gutenberg's legal wrapper and wiki markup, so the corpus is text
-  and nothing else.
+  and nothing else. Rendered wiki pages (``mediawiki-parse``, used by the tokenizer
+  corpus for scanned-book transcriptions) are cleaned by
+  :func:`frontier_ai.data.mediawiki.clean_mediawiki_parse`.
 * :func:`write_provenance` — the provenance record that travels with the corpus: what
   it is, where it came from, under which licence, when it was retrieved, and the hash
   of the bytes we actually kept.
@@ -36,6 +38,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .mediawiki import MEDIAWIKI_PARSE_KIND, clean_mediawiki_parse
+
 SCHEMA_VERSION = "1.0"
 
 # Licences we are willing to ship as fixture text. Anything else is refused by
@@ -49,6 +53,10 @@ ALLOWED_LICENSES = {
 
 # A smoke fixture, not a training corpus: hard upper bound per source.
 DEFAULT_MAX_CHARS = 200_000
+
+# Wikimedia's User-Agent policy asks for a descriptive agent with a contact URL; generic
+# agents (e.g. Python-urllib's default) are answered with HTTP 403.
+USER_AGENT = "frontier-ai-corpus/1.0 (https://github.com/dfgtghu556-ops/frontier-ai)"
 
 GUTENBERG_START = "*** START OF THE PROJECT GUTENBERG EBOOK"
 GUTENBERG_END = "*** END OF THE PROJECT GUTENBERG EBOOK"
@@ -92,7 +100,7 @@ class CorpusSource:
     license_url: str
     attribution: str
     max_chars: int = DEFAULT_MAX_CHARS
-    kind: str = "gutenberg"  # "gutenberg" | "wikitext" | "plain"
+    kind: str = "gutenberg"  # "gutenberg" | "wikitext" | "plain" | "mediawiki-parse" (tokenizer corpus)
     sha256: str | None = None
     verified: bool = False
     retrieved_at: str | None = None
@@ -249,6 +257,10 @@ def clean_text(text: str, kind: str) -> str:
         return clean_wikitext(text)
     if kind == "plain":
         return text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    if kind == MEDIAWIKI_PARSE_KIND:
+        # A rendered wiki page (api.php?action=parse JSON). Only the tokenizer corpus
+        # declares this kind; the smoke manifest's validate_source() does not allow it.
+        return clean_mediawiki_parse(text)
     raise ValueError(f"unknown corpus kind {kind!r}")
 
 
@@ -360,7 +372,7 @@ class FetchError(RuntimeError):
 
 def fetch_text(url: str, timeout: float = 30.0) -> str:
     """Download `url` and return it as text. The only network call in the package."""
-    request = urllib.request.Request(url, headers={"User-Agent": "frontier-ai-smoke-corpus/1.0"})
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             raw = response.read()

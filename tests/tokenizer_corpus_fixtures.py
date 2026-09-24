@@ -143,3 +143,164 @@ def fake_gutenberg_text(title: str = "A Test Book") -> str:
 def fake_wikisource_text(body: str = MARATHI_TEXT) -> str:
     """A synthetic Wikisource-shaped text with the CC BY-SA 4.0 marker in it."""
     return _wikisource_text(body)
+
+
+# ---------------------------------------------------------------------------
+# Rendered MediaWiki pages (the ``mediawiki-parse`` kind).
+#
+# The *markup* below copies the structure hi/bn.wikisource.org actually return from
+# api.php?action=parse for a ProofreadPage chapter (header template in ws-noexport,
+# hidden ws-data, page-number anchors with data-page-quality, TemplateStyles <style>,
+# poem blocks, {{gap}} word joiners, a BOM left at a page join). The *text* is
+# hand-written for this repository.
+# ---------------------------------------------------------------------------
+import json as _json  # noqa: E402
+
+HINDI_PROSE = [
+    "गाँव में सुबह हुई और लोग खेतों की ओर चल पड़े। हवा ठंडी थी और आसमान साफ़ था।",
+    "किसान ने बैलों को पानी पिलाया, फिर हल उठाकर मेड़ की ओर बढ़ा। रास्ते में उसे पड़ोसी मिला।",
+    "दोनों ने देर तक फ़सल, बारिश और बाज़ार के भाव की बातें कीं। दोपहर होते-होते धूप तेज़ हो गई।",
+    "शाम को घर लौटकर उसने बच्चों को कहानी सुनाई और सबने साथ बैठकर खाना खाया।",
+    "रात को गाँव की चौपाल पर बुज़ुर्ग इकट्ठा हुए। किसी ने पुराने मेले की याद छेड़ी, किसी ने नहर की।",
+    "अगले दिन बाज़ार लगा। व्यापारी दूर-दूर से आए और अनाज, कपड़े और बर्तनों की दुकानें सज गईं।",
+    "लौटते समय उसने सोचा कि इस साल अगर बारिश ठीक रही तो वह बेटी की पढ़ाई के लिए कुछ पैसे बचा लेगा।",
+]
+
+BENGALI_VERSE = [
+    "ভোরের আলো এসে পড়ে নদীর জলে",
+    "মাঝি গান গায় নৌকা বেয়ে চলে",
+    "দূরের গ্রামে বাজে মন্দিরের ঘণ্টা",
+    "সারা দিন কাটে যেন একটি মুহূর্তের মতো",
+]
+
+
+def _pagenum(name: str, label: str, quality: int | None) -> str:
+    quality_attr = "" if quality is None else f' data-page-quality="{quality}"'
+    return (
+        f'<span><span class="pagenum ws-pagenum" id="{label}" data-page-number="{label}" '
+        f'data-page-name="{name}" data-page-index="{label}"{quality_attr} title="x">'
+        f'<span id="pageindex&#95;{label}" class="pagenum-inner ws-noexport">&#8203;</span>'
+        "</span></span>"
+    )
+
+
+WIKISOURCE_HEADER = (
+    '<div id="headerContainer" class="ws-noexport noprint dynlayout-exempt">\n'
+    '<div class="header-mainblock headertemplate"><div class="gen&#95;header&#95;backlink searchaux">'
+    '<div>←</div><div id="headerprevious"><a href="/wiki/W/1" title="W/1">पीछे</a></div></div>'
+    '<div class="gen&#95;header&#95;central&#95;cell"><span id="header&#95;title&#95;text">परीक्षा-ग्रंथ</span>'
+    ' <span id="header&#95;year&#95;text">&#160;(1936)&#160;</span> <br /><i>द्वारा</i> '
+    '<span class="vcard"><a href="/wiki/A" title="A">लेखक-नाम</a></span></div>'
+    '<div class="gen&#95;header&#95;forelink searchaux"><div id="headernext"><a href="/wiki/W/3">आगे</a></div>'
+    "<div>→</div></div></div>\n"
+    '<div class="ws-noexport" id="ws-data" style="speak:none;display:none"><span id="ws-article-id">'
+    '38658</span><span id="ws-title">परीक्षा-ग्रंथ</span><span id="ws-year">1936</span></div>\n</div>\n'
+)
+
+
+def rendered_chapter_html(
+    paragraphs: list[str] | None = None,
+    *,
+    qualities: tuple[int | None, ...] = (3, 4),
+    header: bool = True,
+    chapter_label: str = "२",
+) -> str:
+    """A ProofreadPage chapter as MediaWiki renders it (prose, one anchor per scan page)."""
+    paragraphs = HINDI_PROSE if paragraphs is None else paragraphs
+    pages = [
+        _pagenum(f"पृष्ठ:परीक्षा.djvu/{index + 18}", str(index + 16), quality)
+        for index, quality in enumerate(qualities)
+    ]
+    body = [f"<p>{pages[0] if pages else ''}\n</p>"]
+    body.append(f'<div class="tiInherit" style="text-align:center;">\n<p><b>{chapter_label}</b>\n</p>\n</div>')
+    for index, paragraph in enumerate(paragraphs):
+        # the second scan page starts inside the second paragraph, as on the wiki: the
+        # ProofreadPage join space, the anchor, a BOM left by the OCR import and the
+        # transcribers' page-leading <br> (the printed sentence continues)
+        if index == 1 and len(pages) > 1:
+            half = len(paragraph) // 2
+            paragraph = paragraph[:half] + "&#32;" + pages[1] + "\ufeff<br />" + paragraph[half:]
+        gap = '<span class="&#95;&#95;gap" style="display:inline-block; width:2em;">&#8288;</span>'
+        body.append(f"<p>{gap if index else ''}{paragraph}\n</p>")
+    for page in pages[2:]:
+        body.append(f"<p>{page}{HINDI_PROSE[0]}</p>")
+    return (
+        '<div class="mw-content-ltr mw-parser-output" lang="hi" dir="ltr">'
+        '<div class="prp-pages-output" lang="hi">\n'
+        + (WIKISOURCE_HEADER if header else "")
+        + '<div style="max-width:36em; margin: 0px auto;">\n'
+        + "".join(body)
+        + '<style data-mw-deduplicate="TemplateStyles:r1950689">.mw-parser-output .wst-center'
+        "{text-align:center;margin:0 auto}</style>"
+        + '<sup id="cite_ref-1" class="reference"><a href="#cite_note-1">[१]</a></sup>'
+        + '<div class="mw-references-wrap"><ol class="references"><li id="cite_note-1">'
+        "एक टिप्पणी जो कॉर्पस में नहीं जानी चाहिए।</li></ol></div>"
+        + "</div></div></div>"
+    )
+
+
+def rendered_poems_html(stanzas: list[list[str]] | None = None, *, quality: int = 4) -> str:
+    """A range render of verse (<pages index=… from=N to=M />): poem blocks, indents, <br>."""
+    stanzas = [BENGALI_VERSE[:2], BENGALI_VERSE[2:]] if stanzas is None else stanzas
+    blocks = []
+    for number, stanza in enumerate(stanzas, start=1):
+        lines = "<br />\n".join(
+            line if i % 2 == 0 else
+            f'<span class="mw-poem-indented" style="display: inline-block; margin-inline-start: 4em;">{line}</span>'
+            for i, line in enumerate(stanza)
+        )
+        blocks.append(
+            _pagenum(f"পাতা:পরীক্ষা.djvu/{12 + number}", str(number), quality)
+            + '<link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r1950689" />'
+            + f'<div class="wst-center tiInherit wst-center-nomargin">\n<p><span style="font-size:120%;">{number}</span>\n</p>\n</div>\n'
+            + f'<div class="wst-block-center" style="width:fit-content;">\n<div class="poem">\n<p>{lines}\n</p>\n</div>\n</div>'
+        )
+    return (
+        '<div class="mw-content-ltr mw-parser-output" lang="bn" dir="ltr">'
+        '<div class="prp-pages-output" lang="bn">\n' + "&#32;".join(blocks) + "</div></div>"
+    )
+
+
+def contents_page_html(entries: int = 12) -> str:
+    """A rendered table of contents: every line is a link plus a page number."""
+    rows = "".join(
+        f'<tr><td><a href="/wiki/W/{i}" title="W/{i}">अध्याय {i} का शीर्षक</a></td><td>{i * 7}</td></tr>'
+        for i in range(1, entries + 1)
+    )
+    return (
+        '<div class="mw-content-ltr mw-parser-output" lang="hi" dir="ltr">'
+        f"<p><b>सूचीपत्र</b></p><table>{rows}</table></div>"
+    )
+
+
+def redirect_html(target: str = "गो-दान") -> str:
+    return (
+        '<div class="mw-content-ltr mw-parser-output" lang="hi" dir="ltr">'
+        '<div class="redirectMsg"><p>अनुप्रेषित करें:</p><ul class="redirectText"><li>'
+        f'<a href="/wiki/{target}" title="{target}">{target}</a></li></ul></div></div>'
+    )
+
+
+def parse_payload(
+    html: str,
+    *,
+    title: str = "परीक्षा-ग्रंथ/२",
+    revid: int | None = 480196,
+    categories: tuple[str, ...] = ("परीक्षा",),
+    formatversion: int = 2,
+) -> str:
+    """A complete api.php?action=parse&format=json response around ``html``."""
+    parse: dict = {"title": title, "pageid": 38658}
+    if revid is not None:
+        parse["revid"] = revid
+    if formatversion == 2:
+        parse["text"] = html
+        parse["categories"] = [{"sortkey": "", "category": name} for name in categories]
+    else:
+        parse["text"] = {"*": html}
+        parse["categories"] = [{"sortkey": "", "*": name} for name in categories]
+    return _json.dumps({"parse": parse}, ensure_ascii=False)
+
+
+def parse_error_payload(code: str = "missingtitle", info: str = "The page you specified doesn't exist.") -> str:
+    return _json.dumps({"error": {"code": code, "info": info, "docref": "See api.php"}})
