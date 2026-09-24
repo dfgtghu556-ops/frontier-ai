@@ -116,6 +116,7 @@ PRESERVED_JOINERS = ("\u200c", "\u200d")
 PAGE_JOIN_BREAK = "page-join <br> -> space"
 BROKEN_GAP = "broken {{gap}} template -> removed"
 STRAY_CLOSING_BRACES = "stray }} -> removed"
+LITERAL_POEM_TAG = "literal <poem> tag -> removed"
 MISSING_TEMPLATE = "link to missing template {} -> removed"  # .format(template title)
 
 # The Template namespace (number 10) as each wiki spells it in page titles and links —
@@ -180,6 +181,12 @@ _BROKEN_GAP = re.compile(
 # with no "{" and no "|" — there it carries nothing; a line with an opening brace or a
 # template argument may be a broken template call, which stays for the inspection to show.
 _STRAY_CLOSING_BRACES = re.compile(r"\}{2,}")
+# A <poem> tag MediaWiki could not pair is printed as text: ଛମାଣ ଆଠଗୁଣ୍ଠ's scan page ୧୩୩
+# (checked 2026-09-24) closes a verse block with "<poem/>" instead of "</poem>", so the
+# opening "<poem>" appears in the middle of the text. A paired tag always renders as a
+# <div class="poem">, never as text, so the literal tag is residue and nothing else; the
+# lines it was meant to lay out stay as MediaWiki joined them.
+_LITERAL_POEM_TAG = re.compile(r"<[ \t]*/?[ \t]*poem\b[^<>]*>", re.IGNORECASE)
 
 
 # ---------------------------------------------------------------------------
@@ -557,6 +564,9 @@ def render_html(html: str, *, min_prose_chars: int = 20) -> RenderedPage:
         joined, broken_gaps = _BROKEN_GAP.subn("", joined)
         if broken_gaps:
             artifacts[BROKEN_GAP] += broken_gaps
+        joined, poem_tags = _LITERAL_POEM_TAG.subn("", joined)
+        if poem_tags:
+            artifacts[LITERAL_POEM_TAG] += poem_tags
         if "{" not in joined and "|" not in joined:
             joined, stray = _STRAY_CLOSING_BRACES.subn("", joined)
             if stray:

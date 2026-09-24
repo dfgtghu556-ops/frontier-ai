@@ -33,10 +33,14 @@ nothing was flagged.
 hashes (retrieved 2026-09-24T17:04–17:05Z); each begins with the prefix EXP-012's inspection
 reported, and Alice's equals the hash of EXP-008/010/011. Every later fetch compares against
 these pins and refuses changed text (§0.5); the first re-verification (EXP-014) exited 0, so
-no pinned source had changed. **First group of new languages (declared, not yet fetched):**
-Gujarati, Malayalam, Odia and Assamese, 7 range sources from four public-domain novels
-(§2.6); researching them exposed a proofreading-gate gap that is now closed (§3.1: a render
-that hides page levels used to pass unchecked). The other 7 slots have no sources yet (§9).
+no pinned source had changed. **First group of new languages:** Gujarati, Malayalam, Odia
+and Assamese, 7 range sources from four public-domain novels (§2.6); researching them exposed
+a proofreading-gate gap that is now closed (§3.1: a render that hides page levels used to pass
+unchecked). Their first fetch (EXP-015) verified all 47 sources (the 40 pinned ones unchanged)
+and put all four new slots above target: gu 297,628, ml 399,168, or 203,451, as 241,025
+characters. Its inspection found one more wiki typo, a `<poem>` tag printed as text in the
+Odia novel, which the cleaner now removes (§3.1); the new sources are pinned after the next
+fetch (EXP-016) shows it. The other 7 slots have no sources yet (§9).
 Run the steps where the network works, and record what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
@@ -475,6 +479,16 @@ kn 60, pa 198 for the next groups). All four works are novels that are public do
 * **Inspect:** gu and or sources will show `level_lookup` (the build asked the API: expect
   `confirmed` = pages and `error: null`); ml's anchors must leave no `[ n ]` page numbers in
   the text; every source should start with its first chapter's heading.
+* **First fetch (EXP-015):** all 7 verified. gu 152,483 + 145,145; ml 288,952 + 110,216 (the
+  sampled page sizes had underestimated Malayalam); or 203,451; as 114,802 + 126,223 characters.
+  Levels: gu 168 and or 159 pages validated (confirmed through the API), ml 144 + 57 proofread
+  and 3 validated, as 262 validated. Every source starts with its first chapter and ends where
+  its range ends — the second gu range, as planned, in the middle of chapter 13's first page
+  (`…સૂર્ય તનમનને`). Flags: or's literal `<poem>` (now removed: −7 characters, the tag and one
+  space) and ml's `1033` (a Malayalam-era year, genuine). Information only: Sanskrit verse in
+  the Gujarati novel, `--o--` ornaments between Odia chapters, an English gloss in Manomati.
+  Manomati part 1 types U+09F7 for the danda, so the document splitter now splits there too
+  and never cuts a sentence mid-word (document boundaries only; no hash changes).
 
 ---
 
@@ -586,8 +600,15 @@ the manifest until a human puts it there.
 * removes a **`}}` that closes nothing** — on a line with no `{` and no `|`, where it carries
   nothing (Gitanjali's scan page ১৪৮ ends a poem with `২৬ আষাঢ় ১৩১৭}}`); counted as
   `stray }} -> removed`. A line with an opening brace or a `|` may be a broken template call
-  and keeps its braces. Any other stray markup is left in place for the inspection report
-  to show.
+  and keeps its braces;
+* removes the text of a **`<poem>` tag MediaWiki could not pair**. ଛମାଣ ଆଠଗୁଣ୍ଠ's scan page
+  ୧୩୩ closes a verse block with `<poem/>` instead of `</poem>`; the opening tag then has no
+  partner and is printed verbatim (`…ମସିହା । <poem> ଏଇଚ ଆରି; …`, found by the EXP-015
+  inspection). A paired tag always renders as a poem block, never as text, so a literal
+  `<poem>`, `</poem>` or `<poem …>` is residue; the lines it was meant to lay out stay as
+  MediaWiki joined them. Counted as `literal <poem> tag -> removed`.
+
+Any other stray markup is left in place for the inspection report to show.
 
 **Known limitation (not fixed, on purpose):** a word split across two printed pages without
 a hyphenation template renders with ProofreadPage's join space in the middle (`अधि कार` for
@@ -849,7 +870,8 @@ unverified and its slot does not become `EVALUATED`.
 - [ ] gu and or: `content_check.page_quality.level_lookup` present with `confirmed` = `asked` and `error: null`; levels 3/4 only
 - [ ] ml: page levels read from the render (no `level_lookup`), and no bracketed page numbers in the text
 - [ ] Each starts with its first chapter (gu `સરસ્વતીચંદ્ર.` / `પ્રકરણ ૧.`, ml `അദ്ധ്യായം ഒന്ന്`, or `ପ୍ରଥମ ପରିଚ୍ଛେଦ`, as `মনোমতী` / `প্ৰথম খণ্ড`); no CSS anywhere
-- [ ] Characters per slot recorded; or may be `INSUFFICIENT` (then a second Odia work is needed — nothing is padded)
+- [ ] Characters per slot: EXP-015 had gu 297,628, ml 399,168, or 203,451, as 241,025; with the `<poem>` fix only or changes, to 203,444 (all four `EVALUATED`)
+- [ ] or's repairs line shows `literal <poem> tag -> removed (1)`, and nothing is flagged for it any more
 - [ ] `sha256` pinned only after all of the above
 
 ---

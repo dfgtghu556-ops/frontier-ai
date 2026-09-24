@@ -102,7 +102,9 @@ VALID_KINDS = {"gutenberg", "wikitext", "plain", MEDIAWIKI_PARSE_KIND}
 # Splitting: documents are paragraphs; very long paragraphs are cut on sentence
 # punctuation, and only then hard-wrapped, so no text is silently dropped.
 MAX_DOC_CHARS = 1_200
-_SENTENCE_BOUNDARY = re.compile(r"(?<=[\u0964\u0965।॥.!?])\s+")
+# U+09F7 (BENGALI CURRENCY NUMERATOR FOUR) is typed as the danda in much Assamese and
+# Bengali digital text: মনোমতী part 1 ends its sentences with it (part 2 with U+0964).
+_SENTENCE_BOUNDARY = re.compile(r"(?<=[\u0964\u0965\u09f7.!?])\s+")
 
 # Leakage diagnostics: word n-grams (character n-grams for scripts with little
 # whitespace), over a deterministically chosen sample so the check is bounded.
@@ -1329,11 +1331,36 @@ def _chunk(paragraph: str) -> list[str]:
     pieces = [piece.strip() for piece in _SENTENCE_BOUNDARY.split(paragraph) if piece.strip()]
     merged: list[str] = []
     for piece in pieces:
-        if len(piece) > MAX_DOC_CHARS:  # a sentence longer than the cap: hard wrap it
-            merged.extend(piece[i : i + MAX_DOC_CHARS] for i in range(0, len(piece), MAX_DOC_CHARS))
+        if len(piece) > MAX_DOC_CHARS:  # a sentence longer than the cap: wrap it
+            merged.extend(_wrap(piece))
         else:
             merged.append(piece)
     return merged or [paragraph[:MAX_DOC_CHARS]]
+
+
+def _wrap(piece: str) -> list[str]:
+    """Cut a sentence longer than ``MAX_DOC_CHARS`` into pieces that fit, between words.
+
+    Each cut is at the last whitespace inside the limit, which is dropped like the space
+    between two sentences; only a run of ``MAX_DOC_CHARS`` characters without any
+    whitespace is cut where the limit falls. (A cut at a fixed position would split
+    words, and in Indic scripts even a consonant from its vowel sign.)
+    """
+    out: list[str] = []
+    rest = piece.strip()
+    while len(rest) > MAX_DOC_CHARS:
+        window = rest[: MAX_DOC_CHARS + 1]
+        cut = max(window.rfind(" "), window.rfind("\t"))
+        if cut > 0:
+            head, rest = rest[:cut], rest[cut + 1 :]
+        else:
+            head, rest = rest[:MAX_DOC_CHARS], rest[MAX_DOC_CHARS:]
+        if head.strip():
+            out.append(head.strip())
+        rest = rest.lstrip()
+    if rest:
+        out.append(rest)
+    return out
 
 
 def split_documents(

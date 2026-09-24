@@ -227,8 +227,11 @@ enters the split only with `--include-unverified`. An unknown source id or a fil
 matches no declared source is a hard error (exit 2), never a silently ignored input.
 
 Documents are paragraphs. A paragraph longer than 1,200 characters is cut on sentence
-punctuation (`। ॥ . ! ?`) and only then hard-wrapped, so no text is ever dropped;
-document ids are `<source_id>-<index:06d>` in document order.
+punctuation (`। ॥ . ! ?`, and `৷` U+09F7, which much Assamese and Bengali digital text types
+for the danda); a sentence still longer than that is cut at the last space inside the limit
+(only a 1,200-character run without any space is cut where the limit falls), so no word is
+torn apart and no text is dropped but the separating space; document ids are
+`<source_id>-<index:06d>` in document order.
 
 ## 7. Split
 

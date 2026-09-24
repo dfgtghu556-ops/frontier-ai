@@ -18,6 +18,7 @@ import pytest
 from frontier_ai.data.corpora import FetchError, clean_text, sha256_text
 from frontier_ai.data.mediawiki import (
     BROKEN_GAP,
+    LITERAL_POEM_TAG,
     MISSING_TEMPLATE,
     PAGE_QUALITY_BATCH,
     PAGE_QUALITY_MAX_URL_CHARS,
@@ -487,6 +488,27 @@ def test_local_text_cannot_confirm_hidden_levels(tmp_path: Path) -> None:
     payload = parse_payload(rendered_chapter_html(qualities=(3, 4), anchor="title"))
     item = ingest_source(source, tmp_path / "raw", local_text=payload, local_origin="test")
     assert item.status == "unproofread_refused" and "only a fetch can" in item.error
+
+
+def test_render_drops_the_text_of_a_poem_tag_mediawiki_could_not_pair() -> None:
+    """ଛମାଣ ଆଠଗୁଣ୍ଠ's scan page ୧୩୩ closes a verse with <poem/> instead of </poem>, so MediaWiki
+    prints the opening tag as text (&lt;poem&gt;). A paired tag renders as a poem block."""
+    signed = "ମେ ମାସ ୧୭ ତାରିଖ ସନ ୧୯୩୨ ମସିହା ।\n&lt;poem&gt;\nଏଇଚ ଆରି; ଜେକ୍ ସନ୍\nସେସନ୍ ଜଜ୍ ।\n"
+    page = render_html(
+        f'<div class="mw-parser-output"><div class="prp-pages-output"><p>{signed}</p>'
+        '<p>&lt;/poem&gt; ଶେଷ &lt;Poem style="x"&gt;।</p></div></div>'
+    )
+    assert page.lines == [  # the non-empty lines (a blank line separates the paragraphs)
+        "ମେ ମାସ ୧୭ ତାରିଖ ସନ ୧୯୩୨ ମସିହା । ଏଇଚ ଆରି; ଜେକ୍ ସନ୍ ସେସନ୍ ଜଜ୍ ।", "ଶେଷ ।",
+    ]
+    assert page.artifacts_removed[LITERAL_POEM_TAG] == 3
+    # the word itself and a real poem block are untouched
+    verse = render_html(
+        '<div class="mw-parser-output"><p>A poem, poems and <b>poetry</b>.</p>'
+        '<div class="poem"><p>line one<br />\nline two\n</p></div></div>'
+    )
+    assert verse.lines == ["A poem, poems and poetry.", "line one", "line two"]
+    assert LITERAL_POEM_TAG not in verse.artifacts_removed
 
 
 def test_render_detects_redirects_and_contents_pages() -> None:

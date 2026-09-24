@@ -26,6 +26,7 @@ from frontier_ai.tokenization.corpus import (
 from frontier_ai.tokenization.research_corpus import (
     CORPUS_ID,
     CORPUS_VERSION,
+    MAX_DOC_CHARS,
     MAX_NGRAM_DOCS,
     MAX_SOURCE_CHARS,
     STATUS_EVALUATED,
@@ -347,6 +348,28 @@ def test_normalization_is_preserved(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # documents and split
 # ---------------------------------------------------------------------------
+def test_assamese_danda_substitute_ends_sentences_when_a_paragraph_is_split() -> None:
+    """মনোমতী part 1 ends its sentences with U+09F7 (typed as the danda), not U+0964: a
+    long paragraph must still split there, one sentence per document."""
+    sentences = [
+        f"আজি বৰপেটাৰ চাৰিউফালৰে পৰা হাজাৰ হাজাৰ মানুহে কীৰ্ত্তনঘৰলৈ লৰ ধৰিছে {i}\u09f7" for i in range(40)
+    ]
+    paragraph = " ".join(sentences)
+    assert len(paragraph) > MAX_DOC_CHARS
+    assert [doc.text for doc in documents_from_text("as-src", "as", paragraph)] == sentences
+
+
+def test_an_overlong_sentence_is_cut_between_words() -> None:
+    """A sentence longer than the cap is cut at spaces: no word (and no vowel sign) is torn
+    from its letters. Only a run with no whitespace at all is cut where the limit falls."""
+    words = [f"শব্দ{i}" for i in range(600)]  # no sentence mark anywhere
+    docs = documents_from_text("as-src", "as", " ".join(words))
+    assert len(docs) > 1 and max(doc.chars for doc in docs) <= MAX_DOC_CHARS
+    assert [word for doc in docs for word in doc.text.split(" ")] == words
+    solid = "ক" * (MAX_DOC_CHARS + 5)
+    assert [doc.text for doc in documents_from_text("x", "as", solid)] == ["ক" * MAX_DOC_CHARS, "ক" * 5]
+
+
 def test_documents_are_paragraphs_and_never_drop_text() -> None:
     docs = documents_from_text("src", "hi", HINDI_TEXT)
     assert len(docs) == 10
