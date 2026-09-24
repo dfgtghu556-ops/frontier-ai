@@ -10,6 +10,7 @@ is exactly what the insufficient-coverage paths need to exercise.
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import quote
 
 FIXTURES = Path(__file__).parent / "fixtures" / "tokenizer_corpus"
 
@@ -184,6 +185,28 @@ def _pagenum(name: str, label: str, quality: int | None) -> str:
     )
 
 
+def _pagenum_title_only(name: str, label: str) -> str:
+    """The anchor gu/or render (2026-09-24): no data-page-name, no level, only the
+    percent-encoded page title (underscores as &#95;) and the printed page number."""
+    title = quote(name.replace(" ", "_"), safe=":/").replace("_", "&#95;")
+    return (
+        f'<span><span class="pagenum ws-pagenum" id="{label}" data-page-number="{label}" '
+        f'title="{title}">&#8203;</span></span>'
+    )
+
+
+def _pr_page_anchor(name: str, label: str, quality: int | None) -> str:
+    """ml's older anchor (2026-09-24): a bracketed link whose class carries the level."""
+    level_class = "" if quality is None else f' class="prp-pagequality-{quality}"'
+    href = quote(name.replace(" ", "_"), safe=":/")
+    return (
+        '<span><span style="position:absolute; left:1em; text-indent:0em; font-size:80%;">'
+        '<span id="pr&#95;page"><span id="zzz" style="display:none;"></span>'
+        f'<span id="{label}"></span>[&#8201;<a href="/wiki/{href}"{level_class} '
+        f'title="{name}">{label}</a>&#8201;]</span></span> </span>'
+    )
+
+
 WIKISOURCE_HEADER = (
     '<div id="headerContainer" class="ws-noexport noprint dynlayout-exempt">\n'
     '<div class="header-mainblock headertemplate"><div class="gen&#95;header&#95;backlink searchaux">'
@@ -204,13 +227,23 @@ def rendered_chapter_html(
     qualities: tuple[int | None, ...] = (3, 4),
     header: bool = True,
     chapter_label: str = "२",
+    anchor: str = "data",
 ) -> str:
-    """A ProofreadPage chapter as MediaWiki renders it (prose, one anchor per scan page)."""
+    """A ProofreadPage chapter as MediaWiki renders it (prose, one anchor per scan page).
+
+    ``anchor`` picks the wiki's page-anchor template: "data" (hi, bn, as: name and level
+    attributes), "title" (gu, or: only the page title, no level) or "pr_page" (ml).
+    """
     paragraphs = HINDI_PROSE if paragraphs is None else paragraphs
-    pages = [
-        _pagenum(f"पृष्ठ:परीक्षा.djvu/{index + 18}", str(index + 16), quality)
-        for index, quality in enumerate(qualities)
-    ]
+    names = [f"पृष्ठ:परीक्षा.djvu/{index + 18}" for index in range(len(qualities))]
+    if anchor == "data":
+        pages = [_pagenum(n, str(i + 16), q) for i, (n, q) in enumerate(zip(names, qualities))]
+    elif anchor == "title":
+        pages = [_pagenum_title_only(n, str(i + 16)) for i, n in enumerate(names)]
+    elif anchor == "pr_page":
+        pages = [_pr_page_anchor(n, str(i + 16), q) for i, (n, q) in enumerate(zip(names, qualities))]
+    else:
+        raise ValueError(f"unknown anchor style {anchor!r}")
     body = [f"<p>{pages[0] if pages else ''}\n</p>"]
     body.append(f'<div class="tiInherit" style="text-align:center;">\n<p><b>{chapter_label}</b>\n</p>\n</div>')
     for index, paragraph in enumerate(paragraphs):

@@ -58,6 +58,10 @@ from ..data.corpora import (
 )
 from ..data.mediawiki import (
     MEDIAWIKI_PARSE_KIND,
+    QUALITY_NAMES,
+    UNPROOFREAD_LEVELS,
+    page_quality_urls,
+    parse_page_quality_response,
     read_parse_payload,
     render_html,
     validate_parse_url,
@@ -771,6 +775,55 @@ def _checked_evidence(
     return result
 
 
+def _confirm_page_levels(source: CorpusSource, shape: dict[str, Any], *, timeout: float) -> None:
+    """Ask the wiki for the level of every rendered scan page whose render hid it.
+
+    Some wikis' page anchors carry no level (gu, or), so the render alone cannot show that
+    a page was proofread. The wiki's own API can; its answers replace the unknowns in
+    ``shape["page_quality"]`` and the lookup is recorded there (``level_lookup``). A page
+    it cannot confirm stays in ``unknown_level``, and the proofreading gate refuses the
+    source: a level nobody could read is never taken as "proofread".
+    """
+    quality = shape.get("page_quality")
+    if not quality or not quality.get("unknown_level"):
+        return
+    asked = list(quality["unknown_level"])
+    urls = page_quality_urls(source.source_url, asked)
+    found: dict[str, int | None] = {}
+    error = ""
+    for url in urls:
+        try:
+            found.update(parse_page_quality_response(fetch_text(url, timeout=timeout)))
+        except Exception as exc:  # noqa: BLE001 - any failure leaves the pages unconfirmed
+            error = f"{type(exc).__name__}: {exc}"
+            break
+    by_level = dict(quality.get("by_level") or {})
+    still_unknown: list[str] = []
+    for name in asked:
+        level = found.get(name)
+        if level is None:
+            still_unknown.append(name)
+            continue
+        by_level["unknown"] = by_level.get("unknown", 0) - 1
+        by_level[str(level)] = by_level.get(str(level), 0) + 1
+        if level in UNPROOFREAD_LEVELS:
+            quality["unproofread"].append(
+                {"page": name, "level": level, "meaning": QUALITY_NAMES[level]}
+            )
+    if not by_level.get("unknown"):
+        by_level.pop("unknown", None)
+    quality["by_level"] = dict(sorted(by_level.items()))
+    quality["unknown_level"] = still_unknown
+    quality["level_lookup"] = {
+        "why": "the render does not show these pages' proofreading level",
+        "endpoint": urls[0].split("&titles=", 1)[0] if urls else "",
+        "requests": len(urls),
+        "asked": len(asked),
+        "confirmed": len(asked) - len(still_unknown),
+        "error": error or None,
+    }
+
+
 def ingest_source(
     source: CorpusSource,
     raw_dir: str | Path,
@@ -910,6 +963,8 @@ def ingest_source(
                     f"{source.source_url}, and {checked}; refusing to pin a hash"
                 ),
             )
+        if source.kind == MEDIAWIKI_PARSE_KIND and not shape["looks_like_index_page"]:
+            _confirm_page_levels(source, shape, timeout=timeout)
         status = "verified"
     else:
         return IngestedSource(source_id=source.id, language=source.language, status="not_attempted")
@@ -1017,24 +1072,57 @@ def ingest_source(
     # Proofreading gate (rendered scanned books only): text that no human has checked
     # against the scan is never verified. Kept on disk so the pages can be named.
     page_quality = shape.get("page_quality") if shape is not None else None
-    if source.kind == MEDIAWIKI_PARSE_KIND and page_quality and page_quality["unproofread"]:
-        unproofread = page_quality["unproofread"]
-        listed = ", ".join(
-            f"{row['page']} (level {row['level']}: {row['meaning']})" for row in unproofread[:5]
-        )
-        more = f" and {len(unproofread) - 5} more" if len(unproofread) > 5 else ""
-        return refuse_with_text(
-            STATUS_UNPROOFREAD_REFUSED,
-            {**shape, "gate": "proofreading"},
-            (
+    if source.kind == MEDIAWIKI_PARSE_KIND and shape is not None:
+        unproofread = (page_quality or {}).get("unproofread") or []
+        unknown = (page_quality or {}).get("unknown_level") or []
+        # ProofreadPage content without a single page anchor: which scan pages it holds,
+        # and whether anyone proofread them, cannot be checked at all
+        anchorless = bool((shape.get("mediawiki") or {}).get("has_prp_output")) and not (
+            page_quality or {}
+        ).get("pages")
+        problems: list[str] = []
+        if unproofread:
+            listed = ", ".join(
+                f"{row['page']} (level {row['level']}: {row['meaning']})"
+                for row in unproofread[:5]
+            )
+            more = f" and {len(unproofread) - 5} more" if len(unproofread) > 5 else ""
+            problems.append(
                 f"{len(unproofread)} of the {page_quality['pages']} scan pages rendered by "
                 f"{source.source_url} have not been proofread on the wiki: {listed}{more}. "
-                "Their text is unchecked OCR, so the source is refused (text kept for "
-                "inspection, nothing verified or pinned). Wait until those pages reach "
-                "'proofread' (3) or 'validated' (4), or declare a range that excludes them "
-                "(runbook §3.1)."
-            ),
-        )
+                "Their text is unchecked OCR"
+            )
+        if unknown:
+            lookup = page_quality.get("level_lookup") or {}
+            reason = (
+                f"the wiki's API could not be asked ({lookup['error']})" if lookup.get("error")
+                else "the wiki's API did not confirm a level for them" if lookup
+                else "this run could not ask the wiki's API (only a fetch can)"
+            )
+            listed = ", ".join(unknown[:5])
+            more = f" and {len(unknown) - 5} more" if len(unknown) > 5 else ""
+            problems.append(
+                f"the proofreading level of {len(unknown)} of the {page_quality['pages']} "
+                f"scan pages rendered by {source.source_url} could not be confirmed: the "
+                f"render does not show it and {reason}: {listed}{more}"
+            )
+        if anchorless:
+            problems.append(
+                f"{source.source_url} rendered ProofreadPage content without any page "
+                "anchor, so which scan pages it holds, and whether anyone proofread them, "
+                "cannot be checked"
+            )
+        if problems:
+            return refuse_with_text(
+                STATUS_UNPROOFREAD_REFUSED,
+                {**shape, "gate": "proofreading"},
+                (
+                    "; ".join(problems) + ". The source is refused (text kept for "
+                    "inspection, nothing verified or pinned). Wait until those pages reach "
+                    "'proofread' (3) or 'validated' (4), or declare a range that excludes "
+                    "them (runbook §3.1)."
+                ),
+            )
 
     digest = sha256_text(text)
     if expected_sha256 and digest != expected_sha256:
@@ -2192,6 +2280,12 @@ def _mediawiki_preflight_notes(report: dict[str, Any], max_bytes: int) -> list[s
             f"{len(quality['unproofread'])} of the {quality.get('pages', 0)} sampled scan "
             "pages are not proofread (level 1/2): a real build would refuse this source "
             "as unproofread_refused"
+        )
+    if quality.get("unknown_level"):
+        notes.append(
+            f"{len(quality['unknown_level'])} of the {quality.get('pages', 0)} sampled scan "
+            "pages do not show their proofreading level in the render: a real build asks "
+            "the wiki's API for them and refuses the source if it cannot confirm them"
         )
     if not (report.get("mediawiki") or {}).get("has_prp_output"):
         notes.append(

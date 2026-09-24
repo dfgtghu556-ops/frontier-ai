@@ -18,7 +18,7 @@
     "note": "Each document is assigned by sha256('<seed>:<doc_id>') < heldout_fraction. No global RNG, so the split is reproducible and independent of document order."
   },
   "normalization_policy": "none",
-  "cleaning_policy": "prepare_source_text (kind-specific wrapper/markup removal only: Gutenberg header/footer; wikitext markup; for mediawiki-parse, MediaWiki's rendered HTML minus what Wikisource marks ws-noexport (header template, hidden metadata, page anchors), <style>/<script>, footnote markers/lists and display:none elements - see frontier_ai.data.mediawiki). The mediawiki-parse cleaner also removes three invisible rendering artifacts (U+200B, U+2060, U+FEFF) and turns U+00A0 into a space, recording the counts in provenance; U+200C/U+200D (ZWNJ/ZWJ) are kept. It also drops the verbatim residue of a mistyped {{gap}} template that MediaWiki printed as text ({{Gap{}, {{Gap}], {{Gap]}, {Gap}}, {{Gap)), {{Gap@)), {{Gap before the text, <gap>): a correct {{gap}} renders as a removed U+2060 spacer, so the result is the text a correctly typed page gives (counted as 'broken {{gap}} template -> removed'). Likewise it drops a red link that MediaWiki prints for a template that does not exist (a misspelt name, e.g. साँचा:GaP; only redlink=1 links into the Template namespace, counted per template as 'link to missing template <title> -> removed') and a '}}' that closes nothing on a line without '{' or '|' ('stray }} -> removed'). Everything else odd stays in the text for the inspection report. Unicode normalization is NOT applied; NFC/NFD/NFKC experiments belong to a later Project 004 stage.",
+  "cleaning_policy": "prepare_source_text (kind-specific wrapper/markup removal only: Gutenberg header/footer; wikitext markup; for mediawiki-parse, MediaWiki's rendered HTML minus what Wikisource marks ws-noexport (header template, hidden metadata, page anchors), <style>/<script>, footnote markers/lists and display:none elements - see frontier_ai.data.mediawiki). The mediawiki-parse cleaner also removes three invisible rendering artifacts (U+200B, U+2060, U+FEFF) and turns U+00A0 into a space, recording the counts in provenance; U+200C/U+200D (ZWNJ/ZWJ) are kept. It also drops the verbatim residue of a mistyped {{gap}} template that MediaWiki printed as text ({{Gap{}, {{Gap}], {{Gap]}, {Gap}}, {{Gap)), {{Gap@)), {{Gap before the text, <gap>): a correct {{gap}} renders as a removed U+2060 spacer, so the result is the text a correctly typed page gives (counted as 'broken {{gap}} template -> removed'). Likewise it drops a red link that MediaWiki prints for a template that does not exist (a misspelt name, e.g. साँचा:GaP; only redlink=1 links into the Template namespace, counted per template as 'link to missing template <title> -> removed') and a '}}' that closes nothing on a line without '{' or '|' ('stray }} -> removed'). Page anchors come in three wiki-specific shapes (name and level attributes on hi, bn and as; a percent-encoded page title on gu and or; an older <span id=\"pr_page\"> link on ml): none reaches the text, ml's bracketed page number included. Everything else odd stays in the text for the inspection report. Unicode normalization is NOT applied; NFC/NFD/NFKC experiments belong to a later Project 004 stage.",
   "language_slots": [
     {
       "code": "en",
@@ -118,15 +118,10 @@
       "script": "Gujarati",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Gujarati Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (gu.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "gu-wikisource-saraswatichandra-1-ch01-08-ccbysa",
+        "gu-wikisource-saraswatichandra-1-ch09-12-ccbysa"
+      ]
     },
     {
       "code": "ta",
@@ -182,15 +177,10 @@
       "script": "Malayalam",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Malayalam Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (ml.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "ml-wikisource-ramarajabahadoor-ch01-13-ccbysa",
+        "ml-wikisource-ramarajabahadoor-ch14-18-ccbysa"
+      ]
     },
     {
       "code": "pa",
@@ -214,15 +204,9 @@
       "script": "Odia",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Odia Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (or.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "or-wikisource-chha-mana-atha-guntha-ccbysa"
+      ]
     },
     {
       "code": "as",
@@ -230,15 +214,10 @@
       "script": "Bengali-Assamese",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Assamese Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (as.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "as-wikisource-manomati-part1-ccbysa",
+        "as-wikisource-manomati-part2-ccbysa"
+      ]
     },
     {
       "code": "ur",
@@ -1163,7 +1142,168 @@
         "scope": "site",
         "note": "Site-level evidence for bn.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0; the underlying work is public domain in India (Sarat Chandra Chattopadhyay died in 1938). Page-level review of the edition's own licence tag is still required; see the source notes."
       }
+    },
+    {
+      "id": "gu-wikisource-saraswatichandra-1-ch01-08-ccbysa",
+      "title": "સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) — Govardhanram Tripathi — chapters 1–8",
+      "language": "gu",
+      "script": "Gujarati",
+      "source_url": "https://gu.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AA%B8%E0%AA%B0%E0%AA%B8%E0%AB%8D%E0%AA%B5%E0%AA%A4%E0%AB%80%E0%AA%9A%E0%AA%82%E0%AA%A6%E0%AB%8D%E0%AA%B0%20%E0%AA%AD%E0%AA%BE%E0%AA%97%20%E0%AB%A7&text=%3Cpages%20index%3D%22Saraswati%20Chandra%20Part%201.pdf%22%20from%3D21%20to%3D106%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Gujarati Wikisource contributors, સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) by Govardhanram Tripathi, chapters 1–8, transcribed from the scan Saraswati Chandra Part 1.pdf; via gu.wikisource.org, licensed CC BY-SA 4.0. Part 1 of the novel was first published in 1887 and Govardhanram Tripathi died in 1907; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "First of two Gujarati sources (together chapters 1-12 of part 1). Renders <pages index=\"Saraswati Chandra Part 1.pdf\" from=21 to=106 /> under the work page સરસ્વતીચંદ્ર ભાગ ૧, whose chapter subpages transclude exactly this range, split with sections where two chapters share a page: chapter 1 (સુવર્ણપુરનો અતિથિ) = from=21 to=25 tosection=25a, chapter 8 (અમાત્યને ઘેર) = from=99 fromsection=99b to=106. Scan page 106 ends chapter 8 without a section split, so the range ends on a chapter boundary; rendered without section limits, every section of every page appears once, in order. Scan pages 2-18 (front matter: prefaces and contents) and 20 (the invocation મંગલપુષ્પાંજલિ) are excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and 370 of its 373 pages at level 3 or 4 (the other three are not in either list); the six pages sampled (૨૧, ૩૦, ૫૦, ૭૦, ૯૦, ૧૦૬) are validated (level 4); prop=templates for each range lists every scan page as existing and no missing template (ઢાંચો:Rule, Rule/styles.css, Reflist). gu.wikisource's page anchor shows no proofreading level (only a percent-encoded title), so the build asks the wiki's API (prop=proofread) for each page's level and refuses the source if it cannot confirm it. Page titles use Gujarati digits (પૃષ્ઠ:Saraswati Chandra Part 1.pdf/૨૧). Licence review: the work page carries {{ઢાંચો:પ્રકાશન-ભારત}}, gu.wikisource's public-domain-in-India notice (Indian Copyright Act 1957: 60 years after the author's death); the scan's Commons file page gives the date 1887-01-01, the source Digital Library of India and {{PD-1923}}; Govardhanram Tripathi lived 1855-1907 (en.wikipedia). Footnotes are dropped by the cleaner, as for every rendered source.",
+      "license_evidence": {
+        "url": "https://gu.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for gu.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.gu, which contains the marker); the underlying work is public domain in India (Govardhanram Tripathi died in 1907). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "gu-wikisource-saraswatichandra-1-ch09-12-ccbysa",
+      "title": "સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) — Govardhanram Tripathi — chapters 9–12",
+      "language": "gu",
+      "script": "Gujarati",
+      "source_url": "https://gu.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AA%B8%E0%AA%B0%E0%AA%B8%E0%AB%8D%E0%AA%B5%E0%AA%A4%E0%AB%80%E0%AA%9A%E0%AA%82%E0%AA%A6%E0%AB%8D%E0%AA%B0%20%E0%AA%AD%E0%AA%BE%E0%AA%97%20%E0%AB%A7&text=%3Cpages%20index%3D%22Saraswati%20Chandra%20Part%201.pdf%22%20from%3D107%20to%3D188%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Gujarati Wikisource contributors, સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) by Govardhanram Tripathi, chapters 9–12, transcribed from the scan Saraswati Chandra Part 1.pdf; via gu.wikisource.org, licensed CC BY-SA 4.0. Part 1 of the novel was first published in 1887 and Govardhanram Tripathi died in 1907; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second Gujarati source: <pages index=\"Saraswati Chandra Part 1.pdf\" from=107 to=188 />. Chapter 9 (ઉન્મત્તપણાનું પરિણામ) starts at the top of scan page 107 (from=107); chapter 12 (રાજા, રાજદરબાર અને રાજકારભાર) ends at from=148 fromsection=148b to=188 tosection=188a, so the range's last page also holds the opening section (188b) of chapter 13 (રસ્તામાં), which is therefore included: no chapter of part 1 between pages 106 and 372 ends at the foot of a page. Estimated with the first source at about 240,000-270,000 characters (about 1,600 per page from the sampled page sizes); the report gives the real number. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and 370 of its 373 pages at level 3 or 4 (the other three are not in either list); the six pages sampled (૨૧, ૩૦, ૫૦, ૭૦, ૯૦, ૧૦૬) are validated (level 4); prop=templates for each range lists every scan page as existing and no missing template (ઢાંચો:Rule, Rule/styles.css, Reflist). gu.wikisource's page anchor shows no proofreading level (only a percent-encoded title), so the build asks the wiki's API (prop=proofread) for each page's level and refuses the source if it cannot confirm it. Page titles use Gujarati digits (પૃષ્ઠ:Saraswati Chandra Part 1.pdf/૨૧). Licence review: the work page carries {{ઢાંચો:પ્રકાશન-ભારત}}, gu.wikisource's public-domain-in-India notice (Indian Copyright Act 1957: 60 years after the author's death); the scan's Commons file page gives the date 1887-01-01, the source Digital Library of India and {{PD-1923}}; Govardhanram Tripathi lived 1855-1907 (en.wikipedia). Footnotes are dropped by the cleaner, as for every rendered source.",
+      "license_evidence": {
+        "url": "https://gu.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for gu.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.gu, which contains the marker); the underlying work is public domain in India (Govardhanram Tripathi died in 1907). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "ml-wikisource-ramarajabahadoor-ch01-13-ccbysa",
+      "title": "രാമരാജാബഹദൂർ (Ramarajabahadoor) — C. V. Raman Pillai — chapters 1–13",
+      "language": "ml",
+      "script": "Malayalam",
+      "source_url": "https://ml.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B4%B0%E0%B4%BE%E0%B4%AE%E0%B4%B0%E0%B4%BE%E0%B4%9C%E0%B4%BE%E0%B4%AC%E0%B4%B9%E0%B4%A6%E0%B5%82%E0%B5%BC&text=%3Cpages%20index%3D%22Ramarajabahadoor.djvu%22%20from%3D4%20to%3D150%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Malayalam Wikisource contributors, രാമരാജാബഹദൂർ (Ramarajabahadoor) by C. V. Raman Pillai, chapters 1–13, transcribed from the scan Ramarajabahadoor.djvu; via ml.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts in 1918 and 1919 and C. V. Raman Pillai died in 1922; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "First of two Malayalam sources (together chapters 1-18 of 36). Renders <pages index=\"Ramarajabahadoor.djvu\" from=4 to=150 /> under the work page രാമരാജാബഹദൂർ. Its chapter subpages transclude whole scan pages (no sections): chapter 1 = from=4 to=12 and chapter 14 = from=151 to=161, so chapters 1-13 are exactly pages 4-150. Scan page 1 (the dedication സമർപ്പണം) and 2-3 (the preface മുഖവുര) are excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and all 436 at level 3 or 4; the six pages sampled (4, 20, 60, 100, 140, 173) are proofread (level 3) or validated (4: page 4). Chapters 1-18 use only existing templates (ഫലകം:Header2, Hyphenated word start/end and their redirects Hws/Hwe); none is missing. ml.wikisource renders the older page anchor <span id=\"pr_page\">[ <a class=\"prp-pagequality-N\" ...>n</a> ]</span>: the cleaner reads each page's level from that class and drops the bracketed page number. Page titles use ASCII digits (താൾ:Ramarajabahadoor.djvu/4). Licence review: the work page has no licence template; the scan's file page on ml.wikisource (പ്രമാണം:Ramarajabahadoor.djvu, not on Commons) carries {{PD-India}} and calls it C. V. Raman Pillai's third historical novel (1918); he died on 1922-03-21 (Wikidata Q5006916).",
+      "license_evidence": {
+        "url": "https://ml.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ml.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ml, which contains the marker); the underlying work is public domain in India (C. V. Raman Pillai died in 1922). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "ml-wikisource-ramarajabahadoor-ch14-18-ccbysa",
+      "title": "രാമരാജാബഹദൂർ (Ramarajabahadoor) — C. V. Raman Pillai — chapters 14–18",
+      "language": "ml",
+      "script": "Malayalam",
+      "source_url": "https://ml.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B4%B0%E0%B4%BE%E0%B4%AE%E0%B4%B0%E0%B4%BE%E0%B4%9C%E0%B4%BE%E0%B4%AC%E0%B4%B9%E0%B4%A6%E0%B5%82%E0%B5%BC&text=%3Cpages%20index%3D%22Ramarajabahadoor.djvu%22%20from%3D151%20to%3D207%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Malayalam Wikisource contributors, രാമരാജാബഹദൂർ (Ramarajabahadoor) by C. V. Raman Pillai, chapters 14–18, transcribed from the scan Ramarajabahadoor.djvu; via ml.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts in 1918 and 1919 and C. V. Raman Pillai died in 1922; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second Malayalam source: <pages index=\"Ramarajabahadoor.djvu\" from=151 to=207 /> = chapter 14 (from=151 to=161) through chapter 18 (from=194 to=207), whole pages. The novel is split in two because one render of all 433 story pages would be far larger than any render this corpus has used (the largest so far is Gitanjali's 178 pages). Estimated with the first source at about 230,000-265,000 characters (about 1,300 per page from the sampled page sizes, which vary widely); the report gives the real number. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and all 436 at level 3 or 4; the six pages sampled (4, 20, 60, 100, 140, 173) are proofread (level 3) or validated (4: page 4). Chapters 1-18 use only existing templates (ഫലകം:Header2, Hyphenated word start/end and their redirects Hws/Hwe); none is missing. ml.wikisource renders the older page anchor <span id=\"pr_page\">[ <a class=\"prp-pagequality-N\" ...>n</a> ]</span>: the cleaner reads each page's level from that class and drops the bracketed page number. Page titles use ASCII digits (താൾ:Ramarajabahadoor.djvu/4). Licence review: the work page has no licence template; the scan's file page on ml.wikisource (പ്രമാണം:Ramarajabahadoor.djvu, not on Commons) carries {{PD-India}} and calls it C. V. Raman Pillai's third historical novel (1918); he died on 1922-03-21 (Wikidata Q5006916).",
+      "license_evidence": {
+        "url": "https://ml.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ml.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ml, which contains the marker); the underlying work is public domain in India (C. V. Raman Pillai died in 1922). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "or-wikisource-chha-mana-atha-guntha-ccbysa",
+      "title": "ଛମାଣ ଆଠଗୁଣ୍ଠ (Chha Mana Atha Guntha) — Fakir Mohan Senapati — the whole novel",
+      "language": "or",
+      "script": "Odia",
+      "source_url": "https://or.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AC%9B%E0%AC%AE%E0%AC%BE%E0%AC%A3%20%E0%AC%86%E0%AC%A0%E0%AC%97%E0%AD%81%E0%AC%A3%E0%AD%8D%E0%AC%A0&text=%3Cpages%20index%3D%22Chha%20mana%20atha%20guntha.pdf%22%20from%3D4%20to%3D162%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Odia Wikisource contributors, ଛମାଣ ଆଠଗୁଣ୍ଠ (Chha Mana Atha Guntha) by Fakir Mohan Senapati, the whole novel, transcribed from the scan Chha mana atha guntha.pdf; via or.wikisource.org, licensed CC BY-SA 4.0. The scanned edition is dated 1903 and Fakir Mohan Senapati died in 1918; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "The only Odia source. Renders <pages index=\"Chha mana atha guntha.pdf\" from=4 to=162 /> under the work page ଛମାଣ ଆଠଗୁଣ୍ଠ, whose 29 chapter subpages transclude exactly this range, whole pages: chapter 1 (ରାମଚନ୍ଦ୍ର ମଙ୍ଗରାଜ) = from=4 to=7, chapter 2 = from=8 to=11, chapter 28 (ଅପୂର୍ବ ମିଳନ) = from=157 to=159 and the closing chapter 29 (ଉପସଂହାର) = from=160 to=162, the scan's last page. Scan pages 1-3 (cover and front matter) are excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2; the six pages sampled (୪, ୧୦, ୪୦, ୮୦, ୧୨୦, ୧୬୨) are validated (level 4); the chapters use only existing templates (ଛାଞ୍ଚ:Larger, X-larger, Gap, Header, Center, C, Block center). or.wikisource's page anchor shows no proofreading level (as on gu), so the build asks the wiki's API for each page's level and refuses the source if it cannot confirm it. Page titles use Odia digits (ପୃଷ୍ଠା:Chha mana atha guntha.pdf/୪); the same numbers in ASCII digits (.../4) are redirects left over from a rename and are marked level 1, but the render transcludes the Odia-digit pages (checked: scan page 4 renders as .../୪ and opens with ପ୍ରଥମ ପରିଚ୍ଛେଦ, ରାମଚନ୍ଦ୍ର ମଙ୍ଗରାଜ). Licence review: the work page has no licence template; its Index page gives the year 1903; the scan's Commons file page credits the scan to Srujanika and NIT Rourkela and releases it under {{cc-zero}}; Fakir Mohan Senapati died on 1918-06-14 (Wikidata Q3635656). Estimated at about 190,000-215,000 characters (about 1,340 per page before running heads are removed): possibly just under the 200,000 target, in which case the slot is INSUFFICIENT with the real number and a second Odia work will be needed.",
+      "license_evidence": {
+        "url": "https://or.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for or.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.or, which contains the marker); the underlying work is public domain in India (Fakir Mohan Senapati died in 1918). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "as-wikisource-manomati-part1-ccbysa",
+      "title": "মনোমতী (Manomati) — Rajanikanta Bordoloi — part 1, chapters 1–19",
+      "language": "as",
+      "script": "Bengali-Assamese",
+      "source_url": "https://as.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%AE%E0%A6%A8%E0%A7%8B%E0%A6%AE%E0%A6%A4%E0%A7%80&text=%3Cpages%20index%3D%22Manomati.pdf%22%20from%3D5%20to%3D131%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Assamese Wikisource contributors, মনোমতী (Manomati) by Rajanikanta Bordoloi, part 1 (chapters 1–19), transcribed from the scan Manomati.pdf (6th edition, 1956); via as.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in 1900 and Rajanikanta Bordoloi died in 1940; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "First of two Assamese sources (the novel's two parts). Renders <pages index=\"Manomati.pdf\" from=5 to=131 /> under the work page মনোমতী, whose chapter subpages transclude whole scan pages: part 1 chapter 1 = from=5 to=12, chapter 18 = from=114 to=116, chapter 19 = from=117 to=131; part 2 chapter 1 starts at from=133, so scan page 132 (between the parts) is excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2; the six pages sampled (৫, ২০, ৬০, ১০০, ১৩১, ২০০) are validated (level 4). Part 1 chapters 1-15 use only existing templates (সাঁচ:Header, Center, Header/year, Gap, X-larger, Xxxx-larger, Block center, Blockcenter, Is number); the other chapters were not checked in advance, and any red link to a missing template is removed by the cleaner and listed in the inspection report. as.wikisource's page anchor carries data-page-name and data-page-quality, as on hi and bn. Page titles use Assamese digits (পৃষ্ঠা:Manomati.pdf/৫). Licence review: the work page carries {{PD-India}} and gives the year ১৯০০; the scan's Commons file page tags it {{PD-old-auto|1940}} and describes it as the 6th edition (চপলা সাহিত্য সদন, Shillong, 1956) from the Digital Library of India; Rajanikanta Bordoloi died on 1940-03-25 (Wikidata Q12015668). Because the scan is a posthumous edition, only the novel's chapters are used: the opening note আৰম্ভণ (pages 3-4), the closing সামৰণি (268-270), the notes টীকা (271-278) and the notice বিজ্ঞাপন (279-280) are excluded, since who wrote them is not established.",
+      "license_evidence": {
+        "url": "https://as.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for as.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.as, which contains the marker); the underlying work is public domain in India (Rajanikanta Bordoloi died in 1940). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "as-wikisource-manomati-part2-ccbysa",
+      "title": "মনোমতী (Manomati) — Rajanikanta Bordoloi — part 2, chapters 1–25",
+      "language": "as",
+      "script": "Bengali-Assamese",
+      "source_url": "https://as.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%AE%E0%A6%A8%E0%A7%8B%E0%A6%AE%E0%A6%A4%E0%A7%80&text=%3Cpages%20index%3D%22Manomati.pdf%22%20from%3D133%20to%3D267%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Assamese Wikisource contributors, মনোমতী (Manomati) by Rajanikanta Bordoloi, part 2 (chapters 1–25), transcribed from the scan Manomati.pdf (6th edition, 1956); via as.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in 1900 and Rajanikanta Bordoloi died in 1940; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second Assamese source: <pages index=\"Manomati.pdf\" from=133 to=267 /> = part 2 chapter 1 (from=133 to=139) through chapter 25 (from=255 to=267), whole pages. Estimated with part 1 at about 220,000-255,000 characters (about 960 per page from the sampled page sizes); the report gives the real number. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2; the six pages sampled (৫, ২০, ৬০, ১০০, ১৩১, ২০০) are validated (level 4). Part 1 chapters 1-15 use only existing templates (সাঁচ:Header, Center, Header/year, Gap, X-larger, Xxxx-larger, Block center, Blockcenter, Is number); the other chapters were not checked in advance, and any red link to a missing template is removed by the cleaner and listed in the inspection report. as.wikisource's page anchor carries data-page-name and data-page-quality, as on hi and bn. Page titles use Assamese digits (পৃষ্ঠা:Manomati.pdf/৫). Licence review: the work page carries {{PD-India}} and gives the year ১৯০০; the scan's Commons file page tags it {{PD-old-auto|1940}} and describes it as the 6th edition (চপলা সাহিত্য সদন, Shillong, 1956) from the Digital Library of India; Rajanikanta Bordoloi died on 1940-03-25 (Wikidata Q12015668). Because the scan is a posthumous edition, only the novel's chapters are used: the opening note আৰম্ভণ (pages 3-4), the closing সামৰণি (268-270), the notes টীকা (271-278) and the notice বিজ্ঞাপন (279-280) are excluded, since who wrote them is not established.",
+      "license_evidence": {
+        "url": "https://as.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for as.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.as, which contains the marker); the underlying work is public domain in India (Rajanikanta Bordoloi died in 1940). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
     }
   ],
-  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets. 2026-09-24 (P004B): the first live fetch showed that neither Wikisource root declared in Stage A was the work: hi गोदान?action=raw is a localized #REDIRECT to गो-दान, and bn গীতাঞ্জলি is a Wikidata/SPARQL infocard. Both works are ProofreadPage scanned-book transcriptions whose chapter pages contain only a <pages/> tag, so ?action=raw can never return their text. They are now declared as mediawiki-parse sources rendered by api.php?action=parse: the 36 Godaan chapters (गो-दान/१…/३६, scan गो-दान.djvu; the legacy pages गो-दान/ भाग 16 and भाग 17 render a different scan, गोदान.pdf, duplicate this text and are deliberately not declared) and one Gitanjali source rendering scan pages 13–190 (poems 1–157). The replaced ids hi-wikisource-godan-ccbysa and bn-wikisource-gitanjali-ccbysa were never verified or pinned. 2026-09-24 (P004B, after EXP-009): added en-gutenberg-sadhana-pd (Tagore, Sadhana, Gutenberg ebook 6842) and bn-wikisource-devdas-ccbysa (Sarat Chandra Chattopadhyay, দেবদাস, scan pages 5–110) so that the en and bn slots can reach the 200,000-character target; neither has been fetched, verified or pinned yet. 2026-09-24 (P004B, EXP-010): all 40 sources verified; en, hi and bn EVALUATED; the 38 sources fetched before were byte-identical (37 as in EXP-009, Alice as in EXP-008). The inspection flagged literal markup in Godaan chapters 3, 4, 6, 7 and 9: 20 mistyped {{gap}} templates on 19 scan pages (पृष्ठ:गो-दान.djvu/२२, २५, ३५, ३६, ४०, ४१ (twice, incl. <gap>), ४३, ४४, ४५, ४६, ६१, ६३, ६४, ६७, ७०, ८३, ९०, ९५, ११६), located with the wiki's source search; the mediawiki-parse cleaner now removes that residue, so those five chapters' hashes change on the next fetch. One leftover piece of wiki markup ({{, }}, [[ or ]]) in Gitanjali was not yet located. 2026-09-24 (P004B, EXP-011): exactly Godaan chapters 3, 4, 6, 7 and 9 changed, the other 35 sources were byte-identical. The inspection's where-to-look section then located 8 red links to misspelt templates that do not exist (साँचा:GaP on पृष्ठ:गो-दान.djvu/२८; साँचा:GP twice on /२२५; साँचा:Gpa on /२२७ and /२२८; साँचा:GAP three times on /२६४ — chapters 3, 21, 24) and Gitanjali's stray '}}' after the date of poem 118 on পাতা:গীতাঞ্জলি - রবীন্দ্রনাথ ঠাকুর.djvu/১৪৮. The cleaner now removes both; the wikis' template lists (generator=templates for the 36 chapters, action=parse&prop=templates for Gitanjali and Devdas) show no other missing template. A stray Latin 'l' typed on पृष्ठ:गो-दान.djvu/८९ is a transcription typo and is kept. Nothing pinned. 2026-09-24 (P004B, EXP-012): all 40 sources verified. Exactly Godaan chapters 3, 21 and 24 and Gitanjali changed (chapter 3 lost exactly the 9 characters of 'साँचा:GaP', Gitanjali the 2 of '}}'); the other 36 were byte-identical to EXP-011. The inspection flagged nothing, and its repair counts match every located residue (20 mistyped {{gap}}, 8 links to missing templates, 1 stray '}}'). Nothing pinned; pinning follows (EXP-013). 2026-09-24 (P004B, EXP-013): pinned. The operator's --pin run (retrieved 2026-09-24T17:04-17:05Z) verified all 40 sources and wrote sha256, verified and retrieved_at for each; nothing else in this file changed. Every hash begins with the prefix EXP-012's inspection reported, and Alice's equals the hash of EXP-008/010/011. The pinned file was pushed from the operator's machine and carried onto this branch with git, never retyped. Re-verification (EXP-014): exit code 0, as reported by the operator, so no pinned source came back changed. Every later fetch compares against these pins."
+  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets. 2026-09-24 (P004B): the first live fetch showed that neither Wikisource root declared in Stage A was the work: hi गोदान?action=raw is a localized #REDIRECT to गो-दान, and bn গীতাঞ্জলি is a Wikidata/SPARQL infocard. Both works are ProofreadPage scanned-book transcriptions whose chapter pages contain only a <pages/> tag, so ?action=raw can never return their text. They are now declared as mediawiki-parse sources rendered by api.php?action=parse: the 36 Godaan chapters (गो-दान/१…/३६, scan गो-दान.djvu; the legacy pages गो-दान/ भाग 16 and भाग 17 render a different scan, गोदान.pdf, duplicate this text and are deliberately not declared) and one Gitanjali source rendering scan pages 13–190 (poems 1–157). The replaced ids hi-wikisource-godan-ccbysa and bn-wikisource-gitanjali-ccbysa were never verified or pinned. 2026-09-24 (P004B, after EXP-009): added en-gutenberg-sadhana-pd (Tagore, Sadhana, Gutenberg ebook 6842) and bn-wikisource-devdas-ccbysa (Sarat Chandra Chattopadhyay, দেবদাস, scan pages 5–110) so that the en and bn slots can reach the 200,000-character target; neither has been fetched, verified or pinned yet. 2026-09-24 (P004B, EXP-010): all 40 sources verified; en, hi and bn EVALUATED; the 38 sources fetched before were byte-identical (37 as in EXP-009, Alice as in EXP-008). The inspection flagged literal markup in Godaan chapters 3, 4, 6, 7 and 9: 20 mistyped {{gap}} templates on 19 scan pages (पृष्ठ:गो-दान.djvu/२२, २५, ३५, ३६, ४०, ४१ (twice, incl. <gap>), ४३, ४४, ४५, ४६, ६१, ६३, ६४, ६७, ७०, ८३, ९०, ९५, ११६), located with the wiki's source search; the mediawiki-parse cleaner now removes that residue, so those five chapters' hashes change on the next fetch. One leftover piece of wiki markup ({{, }}, [[ or ]]) in Gitanjali was not yet located. 2026-09-24 (P004B, EXP-011): exactly Godaan chapters 3, 4, 6, 7 and 9 changed, the other 35 sources were byte-identical. The inspection's where-to-look section then located 8 red links to misspelt templates that do not exist (साँचा:GaP on पृष्ठ:गो-दान.djvu/२८; साँचा:GP twice on /२२५; साँचा:Gpa on /२२७ and /२२८; साँचा:GAP three times on /२६४ — chapters 3, 21, 24) and Gitanjali's stray '}}' after the date of poem 118 on পাতা:গীতাঞ্জলি - রবীন্দ্রনাথ ঠাকুর.djvu/১৪৮. The cleaner now removes both; the wikis' template lists (generator=templates for the 36 chapters, action=parse&prop=templates for Gitanjali and Devdas) show no other missing template. A stray Latin 'l' typed on पृष्ठ:गो-दान.djvu/८९ is a transcription typo and is kept. Nothing pinned. 2026-09-24 (P004B, EXP-012): all 40 sources verified. Exactly Godaan chapters 3, 21 and 24 and Gitanjali changed (chapter 3 lost exactly the 9 characters of 'साँचा:GaP', Gitanjali the 2 of '}}'); the other 36 were byte-identical to EXP-011. The inspection flagged nothing, and its repair counts match every located residue (20 mistyped {{gap}}, 8 links to missing templates, 1 stray '}}'). Nothing pinned; pinning follows (EXP-013). 2026-09-24 (P004B, EXP-013): pinned. The operator's --pin run (retrieved 2026-09-24T17:04-17:05Z) verified all 40 sources and wrote sha256, verified and retrieved_at for each; nothing else in this file changed. Every hash begins with the prefix EXP-012's inspection reported, and Alice's equals the hash of EXP-008/010/011. The pinned file was pushed from the operator's machine and carried onto this branch with git, never retyped. Re-verification (EXP-014): exit code 0, as reported by the operator, so no pinned source came back changed. Every later fetch compares against these pins. 2026-09-24 (P004B, first group of new languages): declared four more slots, each from a scanned book that is public domain in India — Gujarati: Saraswatichandra part 1, chapters 1-12 (Govardhanram Tripathi, died 1907; two range sources); Malayalam: Ramarajabahadoor, chapters 1-18 (C. V. Raman Pillai, died 1922; two range sources); Odia: Chha Mana Atha Guntha, the whole novel (Fakir Mohan Senapati, died 1918); Assamese: Manomati, parts 1 and 2 (Rajanikanta Bordoloi, died 1940). Before declaring, each was checked on its wiki for proofreading level, chapter boundaries, missing templates and the licence tags of the work and its scan (details in each source's notes). None is fetched or pinned yet. Three of these wikis render page anchors that do not show the proofreading level the way hi and bn do, which exposed a gap: a render without visible levels used to pass the proofreading gate unchecked. The build now asks the wiki's API for any level the render hides and refuses the source if it cannot be confirmed (runbook §3.1)."
 }

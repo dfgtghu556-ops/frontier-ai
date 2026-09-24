@@ -66,10 +66,11 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from typing import Any
-from urllib.parse import parse_qs, quote, urlsplit
+from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 MEDIAWIKI_PARSE_KIND = "mediawiki-parse"
 
@@ -126,6 +127,11 @@ MISSING_TEMPLATE = "link to missing template {} -> removed"  # .format(template 
 TEMPLATE_NAMESPACE = {
     "hi.wikisource.org": "साँचा",
     "bn.wikisource.org": "টেমপ্লেট",
+    # checked 2026-09-24 with meta=siteinfo&siprop=namespaces (namespace 10)
+    "gu.wikisource.org": "ઢાંચો",
+    "ml.wikisource.org": "ഫലകം",
+    "or.wikisource.org": "ଛାଞ୍ଚ",
+    "as.wikisource.org": "সাঁচ",
 }
 _TEMPLATE_PREFIXES = frozenset({"Template", *TEMPLATE_NAMESPACE.values()})
 
@@ -139,6 +145,17 @@ QUALITY_NAMES = {
 }
 # Pages at these levels have text that no human has confirmed against the scan.
 UNPROOFREAD_LEVELS = frozenset({1, 2})
+# Each wiki renders ProofreadPage's page anchor with its own template, so the anchor comes
+# in three shapes (all seen on 2026-09-24):
+# * hi, bn, as: <span class="pagenum ws-pagenum" data-page-name="…" data-page-quality="4">
+# * gu, or: the same span with only title="<percent-encoded page title>" — no name
+#   attribute and no level;
+# * ml: an older template, <span id="pr_page">[ <a class="prp-pagequality-4"
+#   title="താൾ:…/4">4</a> ]</span>, whose "[ 4 ]" is a page number, not the work.
+# A page whose level the render does not show is looked up through the wiki's API
+# (page_quality_urls) and refused if it cannot be confirmed; it is never assumed proofread.
+PR_PAGE_ID = "pr_page"
+_PAGE_QUALITY_CLASS = re.compile(r"^prp-pagequality-(\d)$")
 
 _DISPLAY_NONE = re.compile(r"display\s*:\s*none", re.IGNORECASE)
 # \s in a str pattern is Unicode-aware: it matches NBSP and the other space separators,
@@ -326,6 +343,9 @@ class RenderedPage:
                 {"page": name, "level": level, "meaning": QUALITY_NAMES[level]}
                 for name, level in self.unproofread_pages
             ],
+            # pages the render names but whose level it does not show (gu, or): the build
+            # asks the wiki's API for them and refuses the source if it cannot confirm them
+            "unknown_level": [name for name, level in self.page_qualities if level is None],
         }
 
 
@@ -336,9 +356,11 @@ class _Extractor(HTMLParser):
         super().__init__(convert_charrefs=True)
         # ("text", data, in_link) | ("br", "", False) | ("block", "", False) | ("cell", "", False)
         self.tokens: list[tuple[str, str, bool]] = []
-        self._stack: list[tuple[str, bool, bool]] = []  # (tag, skipped, is_poem)
+        # (tag, skipped, is_poem, is_pr_page)
+        self._stack: list[tuple[str, bool, bool, bool]] = []
         self._link_depth = 0
         self._poem_depth = 0
+        self._pr_page_depth = 0  # inside an old-style <span id="pr_page"> page anchor
         # True between a page-number anchor and the next visible text or block boundary
         self._after_page_anchor = False
         self.page_join_breaks = 0
@@ -355,8 +377,9 @@ class _Extractor(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = {key: (value or "") for key, value in attrs}
         classes = set(attributes.get("class", "").split())
-        self._observe(attributes, classes)
-        if classes & {"pagenum", "ws-pagenum"} and not self._skipping:
+        self._observe(tag, attributes, classes)
+        is_pr_page = attributes.get("id", "") == PR_PAGE_ID
+        if (classes & {"pagenum", "ws-pagenum"} or is_pr_page) and not self._skipping:
             self._after_page_anchor = True
         if tag in VOID_TAGS:
             if not self._skipping:
@@ -376,9 +399,12 @@ class _Extractor(HTMLParser):
             or bool(classes & SKIP_CLASSES)
             or bool(_DISPLAY_NONE.search(attributes.get("style", "")))
             or missing is not None
+            or is_pr_page
         )
         is_poem = not skipped and "poem" in classes
-        self._stack.append((tag, skipped, is_poem))
+        self._stack.append((tag, skipped, is_poem, is_pr_page))
+        if is_pr_page:
+            self._pr_page_depth += 1
         if not skipped:
             self._boundary(tag)
             if tag == "a":
@@ -404,7 +430,9 @@ class _Extractor(HTMLParser):
         else:
             return  # a stray end tag: ignore it rather than unbalance the stack
         while len(self._stack) > depth:
-            open_tag, skipped, is_poem = self._stack.pop()
+            open_tag, skipped, is_poem, is_pr_page = self._stack.pop()
+            if is_pr_page:
+                self._pr_page_depth = max(0, self._pr_page_depth - 1)
             if not skipped:
                 if open_tag == "a":
                     self._link_depth = max(0, self._link_depth - 1)
@@ -425,19 +453,47 @@ class _Extractor(HTMLParser):
         elif tag in CELL_TAGS:
             self.tokens.append(("cell", "", False))
 
-    def _observe(self, attributes: dict[str, str], classes: set[str]) -> None:
+    def _observe(self, tag: str, attributes: dict[str, str], classes: set[str]) -> None:
         """Facts recorded even from elements whose text is skipped."""
-        if classes & {"pagenum", "ws-pagenum"} and "data-page-name" in attributes:
-            name = attributes["data-page-name"]
-            if name not in self._seen_pages:
-                self._seen_pages.add(name)
+        if classes & {"pagenum", "ws-pagenum"}:
+            # the name attribute when the wiki's template has it (hi, bn, as), else the
+            # title attribute, which holds the percent-encoded page title (gu, or) — but
+            # only on ProofreadPage's own anchor (it always carries data-page-number) and
+            # only when the title looks like a scan page ("<namespace>:<file>/<n>")
+            name = attributes.get("data-page-name", "").strip()
+            if not name and "data-page-number" in attributes:
+                candidate = _page_title_from_attribute(attributes.get("title", ""))
+                if ":" in candidate and "/" in candidate.partition(":")[2]:
+                    name = candidate
+            if name:
                 raw_level = attributes.get("data-page-quality", "").strip()
-                level = int(raw_level) if raw_level.isdigit() else None
-                self.page_qualities.append((name, level))
+                self._record_page(name, int(raw_level) if raw_level.isdigit() else None)
+        elif tag == "a" and self._pr_page_depth:
+            # old-style anchor (ml): the level is the link's prp-pagequality-N class
+            levels = [m.group(1) for m in map(_PAGE_QUALITY_CLASS.match, classes) if m]
+            href = attributes.get("href", "")
+            name = attributes.get("title", "").strip() or (
+                _page_title_from_attribute(href.split("/wiki/", 1)[1]) if "/wiki/" in href else ""
+            )
+            if name:
+                self._record_page(name, int(levels[0]) if len(levels) == 1 else None)
         if classes & {"redirectMsg", "redirectText"}:
             self.is_redirect = True
         if "prp-pages-output" in classes:
             self.has_prp_output = True
+
+    def _record_page(self, name: str, level: int | None) -> None:
+        if name not in self._seen_pages:
+            self._seen_pages.add(name)
+            self.page_qualities.append((name, level))
+
+
+def _page_title_from_attribute(value: str) -> str:
+    """A page title from a title/href attribute: percent-decoded, underscores as spaces.
+
+    (HTMLParser has already turned ``&#95;`` into ``_``.)
+    """
+    return unquote(value).replace("_", " ").strip()
 
 
 def _missing_template(href: str) -> str | None:
@@ -650,3 +706,70 @@ def parse_pages_range_url(host: str, work_title: str, index: str, start: int, en
         f"https://{host}/w/api.php?{_COMMON_PARAMS}&prop=text&{_QUIET_PARAMS}"
         f"&contentmodel=wikitext&title={quote(work_title, safe='')}&text={quote(tag, safe='')}"
     )
+
+
+# --------------------------------------------------------------- page levels --
+# When a wiki's page anchor does not carry the proofreading level (gu, or), the build asks
+# the wiki itself: api.php?action=query&prop=proofread answers with each page's level.
+PAGE_QUALITY_BATCH = 50  # the API's limit on titles per request
+# Indic titles are long once percent-encoded (9 characters per letter), so batches are
+# also cut by URL length, far below what the servers accept.
+PAGE_QUALITY_MAX_URL_CHARS = 4000
+
+
+def page_quality_urls(source_url: str, titles: Sequence[str]) -> list[str]:
+    """The ``prop=proofread`` query URLs that ask the source's wiki for ``titles``' levels.
+
+    Same scheme, host and api.php path as ``source_url``; titles in the order given,
+    batched by count and by URL length.
+    """
+    parts = urlsplit(source_url)
+    base = (
+        f"{parts.scheme}://{parts.netloc}{parts.path}"
+        "?action=query&format=json&formatversion=2&prop=proofread&titles="
+    )
+    batches: list[list[str]] = []
+    for title in titles:
+        if batches:
+            candidate = [*batches[-1], title]
+            fits = len(base) + len(quote("|".join(candidate), safe="")) <= PAGE_QUALITY_MAX_URL_CHARS
+            if len(candidate) <= PAGE_QUALITY_BATCH and fits:
+                batches[-1] = candidate
+                continue
+        batches.append([title])
+    return [base + quote("|".join(batch), safe="") for batch in batches]
+
+
+def parse_page_quality_response(raw: str) -> dict[str, int | None]:
+    """``{title: level or None}`` from one ``prop=proofread`` response (formatversion=2).
+
+    Keys are the titles as the wiki spells them *and* as they were asked (the API reports
+    its normalisation). A missing or invalid page, or one without a level, maps to None.
+    Raises ``ValueError`` for an API error or a response that is not the expected JSON.
+    """
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"not JSON: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ValueError("not a JSON object")
+    if "error" in data:
+        error = data["error"] or {}
+        raise ValueError(f"API error {error.get('code')}: {error.get('info', '')}")
+    query = data.get("query")
+    if not isinstance(query, dict) or not isinstance(query.get("pages"), list):
+        raise ValueError("no query.pages list in the response")
+    asked_as = {row.get("to"): row.get("from") for row in query.get("normalized") or []}
+    levels: dict[str, int | None] = {}
+    for page in query["pages"]:
+        title = page.get("title")
+        if not isinstance(title, str):
+            continue
+        quality = (page.get("proofread") or {}).get("quality")
+        level = quality if isinstance(quality, int) and quality in QUALITY_NAMES else None
+        if page.get("missing") or page.get("invalid"):
+            level = None
+        levels[title] = level
+        if asked_as.get(title):
+            levels[asked_as[title]] = level
+    return levels

@@ -11,15 +11,21 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from urllib.parse import parse_qs, quote, urlsplit
+from urllib.parse import parse_qs, quote, unquote, urlsplit
 
-from frontier_ai.data.corpora import clean_text, sha256_text
+import pytest
+
+from frontier_ai.data.corpora import FetchError, clean_text, sha256_text
 from frontier_ai.data.mediawiki import (
     BROKEN_GAP,
     MISSING_TEMPLATE,
+    PAGE_QUALITY_BATCH,
+    PAGE_QUALITY_MAX_URL_CHARS,
     STRAY_CLOSING_BRACES,
     TEMPLATE_NAMESPACE,
     clean_mediawiki_parse,
+    page_quality_urls,
+    parse_page_quality_response,
     read_parse_payload,
     render_html,
     validate_parse_url,
@@ -322,6 +328,167 @@ def test_render_records_page_quality_and_flags_unproofread_pages() -> None:
     assert render_html(rendered_chapter_html(qualities=(0, 3, 4))).unproofread_pages == []
 
 
+# The page anchor comes in three shapes, one per wiki template (seen 2026-09-24): hi/bn/as
+# carry name + level attributes, gu/or only a percent-encoded title, ml an older bracketed
+# link whose class is the level. Every shape must name its pages, none may reach the text.
+PAGE_NAMES = ["पृष्ठ:परीक्षा.djvu/18", "पृष्ठ:परीक्षा.djvu/19"]
+
+
+def test_render_names_the_pages_behind_every_anchor_shape() -> None:
+    data = render_html(rendered_chapter_html(qualities=(3, 4)))
+    title_only = render_html(rendered_chapter_html(qualities=(3, 4), anchor="title"))
+    pr_page = render_html(rendered_chapter_html(qualities=(3, 4), anchor="pr_page"))
+
+    assert data.page_qualities == [(PAGE_NAMES[0], 3), (PAGE_NAMES[1], 4)]
+    # gu/or: the name is decoded from the title attribute; the level is not shown
+    assert title_only.page_qualities == [(PAGE_NAMES[0], None), (PAGE_NAMES[1], None)]
+    assert title_only.quality_summary()["unknown_level"] == PAGE_NAMES
+    assert title_only.quality_summary()["unproofread"] == []
+    # ml: the level is the link's prp-pagequality-N class
+    assert pr_page.page_qualities == data.page_qualities
+    assert pr_page.quality_summary()["unknown_level"] == []
+    # the anchors never reach the text: ml's "[ 16 ]" page number included
+    assert title_only.text == data.text == pr_page.text
+    assert "[" not in pr_page.text and "16" not in pr_page.text
+
+
+def test_only_proofreadpage_anchors_name_pages() -> None:
+    """A title-only anchor counts only in ProofreadPage's own shape: it carries
+    data-page-number, and its title is a scan page ("<namespace>:<file>/<n>")."""
+    prose = f"<p>{HINDI_PROSE[0]}</p>"
+    for anchor in (
+        '<span class="pagenum" title="%E0%A4%AA:X.djvu/3">x</span>',  # no data-page-number
+        '<span class="pagenum ws-pagenum" data-page-number="4" title="a note">y</span>',
+        '<span class="pagenum ws-pagenum" data-page-number="5" title="Chapter/5">z</span>',
+    ):
+        html = f'<div class="mw-parser-output"><div class="prp-pages-output">{anchor}{prose}</div></div>'
+        assert render_html(html).page_qualities == [], anchor
+
+
+def test_page_quality_urls_ask_for_every_page_once_in_short_batches() -> None:
+    devanagari = [f"पृष्ठ:परीक्षा.djvu/{n}" for n in range(1, 121)]
+    urls = page_quality_urls(PAGE_URL, devanagari)
+    prefix = (
+        "https://hi.wikisource.org/w/api.php?action=query&format=json&formatversion=2"
+        "&prop=proofread&titles="
+    )
+    assert all(url.startswith(prefix) for url in urls)
+    assert all(len(url) <= PAGE_QUALITY_MAX_URL_CHARS for url in urls)
+    asked = [title for url in urls for title in unquote(url[len(prefix):]).split("|")]
+    assert asked == devanagari  # each page once, in order
+    # percent-encoded Devanagari is long: these batches are cut by length, not by count
+    assert len(urls) > -(-len(devanagari) // PAGE_QUALITY_BATCH)
+    latin = [f"Page:X.djvu/{n}" for n in range(1, 121)]
+    sizes = [len(unquote(url[len(prefix):]).split("|")) for url in page_quality_urls(PAGE_URL, latin)]
+    assert sizes == [PAGE_QUALITY_BATCH, PAGE_QUALITY_BATCH, 120 - 2 * PAGE_QUALITY_BATCH]
+    assert page_quality_urls(PAGE_URL, []) == []
+
+
+def _levels_response(levels: dict[str, int | None]) -> str:
+    """A prop=proofread answer (formatversion=2): None means the page does not exist."""
+    pages = [
+        {"ns": 250, "title": title, "missing": True} if level is None else
+        {"pageid": 900 + i, "ns": 250, "title": title,
+         "proofread": {"quality": level, "quality_text": f"level {level}"}}
+        for i, (title, level) in enumerate(levels.items())
+    ]
+    return json.dumps({"batchcomplete": True, "query": {"pages": pages}}, ensure_ascii=False)
+
+
+def test_parse_page_quality_response_reads_levels_and_normalised_titles() -> None:
+    raw = json.loads(_levels_response({PAGE_NAMES[0]: 4, PAGE_NAMES[1]: 1, "पृष्ठ:परीक्षा.djvu/20": None}))
+    raw["query"]["pages"].append({"pageid": 7, "ns": 250, "title": "पृष्ठ:परीक्षा.djvu/21"})  # no level
+    raw["query"]["normalized"] = [{"fromencoded": False, "from": "पृष्ठ:परीक्षा.djvu/18 ", "to": PAGE_NAMES[0]}]
+    levels = parse_page_quality_response(json.dumps(raw, ensure_ascii=False))
+    assert levels[PAGE_NAMES[0]] == 4 and levels["पृष्ठ:परीक्षा.djvu/18 "] == 4  # as asked, too
+    assert levels[PAGE_NAMES[1]] == 1
+    assert levels["पृष्ठ:परीक्षा.djvu/20"] is None and levels["पृष्ठ:परीक्षा.djvu/21"] is None
+    with pytest.raises(ValueError, match="API error toomanyvalues"):
+        parse_page_quality_response('{"error": {"code": "toomanyvalues", "info": "too many"}}')
+    for broken in ("<html>", "[]", '{"batchcomplete": true}'):
+        with pytest.raises(ValueError):
+            parse_page_quality_response(broken)
+
+
+def _ingest_title_anchored(tmp_path: Path, monkeypatch, api, *, qualities=(3, 4)):
+    """Fetch a gu/or-style render (no levels shown); ``api`` answers the level lookup."""
+    calls: list[str] = []
+    bodies = {"action=parse": parse_payload(rendered_chapter_html(qualities=qualities, anchor="title"))}
+
+    def _fetch(url: str, *args, **kwargs) -> str:
+        if "prop=proofread" in url:
+            calls.append(url)
+            if isinstance(api, BaseException):
+                raise api
+            return api
+        return _fetcher(bodies)(url, *args, **kwargs)
+
+    monkeypatch.setattr("frontier_ai.tokenization.research_corpus.fetch_text", _fetch)
+    source = TokenizerCorpusManifest.load(_manifest(tmp_path, [_source()])).sources[0]
+    return ingest_source(source, tmp_path / "raw", fetch=True, license_evidence=_evidence()), calls
+
+
+def test_ingest_asks_the_wiki_for_levels_the_render_does_not_show(tmp_path: Path, monkeypatch) -> None:
+    item, calls = _ingest_title_anchored(
+        tmp_path, monkeypatch, _levels_response({PAGE_NAMES[0]: 3, PAGE_NAMES[1]: 4})
+    )
+    assert item.status == "verified", item.error
+    assert len(calls) == 1 and calls[0].startswith("https://hi.wikisource.org/w/api.php?action=query")
+    assert unquote(calls[0].split("&titles=", 1)[1]).split("|") == PAGE_NAMES
+    quality = json.loads(Path(item.provenance_path).read_text(encoding="utf-8"))["content_check"]["page_quality"]
+    assert quality["by_level"] == {"3": 1, "4": 1} and quality["unknown_level"] == []
+    assert quality["level_lookup"]["confirmed"] == 2 and quality["level_lookup"]["error"] is None
+    # the lookup decides only whether the text may be used, never what the text is
+    shown = parse_payload(rendered_chapter_html(qualities=(3, 4)))
+    assert item.sha256 == sha256_text(clean_text(shown, KIND))
+
+
+def test_ingest_refuses_a_page_the_wiki_reports_unproofread(tmp_path: Path, monkeypatch) -> None:
+    item, _calls = _ingest_title_anchored(
+        tmp_path, monkeypatch, _levels_response({PAGE_NAMES[0]: 4, PAGE_NAMES[1]: 1})
+    )
+    assert item.status == "unproofread_refused" and not item.verified
+    assert "1 of the 2 scan pages" in item.error and f"{PAGE_NAMES[1]} (level 1: not proofread)" in item.error
+    assert Path(item.path).exists()  # kept for a human to read
+
+
+@pytest.mark.parametrize(
+    ("api", "why"),
+    [
+        (_levels_response({PAGE_NAMES[0]: 3, PAGE_NAMES[1]: None}), "did not confirm a level"),
+        (FetchError("https://hi.wikisource.org/w/api.php: timed out"), "could not be asked (FetchError"),
+        ('{"error": {"code": "internal_api_error", "info": "boom"}}', "could not be asked (ValueError"),
+    ],
+    ids=["page-missing", "network-down", "api-error"],
+)
+def test_ingest_refuses_levels_it_cannot_confirm(tmp_path: Path, monkeypatch, api, why: str) -> None:
+    """A level nobody could read is never taken as "proofread": fail closed."""
+    item, calls = _ingest_title_anchored(tmp_path, monkeypatch, api)
+    assert calls, "the wiki's API was asked"
+    assert item.status == "unproofread_refused" and not item.verified
+    assert "could not be confirmed" in item.error and why in item.error, item.error
+    assert PAGE_NAMES[1] in item.error
+
+
+def test_ingest_refuses_proofreadpage_content_without_page_anchors(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        _fetcher({"action=parse": parse_payload(rendered_chapter_html(qualities=()))}),
+    )
+    source = TokenizerCorpusManifest.load(_manifest(tmp_path, [_source()])).sources[0]
+    item = ingest_source(source, tmp_path / "raw", fetch=True, license_evidence=_evidence())
+    assert item.status == "unproofread_refused"
+    assert "without any page anchor" in item.error
+
+
+def test_local_text_cannot_confirm_hidden_levels(tmp_path: Path) -> None:
+    """Only a fetch may ask the wiki; saved text with hidden levels stays unconfirmed."""
+    source = TokenizerCorpusManifest.load(_manifest(tmp_path, [_source()])).sources[0]
+    payload = parse_payload(rendered_chapter_html(qualities=(3, 4), anchor="title"))
+    item = ingest_source(source, tmp_path / "raw", local_text=payload, local_origin="test")
+    assert item.status == "unproofread_refused" and "only a fetch can" in item.error
+
+
 def test_render_detects_redirects_and_contents_pages() -> None:
     assert render_html(redirect_html()).is_redirect is True
     toc = render_html(contents_page_html(12))
@@ -567,6 +734,18 @@ def test_preflight_reads_a_truncated_rendered_chapter(tmp_path: Path, monkeypatc
     assert any("sampled the first 8,000 bytes" in note for note in row["notes"])
     rendered = render_preflight(report)
     assert "pages=" in rendered and "q3=1" in rendered
+
+
+def test_preflight_says_the_build_will_ask_for_hidden_levels(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.probe_url",
+        _probe(parse_payload(rendered_chapter_html(qualities=(3, 4), anchor="title"))),
+    )
+    report = preflight_manifest(TokenizerCorpusManifest.load(_manifest(tmp_path, [_source()])))
+    notes = report["sources"][0]["notes"]
+    assert any("do not show their proofreading level" in note and "asks the wiki's API" in note
+               for note in notes), notes
+    assert "WARN UNPROOFED" not in render_preflight(report)
 
 
 def test_preflight_warns_about_api_errors_and_unproofread_pages(tmp_path: Path, monkeypatch) -> None:

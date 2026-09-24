@@ -33,8 +33,11 @@ nothing was flagged.
 hashes (retrieved 2026-09-24T17:04–17:05Z); each begins with the prefix EXP-012's inspection
 reported, and Alice's equals the hash of EXP-008/010/011. Every later fetch compares against
 these pins and refuses changed text (§0.5); the first re-verification (EXP-014) exited 0, so
-no pinned source had changed. The other 11 slots have no sources yet (§9). Run the steps
-where the network works, and record what you actually observe.
+no pinned source had changed. **First group of new languages (declared, not yet fetched):**
+Gujarati, Malayalam, Odia and Assamese, 7 range sources from four public-domain novels
+(§2.6); researching them exposed a proofreading-gate gap that is now closed (§3.1: a render
+that hides page levels used to pass unchecked). The other 7 slots have no sources yet (§9).
+Run the steps where the network works, and record what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
@@ -305,7 +308,7 @@ provenance file and the `reason:` line of the report.
 | **Redirect / infocard** | a `wikitext` page whose first line is a `#REDIRECT` in any language (`#पुनर्प्रेषित`…), a Wikidata/SPARQL infocard, or a rendered redirect page | `index_page_refused` | No — name the page that holds the work |
 | **Content shape** | ≥5 lines, of which at least half are link lines with <20 characters of prose left (wiki links, or links in a rendered page) | `index_page_refused` | No — acquire the chapter subpages (§3) or use `--local-file` (§6) |
 | **Tiny stub** | the cleaned text is shorter than 500 characters (for `wikitext`: only when the raw page still carries markup, so a short poem passes) | `index_page_refused` | No |
-| **Proofreading** (`mediawiki-parse`) | any rendered scan page is at ProofreadPage level 1 (not proofread) or 2 (problematic) | `unproofread_refused` | No — wait for the wiki's proofreaders, or declare a range without those pages (§3.1) |
+| **Proofreading** (`mediawiki-parse`) | any rendered scan page is at ProofreadPage level 1 (not proofread) or 2 (problematic); or a page's level can be confirmed neither from the render nor through the wiki's API; or ProofreadPage content has no page anchor at all | `unproofread_refused` | No — wait for the wiki's proofreaders, or declare a range without those pages (§3.1). A level nobody could read is never taken as "proofread" |
 | **Pinned hash** | the manifest pins a `sha256` and this fetch cleans to different bytes | `hash_mismatch` | Only by clearing `sha256`/`verified` in the manifest first, with a note saying why (§5) |
 | **Empty text** | the cleaned text is empty | `empty` | No |
 | **Fetch** | the host could not be reached, the response was not UTF-8, or (`mediawiki-parse`) the API returned an error or incomplete JSON. A connection dropped mid-body and HTTP 429/5xx are retried (3 attempts in total); timeouts, DNS and TLS failures are not — they mean no route | `fetch_failed` | No |
@@ -440,6 +443,39 @@ What the code **cannot** check, and you must:
 * **Volume** — about 150,000–185,000 characters estimated from the scan (≈1,700 per page);
   with Gitanjali the Bengali slot should pass the target. Report the real number.
 
+### 2.6 First group of new languages — Gujarati, Malayalam, Odia, Assamese (kind `mediawiki-parse`)
+
+Found by surveying each wiki's `Special:IndexPages` filtered to *proofread or validated* on
+2026-09-24 (gu 204 fully proofread scans, ml 214, or 21, as 400; also mr 156, ta 500+, te 333,
+kn 60, pa 198 for the next groups). All four works are novels that are public domain in India
+(life + 60 years), rendered as ranges like Devdas; every source's `notes` has the details.
+
+| Slot | Work (author, died) | Sources: scan pages | Estimate |
+|---|---|---|---|
+| gu | *સરસ્વતીચંદ્ર* part 1 (Govardhanram Tripathi, 1907) | `…-ch01-08`: 21–106 · `…-ch09-12`: 107–188 | ≈240–270k chars |
+| ml | *രാമരാജാബഹദൂർ* (C. V. Raman Pillai, 1922) | `…-ch01-13`: 4–150 · `…-ch14-18`: 151–207 | ≈230–265k |
+| or | *ଛମାଣ ଆଠଗୁଣ୍ଠ* (Fakir Mohan Senapati, 1918) | the whole novel: 4–162 | ≈190–215k — may fall just short |
+| as | *মনোমতী* (Rajanikanta Bordoloi, 1940) | part 1: 5–131 · part 2: 133–267 | ≈220–255k |
+
+* **Checked before declaring** (live, 2026-09-24): chapter boundaries from each work's
+  chapter subpages; no scan page at level 1 or 2 in any of the four scans (the wikis' own
+  quality categories), six sampled pages per book at level 3 or 4; missing templates via
+  `prop=templates` (none in gu, ml chapters 1–18, or, and as part 1 chapters 1–15 — the rest
+  of *Manomati* was not pre-checked; the cleaner removes and reports any red link); the
+  Template namespaces are in `TEMPLATE_NAMESPACE`.
+* **Licence review** (§4, human): gu work page `{{ઢાંચો:પ્રકાશન-ભારત}}` (gu's PD-India notice),
+  scan 1887 `{{PD-1923}}`; ml scan file page (local) `{{PD-India}}`; or scan `{{cc-zero}}`,
+  1903 edition, no tag on the work page; as work page `{{PD-India}}`, scan `{{PD-old-auto|1940}}`.
+  *Manomati*'s scan is a posthumous 6th edition (1956), so only the chapters are used — its
+  opening note, closing সামৰণি, notes and notice are excluded (authorship not established).
+* **Why split into ranges.** One render per source stays at or below ~150 scan pages;
+  the largest render used so far is Gitanjali's 178. Chapter-aligned where the wiki allows:
+  *Saraswatichandra*'s chapters share pages (sections), and from page 106 on no chapter ends at
+  the foot of a page, so the second gu range ends with the opening section of chapter 13.
+* **Inspect:** gu and or sources will show `level_lookup` (the build asked the API: expect
+  `confirmed` = pages and `error: null`); ml's anchors must leave no `[ n ]` page numbers in
+  the text; every source should start with its first chapter's heading.
+
 ---
 
 ## 3. Wikisource-specific safety
@@ -558,12 +594,37 @@ a hyphenation template renders with ProofreadPage's join space in the middle (`�
 `अधिकार`). That is what the wiki shows; guessing where words continue would be inventing
 text.
 
-**Proofreading gate.** Every rendered page carries its ProofreadPage level (0 without text,
-1 not proofread, 2 problematic, 3 proofread, 4 validated). A source that renders any page at
-level 1 or 2 is `unproofread_refused`: unchecked OCR in an Indic script (broken conjuncts,
-wrong matras) is exactly the noise a tokenizer comparison must not learn from. The text is
-kept under `sources/` so you can see which pages; the `reason:` line names them. Preflight
-warns about it (`WARN UNPROOFED`) from the sampled part of the page.
+**Proofreading gate.** Every scan page has a ProofreadPage level (0 without text, 1 not
+proofread, 2 problematic, 3 proofread, 4 validated). A source that renders any page at level
+1 or 2 is `unproofread_refused`: unchecked OCR in an Indic script (broken conjuncts, wrong
+matras) is exactly the noise a tokenizer comparison must not learn from. The text is kept
+under `sources/` so you can see which pages; the `reason:` line names them. Preflight warns
+about it (`WARN UNPROOFED`) from the sampled part of the page.
+
+**Where the level comes from — three anchor shapes.** Each wiki renders ProofreadPage's page
+anchor with its own template (all seen on 2026-09-24):
+
+| Wiki | Anchor in the render | Level |
+|---|---|---|
+| hi, bn, as | `<span class="pagenum ws-pagenum" data-page-name="…" data-page-quality="4">` | read from the render |
+| gu, or | the same span with only `title="<percent-encoded page title>"` (and `data-page-number`) | **not shown** — asked from the wiki's API |
+| ml | an older anchor, `<span id="pr_page">[ <a class="prp-pagequality-4" title="താൾ:…/4">4</a> ]</span>` | read from the link's class |
+
+None of them reaches the text (ml's bracketed `[ 4 ]` page number included). For every page
+whose level the render does not show, a fetch asks the wiki itself
+(`api.php?action=query&prop=proofread&titles=…`, in batches) and records the lookup in
+`content_check.page_quality.level_lookup`. **If a level still cannot be confirmed** — the API
+is unreachable, answers with an error, or knows no such page — the source is refused as
+`unproofread_refused` ("could not be confirmed"); so is ProofreadPage content without a
+single page anchor. Before this rule, such a render passed the gate unchecked: the gate only
+refused levels it could *see*. Saved text (`--local-file`) cannot ask the API, so hidden
+levels there are refused too. Preflight notes hidden levels and says the build will ask.
+
+**Scan page titles use each wiki's digits.** On hi, bn, gu, or and as the page titles are
+written in the script's own digits (`पृष्ठ:गो-दान.djvu/२८`, `પૃષ્ઠ:…pdf/૨૧`, `ପୃଷ୍ଠା:…pdf/୪`); on ml
+in ASCII digits. The `<pages from=N to=M>` tag always takes plain numbers. When you look pages
+up by hand, use the right digits: on or.wikisource the ASCII-digit titles (`…pdf/4`) exist
+but are redirects left from a rename, marked level 1 — the render does not use them.
 
 ---
 
@@ -782,13 +843,24 @@ unverified and its slot does not become `EVALUATED`.
 - [ ] **Human licence review recorded** (the work page carries `{{PD-India}}`; Sarat Chandra died 1938)
 - [ ] `sha256` pinned only after all of the above
 
+### First group of new languages — gu, ml, or, as (§2.6)
+
+- [ ] All 7 `verified`; none `unproofread_refused` (a "could not be confirmed" reason means the API lookup failed: rerun)
+- [ ] gu and or: `content_check.page_quality.level_lookup` present with `confirmed` = `asked` and `error: null`; levels 3/4 only
+- [ ] ml: page levels read from the render (no `level_lookup`), and no bracketed page numbers in the text
+- [ ] Each starts with its first chapter (gu `સરસ્વતીચંદ્ર.` / `પ્રકરણ ૧.`, ml `അദ്ധ്യായം ഒന്ന്`, or `ପ୍ରଥମ ପରିଚ୍ଛେଦ`, as `মনোমতী` / `প্ৰথম খণ্ড`); no CSS anywhere
+- [ ] Characters per slot recorded; or may be `INSUFFICIENT` (then a second Odia work is needed — nothing is padded)
+- [ ] `sha256` pinned only after all of the above
+
 ---
 
 ## 9. Missing languages
 
-After EXP-009: `hi` `EVALUATED`, `bn` `INSUFFICIENT` (Gitanjali only), `en` `UNVERIFIED`
-(Alice's download was cut off), and 11 `NOT_EVALUATED`
-(hi-en, mr, gu, ta, te, kn, ml, pa, or, as, ur).
+Since EXP-010: `en`, `hi` and `bn` `EVALUATED` (pinned in EXP-013). Declared but not yet
+fetched: `gu`, `ml`, `or`, `as` (§2.6). Still `NOT_EVALUATED`, with no source: hi-en, mr,
+ta, te, kn, pa, ur. The next groups come from the same survey (mr, ta, te, kn, pa all have
+many fully proofread scans); ur.wikisource exists but is small (12 active editors) and has
+not been surveyed yet.
 
 * **Nothing is substituted.** No synthetic text, no machine translation, no "close enough"
   corpus, no filling a slot from a related language. A language we cannot source legally
@@ -798,9 +870,9 @@ After EXP-009: `hi` `EVALUATED`, `bn` `INSUFFICIENT` (Gitanjali only), `en` `UNV
   Romanised-Hindi corpora are social-media derived, with unclear licences and privacy
   terms; the allow-list does not permit them. If no lawful source appears, the honest
   outcome is a permanently unevaluated slot.
-* The ten others have a **family-level candidate provider** recorded (`candidates` in the
-  manifest, e.g. "Tamil Wikisource", CC BY-SA 4.0 assumed conservatively). A candidate is
-  not a source and must not be read as coverage.
+* The slots without sources have a **family-level candidate provider** recorded
+  (`candidates` in the manifest, e.g. "Tamil Wikisource", CC BY-SA 4.0 assumed
+  conservatively). A candidate is not a source and must not be read as coverage.
 * **Adding a source** means: pick a concrete work, confirm its licence tag, add it to
   `corpora/tokenizer/indic-tokenizer-v2/sources.json` with attribution, `license_url`,
   `kind`, `max_chars` and (if the payload carries no licence) a `license_evidence` block,
