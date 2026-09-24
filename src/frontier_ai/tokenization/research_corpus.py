@@ -570,13 +570,31 @@ def content_shape(text: str, kind: str) -> dict[str, Any]:
         if len(stripped) < INDEX_PAGE_MIN_PROSE_CHARS:
             link_lines += 1
     ratio = round(link_lines / len(lines), 3) if lines else 0.0
-    # MediaWiki #REDIRECT detection: the first non-blank line starts with #redirect
-    # (case/variant-insensitive).  These are one-line pages that point at another title;
-    # they must never be treated as the work.
+    # MediaWiki #REDIRECT detection.  The magic word is localized: English uses
+    # "#REDIRECT", Hindi uses "#पुनर्प्रेषित" / "#अनुप्रेषित", Bengali uses
+    # "#পুনর্নির্দেশ", etc.  Rather than enumerate every language, follow what
+    # MediaWiki actually does: the first non-blank content line starts with '#'
+    # and contains a wiki link ([[…]]) that is the redirect target, and the page
+    # is essentially empty after that line (≤3 non-blank lines total).  We also
+    # match the English "#redirect" explicitly (case-insensitive) as a fast path.
     first_line = lines[0] if lines else ""
-    is_redirect = bool(
+    is_redirect = bool(kind == "wikitext" and first_line) and (
+        bool(re.match(r"#redirect\b", first_line, re.IGNORECASE))
+        or (
+            first_line.startswith("#")
+            and "[[" in first_line
+            and len(lines) <= 3
+        )
+    )
+    # Wikidata/SPARQL card detection: some Wikisource "work root" URLs resolve to
+    # an infocard page that contains an embedded SPARQL query (select ?item ...
+    # wdt:P1476 ... bind(...) etc.) instead of the work text.  These are always
+    # metadata cards, never the prose.
+    lower_text = text.lower()
+    sparql_markers = ("select ?", "wdt:p", "bind(if(", "union {", "filter(contains", "^wdt:")
+    is_sparql_card = bool(
         kind == "wikitext"
-        and re.match(r"#redirect\b", first_line, re.IGNORECASE)
+        and sum(1 for marker in sparql_markers if marker in lower_text) >= 2
     )
     return {
         "sample_chars": len(text),
@@ -586,6 +604,7 @@ def content_shape(text: str, kind: str) -> dict[str, Any]:
         "link_line_ratio": ratio,
         "link_lines": link_lines,
         "is_redirect": is_redirect,
+        "is_sparql_card": is_sparql_card,
         "first_line_excerpt": first_line[:120] if first_line else "",
         "cleaned_chars_hint": len(clean_text(text, kind)) if kind == "wikitext" else None,
         # Conservative hint, not a verdict: a human still has to look.
@@ -594,7 +613,8 @@ def content_shape(text: str, kind: str) -> dict[str, Any]:
             and len(lines) >= INDEX_PAGE_MIN_LINES
             and ratio >= INDEX_PAGE_LINK_LINE_RATIO
         )
-        or is_redirect,
+        or is_redirect
+        or is_sparql_card,
         "gutenberg_marker_seen": "*** start of the project gutenberg ebook" in text.lower(),
     }
 
@@ -810,12 +830,20 @@ def ingest_source(
 
     if shape is not None and shape["looks_like_index_page"]:
         status = "index_page_refused"
-        if shape.get("is_redirect"):
+        if shape.get("is_sparql_card"):
+            error = (
+                f"{source.source_url} is a Wikidata/SPARQL infocard page, not the declared "
+                "work (the payload contains embedded SPARQL: 'select ?...', 'wdt:P...'). "
+                "The actual prose lives on chapter subpages or under a different page "
+                "title — find them via the wiki's chapter index and add one source per "
+                "chapter (runbook §3)."
+            )
+        elif shape.get("is_redirect"):
             error = (
                 f"{source.source_url} is a MediaWiki #REDIRECT page (first line: "
                 f"{shape.get('first_line_excerpt', '')!r}) — it points to a different "
-                "title, not to the declared work. Update source_url to the actual "
-                "page (or to the chapter subpages) in the manifest, with a note."
+                "title, not to the declared work. Update source_url to the redirect "
+                "target (or to the chapter subpages) in the manifest, with a note."
             )
         else:
             error = (
@@ -1829,12 +1857,19 @@ def preflight_source(
                 "no Gutenberg START marker in the sampled bytes: this URL may not be a "
                 "Project Gutenberg text file"
             )
-        if report.get("is_redirect"):
+        if report.get("is_sparql_card"):
+            report["notes"].append(
+                "the payload is a Wikidata/SPARQL infocard template (contains 'select ?' "
+                "and 'wdt:P…' triples), not the work text. The actual prose lives on "
+                "chapter subpages or under a different page title — find them via the wiki's "
+                "chapter index."
+            )
+        elif report.get("is_redirect"):
             excerpt = report.get("first_line_excerpt", "")[:80]
             report["notes"].append(
                 f"the first line is a MediaWiki #REDIRECT ({excerpt!r}) — this URL points "
                 "to a different title, not to the declared work. Update source_url to the "
-                "actual page or chapter subpages."
+                "redirect target (or to the chapter subpages)."
             )
         elif report["looks_like_index_page"]:
             report["notes"].append(
@@ -1918,7 +1953,9 @@ def render_preflight(report: dict[str, Any]) -> str:
     for row in report["sources"]:
         status = f"OK  http={row['http_status']}" if row["ok"] else "FAIL"
         if row["ok"]:
-            if row.get("is_redirect"):
+            if row.get("is_sparql_card"):
+                status = "WARN SPARQL "
+            elif row.get("is_redirect"):
                 status = "WARN REDIRECT"
             elif row.get("looks_like_index_page"):
                 status = "WARN INDEX   "

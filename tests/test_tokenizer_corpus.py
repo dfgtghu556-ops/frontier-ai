@@ -1684,23 +1684,84 @@ def test_ingest_accepts_prose_and_short_verse(tmp_path: Path, monkeypatch) -> No
         assert result.ingested[0].licence_proof == "payload-marker"
 
 
-def test_content_shape_detects_redirect() -> None:
-    """#REDIRECT [[Target]] is a non-work page regardless of line count."""
-    r = content_shape("#REDIRECT [[गोदान/अध्याय_१]]", "wikitext")
+def test_content_shape_detects_localized_redirects_and_sparql_cards() -> None:
+    """#REDIRECT is localized; SPARQL infocards must be refused regardless of language."""
+    # Hindi redirect (#पुनर्प्रेषित — the actual payload from hi.wikisource.org)
+    r = content_shape("#पुनर्प्रेषित [[गो-दान]]     ", "wikitext")
     assert r["is_redirect"] is True
     assert r["looks_like_index_page"] is True
 
-    # case/variant-insensitive, leading whitespace allowed
-    r = content_shape("  #redirect [[Some Page]]\n", "wikitext")
+    # English #REDIRECT still works
+    r = content_shape("#REDIRECT [[Some Page]]\n", "wikitext")
     assert r["is_redirect"] is True
     assert r["looks_like_index_page"] is True
 
-    # Gutenberg kind never flags as a redirect
+    # Gutenberg/plain kind never flags
     assert content_shape("#REDIRECT [[x]]", "gutenberg")["is_redirect"] is False
+    assert content_shape("#REDIRECT [[x]]", "plain")["is_redirect"] is False
 
-    # A line that merely mentions the word "redirect" in prose is not a redirect
-    r = content_shape("The page will redirect you after login.\nReal prose here.", "wikitext")
+    # Line starting with # but no [[link]] and no redirect keyword is not a redirect
+    # (e.g. a markdown heading or a numbered verse line)
+    r = content_shape("# १. प्रथम अध्याय\nयहाँ कहानी शुरू होती है।\nऔर आगे बढ़ती है।", "wikitext")
     assert r["is_redirect"] is False
+
+    # SPARQL/Wikidata infocard (the actual payload from bn.wikisource.org for Gitanjali)
+    sparql = (
+        "select ?item\n"
+        "select distinct ?work (sample(?edition) as ?edition_) (count(distinct ?edition) as ?editions) {\n"
+        "values ?title { \"\"@bn }\n"
+        "{ ?title ^wdt:P1476 ?work } union { ?title ^wdt:P1476/wdt:P629 ?work }\n"
+        "{ ?work ^wdt:P629 ?edition . ?edition wdt:P1957 ?url . filter(contains(str(?url),\"bn.wikisource.org\")) }\n"
+        "}\n"
+        "bind(if(?editions = 1,?edition_,?work) as ?item)\n"
+        "|columns=item,label,p577\n"
+    )
+    r = content_shape(sparql, "wikitext")
+    assert r["is_sparql_card"] is True
+    assert r["looks_like_index_page"] is True
+
+
+def test_ingest_refuses_redirect_and_sparql_pages(tmp_path: Path, monkeypatch) -> None:
+    """Localized #REDIRECT and Wikidata SPARQL cards must be refused, not 'verified'."""
+    # Hindi #पुनर्प्रेषित (the real hi.wikisource.org payload for Godaan root)
+    hi_redirect = "#पुनर्प्रेषित [[गो-दान]]     "
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, _b=hi_redirect, **k: fake_wikisource_text(_b),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]}],
+    )
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True)
+    assert result.ingested[0].status == "index_page_refused", result.ingested[0].error
+    assert "REDIRECT" in result.ingested[0].error or "redirect" in result.ingested[0].error
+
+    # Bengali SPARQL infocard (the real bn.wikisource.org payload for Gitanjali root)
+    bn_sparql = (
+        "select ?item\n"
+        "select distinct ?work (sample(?edition) as ?edition_) "
+        "(count(distinct ?edition) as ?editions) {\n"
+        "values ?title { \"\"@bn }\n"
+        "{ ?title ^wdt:P1476 ?work } union { ?title ^wdt:P1476/wdt:P629 ?work }\n"
+        "{ ?work ^wdt:P629 ?edition . ?edition wdt:P1957 ?url . "
+        "filter(contains(str(?url),\"bn.wikisource.org\")) }\n"
+        "bind(if(?editions = 1,?edition_,?work) as ?item)\n"
+        "|columns=item,label,p577\n"
+    )
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, _b=bn_sparql, **k: fake_wikisource_text(_b),
+    )
+    manifest_path2 = _manifest(
+        tmp_path,
+        [_source("bn-src", "bn")],
+        slots=[{"code": "bn", "display": "Bengali", "script": "Bengali", "sources": ["bn-src"]}],
+    )
+    result2 = build_corpus(manifest_path2, tmp_path / "build2", fetch=True)
+    assert result2.ingested[0].status == "index_page_refused", result2.ingested[0].error
+    assert "SPARQL" in result2.ingested[0].error or "sparql" in result2.ingested[0].error
 
 
 def test_tiny_stub_is_refused_after_cleaning(tmp_path: Path, monkeypatch) -> None:
