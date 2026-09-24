@@ -9,8 +9,11 @@ whose chapter pages contain no text of their own. They are now declared as rende
 (§3.1). The second live fetch (EXP-009) verified 37 of 38 sources: all 36 Godaan chapters
 (764,202 characters — the `hi` slot is `EVALUATED`) and Gitanjali (65,174 characters — `bn`
 is `INSUFFICIENT`, as expected); Alice was lost to a dropped connection
-(`IncompleteRead`), which the fetcher now retries. **Nothing has been pinned yet.** Run the
-steps where the network works, and record what you actually observe.
+(`IncompleteRead`), which the fetcher now retries. Because Alice (144,599 characters) and
+Gitanjali are each below the 200,000-character target, a second work was declared for
+each slot after EXP-009 — Tagore's *Sadhana* (§2.4) and Sarat Chandra's *Devdas* (§2.5) —
+bringing the manifest to 40 sources; neither has been fetched yet. **Nothing has been
+pinned yet.** Run the steps where the network works, and record what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
@@ -291,11 +294,15 @@ What the code **cannot** check, and you must:
   (`licence_proof: payload-marker`). No evidence endpoint is declared, and none is needed.
 * **Inspect** — `clean_gutenberg_text` strips everything outside
   `*** START/END OF THE PROJECT GUTENBERG EBOOK … ***`. In `sources/en-gutenberg-alice-pd.txt`
-  confirm: it starts at "Alice was beginning to get very tired…" (not at a header), there is
-  no Gutenberg boilerplate left, and the text is English prose.
-* **Volume** — expect well over 200,000 characters after cleaning (Alice is ~170 KB of
-  text). `max_chars` is 400,000; if `truncated: true` appears, the source was cut and you
-  should say so in the record rather than quietly accepting it.
+  confirm: it starts with the book's own front matter, which sits inside the markers —
+  `[Illustration]`, the title, `by Lewis Carroll`, `THE MILLENNIUM FULCRUM EDITION 3.0` and the
+  contents list — then `CHAPTER I.` and "Alice was beginning to get very tired…" (checked in
+  pg11.txt on 2026-09-24). No Gutenberg header or licence text ("This eBook is for the use of
+  anyone anywhere…", "START: FULL LICENSE") may be left, and the text is English prose.
+* **Volume** — Alice alone is below the 200,000-character target (EXP-008 kept 144,599
+  characters), so the English slot also needs *Sadhana* (§2.4). `max_chars` is 400,000; if
+  `truncated: true` appears, the source was cut and you should say so in the record rather
+  than quietly accepting it.
 * **Licence** — PD-US, with the attribution already written in the manifest. If the marker
   is missing, the file is not a Gutenberg text: stop, do not pin.
 * **Hash + pin** — only after the above.
@@ -349,9 +356,52 @@ What the code **cannot** check, and you must:
   `license_id` may be relaxed to `PD-US` with a note and a fresh verification run (the
   licence marker list in `src/frontier_ai/data/corpora.py` only knows the four allowed ids —
   do not add a new one without a decision record).
-* **Volume** — Gitanjali is a short book of verse, well under the 200,000-character target:
-  expect the Bengali slot to be `INSUFFICIENT` until a second Bengali work is added. That is
-  the honest result.
+* **Volume** — Gitanjali is a short book of verse (65,174 characters in EXP-009), well under
+  the 200,000-character target. The second Bengali work, *Devdas* (§2.5), is declared to
+  close the gap; if it fails, the Bengali slot stays `INSUFFICIENT`. That is the honest
+  result.
+
+### 2.4 Sadhana — `en-gutenberg-sadhana-pd` (English, PD-US, kind `gutenberg`)
+
+* **Why this book.** Alice alone is below target. *Sadhana: The Realisation of Life*
+  (Rabindranath Tagore, 1913; the Gutenberg text follows the 1916 printing) adds a different
+  genre — philosophical essays, non-fiction — and Indian English: Upanishadic terms, Indian
+  names and romanised Sanskrit with diacritics (`Sādhanā`, `Daurbhikshāt …`), which an Indic
+  tokenizer will meet in real English text.
+* **Fetch** — `https://www.gutenberg.org/cache/epub/6842/pg6842.txt` (ebook 6842, checked on
+  2026-09-24: "Public domain in the USA", plain text 226 kB). Same mechanism as Alice:
+  `licence_proof: payload-marker`, no evidence endpoint.
+* **Inspect** — the cleaned text starts with the producer's credit line, which sits inside
+  the markers and is kept ("Produced by Chetan Jain at BharatLiterature", 43 characters),
+  then the title page (`SĀDHANĀ`, `THE REALISATION OF LIFE`, `By`, `Rabindranath Tagore`, …,
+  `1916`, `To`, `Ernest Rhys`), the Author's Preface ("Perhaps it is well for me to
+  explain…"), and ends with chapter VIII ("…not distant, not anywhere else."). No Gutenberg
+  licence text may be left.
+* **Volume** — about 200,000 characters expected; with Alice the English slot should pass
+  the target. `truncated: false` expected (it is far below `max_chars`).
+
+### 2.5 Devdas — `bn-wikisource-devdas-ccbysa` (Bengali, kind `mediawiki-parse`)
+
+* **Why this work.** Gitanjali is below target. *দেবদাস* (Devdas, Sarat Chandra
+  Chattopadhyay, 1917) is prose by a different author, with literary narration and colloquial
+  dialogue. Sarat Chandra died in 1938; the work page carries `{{PD-India}}`. The bare title
+  `দেবদাস` is a disambiguation page; the other scan it lists
+  (`দেবদাস - প্রচার পুস্তিকা (১৯৩৫).pdf`) is a 1935 film booklet, not the novel.
+* **Fetch** — one range render, like Gitanjali: scan pages **5–110** of
+  `দেবদাস - শরৎচন্দ্র চট্টোপাধ্যায়.pdf` under the work page
+  `দেবদাস (শরৎচন্দ্র চট্টোপাধ্যায়)`. The 16 chapter subpages transclude exactly this range,
+  split with `<section>` markers where two chapters share a page (chapter 1 = `from=5 to=12
+  tosection=১`, chapter 16 = `from=100 fromsection=১৬ to=110`); rendering the range without
+  section limits yields every section of every page once, in order. Pages 1–4 (cover, title,
+  blank, a list of the author's other books) are excluded.
+* **Inspect** — checked live on 2026-09-24: the render starts with the chapter number `এক`
+  and the first line "একদিন বৈশাখের দ্বিপ্রহরে রৌদ্রেরও অন্ত ছিল না…", and ends with the last
+  paragraph ("…দেখিয়া সে মরিতে পারে।") followed by `সমাপ্ত`. No CSS may remain.
+  `content_check.page_quality` should show 106 pages, first `…pdf/৫`, last `…pdf/১১০`,
+  levels 3 (pages 8–108) and 4 (5–7, 109–110) only.
+* **Licence** — same mechanism as Gitanjali (site-level `rightsinfo` on `bn.wikisource.org`).
+* **Volume** — about 150,000–185,000 characters estimated from the scan (≈1,700 per page);
+  with Gitanjali the Bengali slot should pass the target. Report the real number.
 
 ---
 
@@ -628,9 +678,9 @@ unverified and its slot does not become `EVALUATED`.
 
 ### Alice — `en-gutenberg-alice-pd`
 
-- [ ] `sources/en-gutenberg-alice-pd.txt` starts with the story, not with Gutenberg boilerplate
+- [ ] `sources/en-gutenberg-alice-pd.txt` starts with `[Illustration]`, the title and the contents list, then "Alice was beginning…" — no Gutenberg header/licence text
 - [ ] Language is English; no leftover header/footer/licence block
-- [ ] Volume ≥ 500 documents and ≥ 200,000 characters; `truncated: false` (or explained)
+- [ ] `truncated: false` (or explained); the en slot's ≥ 500 documents and ≥ 200,000 characters come from Alice + Sadhana together
 - [ ] `licence_proof == "payload-marker"` (PD-US marker present in the fetched payload)
 - [ ] Attribution present in `sources/en-gutenberg-alice-pd.provenance.json`
 - [ ] `sha256` pinned **only** via a later `--pin` run, after all of the above
@@ -653,14 +703,31 @@ unverified and its slot does not become `EVALUATED`.
 - [ ] `content_check.page_quality`: 178 pages, first `…djvu/১৩`, last `…djvu/১৯০`, all level 4
 - [ ] Evidence reachable, `marker_found: true`, `scope: site`
 - [ ] **Human licence review recorded**: which licence template does this edition carry? (Tagore died 1941 — if PD, record it and update `license_id` with a note before re-verifying)
-- [ ] Slot reported `INSUFFICIENT` (Gitanjali alone is below target) — expected, not a failure
+- [ ] Slot `EVALUATED` only together with Devdas; `INSUFFICIENT` if Devdas is not verified — expected, not a failure
+- [ ] `sha256` pinned only after all of the above
+
+### Sadhana — `en-gutenberg-sadhana-pd`
+
+- [ ] Status `verified`; `licence_proof == "payload-marker"`
+- [ ] Starts "Produced by Chetan Jain at BharatLiterature" then the title page and the Author's Preface; ends "…not distant, not anywhere else."; no Gutenberg licence text left
+- [ ] `truncated: false`; en slot `EVALUATED` with Alice
+- [ ] `sha256` pinned only after all of the above
+
+### Devdas — `bn-wikisource-devdas-ccbysa`
+
+- [ ] Status `verified`, not `unproofread_refused` / `index_page_refused` / `fetch_failed`
+- [ ] Starts with `এক` and "একদিন বৈশাখের দ্বিপ্রহরে…"; ends "…দেখিয়া সে মরিতে পারে।" then `সমাপ্ত`; no CSS anywhere
+- [ ] `content_check.page_quality`: 106 pages, first `…pdf/৫`, last `…pdf/১১০`, levels 3 and 4 only
+- [ ] Evidence reachable, `marker_found: true`, `scope: site` (`reused_within_run: true` after Gitanjali)
+- [ ] **Human licence review recorded** (the work page carries `{{PD-India}}`; Sarat Chandra died 1938)
 - [ ] `sha256` pinned only after all of the above
 
 ---
 
 ## 9. Missing languages
 
-Today: 3 slots `UNVERIFIED` (en, hi, bn) and 11 `NOT_EVALUATED`
+After EXP-009: `hi` `EVALUATED`, `bn` `INSUFFICIENT` (Gitanjali only), `en` `UNVERIFIED`
+(Alice's download was cut off), and 11 `NOT_EVALUATED`
 (hi-en, mr, gu, ta, te, kn, ml, pa, or, as, ur).
 
 * **Nothing is substituted.** No synthetic text, no machine translation, no "close enough"

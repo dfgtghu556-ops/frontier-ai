@@ -514,9 +514,15 @@ def test_repo_manifest_declares_every_godaan_chapter_once_as_a_rendered_page() -
     assert len({source.source_url for source in manifest.sources}) == len(manifest.sources)
 
 
+def _repo_source(manifest: TokenizerCorpusManifest, language: str, source_id: str):
+    matches = [source for source in manifest.sources_for(language) if source.id == source_id]
+    assert len(matches) == 1, f"{source_id} must be declared exactly once for {language}"
+    return matches[0]
+
+
 def test_repo_manifest_renders_all_gitanjali_poems_from_one_pages_tag() -> None:
     manifest = TokenizerCorpusManifest.load(REPO_MANIFEST)
-    (gitanjali,) = manifest.sources_for("bn")
+    gitanjali = _repo_source(manifest, "bn", "bn-wikisource-gitanjali-1913-ccbysa")
     assert gitanjali.kind == KIND
     params = parse_qs(urlsplit(gitanjali.source_url).query)
     assert params["title"] == ["গীতাঞ্জলি (১৯১৩)"]
@@ -524,6 +530,45 @@ def test_repo_manifest_renders_all_gitanjali_poems_from_one_pages_tag() -> None:
         r'<pages index="গীতাঞ্জলি - রবীন্দ্রনাথ ঠাকুর\.djvu" from=(\d+) to=(\d+) />', params["text"][0]
     )
     assert tag is not None and (tag.group(1), tag.group(2)) == ("13", "190")
+
+
+def test_repo_manifest_renders_devdas_chapters_1_to_16_from_one_pages_tag() -> None:
+    # scan pages 5–110 = chapter 1 (from=5) … chapter 16 (to=110), checked live on
+    # 2026-09-24; pages 1–4 (cover, title, blank, the author's other books) stay out
+    manifest = TokenizerCorpusManifest.load(REPO_MANIFEST)
+    devdas = _repo_source(manifest, "bn", "bn-wikisource-devdas-ccbysa")
+    assert devdas.kind == KIND
+    assert devdas.sha256 is None and not devdas.verified  # never pinned from memory
+    assert validate_parse_url(devdas.source_url) == []
+    params = parse_qs(urlsplit(devdas.source_url).query)
+    assert params["title"] == ["দেবদাস (শরৎচন্দ্র চট্টোপাধ্যায়)"]
+    tag = re.fullmatch(
+        r'<pages index="দেবদাস - শরৎচন্দ্র চট্টোপাধ্যায়\.pdf" from=(\d+) to=(\d+) />', params["text"][0]
+    )
+    assert tag is not None and (tag.group(1), tag.group(2)) == ("5", "110")
+    evidence = manifest.evidence_for(devdas.id)
+    assert evidence is not None and evidence.url.startswith("https://bn.wikisource.org/w/api.php?")
+    assert "siprop=rightsinfo" in evidence.url
+
+
+def test_repo_manifest_language_slots_list_the_second_english_and_bengali_works() -> None:
+    manifest = TokenizerCorpusManifest.load(REPO_MANIFEST)
+    assert [s.id for s in manifest.sources_for("bn")] == [
+        "bn-wikisource-gitanjali-1913-ccbysa",
+        "bn-wikisource-devdas-ccbysa",
+    ]
+    assert [s.id for s in manifest.sources_for("en")] == [
+        "en-gutenberg-alice-pd",
+        "en-gutenberg-sadhana-pd",
+    ]
+    sadhana = _repo_source(manifest, "en", "en-gutenberg-sadhana-pd")
+    assert sadhana.kind == "gutenberg" and sadhana.license_id == "PD-US"
+    assert sadhana.source_url == "https://www.gutenberg.org/cache/epub/6842/pg6842.txt"
+    assert sadhana.sha256 is None and not sadhana.verified
+    slots = json.loads(REPO_MANIFEST.read_text(encoding="utf-8"))["language_slots"]
+    declared = {slot["code"]: slot["sources"] for slot in slots}
+    assert declared["bn"] == [s.id for s in manifest.sources_for("bn")]
+    assert declared["en"] == [s.id for s in manifest.sources_for("en")]
 
 
 # ---------------------------------------------------------------------------

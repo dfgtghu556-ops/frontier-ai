@@ -27,7 +27,8 @@
       "target_sentences": 500,
       "target_chars": 200000,
       "sources": [
-        "en-gutenberg-alice-pd"
+        "en-gutenberg-alice-pd",
+        "en-gutenberg-sadhana-pd"
       ]
     },
     {
@@ -91,7 +92,8 @@
       "target_sentences": 500,
       "target_chars": 200000,
       "sources": [
-        "bn-wikisource-gitanjali-1913-ccbysa"
+        "bn-wikisource-gitanjali-1913-ccbysa",
+        "bn-wikisource-devdas-ccbysa"
       ]
     },
     {
@@ -271,6 +273,22 @@
       "verified": false,
       "retrieved_at": null,
       "notes": "English slot. The Gutenberg header/footer is stripped by clean_gutenberg_text(); the licence is recorded in the provenance file. Hash is pinned only after a verified fetch."
+    },
+    {
+      "id": "en-gutenberg-sadhana-pd",
+      "title": "Sadhana: The Realisation of Life",
+      "language": "en",
+      "script": "Latin",
+      "source_url": "https://www.gutenberg.org/cache/epub/6842/pg6842.txt",
+      "license_id": "PD-US",
+      "license_url": "https://www.gutenberg.org/policy/license.html",
+      "attribution": "Sadhana: The Realisation of Life by Rabindranath Tagore (first published 1913; the Gutenberg text follows the 1916 printing), text from Project Gutenberg (ebook 6842, produced by Chetan Jain at BharatLiterature). Public domain in the United States; Tagore died in 1941, so the work is also public domain in India. Used here as a tokenizer-research fixture, not as a redistribution.",
+      "max_chars": 400000,
+      "kind": "gutenberg",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second English source: Alice alone is 144,599 characters, below the 200,000-character target. Chosen for genre diversity (philosophical essays, non-fiction, next to a children's novel) and for Indian English: Upanishadic terms, Indian names and romanised Sanskrit with diacritics (Sādhanā, Daurbhikshāt …). Checked on 2026-09-24: gutenberg.org/ebooks/6842 lists it as 'Public domain in the USA' (plain text 226 kB); pg6842.txt carries the standard '*** START/END OF THE PROJECT GUTENBERG EBOOK SADHANA : THE REALISATION OF LIFE ***' markers, the text begins with the author's preface and ends with chapter VIII ('…not distant, not anywhere else.'). The header/footer is stripped by clean_gutenberg_text(), which keeps everything between the markers — so the cleaned text starts with the producer's credit line 'Produced by Chetan Jain at BharatLiterature' (43 characters, accepted) and the 1916 title page; the licence marker is the payload's own Project Gutenberg header. Hash is pinned only after a verified fetch."
     },
     {
       "id": "hi-wikisource-godaan-ch01-ccbysa",
@@ -1122,7 +1140,30 @@
         "scope": "site",
         "note": "Site-level evidence for bn.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0; the underlying work is public domain in India (Tagore died in 1941). Page-level review of the edition's own licence tag is still required; see the source notes."
       }
+    },
+    {
+      "id": "bn-wikisource-devdas-ccbysa",
+      "title": "দেবদাস (Devdas) — Sarat Chandra Chattopadhyay — chapters 1–16",
+      "language": "bn",
+      "script": "Bengali",
+      "source_url": "https://bn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%A6%E0%A7%87%E0%A6%AC%E0%A6%A6%E0%A6%BE%E0%A6%B8%20%28%E0%A6%B6%E0%A6%B0%E0%A7%8E%E0%A6%9A%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%8D%E0%A6%B0%20%E0%A6%9A%E0%A6%9F%E0%A7%8D%E0%A6%9F%E0%A7%8B%E0%A6%AA%E0%A6%BE%E0%A6%A7%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AF%E0%A6%BC%29&text=%3Cpages%20index%3D%22%E0%A6%A6%E0%A7%87%E0%A6%AC%E0%A6%A6%E0%A6%BE%E0%A6%B8%20-%20%E0%A6%B6%E0%A6%B0%E0%A7%8E%E0%A6%9A%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%8D%E0%A6%B0%20%E0%A6%9A%E0%A6%9F%E0%A7%8D%E0%A6%9F%E0%A7%8B%E0%A6%AA%E0%A6%BE%E0%A6%A7%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AF%E0%A6%BC.pdf%22%20from%3D5%20to%3D110%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Bengali Wikisource contributors, দেবদাস (Devdas) by Sarat Chandra Chattopadhyay, chapters 1–16, transcribed from the scan দেবদাস - শরৎচন্দ্র চট্টোপাধ্যায়.pdf; via bn.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in 1917 and Sarat Chandra died in 1938; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second Bengali source (Gitanjali alone is 65,174 characters): prose by a different author. The whole novel in one render. The work page দেবদাস (শরৎচন্দ্র চট্টোপাধ্যায়) lists 16 chapter subpages (/প্রথম পরিচ্ছেদ … /ষোড়শ পরিচ্ছেদ) transcluding scan pages 5–110, split with <section> markers where two chapters share a page (chapter 1 = from=5 to=12 tosection=১, chapter 16 = from=100 fromsection=১৬ to=110); this source renders <pages index=\"দেবদাস - শরৎচন্দ্র চট্টোপাধ্যায়.pdf\" from=5 to=110 /> without section limits, so every section of every page appears once, in order. The cover and title pages (scan pages 1–3) and page 4 (a list of the author's other books) are excluded. Checked on 2026-09-24: the render starts with chapter এক and the novel's first line (একদিন বৈশাখের দ্বিপ্রহরে…) and ends with its last paragraph (…দেখিয়া সে মরিতে পারে।) followed by সমাপ্ত; no scan page 5–110 was below 'proofread' (8–108 proofread, level 3; 5–7 and 109–110 validated, level 4); the build re-checks each page's level. The scan is of a 1947 printing (category ১৯৪৭ খ্রিস্টাব্দে প্রকাশিত) and the work page carries {{PD-India}}. The bare title দেবদাস is a disambiguation page; the other scan it lists, দেবদাস - প্রচার পুস্তিকা (১৯৩৫).pdf, is a 1935 film booklet, not the novel.",
+      "license_evidence": {
+        "url": "https://bn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for bn.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0; the underlying work is public domain in India (Sarat Chandra Chattopadhyay died in 1938). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
     }
   ],
-  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets. 2026-09-24 (P004B): the first live fetch showed that neither Wikisource root declared in Stage A was the work: hi गोदान?action=raw is a localized #REDIRECT to गो-दान, and bn গীতাঞ্জলি is a Wikidata/SPARQL infocard. Both works are ProofreadPage scanned-book transcriptions whose chapter pages contain only a <pages/> tag, so ?action=raw can never return their text. They are now declared as mediawiki-parse sources rendered by api.php?action=parse: the 36 Godaan chapters (गो-दान/१…/३६, scan गो-दान.djvu; the legacy pages गो-दान/ भाग 16 and भाग 17 render a different scan, गोदान.pdf, duplicate this text and are deliberately not declared) and one Gitanjali source rendering scan pages 13–190 (poems 1–157). The replaced ids hi-wikisource-godan-ccbysa and bn-wikisource-gitanjali-ccbysa were never verified or pinned."
+  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets. 2026-09-24 (P004B): the first live fetch showed that neither Wikisource root declared in Stage A was the work: hi गोदान?action=raw is a localized #REDIRECT to गो-दान, and bn গীতাঞ্জলি is a Wikidata/SPARQL infocard. Both works are ProofreadPage scanned-book transcriptions whose chapter pages contain only a <pages/> tag, so ?action=raw can never return their text. They are now declared as mediawiki-parse sources rendered by api.php?action=parse: the 36 Godaan chapters (गो-दान/१…/३६, scan गो-दान.djvu; the legacy pages गो-दान/ भाग 16 and भाग 17 render a different scan, गोदान.pdf, duplicate this text and are deliberately not declared) and one Gitanjali source rendering scan pages 13–190 (poems 1–157). The replaced ids hi-wikisource-godan-ccbysa and bn-wikisource-gitanjali-ccbysa were never verified or pinned. 2026-09-24 (P004B, after EXP-009): added en-gutenberg-sadhana-pd (Tagore, Sadhana, Gutenberg ebook 6842) and bn-wikisource-devdas-ccbysa (Sarat Chandra Chattopadhyay, দেবদাস, scan pages 5–110) so that the en and bn slots can reach the 200,000-character target; neither has been fetched, verified or pinned yet."
 }
