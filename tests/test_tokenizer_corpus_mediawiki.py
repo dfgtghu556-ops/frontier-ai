@@ -644,13 +644,30 @@ def test_repo_manifest_renders_all_gitanjali_poems_from_one_pages_tag() -> None:
     assert tag is not None and (tag.group(1), tag.group(2)) == ("13", "190")
 
 
+def _assert_pin_is_complete_or_absent(source) -> None:
+    """Not pinned at all, or pinned the only way the code pins: build_corpus(pin=True) writes
+    the hash, verified=true and the retrieval time together, for sources that passed every
+    gate in that run. A hash without the rest (or the reverse) was typed in by hand."""
+    if source.sha256 is None:
+        assert source.verified is False and source.retrieved_at is None, source.id
+    else:
+        assert re.fullmatch(r"[0-9a-f]{64}", source.sha256), source.id
+        assert source.verified is True, source.id
+        assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", source.retrieved_at or ""), source.id
+
+
+def test_repo_manifest_pins_are_complete_or_absent() -> None:
+    for source in TokenizerCorpusManifest.load(REPO_MANIFEST).sources:
+        _assert_pin_is_complete_or_absent(source)
+
+
 def test_repo_manifest_renders_devdas_chapters_1_to_16_from_one_pages_tag() -> None:
     # scan pages 5–110 = chapter 1 (from=5) … chapter 16 (to=110), checked live on
     # 2026-09-24; pages 1–4 (cover, title, blank, the author's other books) stay out
     manifest = TokenizerCorpusManifest.load(REPO_MANIFEST)
     devdas = _repo_source(manifest, "bn", "bn-wikisource-devdas-ccbysa")
     assert devdas.kind == KIND
-    assert devdas.sha256 is None and not devdas.verified  # never pinned from memory
+    _assert_pin_is_complete_or_absent(devdas)  # a hash only ever comes from a --pin run
     assert validate_parse_url(devdas.source_url) == []
     params = parse_qs(urlsplit(devdas.source_url).query)
     assert params["title"] == ["দেবদাস (শরৎচন্দ্র চট্টোপাধ্যায়)"]
@@ -676,7 +693,7 @@ def test_repo_manifest_language_slots_list_the_second_english_and_bengali_works(
     sadhana = _repo_source(manifest, "en", "en-gutenberg-sadhana-pd")
     assert sadhana.kind == "gutenberg" and sadhana.license_id == "PD-US"
     assert sadhana.source_url == "https://www.gutenberg.org/cache/epub/6842/pg6842.txt"
-    assert sadhana.sha256 is None and not sadhana.verified
+    _assert_pin_is_complete_or_absent(sadhana)
     slots = json.loads(REPO_MANIFEST.read_text(encoding="utf-8"))["language_slots"]
     declared = {slot["code"]: slot["sources"] for slot in slots}
     assert declared["bn"] == [s.id for s in manifest.sources_for("bn")]
