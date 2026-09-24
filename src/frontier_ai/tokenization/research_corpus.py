@@ -100,12 +100,24 @@ PREFLIGHT_SAMPLE_BYTES = 65_536
 
 # Content-shape gate: a Wikisource *work root* is often just a header plus a list of
 # chapter links. Those lines carry wiki markup and almost no prose, which is what these
-# three numbers measure. The gate is deliberately conservative — a page is only called an
-# index page when a *majority* of at least INDEX_PAGE_MIN_LINES lines are navigation —
-# because refusing a real work is worse than asking a human to look.
-INDEX_PAGE_MIN_LINES = 20
+# numbers measure. The gate is deliberately conservative — a page is only called an
+# index page when a *majority* of lines are navigation — because refusing a real work is
+# worse than asking a human to look.
+#
+# Three kinds of non-work pages are caught:
+#   1. ``#REDIRECT [[Target]]`` — the wiki URL redirects elsewhere; the work lives at a
+#      different title. Always refused.
+#   2. Classic TOC: ≥ INDEX_PAGE_MIN_LINES lines with ≥ INDEX_PAGE_LINK_LINE_RATIO of them
+#      being wiki-link lines with < INDEX_PAGE_MIN_PROSE_CHARS of prose left.
+#   3. "Tiny stub" gate: a page that, after wikitext cleaning, yields fewer than
+#      INDEX_PAGE_MIN_CLEANED_CHARS characters of prose for a wikitext source that still
+#      carries wiki markup in the raw payload. Whole novels are many thousands of
+#      characters; a single chapter title line or a navigation card is not. This catches
+#      the <20-line stub pages (redirects already handled) that the TOC gate misses.
+INDEX_PAGE_MIN_LINES = 5
 INDEX_PAGE_MIN_PROSE_CHARS = 20
 INDEX_PAGE_LINK_LINE_RATIO = 0.5
+INDEX_PAGE_MIN_CLEANED_CHARS = 500
 SAMPLING_RULE = (
     "stratified: an equal per-language budget of limit // n_languages documents "
     "in (language, doc_id) order, then any leftover budget filled in the same order"
@@ -535,6 +547,18 @@ def content_shape(text: str, kind: str) -> dict[str, Any]:
     **and** has almost no prose left once that markup is removed. Short lines of verse are
     prose, not navigation, and must never be counted — otherwise the gate would refuse
     poetry, which is exactly what the Bengali slot is made of.
+
+    Three flags can mark a wikitext payload as not-the-work:
+
+    * ``is_redirect`` — the first non-blank line is a MediaWiki ``#REDIRECT [[…]]``
+      (case-insensitive). The URL points somewhere other than the work.
+    * ``looks_like_index_page`` — a high fraction of lines are wiki-link navigation lines
+      with little prose left (classic table of contents).
+    * A separate *post-cleaning* stub check runs after ``clean_wikitext`` has stripped
+      markup: if the cleaned prose is shorter than INDEX_PAGE_MIN_CLEANED_CHARS and the
+      raw page still carried wiki markup, it is a stub, not a work, and is refused by the
+      ingest path as ``index_page_refused``. This catches short navigation pages that
+      have too few lines to trip the ratio gate.
     """
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     link_lines = 0
@@ -546,6 +570,14 @@ def content_shape(text: str, kind: str) -> dict[str, Any]:
         if len(stripped) < INDEX_PAGE_MIN_PROSE_CHARS:
             link_lines += 1
     ratio = round(link_lines / len(lines), 3) if lines else 0.0
+    # MediaWiki #REDIRECT detection: the first non-blank line starts with #redirect
+    # (case/variant-insensitive).  These are one-line pages that point at another title;
+    # they must never be treated as the work.
+    first_line = lines[0] if lines else ""
+    is_redirect = bool(
+        kind == "wikitext"
+        and re.match(r"#redirect\b", first_line, re.IGNORECASE)
+    )
     return {
         "sample_chars": len(text),
         "sample_lines": len(lines),
@@ -553,12 +585,16 @@ def content_shape(text: str, kind: str) -> dict[str, Any]:
         "wiki_templates": len(re.findall(r"\{\{[^{}]*\}\}", text)),
         "link_line_ratio": ratio,
         "link_lines": link_lines,
+        "is_redirect": is_redirect,
+        "first_line_excerpt": first_line[:120] if first_line else "",
+        "cleaned_chars_hint": len(clean_text(text, kind)) if kind == "wikitext" else None,
         # Conservative hint, not a verdict: a human still has to look.
         "looks_like_index_page": (
             kind == "wikitext"
             and len(lines) >= INDEX_PAGE_MIN_LINES
             and ratio >= INDEX_PAGE_LINK_LINE_RATIO
-        ),
+        )
+        or is_redirect,
         "gutenberg_marker_seen": "*** start of the project gutenberg ebook" in text.lower(),
     }
 
@@ -680,6 +716,72 @@ def ingest_source(
             error="cleaned text is empty",
         )
 
+    # Post-cleaning stub gate: a wikitext page that, after markup is stripped, still
+    # yields almost no prose is a stub/navigation card, not the declared work. The
+    # wiki_links/template count in the raw payload is what distinguishes "a tiny stub
+    # with navigation markup" from "a short poem" — verse carries no [[…]] / {{…}} in
+    # the raw. Catches pages too short to trip the line-ratio gate (e.g. a single
+    # #REDIRECT line, or 18 lines that are mostly chapter links).
+    if (
+        source.kind == "wikitext"
+        and shape is not None
+        and not shape["looks_like_index_page"]
+        and len(text) < INDEX_PAGE_MIN_CLEANED_CHARS
+        and (shape["wiki_links"] + shape["wiki_templates"]) > 0
+    ):
+        # Write the text for inspection, but refuse verification.
+        text_path = raw_dir / f"{source.id}.txt"
+        text_path.write_text(text, encoding="utf-8")
+        provenance_path = raw_dir / f"{source.id}.provenance.json"
+        _write_provenance(
+            provenance_path,
+            source,
+            text,
+            retrieved_at=retrieved_at,
+            truncated=truncated,
+            chars_before_trim=before_trim,
+            licence_proof=licence_proof,
+            license_evidence=evidence_result,
+            content_check={
+                "gate": "tiny_stub",
+                "cleaned_chars": len(text),
+                "min_cleaned_chars": INDEX_PAGE_MIN_CLEANED_CHARS,
+                "wiki_links_raw": shape["wiki_links"],
+                "wiki_templates_raw": shape["wiki_templates"],
+                "sample_lines": shape["sample_lines"],
+                "link_lines": shape["link_lines"],
+                "link_line_ratio": shape["link_line_ratio"],
+            },
+            local=local_text is not None,
+            local_origin=local_origin if local_text is not None else None,
+        )
+        return IngestedSource(
+            source_id=source.id,
+            language=source.language,
+            status="index_page_refused",
+            retrieved_at=retrieved_at,
+            path=str(text_path),
+            provenance_path=str(provenance_path),
+            sha256=sha256_text(text),
+            chars=len(text),
+            bytes=len(text.encode("utf-8")),
+            truncated=truncated,
+            chars_before_trim=before_trim,
+            licence_proof=licence_proof,
+            license_evidence=evidence_result,
+            local=local_text is not None,
+            local_origin=local_origin if local_text is not None else None,
+            error=(
+                f"{source.source_url} cleaned to only {len(text)} characters of prose "
+                f"but still carries wiki markup ({shape['wiki_links']} links, "
+                f"{shape['wiki_templates']} templates in {shape['sample_lines']} raw "
+                "lines) — this looks like a stub, redirect or navigation card, not the "
+                f"declared work. Threshold is {INDEX_PAGE_MIN_CLEANED_CHARS} cleaned "
+                "characters for a wikitext source. Acquire the chapter subpages instead "
+                "(runbook §3)."
+            ),
+        )
+
     digest = sha256_text(text)
     if expected_sha256 and digest != expected_sha256:
         # The manifest pins what this source *is*. Different bytes are a decision, not a
@@ -708,13 +810,21 @@ def ingest_source(
 
     if shape is not None and shape["looks_like_index_page"]:
         status = "index_page_refused"
-        error = (
-            f"{source.source_url} looks like a contents/index page, not the work: "
-            f"{shape['link_lines']} of {shape['sample_lines']} sampled lines are wiki "
-            f"links with almost no prose (link_line_ratio={shape['link_line_ratio']}). "
-            "The text was kept for inspection, but it is not verified, not part of the "
-            "corpus and not pinned. Acquire the chapter subpages instead (runbook §3)."
-        )
+        if shape.get("is_redirect"):
+            error = (
+                f"{source.source_url} is a MediaWiki #REDIRECT page (first line: "
+                f"{shape.get('first_line_excerpt', '')!r}) — it points to a different "
+                "title, not to the declared work. Update source_url to the actual "
+                "page (or to the chapter subpages) in the manifest, with a note."
+            )
+        else:
+            error = (
+                f"{source.source_url} looks like a contents/index page, not the work: "
+                f"{shape['link_lines']} of {shape['sample_lines']} sampled lines are "
+                f"wiki links with almost no prose (link_line_ratio={shape['link_line_ratio']}). "
+                "The text was kept for inspection, but it is not verified, not part of "
+                "the corpus and not pinned. Acquire the chapter subpages instead (runbook §3)."
+            )
     else:
         error = ""
 
@@ -1719,11 +1829,30 @@ def preflight_source(
                 "no Gutenberg START marker in the sampled bytes: this URL may not be a "
                 "Project Gutenberg text file"
             )
-        if report["looks_like_index_page"]:
+        if report.get("is_redirect"):
+            excerpt = report.get("first_line_excerpt", "")[:80]
+            report["notes"].append(
+                f"the first line is a MediaWiki #REDIRECT ({excerpt!r}) — this URL points "
+                "to a different title, not to the declared work. Update source_url to the "
+                "actual page or chapter subpages."
+            )
+        elif report["looks_like_index_page"]:
             report["notes"].append(
                 "the sampled lines are mostly wiki links: this looks like a contents/index "
                 "page, not the work itself. Acquire the chapter subpages or use the API "
                 "instead of trusting the work root"
+            )
+        if (
+            source.kind == "wikitext"
+            and report.get("cleaned_chars_hint") is not None
+            and report["cleaned_chars_hint"] < INDEX_PAGE_MIN_CLEANED_CHARS
+            and (report.get("wiki_links", 0) + report.get("wiki_templates", 0)) > 0
+            and not report["looks_like_index_page"]
+        ):
+            report["notes"].append(
+                f"sampled wikitext cleans to only {report['cleaned_chars_hint']} characters "
+                f"but carries wiki markup — a likely stub/navigation card, not the full "
+                f"work (threshold {INDEX_PAGE_MIN_CLEANED_CHARS} chars)."
             )
         if not report["payload_licence_marker_seen"] and evidence is None:
             report["notes"].append(
@@ -1788,12 +1917,17 @@ def render_preflight(report: dict[str, Any]) -> str:
     ]
     for row in report["sources"]:
         status = f"OK  http={row['http_status']}" if row["ok"] else "FAIL"
-        detail = (
-            f"lines={row.get('sample_lines', 0)} links={row.get('wiki_links', 0)} "
-            f"licence_marker={'yes' if row.get('payload_licence_marker_seen') else 'no'}"
-            if row["ok"]
-            else str(row["error"])[:70]
-        )
+        if row["ok"]:
+            if row.get("is_redirect"):
+                status = "WARN REDIRECT"
+            elif row.get("looks_like_index_page"):
+                status = "WARN INDEX   "
+            detail = (
+                f"lines={row.get('sample_lines', 0)} links={row.get('wiki_links', 0)} "
+                f"licence_marker={'yes' if row.get('payload_licence_marker_seen') else 'no'}"
+            )
+        else:
+            detail = str(row["error"])[:70]
         lines.append(f"[preflight]   {row['source_id']:<30} {status:<14} {detail}")
         for note in row.get("notes") or []:
             lines.append(f"[preflight]       note: {note}")

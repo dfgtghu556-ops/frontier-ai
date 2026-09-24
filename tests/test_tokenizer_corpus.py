@@ -1684,6 +1684,73 @@ def test_ingest_accepts_prose_and_short_verse(tmp_path: Path, monkeypatch) -> No
         assert result.ingested[0].licence_proof == "payload-marker"
 
 
+def test_content_shape_detects_redirect() -> None:
+    """#REDIRECT [[Target]] is a non-work page regardless of line count."""
+    r = content_shape("#REDIRECT [[गोदान/अध्याय_१]]", "wikitext")
+    assert r["is_redirect"] is True
+    assert r["looks_like_index_page"] is True
+
+    # case/variant-insensitive, leading whitespace allowed
+    r = content_shape("  #redirect [[Some Page]]\n", "wikitext")
+    assert r["is_redirect"] is True
+    assert r["looks_like_index_page"] is True
+
+    # Gutenberg kind never flags as a redirect
+    assert content_shape("#REDIRECT [[x]]", "gutenberg")["is_redirect"] is False
+
+    # A line that merely mentions the word "redirect" in prose is not a redirect
+    r = content_shape("The page will redirect you after login.\nReal prose here.", "wikitext")
+    assert r["is_redirect"] is False
+
+
+def test_tiny_stub_is_refused_after_cleaning(tmp_path: Path, monkeypatch) -> None:
+    """A short wikitext stub (fewer than MIN_LINES navigation lines, but cleans to almost
+    nothing and carries markup) must be refused by the post-clean stub gate.
+
+    This catches the Hindi Godaan case (1 redirect line / 20 chars after cleaning)
+    which the old line-ratio gate missed because it required >=20 lines.
+    """
+    # 3 link lines — too few for the ratio gate (MIN_LINES=5) but cleans to <500 chars
+    tiny_stub = "\n".join(
+        [
+            "{{काम/हेडर}}",
+            "[[गोदान/अध्याय_१|अध्याय १]]",
+            "[[गोदान/अध्याय_२|अध्याय २]]",
+        ]
+    )
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(tiny_stub),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]}],
+    )
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True)
+    item = result.ingested[0]
+    assert item.status == "index_page_refused", item.error
+    assert item.verified is False
+    # Either gate is acceptable; what matters is refusal.
+    assert "index" in item.error.lower() or "stub" in item.error.lower() or "cleaned to only" in item.error
+    # payload kept for inspection, never enters corpus
+    assert item.path is not None and Path(item.path).exists()
+    assert result.train == [] and result.held_out == []
+
+    # Short plain prose (no wiki links/templates) must NOT be refused — a short poem is still prose
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(_verse_sample()),
+    )
+    manifest_path2 = _manifest(
+        tmp_path,
+        [_source("hi-src2", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src2"]}],
+    )
+    result2 = build_corpus(manifest_path2, tmp_path / "build2", fetch=True)
+    assert result2.ingested[0].status == "verified", result2.ingested[0].error
+
+
 def test_pinned_content_that_changes_is_refused(tmp_path: Path, monkeypatch) -> None:
     """A pinned hash is the source's identity: different bytes are refused, not re-pinned."""
     monkeypatch.setattr(
