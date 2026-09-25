@@ -47,6 +47,13 @@ at the top of [tokenizer_corpus_stage_b_acquisition.md](tokenizer_corpus_stage_b
 * The operator's folder `E:\frontier-ai` contains an old untracked second copy of the
   project in `E:\frontier-ai\frontier-ai`. JOB-002 step 2 moves it out (never delete it).
 
+**Latest status (EXP-024, 2026-09-26):** this table is the initial handover baseline and is
+superseded by the final state: all 59 sources are verified and pinned, 13 of 14 slots are
+`EVALUATED`, and hi-en remains `NOT_EVALUATED` because no lawful, attributable source was
+identified. Marathi uses Apte's *स्फुट गोष्टी भाग तिसरा*; Urdu uses Premchand's *Ram
+Charcha*. Both pass the corpus targets. See runbook §2.8, `EXPERIMENTS.md` EXP-021–024 and
+the EXP-021/022/023 inspection reports for the acquisition, review and lock evidence.
+
 ## 3. Rules
 
 Non-negotiable:
@@ -258,6 +265,11 @@ wiki is `https://<code>.wikisource.org/w/api.php`, add `format=json&formatversio
    anchors unknown yet; add the Urdu sentence marks (§7).
 6. **hi-en:** keep the reason for `NOT_EVALUATED` current (runbook §9).
 7. **Finish:** the EXPERIMENTS.md entry (§1).
+
+**Completion update (EXP-024, 2026-09-26):** JOB-002 and the lock/review steps above are
+complete. EXP-023 verified and pinned all 59 sources; Marathi and Urdu now meet their
+targets. P004B is complete with 13 evaluated slots and hi-en honestly `NOT_EVALUATED`;
+there is no remaining P004B source-acquisition step.
 
 ## 11. Pitfalls already met
 

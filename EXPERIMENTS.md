@@ -791,6 +791,8 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-020 | P004B: research Marathi and Urdu source candidates | complete | 2026-09-25 | No source declared; candidate scans failed the proofread and/or licence-evidence gates |
 | EXP-021 | P004B: first Marathi and Urdu fetch; inspect transcription residues | complete | 2026-09-26 | 59/59 verified; prior 55 pins unchanged; new Urdu sources flagged, so none locked |
 | EXP-022 | P004B: repair and re-fetch Marathi and Urdu sources | complete | 2026-09-26 | 59/59 verified; prior 55 pins unchanged; all four new sources clean, mr 256,165 and ur 208,621 characters |
+| EXP-023 | P004B: lock Marathi and Urdu sources | complete | 2026-09-26 | 59/59 pinned; four new fingerprints match EXP-022; 55 earlier fingerprints unchanged |
+| EXP-024 | P004B: complete the real tokenizer research corpus | complete | 2026-09-26 | 13 of 14 slots EVALUATED; 59 sources verified and pinned; hi-en honestly NOT_EVALUATED |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1133,3 +1135,43 @@ are claimed in this entry.
 
 **Next action:** Run a fresh `--fetch --pin` as EXP-023, compare its manifest diff with these hash prefixes, then record the final P004B status.
 **Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-022-inspection.txt`; `data/tokenizer/indic-tokenizer-v2`.
+
+### EXP-023 — P004B: lock Marathi and Urdu scan ranges
+
+- **Status:** complete
+- **Date:** 2026-09-26
+- **Objective:** Lock the four reviewed Marathi and Urdu sources from a fresh fetch without changing any of the 55 existing fingerprints.
+- **Baseline:** EXP-022
+- **Command:** `python scripts/build_tokenizer_corpus.py --fetch --pin --exp-id EXP-023 --out data/tokenizer/indic-tokenizer-v2`
+- **Code revision:** `d9ddf6a`
+
+**Results:**
+- Build exit 0; inspection header: 59 sources, 59 verified, 59 pinned.
+- The four new fingerprints match the EXP-022 report: mr `e1e7dba1bfe5`; ur `fb22db9983ef`, `36cd31410d2b`, `4835213b51c2`.
+- The 55 previous fingerprints are unchanged. The manifest-only lock diff changed `sha256`, `verified` and `retrieved_at` for the four new sources and only `retrieved_at` for the 55 previously pinned.
+- All four new sources remain free of inspection flags. The inspector's exit 1 is due to existing documented flags in the pinned Malayalam, Kannada and Tamil sources.
+- Coverage remains mr 1,667 / 256,165 and ur 1,378 / 208,621 (documents / characters).
+
+**Conclusion:** The fresh lock matched the reviewed fetch exactly; the four sources are now verified and fingerprinted.
+
+**Next action:** Record P004B complete, with hi-en still honestly `NOT_EVALUATED`.
+**Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-023-inspection.txt`; `corpora/tokenizer/indic-tokenizer-v2/sources.json`.
+
+### EXP-024 — P004B: complete the real tokenizer research corpus
+
+- **Status:** complete
+- **Date:** 2026-09-26
+- **Objective:** Close P004B with auditable coverage, legal-source and fingerprint status for all 14 language slots.
+- **Baseline:** EXP-023; 11 slots were evaluated before the Marathi and Urdu acquisition.
+- **Code revision:** `d9ddf6a`
+
+**Results:**
+- The manifest contains 59 verified, fingerprinted sources. Thirteen of 14 slots meet both corpus targets; mr has 1,667 documents / 256,165 characters and ur has 1,378 / 208,621.
+- hi-en remains `NOT_EVALUATED`: the search found no lawful, attributable Hinglish/Romanised-Hindi source. No text was translated, synthesized, padded or borrowed from a related language.
+- The new Marathi and Urdu sources have independent underlying-work public-domain evidence and live CC BY-SA evidence for their Wikisource transcriptions; all included scan pages passed the proofreading gate.
+- Targeted MediaWiki cleaner tests pass (53/53) and Ruff passes. The full suite reports 393 passed, 1 skipped and 22 failures tied to missing synthetic fixture data and existing Windows encoding/line-ending assumptions; see EXP-022.
+
+**Conclusion:** P004B is complete. The corpus is ready for the later tokenizer research work; an unevaluated slot is reported honestly rather than filled with a substitute.
+
+**Next action:** The operator may merge `arena/01a0d31f-frontier-ai` into `main` when ready; no pull request was opened.
+**Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-021-inspection.txt`, `EXP-022-inspection.txt`, `EXP-023-inspection.txt`, `corpora/tokenizer/indic-tokenizer-v2/sources.json`.

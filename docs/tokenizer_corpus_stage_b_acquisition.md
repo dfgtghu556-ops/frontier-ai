@@ -65,8 +65,10 @@ a scan-inconsistent `1004` embedded in page 62's prose, and two U+200E direction
 nothing was pinned. The tested cleaner repairs were re-fetched as EXP-022: all 59 sources
 verified, all 55 prior pins unchanged, and the four new sources have no inspection flags.
 Marathi is `EVALUATED` at 1,667 documents / 256,165 characters; Urdu is `EVALUATED` at
-1,378 / 208,621. EXP-023 is the fresh lock run; its inspection, manifest-only lock diff,
-and final P004B records remain to be completed.
+1,378 / 208,621. EXP-023 then verified and pinned all 59 sources; its four new fingerprints
+match EXP-022, all previous fingerprints are unchanged, and its manifest diff contains only
+the permitted lock fields. P004B is complete: 13 slots are `EVALUATED`; hi-en remains
+`NOT_EVALUATED` because no lawful, attributable corpus was identified.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
@@ -585,9 +587,9 @@ a fifth or more.
   165, which carries its 18th chapter heading (perhaps mid-page); ta's chapters begin
   mid-page (sections), so its two ranges meet inside chapter 14. Every page is in exactly one
   range: nothing is lost or repeated.
-* **First fetch (EXP-018, JOB-002):** not run yet. Expect the 47 pinned sources unchanged
-  and the 8 new ones verified; te is the slot most likely to fall short, and if any slot is
-  `INSUFFICIENT` the fix is a second work, never padding.
+* **First fetch and lock (EXP-018/019, JOB-002):** completed. EXP-018 verified all 55
+  sources and put pa, kn, te and ta above target; EXP-019 locked the eight new sources after
+  inspection. See the status header and experiment log for the recorded results.
 
 ### 2.8 Marathi and Urdu (kind `mediawiki-parse`)
 
@@ -619,7 +621,15 @@ only in its observed surrounding phrase and strips U+200E as a direction-formatt
 artifact. EXP-022 re-fetched all 59 sources with exit 0; all 55 existing pins were unchanged.
 The four new sources have no inspection flags. Marathi has 1,667 documents / 256,165
 characters; Urdu has 1,378 / 208,621. The EXP-022 report records source samples, repair
-counts and the new hash prefixes. EXP-023 is the separate fresh `--pin` run.
+counts and the new hash prefixes.
+
+EXP-023 was a separate fresh `--fetch --pin` run (exit 0): all 59 sources were verified and
+pinned. The 55 previous fingerprints stayed identical, and the four new ones match EXP-022:
+mr `e1e7dba1bfe5`; ur `fb22db9983ef`, `36cd31410d2b`, `4835213b51c2`. Its inspection report
+has no flags for the four new sources. The manifest diff changed only `sha256`, `verified`
+and `retrieved_at` for the four new sources, and only `retrieved_at` for the 55 existing
+pins. All 14 slots are now accounted for: 13 `EVALUATED`, hi-en `NOT_EVALUATED` with no
+licensed, attributable source found; no text was padded or substituted.
 
 ---
 
@@ -1024,18 +1034,16 @@ unverified and its slot does not become `EVALUATED`.
 - [x] Samples begin and end within the works; no front matter, back matter, CSS or running scan numbers appear in the selected text
 - [x] EXP-022 inspection has no flags for the four new sources; Urdu's repairs preserve prose and are counted in the report
 - [x] Both slots meet the 500-document / 200,000-character targets: mr 1,667 / 256,165; ur 1,378 / 208,621
-- [ ] Run EXP-023 with a fresh `--fetch --pin`; verify the new prefixes match EXP-022 and that only permitted lock fields change
+- [x] EXP-023 fresh `--fetch --pin` succeeded; each new fingerprint matches its EXP-022 prefix and only permitted lock fields changed
 
 ---
 
 ## 9. Missing languages
 
-Since EXP-010: `en`, `hi` and `bn` `EVALUATED` (pinned in EXP-013). `gu`, `ml`, `or`, `as`
-pinned in EXP-017 (§2.6); the next inspection report's coverage section confirms their
-document counts as well as their characters. Declared but not yet fetched: `pa`, `kn`, `te`,
-`ta` (§2.7). Still `NOT_EVALUATED`, with no source: hi-en, mr, ur. mr.wikisource has many
-fully proofread scans, but most are modern works still in copyright; ur.wikisource exists but
-is small (12 active editors) and has not been surveyed yet.
+As of EXP-023, all 59 sources are verified and pinned. Thirteen slots are `EVALUATED`,
+including mr (1,667 documents / 256,165 characters) and ur (1,378 / 208,621). hi-en remains
+`NOT_EVALUATED`: no licensed, attributable Hinglish/Romanised-Hindi source was identified.
+No text was substituted or padded.
 
 * **Nothing is substituted.** No synthetic text, no machine translation, no "close enough"
   corpus, no filling a slot from a related language. A language we cannot source legally

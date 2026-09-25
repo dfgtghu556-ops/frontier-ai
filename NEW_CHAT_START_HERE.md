@@ -45,36 +45,27 @@ git merge --ff-only FETCH_HEAD
   * [corpora/tokenizer/indic-tokenizer-v2/reports/](corpora/tokenizer/indic-tokenizer-v2/reports/):
     the reports.
 
-## 3. Where P004B stands (2026-09-25, branch tip `2c31bfb`)
+## 3. Where P004B stands (2026-09-26; EXP-023 lock commit `d9ddf6a`)
 
 | Languages | State | Run |
 |---|---|---|
 | English, Hindi, Bengali | locked, 40 sources | EXP-013 |
 | Gujarati, Malayalam, Odia, Assamese | locked, 7 sources | EXP-017 |
 | Punjabi, Kannada, Telugu, Tamil | downloaded (EXP-018), locked, 8 sources | EXP-019 |
-| Marathi, Urdu | research complete; no source passed gates | EXP-020 |
-| Hindi–English mixed (hi-en) | expected to stay NOT_EVALUATED | — |
+| Marathi | *स्फुट गोष्टी भाग तिसरा* by Hari Narayan Apte; locked, 1,667 documents / 256,165 characters | EXP-023 |
+| Urdu | *Ram Charcha* by Munshi Premchand; locked, 1,378 documents / 208,621 characters | EXP-023 |
+| Hindi–English mixed (hi-en) | `NOT_EVALUATED`; no lawful, attributable source identified | EXP-024 |
 
 Note on Urdu: its sentence marks ۔ (U+06D4) and ؟ (U+061F) are now recognized by
 `_SENTENCE_BOUNDARY`, and the `سانچہ` Template namespace is registered in the MediaWiki
-cleaner. No Urdu corpus source has passed the licence and proofread gates.
+cleaner. The cleaner also removes the reviewed transcription residues in *Ram Charcha*;
+the retained heading and prose are covered by tests and the EXP-022 report.
 
-All 55 sources in the manifest are verified and locked. The Arena agent checked the EXP-019
-lock mechanically:
-* The 47 earlier fingerprints did not change. Only `retrieved_at` moved, which `--pin`
-  always does.
-* The 8 new sources gained a fingerprint and `verified`.
-* Nothing else in the manifest changed.
-
-Still open after `d5c4400`:
-* EXP-018 and EXP-019 are now recorded in EXPERIMENTS.md, at the end and in its §5 index.
-* The runbook's status header and handover §2 still describe the state before EXP-018.
-* Everything else is in handover §10: Marathi and Urdu come next.
-
-* EXP-020 researched Marathi and Urdu candidates but declared no sources: the inspected
-  Marathi scans were not broadly proofread, and the Urdu candidates lacked a complete
-  proofread/licence basis. Both slots remain `NOT_EVALUATED`; find stronger scans before
-  attempting a fetch or pin.
+All 59 sources are now verified and locked. EXP-023 confirmed that the 55 existing
+fingerprints stayed unchanged; the four new fingerprints match EXP-022, and the manifest
+diff contains only the permitted lock fields. EXP-021–024 and their reports are recorded in
+`EXPERIMENTS.md` and the runbook. Thirteen of 14 slots are `EVALUATED`; hi-en remains
+`NOT_EVALUATED` without substitute text.
 
 ## 4. Who does what
 
@@ -164,6 +155,11 @@ comes next. They also update the table in §3.
   source passed the proofread and underlying-work licence gates, so none was declared or
   fetched. Added Urdu sentence punctuation and Template-namespace support with regression
   coverage. Next: locate stronger public-domain scans; do not pin anything from this survey.
+* **2026-09-26, local assistant, commits `ce5739d`, `edd2303`, `31c2c78`, `d9ddf6a`:**
+  acquired, reviewed and locked Marathi and Urdu; 59 sources are verified and pinned, with
+  13 slots evaluated and hi-en honestly unevaluated. EXP-021–024 and the handover/runbook
+  completion updates are recorded. P004B is complete; next, the operator may merge this
+  branch into `main` when ready (no pull request was opened).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

@@ -1,5 +1,10 @@
 # Current job: JOB-002 — download everything once (EXP-018) and report; nothing is locked
 
+**Disposition (2026-09-26):** JOB-002's EXP-018 fetch and EXP-019 lock are complete. The
+later P004B acquisition is also complete: EXP-023 locked all 59 sources, including the
+Marathi and Urdu ranges. This file is retained as the historical JOB-002 instruction;
+there is no pending P004B download or lock job.
+
 Written by the Arena agent, 2026-09-25. It replaces JOB-001, which was never run: this job's
 report covers everything JOB-001's would have, and step 2 below is JOB-001's tidy-up. Read
 [docs/tokenizer_corpus_local_runner.md](../../../../docs/tokenizer_corpus_local_runner.md)
