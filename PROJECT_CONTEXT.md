@@ -3,6 +3,11 @@
 > Read this file first if you are an AI agent (or human) opening this repository in a
 > new chat with no other context. It describes the mission, what exists today, what has
 > been proven, what has not, and where to start.
+>
+> **Newest status (2026-09-25):** the latest work, P004B (the tokenizer corpus), is on
+> branch `arena/01a0d31f-frontier-ai`. If you are a new chat, read
+> [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md) first, then come back here for the
+> project's background.
 
 ---
 

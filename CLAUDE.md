@@ -23,4 +23,16 @@ Where things stand: the handover's §2 and §10, the runbook's status header
 ([docs/tokenizer_corpus_stage_b_acquisition.md](docs/tokenizer_corpus_stage_b_acquisition.md)),
 and the current job in `corpora/tokenizer/indic-tokenizer-v2/reports/JOB.md`.
 
+## Keep the next chat informed
+
+At the end of every working session on P004B, and when P004B is finished:
+* add an entry to the status log at the end of [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md)
+  (date, what was done, the commits, what comes next);
+* update its §3 table;
+* push it with your work.
+
+When P004B is finished, tell the operator the branch is ready to be merged into `main`.
+Open that pull request (`gh pr create --base main --head arena/01a0d31f-frontier-ai`) only
+if they ask. The operator merges it on GitHub; never push or merge to `main` yourself.
+
 This file covers P004B only; other work in this repository is unaffected.
