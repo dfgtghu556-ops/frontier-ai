@@ -1,3 +1,4 @@
+
 # Tokenizer research corpus — Project 004, Stage A
 
 **Status: foundation only. No tokenizer has been selected, trained or compared here.**
