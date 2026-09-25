@@ -67,6 +67,12 @@ Three rules before you start:
 **In a hurry?** §0 is the whole workflow in five commands (setup, preflight, fetch,
 inspect, pin). Everything after it is the detail.
 
+**Running the network steps with a local assistant** (for example Claude Code on the
+operator's machine): [tokenizer_corpus_local_runner.md](tokenizer_corpus_local_runner.md).
+The Arena agent writes each job into `corpora/tokenizer/indic-tokenizer-v2/reports/JOB.md`;
+the runner executes it and pushes the reports it names to the same folder, and never
+writes a hash itself — only `--pin` does, and only in a job whose checks pass.
+
 ---
 
 ## 0. Quick start (Termux, or any network-enabled machine)
@@ -80,7 +86,7 @@ exists in the repository today; none of them are invented.
 ```
 pkg install python git          # Termux only
 cd ~/frontier-ai
-git checkout arena/01a08a78-frontier-ai
+git checkout arena/01a0d31f-frontier-ai
 python -m venv .venv
 . .venv/bin/activate
 pip install -e ".[dev]"         # torch + numpy + pytest + ruff
@@ -182,8 +188,10 @@ places with letters from another writing system than the language's own (informa
 only: an English word may belong in a Hindi novel); a cut list says so (`3 of 11 places
 shown`). Under **repairs by the cleaner** it lists, per source, what the
 cleaner removed because it was typed wrongly on the wiki (from the provenance), so a fix can
-be checked by its counts. Finally it shows how the first and last source of every language
-start and end. It exits `1` when anything is flagged. It ignores a text file left over from
+be checked by its counts. It lists every language slot's coverage (status, documents,
+characters, and the reason when a slot is not `EVALUATED`), and its first line says when the
+build ran and how many sources the manifest has pinned. Finally it shows how the first and
+last source of every language start and end. It exits `1` when anything is flagged. It ignores a text file left over from
 an earlier run (its hash must be the one this run recorded).
 
 **What it does, in plain language:** shows you the report, the first lines of the text that
@@ -974,6 +982,7 @@ evidence of what exists, not a form to be filled in.
 | `leakage.json` | both | exact SHA-256 overlap and 8-gram overlap ratio |
 | `corpus.json` | machine | everything above plus per-file hashes and the manifest hash after pinning |
 | `sources/<id>.provenance.json` | human/audit | title, URL, licence, attribution, `licence_proof`, the verbatim evidence result, `content_check`, `truncated`, `hash_is_licence_proof: false` |
+| `inspect_corpus_sources.py --output FILE` (a separate, read-only step) | human | the review report of §0.3: per-source lines, flags, repairs, coverage of all 14 slots, samples. A local runner pushes it as `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-0NN-inspection.txt` |
 
 ## 12. Open items this runbook cannot close
 

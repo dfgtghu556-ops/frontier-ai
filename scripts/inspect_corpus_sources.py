@@ -7,8 +7,8 @@ Examples (run from the repository root, after a ``--fetch`` build)::
     python scripts/inspect_corpus_sources.py --show hi-wikisource-godaan-ch23-ccbysa
     python scripts/inspect_corpus_sources.py --output inspection.txt   # UTF-8 file
 
-Read-only: it reads ``acquisition.json``, ``stats.json`` and ``sources/<id>.txt`` /
-``.provenance.json`` under ``--out`` and prints
+Read-only: it reads ``acquisition.json``, ``stats.json``, ``coverage.json``, ``corpus.json``
+and ``sources/<id>.txt`` / ``.provenance.json`` under ``--out`` and prints
 
 * one line per source: status, characters, lines, the dominant writing system of its
   letters (and whether that is the expected one for the language), the scan pages a
@@ -27,7 +27,10 @@ Read-only: it reads ``acquisition.json``, ``stats.json`` and ``sources/<id>.txt`
   ``}}``), read from the provenance — routine invisible characters are not listed;
 * how the first and last source of every language (and any source named with ``--show``)
   starts and ends — the part a human has to read;
-* identical-document counts per language from ``stats.json``.
+* identical-document counts per language from ``stats.json``;
+* every language slot's coverage from ``coverage.json`` (status, documents, characters, and
+  the reason when a slot is not ``EVALUATED``), and when the build ran (``corpus.json``) —
+  so one report file is enough to review a run.
 
 A clean report is necessary, not sufficient: it cannot tell a work from a different work.
 Reading the samples (runbook §8) is still the human step before ``--pin``.
@@ -232,11 +235,25 @@ def inspect_build(out: Path) -> dict[str, Any]:
         for entry in stats.get("languages", [])
         if entry.get("examples")
     }
+    coverage_path = out / "coverage.json"
+    coverage = json.loads(coverage_path.read_text(encoding="utf-8")) if coverage_path.exists() else {}
+    corpus_path = out / "corpus.json"
+    corpus = json.loads(corpus_path.read_text(encoding="utf-8")) if corpus_path.exists() else {}
     return {
         "out": str(out),
+        "built_at": corpus.get("built_at"),
+        "pinned": (acquisition.get("summary") or {}).get("pinned"),
         "sources": rows,
         "flagged": [row["source_id"] for row in rows if row["analysis"] and row["analysis"]["flags"]],
         "duplicates": duplicates,
+        "coverage": {
+            "targets": coverage.get("targets") or {},
+            "languages": [
+                {key: slot.get(key) for key in
+                 ("language", "status", "actual_sentences", "actual_chars", "reason")}
+                for slot in coverage.get("languages", [])
+            ],
+        },
     }
 
 
@@ -287,11 +304,35 @@ def _repairs(rows: list[dict[str, Any]]) -> list[str]:
     return out
 
 
+def _coverage(report: dict[str, Any]) -> list[str]:
+    """Every language slot as the build's coverage.json reports it (absent in older builds)."""
+    coverage = report.get("coverage") or {}
+    slots = coverage.get("languages") or []
+    if not slots:
+        return []
+    targets = coverage.get("targets") or {}
+    head = "[inspect] coverage per language slot"
+    if targets:
+        head += (f" (targets: {int(targets.get('sentences_per_language') or 0):,} documents and "
+                 f"{int(targets.get('characters_per_language') or 0):,} characters)")
+    out = [head + ":"]
+    for slot in slots:
+        line = (f"[inspect]   {slot.get('language') or '?':<6} {slot.get('status') or '?':<14} "
+                f"{int(slot.get('actual_sentences') or 0):>7,} documents "
+                f"{int(slot.get('actual_chars') or 0):>10,} characters")
+        if slot.get("status") != "EVALUATED" and slot.get("reason"):
+            line += f"  — {str(slot['reason'])[:120]}"
+        out.append(line)
+    return out
+
+
 def render(report: dict[str, Any], *, show: list[str], width: int) -> str:
     rows = report["sources"]
     verified = sum(1 for row in rows if row["status"] == "verified")
+    when = f", built {report['built_at']}" if report.get("built_at") else ""
+    pinned = f", {report['pinned']} pinned in the manifest" if report.get("pinned") is not None else ""
     lines = [
-        f"[inspect] {report['out']} — {len(rows)} sources, {verified} verified "
+        f"[inspect] {report['out']} — {len(rows)} sources, {verified} verified{pinned}{when} "
         "(read-only: nothing is stored, verified or pinned)",
         f"[inspect]   {'source':<36} {'status':<19} {'chars':>9} {'lines':>6}  "
         f"{'script':<18} {'pages':<18} {'sha256':<12}  flags",
@@ -324,6 +365,7 @@ def render(report: dict[str, Any], *, show: list[str], width: int) -> str:
             "[inspect] identical documents per language (always on the same side of the split): "
             + ", ".join(f"{lang}={count}" for lang, count in sorted(report["duplicates"].items()))
         )
+    lines.extend(_coverage(report))
     lines.append(
         "[inspect] flagged sources: "
         + (", ".join(report["flagged"]) if report["flagged"] else "none")

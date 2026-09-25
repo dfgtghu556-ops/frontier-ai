@@ -12,6 +12,7 @@ import hashlib
 import http.client
 import importlib.util
 import json
+import re
 import socket
 import urllib.error
 from pathlib import Path
@@ -216,6 +217,46 @@ def test_inspection_report_reads_a_build_and_ignores_stale_files(tmp_path: Path,
     report = module.inspect_build(out)
     stale = next(row for row in report["sources"] if row["source_id"] == "en-stale")
     assert stale["analysis"] is None
+
+
+def test_inspection_report_shows_every_slots_coverage_and_when_the_build_ran(
+    tmp_path: Path, capsys
+) -> None:
+    module = _load_inspector()
+    out = _build(tmp_path)
+    (out / "corpus.json").write_text(json.dumps({"built_at": "2026-09-24T19:00:20Z"}), encoding="utf-8")
+    acquisition = json.loads((out / "acquisition.json").read_text(encoding="utf-8"))
+    acquisition["summary"] = {"pinned": 3}
+    (out / "acquisition.json").write_text(json.dumps(acquisition), encoding="utf-8")
+    (out / "coverage.json").write_text(json.dumps({
+        "targets": {"sentences_per_language": 500, "characters_per_language": 200000},
+        "languages": [
+            {"language": "hi", "status": "EVALUATED", "reason": "", "actual_sentences": 5329,
+             "actual_chars": 763964},
+            {"language": "en", "status": "INSUFFICIENT", "actual_sentences": 1, "actual_chars": 76,
+             "reason": "verified data is below target: 1 examples / 76 characters vs 500 examples "
+                       "/ 200,000 characters"},
+            {"language": "ta", "status": "NOT_EVALUATED", "reason": "no source declared",
+             "actual_sentences": 0, "actual_chars": 0},
+        ]}), encoding="utf-8")
+    module.main(["--out", str(out)])
+    printed = capsys.readouterr().out
+    first = printed.splitlines()[0]
+    assert "4 sources, 3 verified, 3 pinned in the manifest, built 2026-09-24T19:00:20Z" in first
+    coverage = printed.split("coverage per language slot", 1)[1].split("flagged sources", 1)[0]
+    assert coverage.startswith(" (targets: 500 documents and 200,000 characters):")
+    assert re.search(r"hi\s+EVALUATED\s+5,329 documents\s+763,964 characters\n", coverage)
+    assert re.search(r"en\s+INSUFFICIENT\s+1 documents\s+76 characters\s+— verified data is below", coverage)
+    assert re.search(r"ta\s+NOT_EVALUATED\s+0 documents\s+0 characters\s+— no source declared", coverage)
+    report = module.inspect_build(out)
+    assert [slot["status"] for slot in report["coverage"]["languages"]] == [
+        "EVALUATED", "INSUFFICIENT", "NOT_EVALUATED"]
+    # an older build without coverage.json / corpus.json still inspects, without the section
+    (out / "coverage.json").unlink()
+    (out / "corpus.json").unlink()
+    module.main(["--out", str(out)])
+    printed = capsys.readouterr().out
+    assert "coverage per language slot" not in printed and ", built " not in printed
 
 
 def test_inspection_report_refuses_to_run_without_a_build(tmp_path: Path, capsys) -> None:
