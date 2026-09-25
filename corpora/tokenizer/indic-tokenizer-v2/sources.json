@@ -129,15 +129,10 @@
       "script": "Tamil",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Tamil Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (ta.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "ta-wikisource-en-charithram-p022-101-ccbysa",
+        "ta-wikisource-en-charithram-p102-189-ccbysa"
+      ]
     },
     {
       "code": "te",
@@ -145,15 +140,10 @@
       "script": "Telugu",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Telugu Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (te.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa",
+        "te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa"
+      ]
     },
     {
       "code": "kn",
@@ -161,15 +151,10 @@
       "script": "Kannada",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Kannada Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (kn.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "kn-wikisource-ranganna-ch01-15-ccbysa",
+        "kn-wikisource-ranganna-ch16-30-ccbysa"
+      ]
     },
     {
       "code": "ml",
@@ -188,15 +173,10 @@
       "script": "Gurmukhi",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Punjabi Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (pa.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "pa-wikisource-satwant-kaur-p007-164-ccbysa",
+        "pa-wikisource-satwant-kaur-p165-336-ccbysa"
+      ]
     },
     {
       "code": "or",
@@ -1303,7 +1283,191 @@
         "scope": "site",
         "note": "Site-level evidence for as.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.as, which contains the marker); the underlying work is public domain in India (Rajanikanta Bordoloi died in 1940). Page-level review of the edition's own licence tag is still required; see the source notes."
       }
+    },
+    {
+      "id": "pa-wikisource-satwant-kaur-p007-164-ccbysa",
+      "title": "ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) — Bhai Vir Singh — scan pages 7–164",
+      "language": "pa",
+      "script": "Gurmukhi",
+      "source_url": "https://pa.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0&text=%3Cpages%20index%3D%22%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0.pdf%22%20from%3D7%20to%3D164%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Punjabi Wikisource contributors, ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) by Bhai Vir Singh, scan pages 7–164, transcribed from the scan ਸਤਵੰਤ ਕੌਰ.pdf (1973 printing, Khalsa Samachar, Amritsar); via pa.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts, in 1900 and 1927, and Bhai Vir Singh died in 1957; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "First of two Punjabi sources (together the whole novel). Renders <pages index=\"ਸਤਵੰਤ ਕੌਰ.pdf\" from=7 to=164 />. pa.wikisource has no work page for this scan (its index says Transclusion=no and the page ਸਤਵੰਤ ਕੌਰ does not exist), so the range is rendered straight from the index, under that title. The novel starts on scan page 7 with chapter 1 (੧. ਕਾਂਡ।, printed page 1); scan pages 1-4 are blank, 5 is the title page and 6 the imprint. The wiki's search finds ਕਾਂਡ (chapter) on 27 pages, from 7 to 323; pages 7, 10 and 140 were read and open chapters 1, 2 and 16, and page 165, where the second source starts, is the 18th of them. Page 148 quotes a Hindustani (Urdu) history written in Gurmukhi; it is the only such page the search finds, and it stays. Checked on 2026-09-25: all 344 scan pages exist; the wiki's search finds none at level 1 or 2 and 336 at level 4 (validated); the other 8 (1-4 and 341-344) are empty. The templates used by ten pages sampled across both ranges (7, 40, 87, 140, 148, 165, 205, 257, 295, 336) all exist. pa.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (ਪੰਨਾ:ਸਤਵੰਤ ਕੌਰ.pdf/7); the printed page numbers sit in each page's footer and are not rendered. Licence review: the scan is a local file whose description page reads ਲੇਖਕ - ਭਾਈ ਵੀਰ ਸਿੰਘ (1872–1957) and tags it {{PD-India}}. Its title page (scan page 5) dates this printing March 1973 (ਸੰ: ਗ: ਨਾ: ੫੦੪) and names Khalsa Samachar, Amritsar; its 'All rights reserved by Bhai Vir Singh Sahitya Sadan' line states the rights of that time, which have since expired. The novel appeared in two parts, in 1900 and 1927, in the author's lifetime, and Bhai Vir Singh died on 1957-06-10 (Wikidata Q3631340), so the text has been public domain in India since 2018 (life + 60 years). Only the novel is used; the publisher's own 1973 matter is excluded: the title page and imprint (scan pages 5-6) and the advertisements that follow the novel's closing -ਇਤਿ- on page 337 and fill pages 338-340.",
+      "license_evidence": {
+        "url": "https://pa.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for pa.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.pa, which contains the marker); the underlying work is public domain in India (Bhai Vir Singh died in 1957). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "pa-wikisource-satwant-kaur-p165-336-ccbysa",
+      "title": "ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) — Bhai Vir Singh — scan pages 165–336",
+      "language": "pa",
+      "script": "Gurmukhi",
+      "source_url": "https://pa.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0&text=%3Cpages%20index%3D%22%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0.pdf%22%20from%3D165%20to%3D336%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Punjabi Wikisource contributors, ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) by Bhai Vir Singh, scan pages 165–336, transcribed from the scan ਸਤਵੰਤ ਕੌਰ.pdf (1973 printing, Khalsa Samachar, Amritsar); via pa.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts, in 1900 and 1927, and Bhai Vir Singh died in 1957; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second of two Punjabi sources. Renders <pages index=\"ਸਤਵੰਤ ਕੌਰ.pdf\" from=165 to=336 /> (rendered from the index, as the first source is). It continues the first source at scan page 165 and ends on page 336: page 337 holds the novel's last paragraph, its closing -ਇਤਿ- and then the publisher's advertisement, and a range cannot take half a page, so that last paragraph is left out. Checked on 2026-09-25: all 344 scan pages exist; the wiki's search finds none at level 1 or 2 and 336 at level 4 (validated); the other 8 (1-4 and 341-344) are empty. The templates used by ten pages sampled across both ranges (7, 40, 87, 140, 148, 165, 205, 257, 295, 336) all exist. pa.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (ਪੰਨਾ:ਸਤਵੰਤ ਕੌਰ.pdf/7); the printed page numbers sit in each page's footer and are not rendered. Licence review: the scan is a local file whose description page reads ਲੇਖਕ - ਭਾਈ ਵੀਰ ਸਿੰਘ (1872–1957) and tags it {{PD-India}}. Its title page (scan page 5) dates this printing March 1973 (ਸੰ: ਗ: ਨਾ: ੫੦੪) and names Khalsa Samachar, Amritsar; its 'All rights reserved by Bhai Vir Singh Sahitya Sadan' line states the rights of that time, which have since expired. The novel appeared in two parts, in 1900 and 1927, in the author's lifetime, and Bhai Vir Singh died on 1957-06-10 (Wikidata Q3631340), so the text has been public domain in India since 2018 (life + 60 years). Only the novel is used; the publisher's own 1973 matter is excluded: the title page and imprint (scan pages 5-6) and the advertisements that follow the novel's closing -ਇਤਿ- on page 337 and fill pages 338-340.",
+      "license_evidence": {
+        "url": "https://pa.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for pa.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.pa, which contains the marker); the underlying work is public domain in India (Bhai Vir Singh died in 1957). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "kn-wikisource-ranganna-ch01-15-ccbysa",
+      "title": "ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) — M. R. Srinivasamurthy — chapters 1–15",
+      "language": "kn",
+      "script": "Kannada",
+      "source_url": "https://kn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81&text=%3Cpages%20index%3D%22%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81.pdf%22%20from%3D16%20to%3D178%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Kannada Wikisource contributors, ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) by M. R. Srinivasamurthy, chapters 1–15, transcribed from the scan ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf (Satyashodhana Prakatana Mandira, 1951); via kn.wikisource.org, licensed CC BY-SA 4.0. This edition was published in 1951 and M. R. Srinivasamurthy died in 1953; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "First of two Kannada sources (together the whole book). Renders <pages index=\"ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf\" from=16 to=178 /> under the work page ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು, which transcludes the text as include=16-343 after its front matter (scan pages 6-15: title pages, and the contents on 14-15), all excluded here. The contents (scan pages 14-15) list 30 chapters with printed page numbers; printed page = scan page - 15 at both ends of the book (printed 1 = scan 16; chapter 30 opens at the top of scan page 342, printed 327), so chapter 16 (ತಿಪ್ಪೇನಹಳ್ಳಿಯ ಮೇಷ್ಟು, printed 164) begins on scan page 179, where the second source starts. Checked on 2026-09-25: all 349 scan pages exist; the wiki's search finds none at level 1, 2 or 3 and 339 at level 4 (validated); the other 10 are empty pages outside both ranges. The work page transcludes every page of both ranges, and its template list names no missing template. kn.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use Kannada digits (ಪುಟ:ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf/೧೬). The running header ({{rh}}: title and page number) sits in each page's header and is not rendered. Licence review: the work page carries no licence tag and gives the year 1951; the scan's Commons file page tags it {{PD-scan}} and describes it as the 1951 edition (ಸತ್ಯಶೋಧನಾ ಪ್ರಕಟಣಾ ಮಂದಿರ) from the Osmania University Digital Library (Internet Archive dli.osmania.4124). M. R. Srinivasamurthy died in 1953 — on 1953-11-16 by Wikidata (Q15716827), on 16-9-1953 by the wiki's author page; the year agrees — so a book he published in 1951 has been public domain in India since 2014 (life + 60 years).",
+      "license_evidence": {
+        "url": "https://kn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for kn.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.kn, which contains the marker); the underlying work is public domain in India (M. R. Srinivasamurthy died in 1953). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "kn-wikisource-ranganna-ch16-30-ccbysa",
+      "title": "ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) — M. R. Srinivasamurthy — chapters 16–30",
+      "language": "kn",
+      "script": "Kannada",
+      "source_url": "https://kn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81&text=%3Cpages%20index%3D%22%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81.pdf%22%20from%3D179%20to%3D343%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Kannada Wikisource contributors, ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) by M. R. Srinivasamurthy, chapters 16–30, transcribed from the scan ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf (Satyashodhana Prakatana Mandira, 1951); via kn.wikisource.org, licensed CC BY-SA 4.0. This edition was published in 1951 and M. R. Srinivasamurthy died in 1953; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second of two Kannada sources. Renders <pages index=\"ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf\" from=179 to=343 /> under the work page ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು. The contents (scan pages 14-15) list 30 chapters with printed page numbers; printed page = scan page - 15 at both ends of the book (printed 1 = scan 16; chapter 30 opens at the top of scan page 342, printed 327), so chapter 16 (ತಿಪ್ಪೇನಹಳ್ಳಿಯ ಮೇಷ್ಟು, printed 164) begins on scan page 179, where the second source starts. Scan page 343 (printed 328) is the novel's last page and ends with a rule; pages 344-349 are outside the work page's include=16-343 and are excluded. Checked on 2026-09-25: all 349 scan pages exist; the wiki's search finds none at level 1, 2 or 3 and 339 at level 4 (validated); the other 10 are empty pages outside both ranges. The work page transcludes every page of both ranges, and its template list names no missing template. kn.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use Kannada digits (ಪುಟ:ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf/೧೬). The running header ({{rh}}: title and page number) sits in each page's header and is not rendered. Licence review: the work page carries no licence tag and gives the year 1951; the scan's Commons file page tags it {{PD-scan}} and describes it as the 1951 edition (ಸತ್ಯಶೋಧನಾ ಪ್ರಕಟಣಾ ಮಂದಿರ) from the Osmania University Digital Library (Internet Archive dli.osmania.4124). M. R. Srinivasamurthy died in 1953 — on 1953-11-16 by Wikidata (Q15716827), on 16-9-1953 by the wiki's author page; the year agrees — so a book he published in 1951 has been public domain in India since 2014 (life + 60 years).",
+      "license_evidence": {
+        "url": "https://kn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for kn.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.kn, which contains the marker); the underlying work is public domain in India (M. R. Srinivasamurthy died in 1953). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa",
+      "title": "రాజశేఖర చరిత్రము (Rajasekhara Charitramu) — Kandukuri Veeresalingam — chapters 1–7",
+      "language": "te",
+      "script": "Telugu",
+      "source_url": "https://te.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B0%B0%E0%B0%BE%E0%B0%9C%E0%B0%B6%E0%B1%87%E0%B0%96%E0%B0%B0%20%E0%B0%9A%E0%B0%B0%E0%B0%BF%E0%B0%A4%E0%B1%8D%E0%B0%B0%E0%B0%AE%E0%B1%81%20%28%E0%B0%8E%E0%B0%AE%E0%B1%86%E0%B0%B8%E0%B1%8D%E0%B0%95%E0%B1%8B%29&text=%3Cpages%20index%3D%22Rajasekhara%20Charitramu%20-%20Kandukuri%20Veeresalingam.pdf%22%20from%3D15%20to%3D104%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Telugu Wikisource contributors, రాజశేఖర చరిత్రము (Rajasekhara Charitramu) by Kandukuri Veeresalingam, chapters 1–7, transcribed from the scan Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf (1987 reprint); via te.wikisource.org, licensed CC BY-SA 4.0. The novel was published in the nineteenth century and Kandukuri Veeresalingam died in 1919; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "First of two Telugu sources (together the whole novel). Renders <pages index=\"Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf\" from=15 to=104 /> under the work page రాజశేఖర చరిత్రము (ఎమెస్కో), whose 15 chapter subpages transclude whole scan pages: chapter 1 (మొదటి ప్రకరణము) = from=15 to=25, chapter 8 (ఎనిమిదవ ప్రకరణము) = from=105 to=120, chapter 15 (పదునేనవ ప్రకరణము) = from=209 to=217. Chapter 8 starts on page 105 without a section, so this range ends on a chapter boundary. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1 or 2 and 216 of its 220 pages at level 4 (validated). The templates of chapters 1, 8 and 15 all exist. te.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (పుట:Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf/15). Licence review: the work page carries {{PD-old}} and the year 1987 (the reprint's); the scan's Commons file page tags it {{PD-India}} and names the author. Kandukuri Veeresalingam died on 1919-05-27 (Wikidata Q6361647), so the novel has been public domain in India since 1980 (life + 60 years). Scan pages 1-14 are the reprint's front matter, which the work page itself transcludes; whoever wrote it, it is excluded, and so are pages 218-220 after the last chapter.",
+      "license_evidence": {
+        "url": "https://te.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for te.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.te, which contains the marker); the underlying work is public domain in India (Kandukuri Veeresalingam died in 1919). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa",
+      "title": "రాజశేఖర చరిత్రము (Rajasekhara Charitramu) — Kandukuri Veeresalingam — chapters 8–15",
+      "language": "te",
+      "script": "Telugu",
+      "source_url": "https://te.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B0%B0%E0%B0%BE%E0%B0%9C%E0%B0%B6%E0%B1%87%E0%B0%96%E0%B0%B0%20%E0%B0%9A%E0%B0%B0%E0%B0%BF%E0%B0%A4%E0%B1%8D%E0%B0%B0%E0%B0%AE%E0%B1%81%20%28%E0%B0%8E%E0%B0%AE%E0%B1%86%E0%B0%B8%E0%B1%8D%E0%B0%95%E0%B1%8B%29&text=%3Cpages%20index%3D%22Rajasekhara%20Charitramu%20-%20Kandukuri%20Veeresalingam.pdf%22%20from%3D105%20to%3D217%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Telugu Wikisource contributors, రాజశేఖర చరిత్రము (Rajasekhara Charitramu) by Kandukuri Veeresalingam, chapters 8–15, transcribed from the scan Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf (1987 reprint); via te.wikisource.org, licensed CC BY-SA 4.0. The novel was published in the nineteenth century and Kandukuri Veeresalingam died in 1919; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second of two Telugu sources. Renders <pages index=\"Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf\" from=105 to=217 /> under the work page రాజశేఖర చరిత్రము (ఎమెస్కో), whose 15 chapter subpages transclude whole scan pages: chapter 1 (మొదటి ప్రకరణము) = from=15 to=25, chapter 8 (ఎనిమిదవ ప్రకరణము) = from=105 to=120, chapter 15 (పదునేనవ ప్రకరణము) = from=209 to=217. Page 217 ends the novel with a rule; it also begins with a stray U+FEFF, which the cleaner removes and counts. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1 or 2 and 216 of its 220 pages at level 4 (validated). The templates of chapters 1, 8 and 15 all exist. te.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (పుట:Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf/15). Licence review: the work page carries {{PD-old}} and the year 1987 (the reprint's); the scan's Commons file page tags it {{PD-India}} and names the author. Kandukuri Veeresalingam died on 1919-05-27 (Wikidata Q6361647), so the novel has been public domain in India since 1980 (life + 60 years). Scan pages 1-14 are the reprint's front matter, which the work page itself transcludes; whoever wrote it, it is excluded, and so are pages 218-220 after the last chapter.",
+      "license_evidence": {
+        "url": "https://te.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for te.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.te, which contains the marker); the underlying work is public domain in India (Kandukuri Veeresalingam died in 1919). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "ta-wikisource-en-charithram-p022-101-ccbysa",
+      "title": "என் சரித்திரம் (En Charithram) — U. V. Swaminatha Iyer — scan pages 22–101",
+      "language": "ta",
+      "script": "Tamil",
+      "source_url": "https://ta.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D&text=%3Cpages%20index%3D%22%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D%2C%20%E0%AE%89%E0%AE%B5%E0%AF%87%E0%AE%9A%E0%AE%BE%2C%201990.pdf%22%20from%3D22%20to%3D101%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Tamil Wikisource contributors, என் சரித்திரம் (En Charithram) by U. V. Swaminatha Iyer, scan pages 22–101, transcribed from the scan என் சரித்திரம், உவேசா, 1990.pdf (U. V. Swaminatha Iyer Library, Chennai, 1990); via ta.wikisource.org, licensed CC BY-SA 4.0. U. V. Swaminatha Iyer died in 1942 and the autobiography was first published as a book in 1950; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "First of two Tamil sources: together, scan pages 22-189 hold chapters 1-27 of the autobiography in full (of more than 100) and the opening of chapter 28. Renders <pages index=\"என் சரித்திரம், உவேசா, 1990.pdf\" from=22 to=101 /> under the work page என் சரித்திரம். Its chapters begin mid-page, so each chapter subpage transcludes one section: chapter 1 (எங்கள் ஊர்) = from=22 to=29 section 1, chapter 14 = from=96 to=102 section 14, chapter 15 = from=102 to=109 section 15, chapter 27 = from=182 to=189 section 27, and chapter 28 begins on page 189. Rendered as whole pages without section limits, every section of every page appears once, in order. This source therefore ends inside chapter 14, and the second continues it from page 102. Scan page 22 opens the text: the title என் சரித்திரம், the author's name and அத்தியாயம் 1. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1, 2 or 4 and 803 of its 804 pages at level 3 (proofread, not yet validated; the gate accepts level 3). The templates of chapters 1, 14 and 27 all exist. The chapters end with {{Reflist}}; the renderer's cleaner drops footnote markers and footnote lists, so no footnote text reaches the corpus. ta.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (பக்கம்:என் சரித்திரம், உவேசா, 1990.pdf/22). Licence review: the work page carries {{PD-India/ta}}; the scan's Commons file page tags it {{PD-India}} and describes it as the U. V. Swaminatha Iyer Library's 1990 critical edition (செம்பதிப்பு) of the 1950 book, from the Tamil Nadu government's Tamil Digital Library (TVA_BOK_0024109); its 'permission' line (a publication in 1887) is wrong and is not relied on. U. V. Swaminatha Iyer died on 1942-04-28 (Wikidata Q7863546): counted from his death (life + 60 years) or, taking the 1950 book as the first publication, 60 years from 1950, the text is public domain in India either way. Scan pages 1-21 are excluded: title pages, the 1990 publisher's note (பதிப்பாளர் குறிப்பு), the preface (முகவுரை), a biographical summary (ஐயரவர்களின் வாழ்க்கை வரலாற்றுச் சுருக்கம்) and the contents (18-21), none of it established as the author's.",
+      "license_evidence": {
+        "url": "https://ta.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ta.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ta, which contains the marker); the underlying work is public domain in India (U. V. Swaminatha Iyer died in 1942). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "ta-wikisource-en-charithram-p102-189-ccbysa",
+      "title": "என் சரித்திரம் (En Charithram) — U. V. Swaminatha Iyer — scan pages 102–189",
+      "language": "ta",
+      "script": "Tamil",
+      "source_url": "https://ta.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D&text=%3Cpages%20index%3D%22%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D%2C%20%E0%AE%89%E0%AE%B5%E0%AF%87%E0%AE%9A%E0%AE%BE%2C%201990.pdf%22%20from%3D102%20to%3D189%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Tamil Wikisource contributors, என் சரித்திரம் (En Charithram) by U. V. Swaminatha Iyer, scan pages 102–189, transcribed from the scan என் சரித்திரம், உவேசா, 1990.pdf (U. V. Swaminatha Iyer Library, Chennai, 1990); via ta.wikisource.org, licensed CC BY-SA 4.0. U. V. Swaminatha Iyer died in 1942 and the autobiography was first published as a book in 1950; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Second of two Tamil sources. Renders <pages index=\"என் சரித்திரம், உவேசா, 1990.pdf\" from=102 to=189 /> under the work page என் சரித்திரம். Its chapters begin mid-page, so each chapter subpage transcludes one section: chapter 1 (எங்கள் ஊர்) = from=22 to=29 section 1, chapter 14 = from=96 to=102 section 14, chapter 15 = from=102 to=109 section 15, chapter 27 = from=182 to=189 section 27, and chapter 28 begins on page 189. Rendered as whole pages without section limits, every section of every page appears once, in order. This source therefore starts with the end of chapter 14 and ends with the opening lines of chapter 28 on page 189. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1, 2 or 4 and 803 of its 804 pages at level 3 (proofread, not yet validated; the gate accepts level 3). The templates of chapters 1, 14 and 27 all exist. The chapters end with {{Reflist}}; the renderer's cleaner drops footnote markers and footnote lists, so no footnote text reaches the corpus. ta.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (பக்கம்:என் சரித்திரம், உவேசா, 1990.pdf/22). Licence review: the work page carries {{PD-India/ta}}; the scan's Commons file page tags it {{PD-India}} and describes it as the U. V. Swaminatha Iyer Library's 1990 critical edition (செம்பதிப்பு) of the 1950 book, from the Tamil Nadu government's Tamil Digital Library (TVA_BOK_0024109); its 'permission' line (a publication in 1887) is wrong and is not relied on. U. V. Swaminatha Iyer died on 1942-04-28 (Wikidata Q7863546): counted from his death (life + 60 years) or, taking the 1950 book as the first publication, 60 years from 1950, the text is public domain in India either way. Scan pages 1-21 are excluded: title pages, the 1990 publisher's note (பதிப்பாளர் குறிப்பு), the preface (முகவுரை), a biographical summary (ஐயரவர்களின் வாழ்க்கை வரலாற்றுச் சுருக்கம்) and the contents (18-21), none of it established as the author's.",
+      "license_evidence": {
+        "url": "https://ta.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ta.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ta, which contains the marker); the underlying work is public domain in India (U. V. Swaminatha Iyer died in 1942). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
     }
   ],
-  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets. 2026-09-24 (P004B): the first live fetch showed that neither Wikisource root declared in Stage A was the work: hi गोदान?action=raw is a localized #REDIRECT to गो-दान, and bn গীতাঞ্জলি is a Wikidata/SPARQL infocard. Both works are ProofreadPage scanned-book transcriptions whose chapter pages contain only a <pages/> tag, so ?action=raw can never return their text. They are now declared as mediawiki-parse sources rendered by api.php?action=parse: the 36 Godaan chapters (गो-दान/१…/३६, scan गो-दान.djvu; the legacy pages गो-दान/ भाग 16 and भाग 17 render a different scan, गोदान.pdf, duplicate this text and are deliberately not declared) and one Gitanjali source rendering scan pages 13–190 (poems 1–157). The replaced ids hi-wikisource-godan-ccbysa and bn-wikisource-gitanjali-ccbysa were never verified or pinned. 2026-09-24 (P004B, after EXP-009): added en-gutenberg-sadhana-pd (Tagore, Sadhana, Gutenberg ebook 6842) and bn-wikisource-devdas-ccbysa (Sarat Chandra Chattopadhyay, দেবদাস, scan pages 5–110) so that the en and bn slots can reach the 200,000-character target; neither has been fetched, verified or pinned yet. 2026-09-24 (P004B, EXP-010): all 40 sources verified; en, hi and bn EVALUATED; the 38 sources fetched before were byte-identical (37 as in EXP-009, Alice as in EXP-008). The inspection flagged literal markup in Godaan chapters 3, 4, 6, 7 and 9: 20 mistyped {{gap}} templates on 19 scan pages (पृष्ठ:गो-दान.djvu/२२, २५, ३५, ३६, ४०, ४१ (twice, incl. <gap>), ४३, ४४, ४५, ४६, ६१, ६३, ६४, ६७, ७०, ८३, ९०, ९५, ११६), located with the wiki's source search; the mediawiki-parse cleaner now removes that residue, so those five chapters' hashes change on the next fetch. One leftover piece of wiki markup ({{, }}, [[ or ]]) in Gitanjali was not yet located. 2026-09-24 (P004B, EXP-011): exactly Godaan chapters 3, 4, 6, 7 and 9 changed, the other 35 sources were byte-identical. The inspection's where-to-look section then located 8 red links to misspelt templates that do not exist (साँचा:GaP on पृष्ठ:गो-दान.djvu/२८; साँचा:GP twice on /२२५; साँचा:Gpa on /२२७ and /२२८; साँचा:GAP three times on /२६४ — chapters 3, 21, 24) and Gitanjali's stray '}}' after the date of poem 118 on পাতা:গীতাঞ্জলি - রবীন্দ্রনাথ ঠাকুর.djvu/১৪৮. The cleaner now removes both; the wikis' template lists (generator=templates for the 36 chapters, action=parse&prop=templates for Gitanjali and Devdas) show no other missing template. A stray Latin 'l' typed on पृष्ठ:गो-दान.djvu/८९ is a transcription typo and is kept. Nothing pinned. 2026-09-24 (P004B, EXP-012): all 40 sources verified. Exactly Godaan chapters 3, 21 and 24 and Gitanjali changed (chapter 3 lost exactly the 9 characters of 'साँचा:GaP', Gitanjali the 2 of '}}'); the other 36 were byte-identical to EXP-011. The inspection flagged nothing, and its repair counts match every located residue (20 mistyped {{gap}}, 8 links to missing templates, 1 stray '}}'). Nothing pinned; pinning follows (EXP-013). 2026-09-24 (P004B, EXP-013): pinned. The operator's --pin run (retrieved 2026-09-24T17:04-17:05Z) verified all 40 sources and wrote sha256, verified and retrieved_at for each; nothing else in this file changed. Every hash begins with the prefix EXP-012's inspection reported, and Alice's equals the hash of EXP-008/010/011. The pinned file was pushed from the operator's machine and carried onto this branch with git, never retyped. Re-verification (EXP-014): exit code 0, as reported by the operator, so no pinned source came back changed. Every later fetch compares against these pins. 2026-09-24 (P004B, first group of new languages): declared four more slots, each from a scanned book that is public domain in India — Gujarati: Saraswatichandra part 1, chapters 1-12 (Govardhanram Tripathi, died 1907; two range sources); Malayalam: Ramarajabahadoor, chapters 1-18 (C. V. Raman Pillai, died 1922; two range sources); Odia: Chha Mana Atha Guntha, the whole novel (Fakir Mohan Senapati, died 1918); Assamese: Manomati, parts 1 and 2 (Rajanikanta Bordoloi, died 1940). Before declaring, each was checked on its wiki for proofreading level, chapter boundaries, missing templates and the licence tags of the work and its scan (details in each source's notes). None is fetched or pinned yet. Three of these wikis render page anchors that do not show the proofreading level the way hi and bn do, which exposed a gap: a render without visible levels used to pass the proofreading gate unchecked. The build now asks the wiki's API for any level the render hides and refuses the source if it cannot be confirmed (runbook §3.1). 2026-09-24 (P004B, EXP-015): the operator's fetch verified all 47 sources and exited 0; every hash prefix of the 40 pinned sources equals its pin. The seven new sources: gu 152,483 + 145,145 = 297,628 characters; ml 288,952 + 110,216 = 399,168; or 203,451; as 114,802 + 126,223 = 241,025, all above the 200,000 target. Scan pages: gu 168 and or 159, all validated (their levels confirmed through the wiki's API, since those renders hide them); ml 144 + 57 proofread and 3 validated (read from the render); as 262 validated. Hash prefixes: gu c3fe2b7aa706, 91e688351017; ml beb122a5db78, db88c28a02b9; or 6a0339ff3ea5; as 9876b5c9940e, eb4b86b65401. The inspection flagged two things. or's scan page ୧୩୩ closes a verse block with <poem/> instead of </poem>, so MediaWiki printed the opening <poem> as text; the cleaner now removes such literal tags, which changes the Odia text by exactly 7 characters (the tag and one space). And ml has a 4-digit number ('1033', a Malayalam-era year in the text), which is genuine. Information only: Sanskrit verse in Devanagari inside the Gujarati novel, '--o--' chapter ornaments in the Odia text, the author's English gloss '(Non-intervention policy)' in Manomati. Manomati part 1 ends its sentences with U+09F7 (typed as the danda), part 2 with U+0964; the document splitter now also splits at U+09F7 and cuts an over-long sentence between words, never mid-word (document boundaries only: no source text or hash changes). The new sources are not pinned yet: the next fetch (EXP-016) must first show the fixed Odia text. 2026-09-25 (P004B, EXP-016): the operator's fetch verified all 47 sources and exited 0. The 40 pinned sources came back unchanged (every hash prefix equals its pin), and so did six of the seven new ones (every prefix equals EXP-015's). Only the Odia source changed, exactly as expected: 7 characters shorter (203,451 -> 203,444; hash prefix 6a0339ff3ea5 -> 83850852f8f4), its repairs line reads 'literal <poem> tag -> removed (1)', and it is no longer flagged. The only flag left is ml's genuine '1033'. The new document splitting (at U+09F7, and between words) moved document boundaries only (identical documents in as: 44 -> 46); no hash changed. Slot totals: gu 297,628, ml 399,168, or 203,444, as 241,025 characters. The seven new sources are pinned by the next run (EXP-017, --pin); their hashes are expected to begin with the EXP-016 prefixes: gu c3fe2b7aa706, 91e688351017; ml beb122a5db78, db88c28a02b9; or 83850852f8f4; as 9876b5c9940e, eb4b86b65401. 2026-09-25 (P004B, EXP-017): the operator's --pin run exited 0 and wrote the hashes of the seven new sources (retrieved 2026-09-24T18:59:41Z to 19:00:14Z). Each begins with the prefix EXP-016's inspection reported (gu c3fe2b7aa706, 91e688351017; ml beb122a5db78, db88c28a02b9; or 83850852f8f4; as 9876b5c9940e, eb4b86b65401). The 40 sources pinned before came back identical: their hashes are unchanged and only their retrieved_at moved, to this run's time. Nothing else in this file changed. The pinned file was pushed from the operator's machine (commit 283eb6f) and carried onto this branch with git, never retyped. All 47 declared sources are now pinned."
+  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets. 2026-09-24 (P004B): the first live fetch showed that neither Wikisource root declared in Stage A was the work: hi गोदान?action=raw is a localized #REDIRECT to गो-दान, and bn গীতাঞ্জলি is a Wikidata/SPARQL infocard. Both works are ProofreadPage scanned-book transcriptions whose chapter pages contain only a <pages/> tag, so ?action=raw can never return their text. They are now declared as mediawiki-parse sources rendered by api.php?action=parse: the 36 Godaan chapters (गो-दान/१…/३६, scan गो-दान.djvu; the legacy pages गो-दान/ भाग 16 and भाग 17 render a different scan, गोदान.pdf, duplicate this text and are deliberately not declared) and one Gitanjali source rendering scan pages 13–190 (poems 1–157). The replaced ids hi-wikisource-godan-ccbysa and bn-wikisource-gitanjali-ccbysa were never verified or pinned. 2026-09-24 (P004B, after EXP-009): added en-gutenberg-sadhana-pd (Tagore, Sadhana, Gutenberg ebook 6842) and bn-wikisource-devdas-ccbysa (Sarat Chandra Chattopadhyay, দেবদাস, scan pages 5–110) so that the en and bn slots can reach the 200,000-character target; neither has been fetched, verified or pinned yet. 2026-09-24 (P004B, EXP-010): all 40 sources verified; en, hi and bn EVALUATED; the 38 sources fetched before were byte-identical (37 as in EXP-009, Alice as in EXP-008). The inspection flagged literal markup in Godaan chapters 3, 4, 6, 7 and 9: 20 mistyped {{gap}} templates on 19 scan pages (पृष्ठ:गो-दान.djvu/२२, २५, ३५, ३६, ४०, ४१ (twice, incl. <gap>), ४३, ४४, ४५, ४६, ६१, ६३, ६४, ६७, ७०, ८३, ९०, ९५, ११६), located with the wiki's source search; the mediawiki-parse cleaner now removes that residue, so those five chapters' hashes change on the next fetch. One leftover piece of wiki markup ({{, }}, [[ or ]]) in Gitanjali was not yet located. 2026-09-24 (P004B, EXP-011): exactly Godaan chapters 3, 4, 6, 7 and 9 changed, the other 35 sources were byte-identical. The inspection's where-to-look section then located 8 red links to misspelt templates that do not exist (साँचा:GaP on पृष्ठ:गो-दान.djvu/२८; साँचा:GP twice on /२२५; साँचा:Gpa on /२२७ and /२२८; साँचा:GAP three times on /२६४ — chapters 3, 21, 24) and Gitanjali's stray '}}' after the date of poem 118 on পাতা:গীতাঞ্জলি - রবীন্দ্রনাথ ঠাকুর.djvu/১৪৮. The cleaner now removes both; the wikis' template lists (generator=templates for the 36 chapters, action=parse&prop=templates for Gitanjali and Devdas) show no other missing template. A stray Latin 'l' typed on पृष्ठ:गो-दान.djvu/८९ is a transcription typo and is kept. Nothing pinned. 2026-09-24 (P004B, EXP-012): all 40 sources verified. Exactly Godaan chapters 3, 21 and 24 and Gitanjali changed (chapter 3 lost exactly the 9 characters of 'साँचा:GaP', Gitanjali the 2 of '}}'); the other 36 were byte-identical to EXP-011. The inspection flagged nothing, and its repair counts match every located residue (20 mistyped {{gap}}, 8 links to missing templates, 1 stray '}}'). Nothing pinned; pinning follows (EXP-013). 2026-09-24 (P004B, EXP-013): pinned. The operator's --pin run (retrieved 2026-09-24T17:04-17:05Z) verified all 40 sources and wrote sha256, verified and retrieved_at for each; nothing else in this file changed. Every hash begins with the prefix EXP-012's inspection reported, and Alice's equals the hash of EXP-008/010/011. The pinned file was pushed from the operator's machine and carried onto this branch with git, never retyped. Re-verification (EXP-014): exit code 0, as reported by the operator, so no pinned source came back changed. Every later fetch compares against these pins. 2026-09-24 (P004B, first group of new languages): declared four more slots, each from a scanned book that is public domain in India — Gujarati: Saraswatichandra part 1, chapters 1-12 (Govardhanram Tripathi, died 1907; two range sources); Malayalam: Ramarajabahadoor, chapters 1-18 (C. V. Raman Pillai, died 1922; two range sources); Odia: Chha Mana Atha Guntha, the whole novel (Fakir Mohan Senapati, died 1918); Assamese: Manomati, parts 1 and 2 (Rajanikanta Bordoloi, died 1940). Before declaring, each was checked on its wiki for proofreading level, chapter boundaries, missing templates and the licence tags of the work and its scan (details in each source's notes). None is fetched or pinned yet. Three of these wikis render page anchors that do not show the proofreading level the way hi and bn do, which exposed a gap: a render without visible levels used to pass the proofreading gate unchecked. The build now asks the wiki's API for any level the render hides and refuses the source if it cannot be confirmed (runbook §3.1). 2026-09-24 (P004B, EXP-015): the operator's fetch verified all 47 sources and exited 0; every hash prefix of the 40 pinned sources equals its pin. The seven new sources: gu 152,483 + 145,145 = 297,628 characters; ml 288,952 + 110,216 = 399,168; or 203,451; as 114,802 + 126,223 = 241,025, all above the 200,000 target. Scan pages: gu 168 and or 159, all validated (their levels confirmed through the wiki's API, since those renders hide them); ml 144 + 57 proofread and 3 validated (read from the render); as 262 validated. Hash prefixes: gu c3fe2b7aa706, 91e688351017; ml beb122a5db78, db88c28a02b9; or 6a0339ff3ea5; as 9876b5c9940e, eb4b86b65401. The inspection flagged two things. or's scan page ୧୩୩ closes a verse block with <poem/> instead of </poem>, so MediaWiki printed the opening <poem> as text; the cleaner now removes such literal tags, which changes the Odia text by exactly 7 characters (the tag and one space). And ml has a 4-digit number ('1033', a Malayalam-era year in the text), which is genuine. Information only: Sanskrit verse in Devanagari inside the Gujarati novel, '--o--' chapter ornaments in the Odia text, the author's English gloss '(Non-intervention policy)' in Manomati. Manomati part 1 ends its sentences with U+09F7 (typed as the danda), part 2 with U+0964; the document splitter now also splits at U+09F7 and cuts an over-long sentence between words, never mid-word (document boundaries only: no source text or hash changes). The new sources are not pinned yet: the next fetch (EXP-016) must first show the fixed Odia text. 2026-09-25 (P004B, EXP-016): the operator's fetch verified all 47 sources and exited 0. The 40 pinned sources came back unchanged (every hash prefix equals its pin), and so did six of the seven new ones (every prefix equals EXP-015's). Only the Odia source changed, exactly as expected: 7 characters shorter (203,451 -> 203,444; hash prefix 6a0339ff3ea5 -> 83850852f8f4), its repairs line reads 'literal <poem> tag -> removed (1)', and it is no longer flagged. The only flag left is ml's genuine '1033'. The new document splitting (at U+09F7, and between words) moved document boundaries only (identical documents in as: 44 -> 46); no hash changed. Slot totals: gu 297,628, ml 399,168, or 203,444, as 241,025 characters. The seven new sources are pinned by the next run (EXP-017, --pin); their hashes are expected to begin with the EXP-016 prefixes: gu c3fe2b7aa706, 91e688351017; ml beb122a5db78, db88c28a02b9; or 83850852f8f4; as 9876b5c9940e, eb4b86b65401. 2026-09-25 (P004B, EXP-017): the operator's --pin run exited 0 and wrote the hashes of the seven new sources (retrieved 2026-09-24T18:59:41Z to 19:00:14Z). Each begins with the prefix EXP-016's inspection reported (gu c3fe2b7aa706, 91e688351017; ml beb122a5db78, db88c28a02b9; or 83850852f8f4; as 9876b5c9940e, eb4b86b65401). The 40 sources pinned before came back identical: their hashes are unchanged and only their retrieved_at moved, to this run's time. Nothing else in this file changed. The pinned file was pushed from the operator's machine (commit 283eb6f) and carried onto this branch with git, never retyped. All 47 declared sources are now pinned. Declared on 2026-09-25, after EXP-017, for the second group of new languages: eight range sources from four public-domain works on CC BY-SA 4.0 wikis, all unverified and without a hash until a run fetches them — pa ਸਤਵੰਤ ਕੌਰ (Bhai Vir Singh, died 1957), scan pages 7-164 and 165-336; kn ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (M. R. Srinivasamurthy, died 1953), chapters 1-15 (scan pages 16-178) and 16-30 (179-343); te రాజశేఖర చరిత్రము (Kandukuri Veeresalingam, died 1919), chapters 1-7 (15-104) and 8-15 (105-217); ta என் சரித்திரம் (U. V. Swaminatha Iyer, died 1942), scan pages 22-101 and 102-189. Each source's notes record the checks and the licence review. The Template namespaces of the four wikis are in TEMPLATE_NAMESPACE."
 }

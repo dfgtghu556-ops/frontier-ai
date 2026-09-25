@@ -44,8 +44,9 @@ all 47 verified, only the Odia text changed (by exactly the 7 characters of the 
 space, to 203,444), and nothing is flagged except a genuine year in the Malayalam novel.
 **Pinned (EXP-017): the seven new sources**, each beginning with the prefix EXP-016 reported;
 the 40 pinned before came back identical (hashes unchanged; only their `retrieved_at` moved,
-to this run's time), so all 47 sources are now pinned. The other 7 slots have no sources yet
-(§9).
+to this run's time), so all 47 sources are now pinned. **Second group of new languages:**
+Punjabi, Kannada, Telugu and Tamil, 8 range sources from four public-domain works (§2.7),
+declared on 2026-09-25 and not fetched yet. hi-en, mr and ur still have no source (§9).
 Run the steps where the network works, and record what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
@@ -517,6 +518,57 @@ kn 60, pa 198 for the next groups). All four works are novels that are public do
   earlier pins came back identical and only their `retrieved_at` moved. The pinned file was
   pushed from the operator's machine (`283eb6f`) and carried here with git, never retyped.
 
+### 2.7 Second group of new languages — Punjabi, Kannada, Telugu, Tamil (kind `mediawiki-parse`)
+
+Found on 2026-09-25 from the same survey (§2.6) and each wiki's own search. All four works
+are public domain in India (life + 60 years) and rendered as ranges; every source's `notes`
+has the details.
+
+| Slot | Work (author, died) | Sources: scan pages | Estimate |
+|---|---|---|---|
+| pa | *ਸਤਵੰਤ ਕੌਰ* (Bhai Vir Singh, 1957) | `…-p007-164`: 7–164 · `…-p165-336`: 165–336 | ≈300–360k chars |
+| kn | *ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು* (M. R. Srinivasamurthy, 1953) | `…-ch01-15`: 16–178 · `…-ch16-30`: 179–343 | ≈330–390k |
+| te | *రాజశేఖర చరిత్రము* (Kandukuri Veeresalingam, 1919) | `…-ch01-07`: 15–104 · `…-ch08-15`: 105–217 | ≈220–260k — the tightest |
+| ta | *என் சரித்திரம்* (U. V. Swaminatha Iyer, 1942), chapters 1–27 | `…-p022-101`: 22–101 · `…-p102-189`: 102–189 | ≈250–300k |
+
+The estimates come from sampled page sizes (pa ≈2.9 KB of wikitext per page, kn ≈3.5,
+te ≈3.4, ta ≈4.8) at about 2.7 bytes per character; ml showed such estimates can be off by
+a fifth or more.
+
+* **Checked before declaring** (live, 2026-09-25): every page of each scan exists; the wikis'
+  own quality categories find no scan page at level 1 or 2 in any of the four (pa 336
+  validated and 8 empty, kn 339 validated and 10 empty, te 216 of 220 validated, ta 803 of
+  804 proofread at level 3, which the gate accepts); missing templates via
+  `generator=templates` — none (kn for the whole book through its work page, pa on ten
+  sampled pages, te chapters 1, 8 and 15, ta chapters 1, 14 and 27). The four Template
+  namespaces are in `TEMPLATE_NAMESPACE` (and mr's, for later). All four wikis print
+  `data-page-name` and `data-page-quality` in their page anchors, as hi, bn and as do, so
+  the build reads the levels from the render: no `level_lookup` is expected.
+  Search pitfall met on the way: CirrusSearch's `prefix:` takes the rest of the query, so it
+  must come last (`incategory:X prefix:Page:…/`); put first, it silently finds nothing.
+* **Licence review** (§4, human): pa scan (local file) `{{PD-India}}`, a 1973 printing of a
+  novel published in 1900 and 1927, in the author's lifetime; the publisher's 1973 title page,
+  imprint and advertisements (after `-ਇਤਿ-` on page 337, and 338–340) are excluded, so the
+  second range stops at 336 and the novel's last paragraph is left out. kn scan (Commons)
+  `{{PD-scan}}`, the 1951 edition, published in the author's lifetime; no tag on the work
+  page. te work page `{{PD-old}}`, scan `{{PD-India}}`; the 1987 reprint's front matter
+  (1–14) is excluded. ta work page `{{PD-India/ta}}`, scan `{{PD-India}}` (its "published
+  1887" permission line is wrong and not relied on); the 1990 edition's front matter (1–21)
+  is excluded, and footnotes never reach the text (the cleaner drops reference markup).
+  Death dates (Wikidata): 1957-06-10, 1953-11-16 (the kn author page says 16-9-1953; the year
+  agrees), 1919-05-27, 1942-04-28. Tamil Wikisource's many *nationalised* books (rights
+  bought by the state) were passed over: that is a policy, not a licence; *En Charithram* is
+  public domain by term.
+* **Range sizes:** te and ta stay at or below 113 pages per render; pa and kn use renders of
+  158–172 pages (below Gitanjali's 178) because their pages are small (≈3 KB of wikitext).
+* **Where ranges meet:** te and kn split where a chapter starts on a new page; pa at page
+  165, which carries its 18th chapter heading (perhaps mid-page); ta's chapters begin
+  mid-page (sections), so its two ranges meet inside chapter 14. Every page is in exactly one
+  range: nothing is lost or repeated.
+* **First fetch (EXP-018, JOB-002):** not run yet. Expect the 47 pinned sources unchanged
+  and the 8 new ones verified; te is the slot most likely to fall short, and if any slot is
+  `INSUFFICIENT` the fix is a second work, never padding.
+
 ---
 
 ## 3. Wikisource-specific safety
@@ -902,15 +954,26 @@ unverified and its slot does not become `EVALUATED`.
 - [ ] `sha256` pinned only after all of the above
 - [ ] After the pin, `git diff` shows `sha256`, `verified` and `retrieved_at` for these 7 and only `retrieved_at` for the 40 pinned before; each new hash begins with its EXP-016 prefix (§2.6) — EXP-017 showed exactly this
 
+### Second group of new languages — pa, kn, te, ta (§2.7)
+
+- [ ] Exit 0 and no `REFUSED:` line: the 47 pinned sources came back unchanged
+- [ ] All 8 new sources `verified`; none `unproofread_refused`
+- [ ] Levels read from the render (no `level_lookup` for these 8): pa, kn and te level 4 only; ta level 3 only
+- [ ] pa starts with `੧. ਕਾਂਡ।` and has no advertisement text (no `ਮੈਨੇਜਰ`, no price list); ta starts with `என் சரித்திரம்` and `அத்தியாயம் 1`; kn shows no running headers (the book title with a page number); no CSS anywhere
+- [ ] Coverage section: pa, kn, te and ta each `EVALUATED` (at least 500 documents and 200,000 characters); an `INSUFFICIENT` slot needs a second work, with the reason recorded — never padding
+- [ ] Anything flagged is explained before any lock
+- [ ] `sha256` pinned only after all of the above, in a later lock job
+
 ---
 
 ## 9. Missing languages
 
-Since EXP-010: `en`, `hi` and `bn` `EVALUATED` (pinned in EXP-013). Declared but not yet
-fetched: `gu`, `ml`, `or`, `as` (§2.6). Still `NOT_EVALUATED`, with no source: hi-en, mr,
-ta, te, kn, pa, ur. The next groups come from the same survey (mr, ta, te, kn, pa all have
-many fully proofread scans); ur.wikisource exists but is small (12 active editors) and has
-not been surveyed yet.
+Since EXP-010: `en`, `hi` and `bn` `EVALUATED` (pinned in EXP-013). `gu`, `ml`, `or`, `as`
+pinned in EXP-017 (§2.6); the next inspection report's coverage section confirms their
+document counts as well as their characters. Declared but not yet fetched: `pa`, `kn`, `te`,
+`ta` (§2.7). Still `NOT_EVALUATED`, with no source: hi-en, mr, ur. mr.wikisource has many
+fully proofread scans, but most are modern works still in copyright; ur.wikisource exists but
+is small (12 active editors) and has not been surveyed yet.
 
 * **Nothing is substituted.** No synthetic text, no machine translation, no "close enough"
   corpus, no filling a slot from a related language. A language we cannot source legally

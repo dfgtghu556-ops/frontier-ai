@@ -133,6 +133,12 @@ TEMPLATE_NAMESPACE = {
     "ml.wikisource.org": "ഫലകം",
     "or.wikisource.org": "ଛାଞ୍ଚ",
     "as.wikisource.org": "সাঁচ",
+    # checked 2026-09-25 with meta=siteinfo&siprop=namespaces (namespace 10)
+    "pa.wikisource.org": "ਫਰਮਾ",
+    "kn.wikisource.org": "ಟೆಂಪ್ಲೇಟು",
+    "te.wikisource.org": "మూస",
+    "ta.wikisource.org": "வார்ப்புரு",
+    "mr.wikisource.org": "साचा",  # no source declared yet
 }
 _TEMPLATE_PREFIXES = frozenset({"Template", *TEMPLATE_NAMESPACE.values()})
 

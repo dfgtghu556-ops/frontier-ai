@@ -283,6 +283,27 @@ def test_red_links_to_missing_templates_are_removed_and_named() -> None:
     assert other.artifacts_removed[MISSING_TEMPLATE.format("Template:Gap indent")] == 1
 
 
+# Namespace 10 as each wiki of the second group spells it (meta=siteinfo&siprop=namespaces,
+# 2026-09-25), with a line of the work declared from it (the renders of 2026-09-25).
+SECOND_GROUP = [
+    ("pa.wikisource.org", "ਫਰਮਾ", "ਹੇ ਅਕਾਲ ਪੁਰਖ! ਮੈਂ ਕੀ ਕਰਾਂ? ਮੈਂ ਐਡੇ ਕਸ਼ਟਾਂ ਦੇ ਮੂੰਹ ਕਿਉਂ ਆ ਗਈ?"),
+    ("kn.wikisource.org", "ಟೆಂಪ್ಲೇಟು", "ರಂಗಣ್ಣ ಬೆಂಗಳೂರನ್ನು ತಲುಪಿದ್ದಾಯಿತು; ಮನೆಯನ್ನು ಸೇರಿದ್ದಾಯಿತು."),
+    ("te.wikisource.org", "మూస", "రాజశేఖరుఁడుగారు కాలముచేసి యిప్పటికి రెండు వందల సంవత్సరములైనను."),
+    ("ta.wikisource.org", "வார்ப்புரு", "அரசருடைய பிரயாணத்தில் ஜோதிஷர் உடன் வரவில்லை."),
+]
+
+
+@pytest.mark.parametrize(("host", "namespace", "prose"), SECOND_GROUP,
+                         ids=[host for host, _namespace, _prose in SECOND_GROUP])
+def test_red_links_to_missing_templates_are_removed_on_the_second_group_of_wikis(
+    host: str, namespace: str, prose: str
+) -> None:
+    assert TEMPLATE_NAMESPACE[host] == namespace
+    page = render_html(f"<p>{_red_link(namespace + ':Gpa')}{prose}</p>")
+    assert page.text == prose
+    assert page.artifacts_removed[MISSING_TEMPLATE.format(namespace + ":Gpa")] == 1
+
+
 def test_other_red_links_and_existing_template_links_keep_their_text() -> None:
     page = render_html(
         f"<p>{_red_link('प्रेमचंद')} ने लिखा।</p>"  # a missing article
