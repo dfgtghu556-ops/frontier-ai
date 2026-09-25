@@ -789,6 +789,8 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-018 | P004B: fetch all 55 tokenizer-corpus sources (indic-tokenizer/v2) | complete | 2026-09-25 | build exit 0; 55/55 verified; 11 of 14 language slots EVALUATED (mr, ur, hi-en NOT_EVALUATED) |
 | EXP-019 | P004B: lock all 55 tokenizer-corpus sources (indic-tokenizer/v2) | complete | 2026-09-25 | 55/55 pinned; the 47 earlier hashes unchanged, 8 new |
 | EXP-020 | P004B: research Marathi and Urdu source candidates | complete | 2026-09-25 | No source declared; candidate scans failed the proofread and/or licence-evidence gates |
+| EXP-021 | P004B: first Marathi and Urdu fetch; inspect transcription residues | complete | 2026-09-26 | 59/59 verified; prior 55 pins unchanged; new Urdu sources flagged, so none locked |
+| EXP-022 | P004B: repair and re-fetch Marathi and Urdu sources | complete | 2026-09-26 | 59/59 verified; prior 55 pins unchanged; all four new sources clean, mr 256,165 and ur 208,621 characters |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1085,3 +1087,49 @@ are claimed in this entry.
 - No source was declared, fetched, verified, or pinned. Both language slots remain honestly `NOT_EVALUATED`.
 
 **Next action:** Find a Marathi or Urdu scan with explicit public-domain evidence and enough level-3/4 pages; do not declare a source until the complete licence and page-quality review succeeds.
+
+### EXP-021 — P004B: first fetch of Marathi and Urdu scan ranges
+
+- **Status:** complete
+- **Date:** 2026-09-26
+- **Objective:** Confirm the four declared scan ranges fetch, pass live rights verification and reach the corpus targets.
+- **Baseline:** EXP-020 (candidate survey; no sources declared)
+- **Command:** `python scripts/build_tokenizer_corpus.py --fetch --exp-id EXP-021 --out data/tokenizer/indic-tokenizer-v2`
+- **Code revision:** `ce5739d`
+
+**Results:**
+- Build exit 0: 59/59 sources verified; all 55 existing pinned sources were unchanged.
+- Marathi *स्फुट गोष्टी भाग तिसरा*: 1,667 documents / 256,165 corpus characters; source text 257,901 characters.
+- Urdu *Ram Charcha*: 1,378 documents / 208,644 corpus characters; source text 210,517 characters.
+- Both slots met the targets, but the initial inspection identified Urdu markup/text residues; no new source was pinned.
+
+**Observations:** The inspection report flagged a malformed `xx-larger` heading and an unmatched `[[` in Urdu, `1004` embedded in page 62 despite its absence from the scan image, and U+200E direction marks. The saved EXP-021 report preserves the pre-repair evidence.
+
+**Conclusion:** The live verification and coverage gates passed; human review of the Urdu text flags did not, so locking was deferred.
+
+**Next action:** Repair only scan-confirmed artifacts with tests, then re-fetch and inspect all sources before any lock.
+**Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-021-inspection.txt`; fetch output under `data/tokenizer/indic-tokenizer-v2`.
+
+### EXP-022 — P004B: repair and re-fetch Marathi and Urdu scan ranges
+
+- **Status:** complete
+- **Date:** 2026-09-26
+- **Objective:** Verify narrow, evidence-based Urdu cleanup and confirm Marathi/Urdu coverage without changing any earlier locked source.
+- **Baseline:** EXP-021
+- **Command:** `python scripts/build_tokenizer_corpus.py --fetch --exp-id EXP-022 --out data/tokenizer/indic-tokenizer-v2`
+- **Code revision:** `edd2303`
+
+**Results:**
+- Build exit 0: 59/59 verified; all 55 previously pinned sources were byte-identical.
+- Inspection exit 1 only because existing pinned ml, kn and ta sources retain documented digit flags; all four new sources are unflagged.
+- Urdu repairs: malformed page-46 heading wrapper, exact page-62 scan-inconsistent number in its observed context, one unpaired page-248 `[[`, and two U+200E bidi marks. The cleaner counts each repair and retains surrounding prose.
+- Coverage: mr 1,667 documents / 256,165 characters; ur 1,378 / 208,621 characters.
+- EXP-022 hash prefixes: mr `e1e7dba1bfe5`; ur ranges `fb22db9983ef`, `36cd31410d2b`, `4835213b51c2`.
+- Focused cleaner tests: 53 passed. `ruff check src tests scripts`: passed. Full suite: 393 passed, 1 skipped, 22 failed on pre-existing Windows encoding/line-ending behavior and missing `data/synthetic.bin`.
+
+**Observations:** U+200E is a bidi-formatting control, not printed prose. The `1004` value was in the middle of a sentence, not a standalone line; the cleaner removes it only in the exact scan-inconsistent phrase confirmed against the scan image.
+
+**Conclusion:** The new sources pass the text review and both slots remain `EVALUATED`; no fingerprint was written during either fetch.
+
+**Next action:** Run a fresh `--fetch --pin` as EXP-023, compare its manifest diff with these hash prefixes, then record the final P004B status.
+**Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-022-inspection.txt`; `data/tokenizer/indic-tokenizer-v2`.
