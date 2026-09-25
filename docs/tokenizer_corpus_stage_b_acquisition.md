@@ -41,8 +41,11 @@ and put all four new slots above target: gu 297,628, ml 399,168, or 203,451, as 
 characters. Its inspection found one more wiki typo, a `<poem>` tag printed as text in the
 Odia novel, which the cleaner now removes (§3.1). The next fetch (EXP-016) confirmed the fix:
 all 47 verified, only the Odia text changed (by exactly the 7 characters of the tag and a
-space, to 203,444), and nothing is flagged except a genuine year in the Malayalam novel. The
-seven new sources are pinned next (EXP-017). The other 7 slots have no sources yet (§9).
+space, to 203,444), and nothing is flagged except a genuine year in the Malayalam novel.
+**Pinned (EXP-017): the seven new sources**, each beginning with the prefix EXP-016 reported;
+the 40 pinned before came back identical (hashes unchanged; only their `retrieved_at` moved,
+to this run's time), so all 47 sources are now pinned. The other 7 slots have no sources yet
+(§9).
 Run the steps where the network works, and record what you actually observe.
 
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
@@ -501,6 +504,10 @@ kn 60, pa 198 for the next groups). All four works are novels that are public do
   splitting at U+09F7 and between words; no hash changed). Hash prefixes the pin (EXP-017)
   is expected to write: gu `c3fe2b7aa706`, `91e688351017`; ml `beb122a5db78`,
   `db88c28a02b9`; or `83850852f8f4`; as `9876b5c9940e`, `eb4b86b65401`.
+* **Pinned (EXP-017):** exit 0. The operator's `--pin` run (retrieved 2026-09-24T18:59:41Z to
+  19:00:14Z) wrote the seven hashes, each beginning with its EXP-016 prefix above; the 40
+  earlier pins came back identical and only their `retrieved_at` moved. The pinned file was
+  pushed from the operator's machine (`283eb6f`) and carried here with git, never retyped.
 
 ---
 
@@ -885,7 +892,7 @@ unverified and its slot does not become `EVALUATED`.
 - [ ] Characters per slot: EXP-015 had gu 297,628, ml 399,168, or 203,451, as 241,025; with the `<poem>` fix only or changes, to 203,444 (all four `EVALUATED`) — EXP-016 showed exactly this
 - [ ] or's repairs line shows `literal <poem> tag -> removed (1)`, and nothing is flagged for it any more
 - [ ] `sha256` pinned only after all of the above
-- [ ] After the pin, `git diff` shows `sha256`, `verified` and `retrieved_at` for these 7 and only `retrieved_at` for the 40 pinned before; each new hash begins with its EXP-016 prefix (§2.6)
+- [ ] After the pin, `git diff` shows `sha256`, `verified` and `retrieved_at` for these 7 and only `retrieved_at` for the 40 pinned before; each new hash begins with its EXP-016 prefix (§2.6) — EXP-017 showed exactly this
 
 ---
 
