@@ -139,6 +139,7 @@ TEMPLATE_NAMESPACE = {
     "te.wikisource.org": "మూస",
     "ta.wikisource.org": "வார்ப்புரு",
     "mr.wikisource.org": "साचा",  # no source declared yet
+    "ur.wikisource.org": "سانچہ",  # no source declared yet
 }
 _TEMPLATE_PREFIXES = frozenset({"Template", *TEMPLATE_NAMESPACE.values()})
 

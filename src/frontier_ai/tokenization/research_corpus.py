@@ -104,7 +104,10 @@ VALID_KINDS = {"gutenberg", "wikitext", "plain", MEDIAWIKI_PARSE_KIND}
 MAX_DOC_CHARS = 1_200
 # U+09F7 (BENGALI CURRENCY NUMERATOR FOUR) is typed as the danda in much Assamese and
 # Bengali digital text: মনোমতী part 1 ends its sentences with it (part 2 with U+0964).
-_SENTENCE_BOUNDARY = re.compile(r"(?<=[\u0964\u0965\u09f7.!?])\s+")
+# Devanagari (hi, mr, ne): | (U+0964), || (U+0965)
+# Bengali (bn, as): | (U+0964), || (U+0965), \u09f7 (U+09F7)
+# Urdu (ur): \u06d4 (U+06D4), \u061f (U+061F)
+_SENTENCE_BOUNDARY = re.compile(r"(?<=[\u0964\u0965\u09f7\u06d4\u061f.!?])\s+")
 
 # Leakage diagnostics: word n-grams (character n-grams for scripts with little
 # whitespace), over a deterministically chosen sample so the check is bounded.

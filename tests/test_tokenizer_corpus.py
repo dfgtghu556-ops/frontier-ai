@@ -359,6 +359,17 @@ def test_assamese_danda_substitute_ends_sentences_when_a_paragraph_is_split() ->
     assert [doc.text for doc in documents_from_text("as-src", "as", paragraph)] == sentences
 
 
+def test_urdu_sentence_marks_end_sentences_when_a_paragraph_is_split() -> None:
+    """Urdu uses U+06D4 and U+061F rather than the Devanagari danda."""
+    sentences = [
+        f"یہ اردو جملہ نمبر {i} ہے\u06d4" if i % 2 == 0 else f"کیا یہ جملہ نمبر {i} ہے\u061f"
+        for i in range(80)
+    ]
+    paragraph = " ".join(sentences)
+    assert len(paragraph) > MAX_DOC_CHARS
+    assert [doc.text for doc in documents_from_text("ur-src", "ur", paragraph)] == sentences
+
+
 def test_an_overlong_sentence_is_cut_between_words() -> None:
     """A sentence longer than the cap is cut at spaces: no word (and no vowel sign) is torn
     from its letters. Only a run with no whitespace at all is cut where the limit falls."""

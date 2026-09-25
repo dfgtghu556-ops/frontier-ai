@@ -788,6 +788,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-007 | **Engineering verification** (not a model benchmark): do the CLIs record themselves, does a swept `train.py` keep its metrics, and is thread provenance stable? | complete | 2026-09-11 | 3-seed swept training run: `best_val` **mean 3.479525 ± 0.013175** (sample stdev), every run resolved from `results` (`metric_source: results`), 3 records and no inner ones, statistics and per-run fingerprints identical on repeat; in-process runs that set 3 threads record `3` and restore `1` |
 | EXP-018 | P004B: fetch all 55 tokenizer-corpus sources (indic-tokenizer/v2) | complete | 2026-09-25 | build exit 0; 55/55 verified; 11 of 14 language slots EVALUATED (mr, ur, hi-en NOT_EVALUATED) |
 | EXP-019 | P004B: lock all 55 tokenizer-corpus sources (indic-tokenizer/v2) | complete | 2026-09-25 | 55/55 pinned; the 47 earlier hashes unchanged, 8 new |
+| EXP-020 | P004B: research Marathi and Urdu source candidates | complete | 2026-09-25 | No source declared; candidate scans failed the proofread and/or licence-evidence gates |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1069,3 +1070,18 @@ are claimed in this entry.
 **Fresh-clone re-verification:** Not applicable (data acquisition experiment)
 
 **Next action:** Record experiments in EXPERIMENTS.md, update status documentation (NEW_CHAT_START_HERE.md), then begin research for Marathi and Urdu sources as outlined in handover section 10.
+
+### EXP-020 — P004B: research Marathi and Urdu source candidates
+
+- **Status:** complete
+- **Date:** 2026-09-25
+- **Objective:** Identify lawful, sufficiently proofread Wikisource works for the remaining Marathi and Urdu tokenizer slots.
+- **Method:** Inspected Wikisource API metadata, index pages, scan-page quality, author/year evidence, and site rights information. No corpus fetch or hash pin was run.
+
+**Results:**
+- Marathi `आईबापांचा मित्र` identifies Moro Ganesh Londhe (1911), but the scan-page review found only 5 level-3 pages among the first 110 pages and many pages without proofread status. `श्री एकनाथी भागवत` likewise did not expose a proofread range suitable for declaration in the inspected index response. The modern `'भारता'साठी` candidate was rejected because its author is Sharad Joshi.
+- Urdu candidate scans including `Tota Kahani` (1801), `Ram Charcha in Urdu by Munshi Premchand`, and `Betal-pachcheesi` did not yet provide a sufficiently broad, fully proofread, and independently licensed range. The Urdu site rights endpoint reports CC BY-SA 4.0 for wiki contributions, but that does not establish the underlying scan work's public-domain status.
+- Urdu-specific support was completed separately: sentence marks `۔` and `؟` are recognized, and the `سانچہ` Template namespace is registered.
+- No source was declared, fetched, verified, or pinned. Both language slots remain honestly `NOT_EVALUATED`.
+
+**Next action:** Find a Marathi or Urdu scan with explicit public-domain evidence and enough level-3/4 pages; do not declare a source until the complete licence and page-quality review succeeds.

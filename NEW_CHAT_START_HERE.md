@@ -52,11 +52,12 @@ git merge --ff-only FETCH_HEAD
 | English, Hindi, Bengali | locked, 40 sources | EXP-013 |
 | Gujarati, Malayalam, Odia, Assamese | locked, 7 sources | EXP-017 |
 | Punjabi, Kannada, Telugu, Tamil | downloaded (EXP-018), locked, 8 sources | EXP-019 |
-| Marathi, Urdu | not started (see note below) | — |
+| Marathi, Urdu | research complete; no source passed gates | EXP-020 |
 | Hindi–English mixed (hi-en) | expected to stay NOT_EVALUATED | — |
 
-Note on Urdu: its sentence marks ۔ (U+06D4) and ؟ (U+061F) must be added to
-`_SENTENCE_BOUNDARY` in `src/frontier_ai/tokenization/research_corpus.py`.
+Note on Urdu: its sentence marks ۔ (U+06D4) and ؟ (U+061F) are now recognized by
+`_SENTENCE_BOUNDARY`, and the `سانچہ` Template namespace is registered in the MediaWiki
+cleaner. No Urdu corpus source has passed the licence and proofread gates.
 
 All 55 sources in the manifest are verified and locked. The Arena agent checked the EXP-019
 lock mechanically:
@@ -69,6 +70,11 @@ Still open after `d5c4400`:
 * EXP-018 and EXP-019 are now recorded in EXPERIMENTS.md, at the end and in its §5 index.
 * The runbook's status header and handover §2 still describe the state before EXP-018.
 * Everything else is in handover §10: Marathi and Urdu come next.
+
+* EXP-020 researched Marathi and Urdu candidates but declared no sources: the inspected
+  Marathi scans were not broadly proofread, and the Urdu candidates lacked a complete
+  proofread/licence basis. Both slots remain `NOT_EVALUATED`; find stronger scans before
+  attempting a fetch or pin.
 
 ## 4. Who does what
 
@@ -154,6 +160,10 @@ comes next. They also update the table in §3.
 * **2026-09-25, Arena agent:** restored both from git and kept the two new entries (now at
   the end of EXPERIMENTS.md and in its index). Added rule 5 to CLAUDE.md: add to shared
   files, never rewrite them. Next: Marathi and Urdu (handover §10).
+* **2026-09-25, local assistant:** completed EXP-020 candidate research. No Marathi or Urdu
+  source passed the proofread and underlying-work licence gates, so none was declared or
+  fetched. Added Urdu sentence punctuation and Template-namespace support with regression
+  coverage. Next: locate stronger public-domain scans; do not pin anything from this survey.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

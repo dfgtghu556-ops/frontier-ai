@@ -49,6 +49,16 @@ Punjabi, Kannada, Telugu and Tamil, 8 range sources from four public-domain work
 declared on 2026-09-25 and not fetched yet. hi-en, mr and ur still have no source (§9).
 Run the steps where the network works, and record what you actually observe.
 
+**Marathi and Urdu research (EXP-020, 2026-09-25):** the first candidate survey did not
+produce a declaration. Marathi's `आईबापांचा मित्र` scan is not broadly proofread in the
+inspected range, and `श्री एकनाथी भागवत` did not expose a usable proofread range. The
+modern `'भारता'साठी` work was rejected on authorship grounds. Urdu candidates including
+`Tota Kahani`, `Ram Charcha in Urdu by Munshi Premchand`, and `Betal-pachcheesi` did not
+yet meet the combined proofread, coverage, and underlying-work licence gates. The Urdu
+wiki's CC BY-SA rights endpoint is evidence for wiki contributions only, not for the
+public-domain status of a scanned work. No Marathi or Urdu source was declared, fetched,
+verified, or pinned; both slots remain `NOT_EVALUATED`.
+
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
 diagnostics, coverage reporting — and proved the machinery works. Stage B is the part that

@@ -110,7 +110,7 @@
           "note": "family-level candidate; no concrete work declared"
         }
       ],
-      "reason": "candidate provider identified (mr.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - selecting a work, confirming its licence tag and pinning its hash require network access and a licence review that have not happened."
+      "reason": "EXP-020 (2026-09-25): candidate survey found no concrete Marathi work that passed the proofread-range and underlying-work licence review. आईबापांचा मित्र was not broadly proofread in the inspected range; श्री एकनाथी भागवत did not expose a usable proofread range; 'भारता'साठी was rejected as modern copyrighted material. No source declared, fetched, verified, or pinned."
     },
     {
       "code": "gu",
@@ -213,7 +213,7 @@
           "note": "family-level candidate; no concrete work declared"
         }
       ],
-      "reason": "candidate provider identified (ur.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "reason": "EXP-020 (2026-09-25): candidate survey found no concrete Urdu work that passed the proofread-range, coverage, and underlying-work licence review. Tota Kahani, Ram Charcha in Urdu, and Betal-pachcheesi require further page-quality and public-domain evidence. The wiki CC BY-SA rights endpoint covers wiki contributions, not automatically the scanned works. No source declared, fetched, verified, or pinned."
     }
   ],
   "sources": [
