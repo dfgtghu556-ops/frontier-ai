@@ -102,15 +102,9 @@
       "script": "Devanagari",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Marathi Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "EXP-020 (2026-09-25): candidate survey found no concrete Marathi work that passed the proofread-range and underlying-work licence review. आईबापांचा मित्र was not broadly proofread in the inspected range; श्री एकनाथी भागवत did not expose a usable proofread range; 'भारता'साठी was rejected as modern copyrighted material. No source declared, fetched, verified, or pinned."
+      "sources": [
+        "mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa"
+      ]
     },
     {
       "code": "gu",
@@ -205,15 +199,11 @@
       "script": "Perso-Arabic",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Urdu Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "EXP-020 (2026-09-25): candidate survey found no concrete Urdu work that passed the proofread-range, coverage, and underlying-work licence review. Tota Kahani, Ram Charcha in Urdu, and Betal-pachcheesi require further page-quality and public-domain evidence. The wiki CC BY-SA rights endpoint covers wiki contributions, not automatically the scanned works. No source declared, fetched, verified, or pinned."
+      "sources": [
+        "ur-wikisource-ram-charcha-premchand-p7-170-ccbysa",
+        "ur-wikisource-ram-charcha-premchand-p171-307-ccbysa",
+        "ur-wikisource-ram-charcha-premchand-p309-342-ccbysa"
+      ]
     }
   ],
   "sources": [
@@ -1466,6 +1456,98 @@
         "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
         "scope": "site",
         "note": "Site-level evidence for ta.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ta, which contains the marker); the underlying work is public domain in India (U. V. Swaminatha Iyer died in 1942). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa",
+      "title": "स्फुट गोष्टी भाग तिसरा — Hari Narayan Apte — scan pages 13–124",
+      "language": "mr",
+      "script": "Devanagari",
+      "source_url": "https://mr.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A4%B8%E0%A5%8D%E0%A4%AB%E0%A5%81%E0%A4%9F%20%E0%A4%97%E0%A5%8B%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A5%80%20%E0%A4%AD%E0%A4%BE%E0%A4%97%20%E0%A4%A4%E0%A4%BF%E0%A4%B8%E0%A4%B0%E0%A4%BE&text=%3Cpages%20index%3D%22%E0%A4%B8%E0%A5%8D%E0%A4%AB%E0%A5%81%E0%A4%9F%20%E0%A4%97%E0%A5%8B%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A5%80%20%E0%A4%AD%E0%A4%BE%E0%A4%97%20%E0%A4%A4%E0%A4%BF%E0%A4%B8%E0%A4%B0%E0%A4%BE.pdf%22%20from%3D13%20to%3D124%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Marathi Wikisource contributors, स्फुट गोष्टी भाग तिसरा by Hari Narayan Apte, scan pages 13–124 from the 1928 Pune edition published by Anant Vinayak Patwardhan; transcription licensed CC BY-SA 4.0. The 1928 edition is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Renders <pages index=\"स्फुट गोष्टी भाग तिसरा.pdf\" from=13 to=124 /> under the work page स्फुट गोष्टी भाग तिसरा. The index identifies Hari Narayan Apte as author, publisher Anant Vinayak Patwardhan (Pune), and the scanned edition as 1928; the work page header independently identifies Apte and 1928. Apte died 1919-03-03 (Wikidata Q55687, P570), and the posthumous 1928 edition is beyond India's 60-year term. Commons File:स्फुट गोष्टी भाग तिसरा.pdf carries a Public domain tag. Physical pages 1-12 are excluded: title/front matter, contents at scan page 3, and the publisher's short author biography at scan page 5; the first story begins at page 13. The selected pages 13-124 are all level 3 (proofread) as of 2026-09-25; page 125 is level 0 (no text) and is excluded. mr page titles use Devanagari digits, e.g. पान:स्फुट गोष्टी भाग तिसरा.pdf/१३. Rendered page anchors and template/red-link diagnostics are to be confirmed in EXP-021's build/inspection report.",
+      "license_evidence": {
+        "url": "https://mr.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for mr.wikisource.org: its live rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.mr, establishing CC BY-SA 4.0 for the wiki transcription. The scanned edition is separately tagged Public domain on Commons; the scanned 1928 edition is identified as a story collection by Apte in the Index and work-page metadata; its first-publication year is posthumous but more than 60 years before 2026, so the underlying edition is public domain in India."
+      }
+    },
+    {
+      "id": "ur-wikisource-ram-charcha-premchand-p7-170-ccbysa",
+      "title": "رام چرچا (Ram Charcha) — Munshi Premchand — scan pages 7–170",
+      "language": "ur",
+      "script": "Perso-Arabic",
+      "source_url": "https://ur.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand&text=%3Cpages%20index%3D%22Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand.pdf%22%20from%3D7%20to%3D170%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Urdu Wikisource contributors, رام چرچا (Ram Charcha) by Munshi Premchand, scan pages 7–170 of the 1929 Lahore edition; transcription licensed CC BY-SA 4.0. The original 1929 edition is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Part part1 of a single sequential work. Renders <pages index=\"Ram Charcha in Urdu by Munshi Premchand.pdf\" from=7 to=170 />. Page-quality review on 2026-09-25: 133 pages at level 3 and 31 at level 4; no level 0–2 or unknown pages in this range. The index metadata leaves Author/Year blank, so attribution and date are taken from the scan's own physical title page 1: it names رام چرچا, منشی پریم چند جی بی۔اے, Lajpat Rai & Sons Book Sellers (Lahore), Gilani Press, and 1929. The Commons file page describes the same edition as dated 1929 and tags it Public domain. Premchand died 1936-10-08 (Wikidata Q174152, P570), so the work was published in his lifetime and is public domain by term in India. Physical pages 1-6 (title, preface and contents) are excluded from the corpus; page 7 begins the text (بال کانڈ, پیدائش). Page 308 is excluded because its scan-page quality is level 1 (not proofread); page 309 resumes the text. Pages 343/back matter are excluded. All included pages are level 3 or 4 as of 2026-09-25. Urdu page titles use ASCII digits, e.g. صفحہ:Ram Charcha in Urdu by Munshi Premchand.pdf/7. The Urdu Template namespace is سانچہ. Rendered anchors and template/red-link diagnostics are to be confirmed in EXP-021's build/inspection report.",
+      "license_evidence": {
+        "url": "https://ur.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ur.wikisource.org: its live rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ur, establishing CC BY-SA 4.0 for the wiki transcription. The scanned edition is separately tagged Public domain on Commons; the scan title page explicitly credits Premchand and dates the edition to 1929, during his lifetime; the Commons file page separately tags the scan Public domain."
+      }
+    },
+    {
+      "id": "ur-wikisource-ram-charcha-premchand-p171-307-ccbysa",
+      "title": "رام چرچا (Ram Charcha) — Munshi Premchand — scan pages 171–307",
+      "language": "ur",
+      "script": "Perso-Arabic",
+      "source_url": "https://ur.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand&text=%3Cpages%20index%3D%22Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand.pdf%22%20from%3D171%20to%3D307%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Urdu Wikisource contributors, رام چرچا (Ram Charcha) by Munshi Premchand, scan pages 171–307 of the 1929 Lahore edition; transcription licensed CC BY-SA 4.0. The original 1929 edition is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Part part2 of a single sequential work. Renders <pages index=\"Ram Charcha in Urdu by Munshi Premchand.pdf\" from=171 to=307 />. Page-quality review on 2026-09-25: 132 pages at level 3 and 5 at level 4; no level 0–2 or unknown pages in this range. The index metadata leaves Author/Year blank, so attribution and date are taken from the scan's own physical title page 1: it names رام چرچا, منشی پریم چند جی بی۔اے, Lajpat Rai & Sons Book Sellers (Lahore), Gilani Press, and 1929. The Commons file page describes the same edition as dated 1929 and tags it Public domain. Premchand died 1936-10-08 (Wikidata Q174152, P570), so the work was published in his lifetime and is public domain by term in India. Physical pages 1-6 (title, preface and contents) are excluded from the corpus; page 7 begins the text (بال کانڈ, پیدائش). Page 308 is excluded because its scan-page quality is level 1 (not proofread); page 309 resumes the text. Pages 343/back matter are excluded. All included pages are level 3 or 4 as of 2026-09-25. Urdu page titles use ASCII digits, e.g. صفحہ:Ram Charcha in Urdu by Munshi Premchand.pdf/7. The Urdu Template namespace is سانچہ. Rendered anchors and template/red-link diagnostics are to be confirmed in EXP-021's build/inspection report.",
+      "license_evidence": {
+        "url": "https://ur.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ur.wikisource.org: its live rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ur, establishing CC BY-SA 4.0 for the wiki transcription. The scanned edition is separately tagged Public domain on Commons; the scan title page explicitly credits Premchand and dates the edition to 1929, during his lifetime; the Commons file page separately tags the scan Public domain."
+      }
+    },
+    {
+      "id": "ur-wikisource-ram-charcha-premchand-p309-342-ccbysa",
+      "title": "رام چرچا (Ram Charcha) — Munshi Premchand — scan pages 309–342",
+      "language": "ur",
+      "script": "Perso-Arabic",
+      "source_url": "https://ur.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand&text=%3Cpages%20index%3D%22Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand.pdf%22%20from%3D309%20to%3D342%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Urdu Wikisource contributors, رام چرچا (Ram Charcha) by Munshi Premchand, scan pages 309–342 of the 1929 Lahore edition; transcription licensed CC BY-SA 4.0. The original 1929 edition is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": null,
+      "verified": false,
+      "retrieved_at": null,
+      "notes": "Part part3 of a single sequential work. Renders <pages index=\"Ram Charcha in Urdu by Munshi Premchand.pdf\" from=309 to=342 />. Page-quality review on 2026-09-25: 33 pages at level 3 and 1 at level 4; no level 0–2 or unknown pages in this range. The index metadata leaves Author/Year blank, so attribution and date are taken from the scan's own physical title page 1: it names رام چرچا, منشی پریم چند جی بی۔اے, Lajpat Rai & Sons Book Sellers (Lahore), Gilani Press, and 1929. The Commons file page describes the same edition as dated 1929 and tags it Public domain. Premchand died 1936-10-08 (Wikidata Q174152, P570), so the work was published in his lifetime and is public domain by term in India. Physical pages 1-6 (title, preface and contents) are excluded from the corpus; page 7 begins the text (بال کانڈ, پیدائش). Page 308 is excluded because its scan-page quality is level 1 (not proofread); page 309 resumes the text. Pages 343/back matter are excluded. All included pages are level 3 or 4 as of 2026-09-25. Urdu page titles use ASCII digits, e.g. صفحہ:Ram Charcha in Urdu by Munshi Premchand.pdf/7. The Urdu Template namespace is سانچہ. Rendered anchors and template/red-link diagnostics are to be confirmed in EXP-021's build/inspection report.",
+      "license_evidence": {
+        "url": "https://ur.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ur.wikisource.org: its live rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ur, establishing CC BY-SA 4.0 for the wiki transcription. The scanned edition is separately tagged Public domain on Commons; the scan title page explicitly credits Premchand and dates the edition to 1929, during his lifetime; the Commons file page separately tags the scan Public domain."
       }
     }
   ],
