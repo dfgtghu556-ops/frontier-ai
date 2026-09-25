@@ -248,6 +248,25 @@ def test_broken_gap_rule_leaves_look_alikes_alone() -> None:
     assert BROKEN_GAP not in page.artifacts_removed  # anything else odd is left for inspection
 
 
+def test_urdu_scan_residues_are_removed_without_losing_work_text() -> None:
+    page = render_html(
+        "<p>{{|xx-largerاجوِّھیا کانڈ}}</p>"
+        "<p>یہ اصل عبارت ہے اور اسے برقرار رہنا چاہیے۔</p>"
+        "<p>ایک ٹھنڈا سانس بھر کر 1004 اُن بولے کیکئی۔</p>"
+        "<p>یہ متن\u200e برقرار رہے اور 1004 بھی۔</p>"
+        "<p>[[یہ نامکمل ربط ہے</p>"
+    )
+    assert page.text == (
+        "اجوِّھیا کانڈ\n\nیہ اصل عبارت ہے اور اسے برقرار رہنا چاہیے۔\n\n"
+        "ایک ٹھنڈا سانس بھر کر اُن بولے کیکئی۔\n\n"
+        "یہ متن برقرار رہے اور 1004 بھی۔\n\nیہ نامکمل ربط ہے"
+    )
+    assert page.artifacts_removed["broken {{|xx-larger}} heading -> markup removed"] == 1
+    assert page.artifacts_removed["Ram Charcha page 62 scan-inconsistent 1004 -> removed"] == 1
+    assert page.artifacts_removed["U+200E LEFT-TO-RIGHT MARK"] == 1
+    assert page.artifacts_removed["unmatched [[ or ]] -> removed"] == 1
+
+
 # verbatim from the rendered पृष्ठ:गो-दान.djvu/२८ (hi.wikisource, 2026-09-24): the page calls
 # {{GaP}}, which does not exist, so MediaWiki printed a red link to it
 GAP_RED_LINK = (

@@ -59,6 +59,15 @@ wiki's CC BY-SA rights endpoint is evidence for wiki contributions only, not for
 public-domain status of a scanned work. No Marathi or Urdu source was declared, fetched,
 verified, or pinned; both slots remain `NOT_EVALUATED`.
 
+**Current status (2026-09-26):** EXP-021 declared and fetched one Marathi work and one
+Urdu work in four ranges. Its first inspection exposed malformed Urdu heading/link markup,
+a scan-inconsistent `1004` embedded in page 62's prose, and two U+200E direction marks, so
+nothing was pinned. The tested cleaner repairs were re-fetched as EXP-022: all 59 sources
+verified, all 55 prior pins unchanged, and the four new sources have no inspection flags.
+Marathi is `EVALUATED` at 1,667 documents / 256,165 characters; Urdu is `EVALUATED` at
+1,378 / 208,621. EXP-023 is the fresh lock run; its inspection, manifest-only lock diff,
+and final P004B records remain to be completed.
+
 Who this is for: whoever acquires the real tokenizer research corpus. Stage A built the
 foundation (`indic-tokenizer/v2`) — 14 language slots, 3 declared sources, split, leakage
 diagnostics, coverage reporting — and proved the machinery works. Stage B is the part that
@@ -580,6 +589,38 @@ a fifth or more.
   and the 8 new ones verified; te is the slot most likely to fall short, and if any slot is
   `INSUFFICIENT` the fix is a second work, never padding.
 
+### 2.8 Marathi and Urdu (kind `mediawiki-parse`)
+
+**EXP-021 candidate review and declaration (2026-09-25):** after searching the named Marathi
+authors, Hari Narayan Apte's *स्फुट गोष्टी भाग तिसरा* was the qualifying Marathi scan. Its
+1928 Pune edition is identified in the Index and work-page metadata; Commons tags the scan
+Public domain, Apte died in 1919 (Wikidata Q55687), and pages 13–124 are all level 3.
+Pages 1–12 (title/front matter, contents and an unattributed publisher biography) and page
+125 (level 0) are excluded.
+
+For Urdu, *رام چرچا* (*Ram Charcha*) by Munshi Premchand uses the Lahore 1929 edition. The
+scan's title page names Premchand and the 1929 publishers; Commons tags the scan Public
+domain, and Premchand died in 1936 (Wikidata Q174152), during his lifetime of publication.
+The three declared ranges are pages 7–170, 171–307 and 309–342. Pages 1–6 (title, preface
+and contents), page 308 (level 1), and page 343 onward (back matter) are excluded. The Urdu
+wiki's CC BY-SA rights endpoint covers its transcription, separately from the scan's
+public-domain evidence.
+
+EXP-021 fetched all 59 sources (build exit 0; the 55 pinned sources were unchanged).
+Marathi produced 257,901 source characters; Urdu produced 210,517 across the three ranges.
+The inspection flagged two raw markup residues in Urdu page 46, an ASCII `1004` embedded in
+page 62's sentence despite being absent from the scan image, and U+200E bidi controls in
+the first two ranges. Review also found one unmatched `[[` in the second range. No new
+source was locked at this stage.
+
+The cleaner now preserves the Urdu heading and prose while removing only the malformed
+`{{|xx-larger...}}` wrapper and the unpaired link delimiter; it removes the page-62 `1004`
+only in its observed surrounding phrase and strips U+200E as a direction-formatting
+artifact. EXP-022 re-fetched all 59 sources with exit 0; all 55 existing pins were unchanged.
+The four new sources have no inspection flags. Marathi has 1,667 documents / 256,165
+characters; Urdu has 1,378 / 208,621. The EXP-022 report records source samples, repair
+counts and the new hash prefixes. EXP-023 is the separate fresh `--pin` run.
+
 ---
 
 ## 3. Wikisource-specific safety
@@ -974,6 +1015,16 @@ unverified and its slot does not become `EVALUATED`.
 - [ ] Coverage section: pa, kn, te and ta each `EVALUATED` (at least 500 documents and 200,000 characters); an `INSUFFICIENT` slot needs a second work, with the reason recorded — never padding
 - [ ] Anything flagged is explained before any lock
 - [ ] `sha256` pinned only after all of the above, in a later lock job
+
+### Marathi and Urdu — mr and ur (§2.8)
+
+- [x] EXP-022 verified all four sources; the previous 55 pinned hashes were unchanged
+- [x] mr page qualities are 112 level-3 pages (13–124); ur has 298 level-3 and 37 level-4 pages, with level-1 page 308 excluded
+- [x] Work/scan licensing reviewed independently: Apte's 1928 edition is public domain by term and Commons tag; Premchand's 1929 edition was published during his lifetime and the Commons scan is tagged Public domain; each wiki's live rights endpoint proves CC BY-SA for its transcription
+- [x] Samples begin and end within the works; no front matter, back matter, CSS or running scan numbers appear in the selected text
+- [x] EXP-022 inspection has no flags for the four new sources; Urdu's repairs preserve prose and are counted in the report
+- [x] Both slots meet the 500-document / 200,000-character targets: mr 1,667 / 256,165; ur 1,378 / 208,621
+- [ ] Run EXP-023 with a fresh `--fetch --pin`; verify the new prefixes match EXP-022 and that only permitted lock fields change
 
 ---
 

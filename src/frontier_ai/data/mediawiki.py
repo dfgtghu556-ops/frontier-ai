@@ -107,6 +107,7 @@ CELL_TAGS = frozenset({"td", "th"})
 # Invisible characters that are rendering artifacts on Wikisource, never printed text.
 ARTIFACT_CHARS: dict[str, str] = {
     "\u200b": "U+200B ZERO WIDTH SPACE",
+    "\u200e": "U+200E LEFT-TO-RIGHT MARK",
     "\u2060": "U+2060 WORD JOINER",
     "\ufeff": "U+FEFF ZERO WIDTH NO-BREAK SPACE",
 }
@@ -117,6 +118,9 @@ PAGE_JOIN_BREAK = "page-join <br> -> space"
 BROKEN_GAP = "broken {{gap}} template -> removed"
 STRAY_CLOSING_BRACES = "stray }} -> removed"
 LITERAL_POEM_TAG = "literal <poem> tag -> removed"
+BROKEN_X_LARGER = "broken {{|xx-larger}} heading -> markup removed"
+UNMATCHED_LINK_MARKER = "unmatched [[ or ]] -> removed"
+RAM_CHARCHA_PAGE_62_NUMBER = "Ram Charcha page 62 scan-inconsistent 1004 -> removed"
 MISSING_TEMPLATE = "link to missing template {} -> removed"  # .format(template title)
 
 # The Template namespace (number 10) as each wiki spells it in page titles and links —
@@ -138,8 +142,8 @@ TEMPLATE_NAMESPACE = {
     "kn.wikisource.org": "ಟೆಂಪ್ಲೇಟು",
     "te.wikisource.org": "మూస",
     "ta.wikisource.org": "வார்ப்புரு",
-    "mr.wikisource.org": "साचा",  # no source declared yet
-    "ur.wikisource.org": "سانچہ",  # no source declared yet
+    "mr.wikisource.org": "साचा",
+    "ur.wikisource.org": "سانچہ",
 }
 _TEMPLATE_PREFIXES = frozenset({"Template", *TEMPLATE_NAMESPACE.values()})
 
@@ -194,6 +198,36 @@ _STRAY_CLOSING_BRACES = re.compile(r"\}{2,}")
 # <div class="poem">, never as text, so the literal tag is residue and nothing else; the
 # lines it was meant to lay out stay as MediaWiki joined them.
 _LITERAL_POEM_TAG = re.compile(r"<[ \t]*/?[ \t]*poem\b[^<>]*>", re.IGNORECASE)
+# A broken Urdu heading call on Ram Charcha page 46 renders as literal text:
+# {{|xx-largerاجوِّھیا کانڈ}}. Keep the heading and drop its failed template syntax.
+_BROKEN_X_LARGER = re.compile(r"\{\{\|xx-larger([^{}|]+)\}\}")
+_RAM_CHARCHA_PAGE_62_NUMBER = re.compile(
+    r"(ایک ٹھنڈا سانس بھر کر\s+)1004(\s+اُن بولے کیکئی)"
+)
+
+
+def _remove_unmatched_link_markers(text: str) -> tuple[str, int]:
+    """Drop only raw, unpaired internal-link delimiters left by malformed wikitext."""
+    stack: list[int] = []
+    unmatched_closings: list[int] = []
+    index = 0
+    while index < len(text) - 1:
+        marker = text[index : index + 2]
+        if marker == "[[":
+            stack.append(index)
+            index += 2
+        elif marker == "]]":
+            if stack:
+                stack.pop()
+            else:
+                unmatched_closings.append(index)
+            index += 2
+        else:
+            index += 1
+    positions = sorted([*stack, *unmatched_closings], reverse=True)
+    for position in positions:
+        text = text[:position] + text[position + 2 :]
+    return text, len(positions)
 
 
 # ---------------------------------------------------------------------------
@@ -578,6 +612,12 @@ def render_html(html: str, *, min_prose_chars: int = 20) -> RenderedPage:
             joined, stray = _STRAY_CLOSING_BRACES.subn("", joined)
             if stray:
                 artifacts[STRAY_CLOSING_BRACES] += stray
+        joined, larger_headings = _BROKEN_X_LARGER.subn(r"\1", joined)
+        if larger_headings:
+            artifacts[BROKEN_X_LARGER] += larger_headings
+        joined, scan_numbers = _RAM_CHARCHA_PAGE_62_NUMBER.subn(r"\1\2", joined)
+        if scan_numbers:
+            artifacts[RAM_CHARCHA_PAGE_62_NUMBER] += scan_numbers
         cleaned = _WHITESPACE.sub(" ", joined).strip()
         linked = sum(_visible(segment) for segment, is_link in current if is_link)
         total = sum(_visible(segment) for segment, _link in current)
@@ -604,6 +644,15 @@ def render_html(html: str, *, min_prose_chars: int = 20) -> RenderedPage:
 
     while lines and lines[-1] == "":
         lines.pop()
+    cleaned_lines = []
+    unmatched_markers = 0
+    for line in lines:
+        line, removed = _remove_unmatched_link_markers(line)
+        cleaned_lines.append(line)
+        unmatched_markers += removed
+    if unmatched_markers:
+        artifacts[UNMATCHED_LINK_MARKER] += unmatched_markers
+    lines = cleaned_lines
     text = "\n".join(lines)
     return RenderedPage(
         text=text,
