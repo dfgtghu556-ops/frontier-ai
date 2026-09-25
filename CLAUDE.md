@@ -4,6 +4,15 @@ General orientation for this repository is in [PROJECT_CONTEXT.md](PROJECT_CONTE
 
 ## P004B — the tokenizer research corpus (yours since 2026-09-25)
 
+**Who is who.** In these docs, *the local assistant* means **you**: Claude Code on the
+operator's computer. *The Arena agent* is a different AI in a web chat. It wrote the
+handover, and it is not you.
+* Never offer to hand work to "the local assistant", and never wait for someone to browse
+  by hand. Do the work yourself.
+* This computer can reach the wikis, so do your research with Python scripts that call the
+  MediaWiki API (handover §6).
+* Ask the operator only for decisions that really are theirs.
+
 The operator has handed P004B — acquiring and verifying the real text corpus of
 `indic-tokenizer/v2` — to you, end to end: choosing books, licence review, code, downloads,
 reviewing results, locking hashes and recording each run. Before any work on it (anything
