@@ -68,11 +68,12 @@ Three rules before you start:
 **In a hurry?** §0 is the whole workflow in five commands (setup, preflight, fetch,
 inspect, pin). Everything after it is the detail.
 
-**Running the network steps with a local assistant** (for example Claude Code on the
-operator's machine): [tokenizer_corpus_local_runner.md](tokenizer_corpus_local_runner.md).
-The Arena agent writes each job into `corpora/tokenizer/indic-tokenizer-v2/reports/JOB.md`;
-the runner executes it and pushes the reports it names to the same folder, and never
-writes a hash itself — only `--pin` does, and only in a job whose checks pass.
+**Who does this work now:** since 2026-09-25 the assistant on the operator's machine
+(Claude Code) owns P004B end to end — research, licence review, code, runs, review and
+locks: [tokenizer_corpus_handover.md](tokenizer_corpus_handover.md). Jobs are still written
+down in `corpora/tokenizer/indic-tokenizer-v2/reports/JOB.md` and reports saved in the same
+folder ([tokenizer_corpus_local_runner.md](tokenizer_corpus_local_runner.md)); hashes are
+still written only by `--pin`, and only after a clean review.
 
 ---
 

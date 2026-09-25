@@ -5,10 +5,14 @@ report covers everything JOB-001's would have, and step 2 below is JOB-001's tid
 [docs/tokenizer_corpus_local_runner.md](../../../../docs/tokenizer_corpus_local_runner.md)
 first; its rules apply to every step.
 
+**Since the handover ([docs/tokenizer_corpus_handover.md](../../../../docs/tokenizer_corpus_handover.md)),
+the local assistant owns P004B:** run this job, then review the report yourself (handover
+§8, runbook §2.7 and §8) and explain the result to the operator in plain words.
+
 **Why.** Four more languages now have books declared in the manifest — Punjabi, Kannada,
 Telugu and Tamil, 8 new sources (runbook §2.7). They have never been downloaded. This job
-downloads all 55 sources once, so the Arena agent can review the new text and check that the
-47 locked sources did not change. It also tidies up the old second copy of the project
+downloads all 55 sources once, so the new text can be reviewed and the 47 locked sources
+checked for changes. It also tidies up the old second copy of the project
 (untracked sub-folder `frontier-ai/`, downloaded 2026-09-24 17:28, not used since), which
 must not stay inside the project, where it could be committed by accident.
 

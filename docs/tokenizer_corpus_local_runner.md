@@ -1,5 +1,10 @@
 # Local runner protocol — running Stage B jobs on the operator's machine
 
+> **2026-09-25 — handover.** The operator has handed P004B to the local assistant end to
+> end: see [tokenizer_corpus_handover.md](tokenizer_corpus_handover.md). Rules 1, 2, 4, 6, 7, 8
+> and 9 below still apply; rules 3 and 5 are replaced by the handover's rules 6–10. The
+> description of the Arena agent's role below is kept for the record.
+
 **Who this is for:** an assistant (for example Claude Code in VS Code) or a person who runs
 the network steps of the P004B corpus work on the operator's computer. The Arena agent plans
 the work, writes the code, the manifest and the docs, and reviews every result. Its own

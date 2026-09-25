@@ -1,0 +1,26 @@
+# Notes for Claude Code
+
+General orientation for this repository is in [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
+
+## P004B — the tokenizer research corpus (yours since 2026-09-25)
+
+The operator has handed P004B — acquiring and verifying the real text corpus of
+`indic-tokenizer/v2` — to you, end to end: choosing books, licence review, code, downloads,
+reviewing results, locking hashes and recording each run. Before any work on it (anything
+under `corpora/tokenizer/`, the tokenizer-corpus scripts, `src/frontier_ai/data/mediawiki.py`,
+`src/frontier_ai/tokenization/research_corpus.py` or their docs), read
+[docs/tokenizer_corpus_handover.md](docs/tokenizer_corpus_handover.md) in full and follow it.
+The rules that matter most:
+
+1. Never pin a hash you did not compute from a fetch you actually performed — only the
+   build script's `--pin` writes hashes, and only after a clean review.
+2. Never mark a source verified because the manifest says it is CC BY-SA.
+3. If a source cannot be licensed, leave it unverified. Never pad or substitute text.
+4. Work only on branch `arena/01a0d31f-frontier-ai`: pull first, push only there; never
+   `main`, never force-push, never VS Code's Sync or Publish buttons.
+
+Where things stand: the handover's §2 and §10, the runbook's status header
+([docs/tokenizer_corpus_stage_b_acquisition.md](docs/tokenizer_corpus_stage_b_acquisition.md)),
+and the current job in `corpora/tokenizer/indic-tokenizer-v2/reports/JOB.md`.
+
+This file covers P004B only; other work in this repository is unaffected.
