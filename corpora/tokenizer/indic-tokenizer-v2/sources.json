@@ -230,7 +230,7 @@
       "kind": "gutenberg",
       "sha256": "4e04ea77acf3b0215cae2089c977bc07526fc834597a1d463598d895354ba41d",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:28Z",
+      "retrieved_at": "2026-09-25T09:47:02Z",
       "notes": "English slot. The Gutenberg header/footer is stripped by clean_gutenberg_text(); the licence is recorded in the provenance file. Hash is pinned only after a verified fetch."
     },
     {
@@ -246,7 +246,7 @@
       "kind": "gutenberg",
       "sha256": "f5d4e24f4fa087f57845abc3369cd25b0b717f478c0a1c5c3caa7130bcdfaa0b",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:39Z",
+      "retrieved_at": "2026-09-25T09:47:04Z",
       "notes": "Second English source: Alice alone is 144,599 characters, below the 200,000-character target. Chosen for genre diversity (philosophical essays, non-fiction, next to a children's novel) and for Indian English: Upanishadic terms, Indian names and romanised Sanskrit with diacritics (Sādhanā, Daurbhikshāt …). Checked on 2026-09-24: gutenberg.org/ebooks/6842 lists it as 'Public domain in the USA' (plain text 226 kB); pg6842.txt carries the standard '*** START/END OF THE PROJECT GUTENBERG EBOOK SADHANA : THE REALISATION OF LIFE ***' markers, the text begins with the author's preface and ends with chapter VIII ('…not distant, not anywhere else.'). The header/footer is stripped by clean_gutenberg_text(), which keeps everything between the markers — so the cleaned text starts with the producer's credit line 'Produced by Chetan Jain at BharatLiterature' (43 characters, accepted) and the 1916 title page; the licence marker is the payload's own Project Gutenberg header. Hash is pinned only after a verified fetch."
     },
     {
@@ -262,7 +262,7 @@
       "kind": "mediawiki-parse",
       "sha256": "29b16b4e808d55fb8c94ea366f779ff3005432dabc4f3fad224102b75dba61a2",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:41Z",
+      "retrieved_at": "2026-09-25T09:47:07Z",
       "notes": "Chapter 1 of 36. गो-दान/१ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 11–18 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. The tag is written from=1१ (mixed ASCII/Devanagari digits) on the wiki; MediaWiki reads it as page 11 — checked on 2026-09-24: the first rendered anchor is पृष्ठ:गो-दान.djvu/११, labelled आरंभ (scan pages 1–10 are front matter). Exactly this kind of ambiguity is why this source relies on MediaWiki's rendering instead of re-implementing the tag.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -285,7 +285,7 @@
       "kind": "mediawiki-parse",
       "sha256": "e9bf25e4b77752679116f0666e50b7ae8e64155baec2b380b7ebb0c308766531",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:43Z",
+      "retrieved_at": "2026-09-25T09:47:09Z",
       "notes": "Chapter 2 of 36. गो-दान/२ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 18–22 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -308,7 +308,7 @@
       "kind": "mediawiki-parse",
       "sha256": "c498f301885d87a80717501e2b2dc5b72055da9b719b8bcb7e03d2416e741b6a",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:44Z",
+      "retrieved_at": "2026-09-25T09:47:11Z",
       "notes": "Chapter 3 of 36. गो-दान/३ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 22–32 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -331,7 +331,7 @@
       "kind": "mediawiki-parse",
       "sha256": "8892b80981642b7d2b06ca1057a4071384917650a082e588efeecae13799d31d",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:46Z",
+      "retrieved_at": "2026-09-25T09:47:14Z",
       "notes": "Chapter 4 of 36. गो-दान/४ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 32–51 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. The tag is written from=३2 (mixed digits) on the wiki; MediaWiki reads it as page 32 (checked on 2026-09-24: the first rendered anchor is पृष्ठ:गो-दान.djvu/३२).",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -354,7 +354,7 @@
       "kind": "mediawiki-parse",
       "sha256": "5884f0dfb3f8275a2109bcc5979c16f2f90b8c97826f43e42b0766213661ffe9",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:48Z",
+      "retrieved_at": "2026-09-25T09:47:15Z",
       "notes": "Chapter 5 of 36. गो-दान/५ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 51–57 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -377,7 +377,7 @@
       "kind": "mediawiki-parse",
       "sha256": "697f7480f616d93075ac2a155720df7a83fb6a998ae3a768d51e31d0d97cf5f6",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:49Z",
+      "retrieved_at": "2026-09-25T09:47:17Z",
       "notes": "Chapter 6 of 36. गो-दान/६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 57–80 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -400,7 +400,7 @@
       "kind": "mediawiki-parse",
       "sha256": "1c9ebd637ca9bccefed8dd498a7508f06735aa1716f29cb16f7d1ea5e9c85641",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:51Z",
+      "retrieved_at": "2026-09-25T09:47:18Z",
       "notes": "Chapter 7 of 36. गो-दान/७ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 80–107 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -423,7 +423,7 @@
       "kind": "mediawiki-parse",
       "sha256": "4fdc0c7d340af62b362bcd57801278aa183c77d8c289da44f2da3c4d62287884",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:53Z",
+      "retrieved_at": "2026-09-25T09:47:21Z",
       "notes": "Chapter 8 of 36. गो-दान/८ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 107–113 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -446,7 +446,7 @@
       "kind": "mediawiki-parse",
       "sha256": "692ee82f7114e23459c7277dd6a62aab32f3d10e3e5bbce62fe1ea5bbb8b8956",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:54Z",
+      "retrieved_at": "2026-09-25T09:47:23Z",
       "notes": "Chapter 9 of 36. गो-दान/९ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 113–121 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -469,7 +469,7 @@
       "kind": "mediawiki-parse",
       "sha256": "7f6f26bd4ea5da9015c7641ec373c89993d70c52116799464708a19c8a95e0c8",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:55Z",
+      "retrieved_at": "2026-09-25T09:47:24Z",
       "notes": "Chapter 10 of 36. गो-दान/१० holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 121–128 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -492,7 +492,7 @@
       "kind": "mediawiki-parse",
       "sha256": "ec440f3c1edf5e80b545a2efde8b0d3807fc24f9ad16ec4f6a1d6efa4b2a39ed",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:57Z",
+      "retrieved_at": "2026-09-25T09:47:25Z",
       "notes": "Chapter 11 of 36. गो-दान/११ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 128–135 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -515,7 +515,7 @@
       "kind": "mediawiki-parse",
       "sha256": "0c1093508f90442dbd499f9a106f5639129bc03250a88324f6a04c7d82743fb9",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:58Z",
+      "retrieved_at": "2026-09-25T09:47:26Z",
       "notes": "Chapter 12 of 36. गो-दान/१२ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 135–142 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -538,7 +538,7 @@
       "kind": "mediawiki-parse",
       "sha256": "d11ffcf76ae885161bbcffe95630851c5aa0cff5e843c8e1e4fdc42d6ab489a2",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:58:59Z",
+      "retrieved_at": "2026-09-25T09:47:28Z",
       "notes": "Chapter 13 of 36. गो-दान/१३ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 142–152 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -561,7 +561,7 @@
       "kind": "mediawiki-parse",
       "sha256": "dce8b25c77fa5bf6bb5172a41489b7f31df972d1f2934bb12eec7c5a0df324a2",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:00Z",
+      "retrieved_at": "2026-09-25T09:47:30Z",
       "notes": "Chapter 14 of 36. गो-दान/१४ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 152–159 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -584,7 +584,7 @@
       "kind": "mediawiki-parse",
       "sha256": "75c2506ef92ce7688886a6806f3b9fe45ac2be81f2b2c0e4379432fe732efd90",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:02Z",
+      "retrieved_at": "2026-09-25T09:47:31Z",
       "notes": "Chapter 15 of 36. गो-दान/१५ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 159–172 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -607,7 +607,7 @@
       "kind": "mediawiki-parse",
       "sha256": "db92ce286618ee63e4c0470305db8cc15fe738e2aa20f3ad77abb4e32bf1ec43",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:03Z",
+      "retrieved_at": "2026-09-25T09:47:33Z",
       "notes": "Chapter 16 of 36. गो-दान/१६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 172–181 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. Not to be confused with the legacy page गो-दान/ भाग 16, which renders a different scan (गोदान.pdf) and would duplicate this text; it is deliberately not declared.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -630,7 +630,7 @@
       "kind": "mediawiki-parse",
       "sha256": "dd26069b4d4137193d971df2bdbd8a7e5e492ceba284cdd7e5ddb119863e236b",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:04Z",
+      "retrieved_at": "2026-09-25T09:47:34Z",
       "notes": "Chapter 17 of 36. गो-दान/१७ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 181–191 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. Not to be confused with the legacy page गो-दान/ भाग 17 (different scan, गोदान.pdf, duplicate text); deliberately not declared.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -653,7 +653,7 @@
       "kind": "mediawiki-parse",
       "sha256": "248d832b428a5538c5dbe2c003fbdd0b20ebc78747760d9b9178c9f4acec38d1",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:06Z",
+      "retrieved_at": "2026-09-25T09:47:35Z",
       "notes": "Chapter 18 of 36. गो-दान/१८ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 191–202 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -676,7 +676,7 @@
       "kind": "mediawiki-parse",
       "sha256": "a579aab3cbd5d8dcc813bb15638f3f781cb75a2ad6f33c79ce05d86c8a33ae86",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:07Z",
+      "retrieved_at": "2026-09-25T09:47:37Z",
       "notes": "Chapter 19 of 36. गो-दान/१९ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 202–206 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -699,7 +699,7 @@
       "kind": "mediawiki-parse",
       "sha256": "fcdd1851801cbe128b32fc3c0da9c2f82466b72738db0f347aa35e646329ecd0",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:08Z",
+      "retrieved_at": "2026-09-25T09:47:38Z",
       "notes": "Chapter 20 of 36. गो-दान/२० holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 206–219 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -722,7 +722,7 @@
       "kind": "mediawiki-parse",
       "sha256": "841e48839312f8ca3d1cf85422eb079ff8cb59cdfdc0c9c8bfd5ec87f67ccd26",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:09Z",
+      "retrieved_at": "2026-09-25T09:47:40Z",
       "notes": "Chapter 21 of 36. गो-दान/२१ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 219–231 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -745,7 +745,7 @@
       "kind": "mediawiki-parse",
       "sha256": "d629a7f31f547d75044a22be2ca6bcc5c1f704ebfcda1a852fd921538ad21a92",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:11Z",
+      "retrieved_at": "2026-09-25T09:47:42Z",
       "notes": "Chapter 22 of 36. गो-दान/२२ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 231–246 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -768,7 +768,7 @@
       "kind": "mediawiki-parse",
       "sha256": "ebc397046a08e013d0ea74b4d634ca1c5cb0a5fa8038ad309320fb05e8fceee9",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:12Z",
+      "retrieved_at": "2026-09-25T09:47:43Z",
       "notes": "Chapter 23 of 36. गो-दान/२३ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 246–256 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. The wiki tags this chapter 'छूटे स्कैन पृष्ठ' (missing scan pages): printed pages may be absent from the transcription. Read the text before pinning and record what you find.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -791,7 +791,7 @@
       "kind": "mediawiki-parse",
       "sha256": "467f09e2f0b2e446be52c80898016bbd9c9594d6df39058452f9eb4644b9d324",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:14Z",
+      "retrieved_at": "2026-09-25T09:47:45Z",
       "notes": "Chapter 24 of 36. गो-दान/२४ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 257–265 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. The wiki tags this chapter 'छूटे स्कैन पृष्ठ' (missing scan pages): printed pages may be absent from the transcription. Read the text before pinning and record what you find.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -814,7 +814,7 @@
       "kind": "mediawiki-parse",
       "sha256": "d5c09517e7c6e3593cdf5c7794e62877cf5eb94a35d27e31838dd165d1580606",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:15Z",
+      "retrieved_at": "2026-09-25T09:47:46Z",
       "notes": "Chapter 25 of 36. गो-दान/२५ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 265–271 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -837,7 +837,7 @@
       "kind": "mediawiki-parse",
       "sha256": "6856378c200415c081e15dee114dcb1d63a6d4316a791662cbd3af846b7bf3a2",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:16Z",
+      "retrieved_at": "2026-09-25T09:47:47Z",
       "notes": "Chapter 26 of 36. गो-दान/२६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 271–276 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -860,7 +860,7 @@
       "kind": "mediawiki-parse",
       "sha256": "70f749b9dc25ed787d9022333912032aa47c8ff436ce64916a4234f76c974a6c",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:18Z",
+      "retrieved_at": "2026-09-25T09:47:48Z",
       "notes": "Chapter 27 of 36. गो-दान/२७ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 276–288 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -883,7 +883,7 @@
       "kind": "mediawiki-parse",
       "sha256": "ef935daa16bfc959db0d9ab7a0818766836e85bb1a73d04f0239239fecaafb1c",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:19Z",
+      "retrieved_at": "2026-09-25T09:47:50Z",
       "notes": "Chapter 28 of 36. गो-दान/२८ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 288–295 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -906,7 +906,7 @@
       "kind": "mediawiki-parse",
       "sha256": "22cd23704490a5818ab29dfce7923c114df2dfd3c8c1e51ee4857342a92dd2e4",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:21Z",
+      "retrieved_at": "2026-09-25T09:47:51Z",
       "notes": "Chapter 29 of 36. गो-दान/२९ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 295–305 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -929,7 +929,7 @@
       "kind": "mediawiki-parse",
       "sha256": "313511e1ed9d36ac05498ed590b6238eee65ad0685870482c83104df25f30d4c",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:22Z",
+      "retrieved_at": "2026-09-25T09:47:52Z",
       "notes": "Chapter 30 of 36. गो-दान/३० holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 305–316 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -952,7 +952,7 @@
       "kind": "mediawiki-parse",
       "sha256": "08bff4930de92bbc507603ad0333d39423b621f026042177c99703406cf8f157",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:23Z",
+      "retrieved_at": "2026-09-25T09:47:53Z",
       "notes": "Chapter 31 of 36. गो-दान/३१ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 317–327 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -975,7 +975,7 @@
       "kind": "mediawiki-parse",
       "sha256": "f9646750547c4e22fabbc5ca48634409c5221d3365fc99d0a1927aa6ac85e895",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:25Z",
+      "retrieved_at": "2026-09-25T09:47:54Z",
       "notes": "Chapter 32 of 36. गो-दान/३२ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 327–331 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -998,7 +998,7 @@
       "kind": "mediawiki-parse",
       "sha256": "9ad29f4b912f26599f7e2c78f0243c6859e09e2be49d4ca561cf17be6f53a097",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:26Z",
+      "retrieved_at": "2026-09-25T09:47:56Z",
       "notes": "Chapter 33 of 36. गो-दान/३३ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 331–343 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1021,7 +1021,7 @@
       "kind": "mediawiki-parse",
       "sha256": "c517af4c135b38217657e7c00a84b1a35f58f157b46e552f7bf97f5f23c0144d",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:27Z",
+      "retrieved_at": "2026-09-25T09:47:57Z",
       "notes": "Chapter 34 of 36. गो-दान/३४ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 344–349 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1044,7 +1044,7 @@
       "kind": "mediawiki-parse",
       "sha256": "5c716c172579c9170537273748403003131e7b1940527497157ffbce400a4799",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:28Z",
+      "retrieved_at": "2026-09-25T09:47:58Z",
       "notes": "Chapter 35 of 36. गो-दान/३५ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 349–357 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1067,7 +1067,7 @@
       "kind": "mediawiki-parse",
       "sha256": "edc02cea02c90525668b0f67897a0ea2e9f4b23cf9446a820b2083ff6b9ce772",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:30Z",
+      "retrieved_at": "2026-09-25T09:47:59Z",
       "notes": "Chapter 36 of 36. गो-दान/३६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 357–363 of गो-दान.djvu: the tag on the wiki says to=३६९, but pages 364–369 contribute no text — checked on 2026-09-24, the render ends on पृष्ठ:गो-दान.djvu/३६३ with the novel's last line (…यही इनका गो-दान है / और पछाड़ खाकर गिर पड़ी।) and nothing after it, so no back matter enters the corpus (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1090,7 +1090,7 @@
       "kind": "mediawiki-parse",
       "sha256": "333fd22ad5a440fb971b3cac51ac1e32c5fbb0f0e08f3c0806afefb5b278a137",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:31Z",
+      "retrieved_at": "2026-09-25T09:48:01Z",
       "notes": "All 157 poems in one render. The work page গীতাঞ্জলি (১৯১৩) lists the poems as subpages /১…/১৫৭, each transcluding one or two scan pages (poem ১ = scan pages 13–14, poem ১৫৭ = page 190). A single short poem is below the stub threshold, so this source renders <pages index=\"গীতাঞ্জলি - রবীন্দ্রনাথ ঠাকুর.djvu\" from=13 to=190 /> directly; text= is validated to contain exactly that one tag, so nothing but the wiki's transcription can enter. The cover, front matter and table of contents (scan pages 1–12) are excluded. Every scan page 13–190 was 'validated' (ProofreadPage level 4) on 2026-09-24; the build re-checks each page's level. The bare title গীতাঞ্জলি is a Wikidata infocard, not the work (the Stage A source pointed there and was refused as a SPARQL card).",
       "license_evidence": {
         "url": "https://bn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1113,7 +1113,7 @@
       "kind": "mediawiki-parse",
       "sha256": "14477848f49b5cdeb93ffbe8e909a53372c022bcd93ab638c86aad6e1aec9dfb",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:36Z",
+      "retrieved_at": "2026-09-25T09:48:06Z",
       "notes": "Second Bengali source (Gitanjali alone is 65,174 characters): prose by a different author. The whole novel in one render. The work page দেবদাস (শরৎচন্দ্র চট্টোপাধ্যায়) lists 16 chapter subpages (/প্রথম পরিচ্ছেদ … /ষোড়শ পরিচ্ছেদ) transcluding scan pages 5–110, split with <section> markers where two chapters share a page (chapter 1 = from=5 to=12 tosection=১, chapter 16 = from=100 fromsection=১৬ to=110); this source renders <pages index=\"দেবদাস - শরৎচন্দ্র চট্টোপাধ্যায়.pdf\" from=5 to=110 /> without section limits, so every section of every page appears once, in order. The cover and title pages (scan pages 1–3) and page 4 (a list of the author's other books) are excluded. Checked on 2026-09-24: the render starts with chapter এক and the novel's first line (একদিন বৈশাখের দ্বিপ্রহরে…) and ends with its last paragraph (…দেখিয়া সে মরিতে পারে।) followed by সমাপ্ত; no scan page 5–110 was below 'proofread' (8–108 proofread, level 3; 5–7 and 109–110 validated, level 4); the build re-checks each page's level. The scan is of a 1947 printing (category ১৯৪৭ খ্রিস্টাব্দে প্রকাশিত) and the work page carries {{PD-India}}. The bare title দেবদাস is a disambiguation page; the other scan it lists, দেবদাস - প্রচার পুস্তিকা (১৯৩৫).pdf, is a 1935 film booklet, not the novel.",
       "license_evidence": {
         "url": "https://bn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1136,7 +1136,7 @@
       "kind": "mediawiki-parse",
       "sha256": "c3fe2b7aa706f199ef0de677c912ac1b4d392a0f95ff464b328d6d56fdfa066e",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:41Z",
+      "retrieved_at": "2026-09-25T09:48:10Z",
       "notes": "First of two Gujarati sources (together chapters 1-12 of part 1). Renders <pages index=\"Saraswati Chandra Part 1.pdf\" from=21 to=106 /> under the work page સરસ્વતીચંદ્ર ભાગ ૧, whose chapter subpages transclude exactly this range, split with sections where two chapters share a page: chapter 1 (સુવર્ણપુરનો અતિથિ) = from=21 to=25 tosection=25a, chapter 8 (અમાત્યને ઘેર) = from=99 fromsection=99b to=106. Scan page 106 ends chapter 8 without a section split, so the range ends on a chapter boundary; rendered without section limits, every section of every page appears once, in order. Scan pages 2-18 (front matter: prefaces and contents) and 20 (the invocation મંગલપુષ્પાંજલિ) are excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and 370 of its 373 pages at level 3 or 4 (the other three are not in either list); the six pages sampled (૨૧, ૩૦, ૫૦, ૭૦, ૯૦, ૧૦૬) are validated (level 4); prop=templates for each range lists every scan page as existing and no missing template (ઢાંચો:Rule, Rule/styles.css, Reflist). gu.wikisource's page anchor shows no proofreading level (only a percent-encoded title), so the build asks the wiki's API (prop=proofread) for each page's level and refuses the source if it cannot confirm it. Page titles use Gujarati digits (પૃષ્ઠ:Saraswati Chandra Part 1.pdf/૨૧). Licence review: the work page carries {{ઢાંચો:પ્રકાશન-ભારત}}, gu.wikisource's public-domain-in-India notice (Indian Copyright Act 1957: 60 years after the author's death); the scan's Commons file page gives the date 1887-01-01, the source Digital Library of India and {{PD-1923}}; Govardhanram Tripathi lived 1855-1907 (en.wikipedia). Footnotes are dropped by the cleaner, as for every rendered source.",
       "license_evidence": {
         "url": "https://gu.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1159,7 +1159,7 @@
       "kind": "mediawiki-parse",
       "sha256": "91e688351017a228c543da4be205128cb6d7c06d8e280b0d693b3ce0d1d0e3d1",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:48Z",
+      "retrieved_at": "2026-09-25T09:48:16Z",
       "notes": "Second Gujarati source: <pages index=\"Saraswati Chandra Part 1.pdf\" from=107 to=188 />. Chapter 9 (ઉન્મત્તપણાનું પરિણામ) starts at the top of scan page 107 (from=107); chapter 12 (રાજા, રાજદરબાર અને રાજકારભાર) ends at from=148 fromsection=148b to=188 tosection=188a, so the range's last page also holds the opening section (188b) of chapter 13 (રસ્તામાં), which is therefore included: no chapter of part 1 between pages 106 and 372 ends at the foot of a page. Estimated with the first source at about 240,000-270,000 characters (about 1,600 per page from the sampled page sizes); the report gives the real number. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and 370 of its 373 pages at level 3 or 4 (the other three are not in either list); the six pages sampled (૨૧, ૩૦, ૫૦, ૭૦, ૯૦, ૧૦૬) are validated (level 4); prop=templates for each range lists every scan page as existing and no missing template (ઢાંચો:Rule, Rule/styles.css, Reflist). gu.wikisource's page anchor shows no proofreading level (only a percent-encoded title), so the build asks the wiki's API (prop=proofread) for each page's level and refuses the source if it cannot confirm it. Page titles use Gujarati digits (પૃષ્ઠ:Saraswati Chandra Part 1.pdf/૨૧). Licence review: the work page carries {{ઢાંચો:પ્રકાશન-ભારત}}, gu.wikisource's public-domain-in-India notice (Indian Copyright Act 1957: 60 years after the author's death); the scan's Commons file page gives the date 1887-01-01, the source Digital Library of India and {{PD-1923}}; Govardhanram Tripathi lived 1855-1907 (en.wikipedia). Footnotes are dropped by the cleaner, as for every rendered source.",
       "license_evidence": {
         "url": "https://gu.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1182,7 +1182,7 @@
       "kind": "mediawiki-parse",
       "sha256": "beb122a5db7828b5947e1f07412a8ea91d6a321cab20c61d59e1f705c0c29bfb",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:53Z",
+      "retrieved_at": "2026-09-25T09:48:22Z",
       "notes": "First of two Malayalam sources (together chapters 1-18 of 36). Renders <pages index=\"Ramarajabahadoor.djvu\" from=4 to=150 /> under the work page രാമരാജാബഹദൂർ. Its chapter subpages transclude whole scan pages (no sections): chapter 1 = from=4 to=12 and chapter 14 = from=151 to=161, so chapters 1-13 are exactly pages 4-150. Scan page 1 (the dedication സമർപ്പണം) and 2-3 (the preface മുഖവുര) are excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and all 436 at level 3 or 4; the six pages sampled (4, 20, 60, 100, 140, 173) are proofread (level 3) or validated (4: page 4). Chapters 1-18 use only existing templates (ഫലകം:Header2, Hyphenated word start/end and their redirects Hws/Hwe); none is missing. ml.wikisource renders the older page anchor <span id=\"pr_page\">[ <a class=\"prp-pagequality-N\" ...>n</a> ]</span>: the cleaner reads each page's level from that class and drops the bracketed page number. Page titles use ASCII digits (താൾ:Ramarajabahadoor.djvu/4). Licence review: the work page has no licence template; the scan's file page on ml.wikisource (പ്രമാണം:Ramarajabahadoor.djvu, not on Commons) carries {{PD-India}} and calls it C. V. Raman Pillai's third historical novel (1918); he died on 1922-03-21 (Wikidata Q5006916).",
       "license_evidence": {
         "url": "https://ml.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1205,7 +1205,7 @@
       "kind": "mediawiki-parse",
       "sha256": "db88c28a02b99d6a483874ea267bc145c0b295fd21e4cc886596f0e4ee5dba11",
       "verified": true,
-      "retrieved_at": "2026-09-24T18:59:58Z",
+      "retrieved_at": "2026-09-25T09:48:27Z",
       "notes": "Second Malayalam source: <pages index=\"Ramarajabahadoor.djvu\" from=151 to=207 /> = chapter 14 (from=151 to=161) through chapter 18 (from=194 to=207), whole pages. The novel is split in two because one render of all 433 story pages would be far larger than any render this corpus has used (the largest so far is Gitanjali's 178 pages). Estimated with the first source at about 230,000-265,000 characters (about 1,300 per page from the sampled page sizes, which vary widely); the report gives the real number. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and all 436 at level 3 or 4; the six pages sampled (4, 20, 60, 100, 140, 173) are proofread (level 3) or validated (4: page 4). Chapters 1-18 use only existing templates (ഫലകം:Header2, Hyphenated word start/end and their redirects Hws/Hwe); none is missing. ml.wikisource renders the older page anchor <span id=\"pr_page\">[ <a class=\"prp-pagequality-N\" ...>n</a> ]</span>: the cleaner reads each page's level from that class and drops the bracketed page number. Page titles use ASCII digits (താൾ:Ramarajabahadoor.djvu/4). Licence review: the work page has no licence template; the scan's file page on ml.wikisource (പ്രമാണം:Ramarajabahadoor.djvu, not on Commons) carries {{PD-India}} and calls it C. V. Raman Pillai's third historical novel (1918); he died on 1922-03-21 (Wikidata Q5006916).",
       "license_evidence": {
         "url": "https://ml.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1228,7 +1228,7 @@
       "kind": "mediawiki-parse",
       "sha256": "83850852f8f4e85dd38be7e4692a4775723a0bdc5e74c7dabf3711c8b2da9d70",
       "verified": true,
-      "retrieved_at": "2026-09-24T19:00:02Z",
+      "retrieved_at": "2026-09-25T09:48:30Z",
       "notes": "The only Odia source. Renders <pages index=\"Chha mana atha guntha.pdf\" from=4 to=162 /> under the work page ଛମାଣ ଆଠଗୁଣ୍ଠ, whose 29 chapter subpages transclude exactly this range, whole pages: chapter 1 (ରାମଚନ୍ଦ୍ର ମଙ୍ଗରାଜ) = from=4 to=7, chapter 2 = from=8 to=11, chapter 28 (ଅପୂର୍ବ ମିଳନ) = from=157 to=159 and the closing chapter 29 (ଉପସଂହାର) = from=160 to=162, the scan's last page. Scan pages 1-3 (cover and front matter) are excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2; the six pages sampled (୪, ୧୦, ୪୦, ୮୦, ୧୨୦, ୧୬୨) are validated (level 4); the chapters use only existing templates (ଛାଞ୍ଚ:Larger, X-larger, Gap, Header, Center, C, Block center). or.wikisource's page anchor shows no proofreading level (as on gu), so the build asks the wiki's API for each page's level and refuses the source if it cannot confirm it. Page titles use Odia digits (ପୃଷ୍ଠା:Chha mana atha guntha.pdf/୪); the same numbers in ASCII digits (.../4) are redirects left over from a rename and are marked level 1, but the render transcludes the Odia-digit pages (checked: scan page 4 renders as .../୪ and opens with ପ୍ରଥମ ପରିଚ୍ଛେଦ, ରାମଚନ୍ଦ୍ର ମଙ୍ଗରାଜ). Licence review: the work page has no licence template; its Index page gives the year 1903; the scan's Commons file page credits the scan to Srujanika and NIT Rourkela and releases it under {{cc-zero}}; Fakir Mohan Senapati died on 1918-06-14 (Wikidata Q3635656). Estimated at about 190,000-215,000 characters (about 1,340 per page before running heads are removed): possibly just under the 200,000 target, in which case the slot is INSUFFICIENT with the real number and a second Odia work will be needed.",
       "license_evidence": {
         "url": "https://or.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1251,7 +1251,7 @@
       "kind": "mediawiki-parse",
       "sha256": "9876b5c9940e0fd416b349cbdb5e8c6af77396cc18e0bc8067d3ab9e20fb4292",
       "verified": true,
-      "retrieved_at": "2026-09-24T19:00:10Z",
+      "retrieved_at": "2026-09-25T09:48:38Z",
       "notes": "First of two Assamese sources (the novel's two parts). Renders <pages index=\"Manomati.pdf\" from=5 to=131 /> under the work page মনোমতী, whose chapter subpages transclude whole scan pages: part 1 chapter 1 = from=5 to=12, chapter 18 = from=114 to=116, chapter 19 = from=117 to=131; part 2 chapter 1 starts at from=133, so scan page 132 (between the parts) is excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2; the six pages sampled (৫, ২০, ৬০, ১০০, ১৩১, ২০০) are validated (level 4). Part 1 chapters 1-15 use only existing templates (সাঁচ:Header, Center, Header/year, Gap, X-larger, Xxxx-larger, Block center, Blockcenter, Is number); the other chapters were not checked in advance, and any red link to a missing template is removed by the cleaner and listed in the inspection report. as.wikisource's page anchor carries data-page-name and data-page-quality, as on hi and bn. Page titles use Assamese digits (পৃষ্ঠা:Manomati.pdf/৫). Licence review: the work page carries {{PD-India}} and gives the year ১৯০০; the scan's Commons file page tags it {{PD-old-auto|1940}} and describes it as the 6th edition (চপলা সাহিত্য সদন, Shillong, 1956) from the Digital Library of India; Rajanikanta Bordoloi died on 1940-03-25 (Wikidata Q12015668). Because the scan is a posthumous edition, only the novel's chapters are used: the opening note আৰম্ভণ (pages 3-4), the closing সামৰণি (268-270), the notes টীকা (271-278) and the notice বিজ্ঞাপন (279-280) are excluded, since who wrote them is not established.",
       "license_evidence": {
         "url": "https://as.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1274,7 +1274,7 @@
       "kind": "mediawiki-parse",
       "sha256": "eb4b86b654019c7b0eac0a2e35c4926f611c22d2e9c4261db67a7d13ad90b763",
       "verified": true,
-      "retrieved_at": "2026-09-24T19:00:14Z",
+      "retrieved_at": "2026-09-25T09:48:42Z",
       "notes": "Second Assamese source: <pages index=\"Manomati.pdf\" from=133 to=267 /> = part 2 chapter 1 (from=133 to=139) through chapter 25 (from=255 to=267), whole pages. Estimated with part 1 at about 220,000-255,000 characters (about 960 per page from the sampled page sizes); the report gives the real number. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2; the six pages sampled (৫, ২০, ৬০, ১০০, ১৩১, ২০০) are validated (level 4). Part 1 chapters 1-15 use only existing templates (সাঁচ:Header, Center, Header/year, Gap, X-larger, Xxxx-larger, Block center, Blockcenter, Is number); the other chapters were not checked in advance, and any red link to a missing template is removed by the cleaner and listed in the inspection report. as.wikisource's page anchor carries data-page-name and data-page-quality, as on hi and bn. Page titles use Assamese digits (পৃষ্ঠা:Manomati.pdf/৫). Licence review: the work page carries {{PD-India}} and gives the year ১৯০০; the scan's Commons file page tags it {{PD-old-auto|1940}} and describes it as the 6th edition (চপলা সাহিত্য সদন, Shillong, 1956) from the Digital Library of India; Rajanikanta Bordoloi died on 1940-03-25 (Wikidata Q12015668). Because the scan is a posthumous edition, only the novel's chapters are used: the opening note আৰম্ভণ (pages 3-4), the closing সামৰণি (268-270), the notes টীকা (271-278) and the notice বিজ্ঞাপন (279-280) are excluded, since who wrote them is not established.",
       "license_evidence": {
         "url": "https://as.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1295,9 +1295,9 @@
       "attribution": "Punjabi Wikisource contributors, ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) by Bhai Vir Singh, scan pages 7–164, transcribed from the scan ਸਤਵੰਤ ਕੌਰ.pdf (1973 printing, Khalsa Samachar, Amritsar); via pa.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts, in 1900 and 1927, and Bhai Vir Singh died in 1957; the work is public domain in India.",
       "max_chars": 400000,
       "kind": "mediawiki-parse",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
+      "sha256": "0fa06c574b20507761310c947b75af6fa3164839ff7d75280aacf0d606e72bde",
+      "verified": true,
+      "retrieved_at": "2026-09-25T09:48:45Z",
       "notes": "First of two Punjabi sources (together the whole novel). Renders <pages index=\"ਸਤਵੰਤ ਕੌਰ.pdf\" from=7 to=164 />. pa.wikisource has no work page for this scan (its index says Transclusion=no and the page ਸਤਵੰਤ ਕੌਰ does not exist), so the range is rendered straight from the index, under that title. The novel starts on scan page 7 with chapter 1 (੧. ਕਾਂਡ।, printed page 1); scan pages 1-4 are blank, 5 is the title page and 6 the imprint. The wiki's search finds ਕਾਂਡ (chapter) on 27 pages, from 7 to 323; pages 7, 10 and 140 were read and open chapters 1, 2 and 16, and page 165, where the second source starts, is the 18th of them. Page 148 quotes a Hindustani (Urdu) history written in Gurmukhi; it is the only such page the search finds, and it stays. Checked on 2026-09-25: all 344 scan pages exist; the wiki's search finds none at level 1 or 2 and 336 at level 4 (validated); the other 8 (1-4 and 341-344) are empty. The templates used by ten pages sampled across both ranges (7, 40, 87, 140, 148, 165, 205, 257, 295, 336) all exist. pa.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (ਪੰਨਾ:ਸਤਵੰਤ ਕੌਰ.pdf/7); the printed page numbers sit in each page's footer and are not rendered. Licence review: the scan is a local file whose description page reads ਲੇਖਕ - ਭਾਈ ਵੀਰ ਸਿੰਘ (1872–1957) and tags it {{PD-India}}. Its title page (scan page 5) dates this printing March 1973 (ਸੰ: ਗ: ਨਾ: ੫੦੪) and names Khalsa Samachar, Amritsar; its 'All rights reserved by Bhai Vir Singh Sahitya Sadan' line states the rights of that time, which have since expired. The novel appeared in two parts, in 1900 and 1927, in the author's lifetime, and Bhai Vir Singh died on 1957-06-10 (Wikidata Q3631340), so the text has been public domain in India since 2018 (life + 60 years). Only the novel is used; the publisher's own 1973 matter is excluded: the title page and imprint (scan pages 5-6) and the advertisements that follow the novel's closing -ਇਤਿ- on page 337 and fill pages 338-340.",
       "license_evidence": {
         "url": "https://pa.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1318,9 +1318,9 @@
       "attribution": "Punjabi Wikisource contributors, ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) by Bhai Vir Singh, scan pages 165–336, transcribed from the scan ਸਤਵੰਤ ਕੌਰ.pdf (1973 printing, Khalsa Samachar, Amritsar); via pa.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts, in 1900 and 1927, and Bhai Vir Singh died in 1957; the work is public domain in India.",
       "max_chars": 400000,
       "kind": "mediawiki-parse",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
+      "sha256": "4d9384360088fdfa3cfc743aba77a1b165b71c7ee49496c5eeeec38bc3e90a36",
+      "verified": true,
+      "retrieved_at": "2026-09-25T09:48:51Z",
       "notes": "Second of two Punjabi sources. Renders <pages index=\"ਸਤਵੰਤ ਕੌਰ.pdf\" from=165 to=336 /> (rendered from the index, as the first source is). It continues the first source at scan page 165 and ends on page 336: page 337 holds the novel's last paragraph, its closing -ਇਤਿ- and then the publisher's advertisement, and a range cannot take half a page, so that last paragraph is left out. Checked on 2026-09-25: all 344 scan pages exist; the wiki's search finds none at level 1 or 2 and 336 at level 4 (validated); the other 8 (1-4 and 341-344) are empty. The templates used by ten pages sampled across both ranges (7, 40, 87, 140, 148, 165, 205, 257, 295, 336) all exist. pa.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (ਪੰਨਾ:ਸਤਵੰਤ ਕੌਰ.pdf/7); the printed page numbers sit in each page's footer and are not rendered. Licence review: the scan is a local file whose description page reads ਲੇਖਕ - ਭਾਈ ਵੀਰ ਸਿੰਘ (1872–1957) and tags it {{PD-India}}. Its title page (scan page 5) dates this printing March 1973 (ਸੰ: ਗ: ਨਾ: ੫੦੪) and names Khalsa Samachar, Amritsar; its 'All rights reserved by Bhai Vir Singh Sahitya Sadan' line states the rights of that time, which have since expired. The novel appeared in two parts, in 1900 and 1927, in the author's lifetime, and Bhai Vir Singh died on 1957-06-10 (Wikidata Q3631340), so the text has been public domain in India since 2018 (life + 60 years). Only the novel is used; the publisher's own 1973 matter is excluded: the title page and imprint (scan pages 5-6) and the advertisements that follow the novel's closing -ਇਤਿ- on page 337 and fill pages 338-340.",
       "license_evidence": {
         "url": "https://pa.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1341,9 +1341,9 @@
       "attribution": "Kannada Wikisource contributors, ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) by M. R. Srinivasamurthy, chapters 1–15, transcribed from the scan ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf (Satyashodhana Prakatana Mandira, 1951); via kn.wikisource.org, licensed CC BY-SA 4.0. This edition was published in 1951 and M. R. Srinivasamurthy died in 1953; the work is public domain in India.",
       "max_chars": 400000,
       "kind": "mediawiki-parse",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
+      "sha256": "31ede1440a464a19ba798b0cc9fb22d2466cf54c93bdae4033e41b2f824d2cdb",
+      "verified": true,
+      "retrieved_at": "2026-09-25T09:48:57Z",
       "notes": "First of two Kannada sources (together the whole book). Renders <pages index=\"ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf\" from=16 to=178 /> under the work page ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು, which transcludes the text as include=16-343 after its front matter (scan pages 6-15: title pages, and the contents on 14-15), all excluded here. The contents (scan pages 14-15) list 30 chapters with printed page numbers; printed page = scan page - 15 at both ends of the book (printed 1 = scan 16; chapter 30 opens at the top of scan page 342, printed 327), so chapter 16 (ತಿಪ್ಪೇನಹಳ್ಳಿಯ ಮೇಷ್ಟು, printed 164) begins on scan page 179, where the second source starts. Checked on 2026-09-25: all 349 scan pages exist; the wiki's search finds none at level 1, 2 or 3 and 339 at level 4 (validated); the other 10 are empty pages outside both ranges. The work page transcludes every page of both ranges, and its template list names no missing template. kn.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use Kannada digits (ಪುಟ:ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf/೧೬). The running header ({{rh}}: title and page number) sits in each page's header and is not rendered. Licence review: the work page carries no licence tag and gives the year 1951; the scan's Commons file page tags it {{PD-scan}} and describes it as the 1951 edition (ಸತ್ಯಶೋಧನಾ ಪ್ರಕಟಣಾ ಮಂದಿರ) from the Osmania University Digital Library (Internet Archive dli.osmania.4124). M. R. Srinivasamurthy died in 1953 — on 1953-11-16 by Wikidata (Q15716827), on 16-9-1953 by the wiki's author page; the year agrees — so a book he published in 1951 has been public domain in India since 2014 (life + 60 years).",
       "license_evidence": {
         "url": "https://kn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1364,9 +1364,9 @@
       "attribution": "Kannada Wikisource contributors, ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) by M. R. Srinivasamurthy, chapters 16–30, transcribed from the scan ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf (Satyashodhana Prakatana Mandira, 1951); via kn.wikisource.org, licensed CC BY-SA 4.0. This edition was published in 1951 and M. R. Srinivasamurthy died in 1953; the work is public domain in India.",
       "max_chars": 400000,
       "kind": "mediawiki-parse",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
+      "sha256": "1c18873756981becbf3c3a69adf56666ea66f6f17f638870e676cc20ea2578d5",
+      "verified": true,
+      "retrieved_at": "2026-09-25T09:49:05Z",
       "notes": "Second of two Kannada sources. Renders <pages index=\"ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf\" from=179 to=343 /> under the work page ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು. The contents (scan pages 14-15) list 30 chapters with printed page numbers; printed page = scan page - 15 at both ends of the book (printed 1 = scan 16; chapter 30 opens at the top of scan page 342, printed 327), so chapter 16 (ತಿಪ್ಪೇನಹಳ್ಳಿಯ ಮೇಷ್ಟು, printed 164) begins on scan page 179, where the second source starts. Scan page 343 (printed 328) is the novel's last page and ends with a rule; pages 344-349 are outside the work page's include=16-343 and are excluded. Checked on 2026-09-25: all 349 scan pages exist; the wiki's search finds none at level 1, 2 or 3 and 339 at level 4 (validated); the other 10 are empty pages outside both ranges. The work page transcludes every page of both ranges, and its template list names no missing template. kn.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use Kannada digits (ಪುಟ:ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf/೧೬). The running header ({{rh}}: title and page number) sits in each page's header and is not rendered. Licence review: the work page carries no licence tag and gives the year 1951; the scan's Commons file page tags it {{PD-scan}} and describes it as the 1951 edition (ಸತ್ಯಶೋಧನಾ ಪ್ರಕಟಣಾ ಮಂದಿರ) from the Osmania University Digital Library (Internet Archive dli.osmania.4124). M. R. Srinivasamurthy died in 1953 — on 1953-11-16 by Wikidata (Q15716827), on 16-9-1953 by the wiki's author page; the year agrees — so a book he published in 1951 has been public domain in India since 2014 (life + 60 years).",
       "license_evidence": {
         "url": "https://kn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1387,9 +1387,9 @@
       "attribution": "Telugu Wikisource contributors, రాజశేఖర చరిత్రము (Rajasekhara Charitramu) by Kandukuri Veeresalingam, chapters 1–7, transcribed from the scan Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf (1987 reprint); via te.wikisource.org, licensed CC BY-SA 4.0. The novel was published in the nineteenth century and Kandukuri Veeresalingam died in 1919; the work is public domain in India.",
       "max_chars": 400000,
       "kind": "mediawiki-parse",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
+      "sha256": "31d455d7192f365db6b623c5221849bad9b5a55e1df3b4abfcb1c5333744fbd7",
+      "verified": true,
+      "retrieved_at": "2026-09-25T09:49:11Z",
       "notes": "First of two Telugu sources (together the whole novel). Renders <pages index=\"Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf\" from=15 to=104 /> under the work page రాజశేఖర చరిత్రము (ఎమెస్కో), whose 15 chapter subpages transclude whole scan pages: chapter 1 (మొదటి ప్రకరణము) = from=15 to=25, chapter 8 (ఎనిమిదవ ప్రకరణము) = from=105 to=120, chapter 15 (పదునేనవ ప్రకరణము) = from=209 to=217. Chapter 8 starts on page 105 without a section, so this range ends on a chapter boundary. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1 or 2 and 216 of its 220 pages at level 4 (validated). The templates of chapters 1, 8 and 15 all exist. te.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (పుట:Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf/15). Licence review: the work page carries {{PD-old}} and the year 1987 (the reprint's); the scan's Commons file page tags it {{PD-India}} and names the author. Kandukuri Veeresalingam died on 1919-05-27 (Wikidata Q6361647), so the novel has been public domain in India since 1980 (life + 60 years). Scan pages 1-14 are the reprint's front matter, which the work page itself transcludes; whoever wrote it, it is excluded, and so are pages 218-220 after the last chapter.",
       "license_evidence": {
         "url": "https://te.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1410,9 +1410,9 @@
       "attribution": "Telugu Wikisource contributors, రాజశేఖర చరిత్రము (Rajasekhara Charitramu) by Kandukuri Veeresalingam, chapters 8–15, transcribed from the scan Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf (1987 reprint); via te.wikisource.org, licensed CC BY-SA 4.0. The novel was published in the nineteenth century and Kandukuri Veeresalingam died in 1919; the work is public domain in India.",
       "max_chars": 400000,
       "kind": "mediawiki-parse",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
+      "sha256": "e6bd442e01d58e8ca86b0888873f659eb9cfbb96fb1d68296c8045104792cb80",
+      "verified": true,
+      "retrieved_at": "2026-09-25T09:49:15Z",
       "notes": "Second of two Telugu sources. Renders <pages index=\"Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf\" from=105 to=217 /> under the work page రాజశేఖర చరిత్రము (ఎమెస్కో), whose 15 chapter subpages transclude whole scan pages: chapter 1 (మొదటి ప్రకరణము) = from=15 to=25, chapter 8 (ఎనిమిదవ ప్రకరణము) = from=105 to=120, chapter 15 (పదునేనవ ప్రకరణము) = from=209 to=217. Page 217 ends the novel with a rule; it also begins with a stray U+FEFF, which the cleaner removes and counts. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1 or 2 and 216 of its 220 pages at level 4 (validated). The templates of chapters 1, 8 and 15 all exist. te.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (పుట:Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf/15). Licence review: the work page carries {{PD-old}} and the year 1987 (the reprint's); the scan's Commons file page tags it {{PD-India}} and names the author. Kandukuri Veeresalingam died on 1919-05-27 (Wikidata Q6361647), so the novel has been public domain in India since 1980 (life + 60 years). Scan pages 1-14 are the reprint's front matter, which the work page itself transcludes; whoever wrote it, it is excluded, and so are pages 218-220 after the last chapter.",
       "license_evidence": {
         "url": "https://te.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1433,9 +1433,9 @@
       "attribution": "Tamil Wikisource contributors, என் சரித்திரம் (En Charithram) by U. V. Swaminatha Iyer, scan pages 22–101, transcribed from the scan என் சரித்திரம், உவேசா, 1990.pdf (U. V. Swaminatha Iyer Library, Chennai, 1990); via ta.wikisource.org, licensed CC BY-SA 4.0. U. V. Swaminatha Iyer died in 1942 and the autobiography was first published as a book in 1950; the work is public domain in India.",
       "max_chars": 400000,
       "kind": "mediawiki-parse",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
+      "sha256": "4a8b61e92567efed06f8895662a5aab5e22b693716de5824e168d7b24aa98d02",
+      "verified": true,
+      "retrieved_at": "2026-09-25T09:49:18Z",
       "notes": "First of two Tamil sources: together, scan pages 22-189 hold chapters 1-27 of the autobiography in full (of more than 100) and the opening of chapter 28. Renders <pages index=\"என் சரித்திரம், உவேசா, 1990.pdf\" from=22 to=101 /> under the work page என் சரித்திரம். Its chapters begin mid-page, so each chapter subpage transcludes one section: chapter 1 (எங்கள் ஊர்) = from=22 to=29 section 1, chapter 14 = from=96 to=102 section 14, chapter 15 = from=102 to=109 section 15, chapter 27 = from=182 to=189 section 27, and chapter 28 begins on page 189. Rendered as whole pages without section limits, every section of every page appears once, in order. This source therefore ends inside chapter 14, and the second continues it from page 102. Scan page 22 opens the text: the title என் சரித்திரம், the author's name and அத்தியாயம் 1. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1, 2 or 4 and 803 of its 804 pages at level 3 (proofread, not yet validated; the gate accepts level 3). The templates of chapters 1, 14 and 27 all exist. The chapters end with {{Reflist}}; the renderer's cleaner drops footnote markers and footnote lists, so no footnote text reaches the corpus. ta.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (பக்கம்:என் சரித்திரம், உவேசா, 1990.pdf/22). Licence review: the work page carries {{PD-India/ta}}; the scan's Commons file page tags it {{PD-India}} and describes it as the U. V. Swaminatha Iyer Library's 1990 critical edition (செம்பதிப்பு) of the 1950 book, from the Tamil Nadu government's Tamil Digital Library (TVA_BOK_0024109); its 'permission' line (a publication in 1887) is wrong and is not relied on. U. V. Swaminatha Iyer died on 1942-04-28 (Wikidata Q7863546): counted from his death (life + 60 years) or, taking the 1950 book as the first publication, 60 years from 1950, the text is public domain in India either way. Scan pages 1-21 are excluded: title pages, the 1990 publisher's note (பதிப்பாளர் குறிப்பு), the preface (முகவுரை), a biographical summary (ஐயரவர்களின் வாழ்க்கை வரலாற்றுச் சுருக்கம்) and the contents (18-21), none of it established as the author's.",
       "license_evidence": {
         "url": "https://ta.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
@@ -1456,9 +1456,9 @@
       "attribution": "Tamil Wikisource contributors, என் சரித்திரம் (En Charithram) by U. V. Swaminatha Iyer, scan pages 102–189, transcribed from the scan என் சரித்திரம், உவேசா, 1990.pdf (U. V. Swaminatha Iyer Library, Chennai, 1990); via ta.wikisource.org, licensed CC BY-SA 4.0. U. V. Swaminatha Iyer died in 1942 and the autobiography was first published as a book in 1950; the work is public domain in India.",
       "max_chars": 400000,
       "kind": "mediawiki-parse",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
+      "sha256": "50ef1de96f98473c5d81d243324d54fdfacec1746a34918456f3269466d14dea",
+      "verified": true,
+      "retrieved_at": "2026-09-25T09:49:22Z",
       "notes": "Second of two Tamil sources. Renders <pages index=\"என் சரித்திரம், உவேசா, 1990.pdf\" from=102 to=189 /> under the work page என் சரித்திரம். Its chapters begin mid-page, so each chapter subpage transcludes one section: chapter 1 (எங்கள் ஊர்) = from=22 to=29 section 1, chapter 14 = from=96 to=102 section 14, chapter 15 = from=102 to=109 section 15, chapter 27 = from=182 to=189 section 27, and chapter 28 begins on page 189. Rendered as whole pages without section limits, every section of every page appears once, in order. This source therefore starts with the end of chapter 14 and ends with the opening lines of chapter 28 on page 189. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1, 2 or 4 and 803 of its 804 pages at level 3 (proofread, not yet validated; the gate accepts level 3). The templates of chapters 1, 14 and 27 all exist. The chapters end with {{Reflist}}; the renderer's cleaner drops footnote markers and footnote lists, so no footnote text reaches the corpus. ta.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (பக்கம்:என் சரித்திரம், உவேசா, 1990.pdf/22). Licence review: the work page carries {{PD-India/ta}}; the scan's Commons file page tags it {{PD-India}} and describes it as the U. V. Swaminatha Iyer Library's 1990 critical edition (செம்பதிப்பு) of the 1950 book, from the Tamil Nadu government's Tamil Digital Library (TVA_BOK_0024109); its 'permission' line (a publication in 1887) is wrong and is not relied on. U. V. Swaminatha Iyer died on 1942-04-28 (Wikidata Q7863546): counted from his death (life + 60 years) or, taking the 1950 book as the first publication, 60 years from 1950, the text is public domain in India either way. Scan pages 1-21 are excluded: title pages, the 1990 publisher's note (பதிப்பாளர் குறிப்பு), the preface (முகவுரை), a biographical summary (ஐயரவர்களின் வாழ்க்கை வரலாற்றுச் சுருக்கம்) and the contents (18-21), none of it established as the author's.",
       "license_evidence": {
         "url": "https://ta.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
