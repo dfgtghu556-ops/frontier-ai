@@ -18,6 +18,10 @@ The rules that matter most:
 3. If a source cannot be licensed, leave it unverified. Never pad or substitute text.
 4. Work only on branch `arena/01a0d31f-frontier-ai`: pull first, push only there; never
    `main`, never force-push, never VS Code's Sync or Publish buttons.
+5. Add to shared files, never rewrite them. EXPERIMENTS.md and NEW_CHAT_START_HERE.md keep
+   everything that came before, so add new entries with an edit, never by writing the whole
+   file anew. Before every commit check `git diff --stat`: many deleted lines mean
+   something went wrong.
 
 Where things stand: the handover's §2 and §10, the runbook's status header
 ([docs/tokenizer_corpus_stage_b_acquisition.md](docs/tokenizer_corpus_stage_b_acquisition.md)),
