@@ -161,6 +161,14 @@ comes next. They also update the table in §3.
   completion updates are recorded. P004B is complete; next, the operator may merge this
   branch into `main` when ready (no pull request was opened).
 
+* **2026-09-26, Arena agent:** checked the finished state from git.
+  * All 59 sources are verified and pinned. The 55 earlier fingerprints are unchanged.
+  * 13 of 14 slots are `EVALUATED`; hi-en is not.
+  * In the Arena sandbox (Linux), the full test suite gives 415 passed, 1 skipped, and Ruff
+    is clean. So the 22 failures that EXP-024 reports come from the Windows machine's setup,
+    as EXP-024 itself says.
+  * Next: the operator decides whether to merge this branch into `main`.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```
