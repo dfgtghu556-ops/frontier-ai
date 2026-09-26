@@ -52,16 +52,21 @@ def exact_dedup(documents: Sequence[PipelineDocument]) -> StageOutcome:
     removed: list[Removal] = []
     per_source: Counter[str] = Counter()
     cross_pairs: Counter[str] = Counter()
+    per_language: dict[str, dict[str, int]] = {}
     for doc in ordered:
+        stats_l = per_language.setdefault(doc.language, {"in": 0, "kept": 0, "removed": 0})
+        stats_l["in"] += 1
         key = doc.sha256
         first = first_seen.get(key)
         if first is None:
             first_seen[key] = doc
             kept.append(doc)
+            stats_l["kept"] += 1
         else:
             removed.append(Removal(doc.doc_id, doc.source_id, doc.language, "exact_duplicate",
                                    {"first_seen": first.doc_id, "first_source": first.source_id}))
             per_source[doc.source_id] += 1
+            stats_l["removed"] += 1
             pair = first.source_id if first.source_id == doc.source_id \
                 else "|".join(sorted((first.source_id, doc.source_id)))
             cross_pairs[pair] += 1
@@ -70,6 +75,7 @@ def exact_dedup(documents: Sequence[PipelineDocument]) -> StageOutcome:
         "documents_out": len(kept),
         "unique_keys": len(first_seen),
         "removed": len(removed),
+        "per_language": per_language,
         "removed_per_source": dict(sorted(per_source.items())),
         # "a|b" = duplicates of a document first seen in a, found in b;
         # "a" = within-source duplicates (both copies in a).

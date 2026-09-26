@@ -269,6 +269,9 @@ def test_builder_e2e_on_fake_frozen_corpus(tmp_path):
     assert manifest["identity"]["split"]["seed"] == 1337
     dedup = [s for s in manifest["stages"] if s["stage"] == "exact_dedup"][0]
     assert dedup["stats"]["removed"] == 4
+    # per-language breakdown — the shape the 396-duplicate cross-check consumes
+    assert dedup["stats"]["per_language"]["hi"] == {"in": 7, "kept": 3, "removed": 4}
+    assert dedup["stats"]["per_language"]["en"] == {"in": 2, "kept": 2, "removed": 0}
 
     # --check passes on the fresh build
     check = _run_builder(["--out", str(out), "--check"])

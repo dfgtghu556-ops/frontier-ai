@@ -36,3 +36,8 @@ htmlcov/
 
 # Tokenizer research artifacts (regenerable)
 /artifacts/
+
+# FrontierCorpus v1 pilot shards: corpus text, intentionally out of git (same
+# policy as /data/ — reproducible from the frozen pins + pipeline + seed; the
+# manifest and reports under corpora/frontier/v1/ are the committed record).
+/corpora/frontier/v1/shards/
