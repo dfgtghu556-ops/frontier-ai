@@ -1054,6 +1054,102 @@ corpus that differs from v2 — then open v3, do not amend v2.
 
 ---
 
+## D-036 — FrontierCorpus v1 normalizes text to NFC, policy version 1
+**Date:** 2026-09-26 · **Status:** provisional (built under the founder's 2026-09-26
+"finish up the upcoming tasks quickly" directive; awaits the founder's explicit ratification)
+
+**Decision:** every FrontierCorpus v1 document is normalized **once**, at the front of the
+pipeline, to **NFC** (Unicode composed form), with deterministic whitespace canonicalization
+(every whitespace run → one space, ends stripped; `\r` dropped, `\n` preserved as content).
+The policy and its version (`nfc` / version `"1"`) are recorded in every stage-1 report and
+in the dataset manifest. An ablation (NFD, or no normalization) is a *new pipeline version*,
+not a silent re-run.
+
+**Rationale:** the Stage A corpus was built *without* normalization on purpose so this choice
+would stay reviewable (D-035 lineage, §12). FrontierCorpus v1 is that decision point. NFC is
+the composed form: two texts that differ only in decomposition (a common accident of
+different editors and web sources) become byte-identical, so identity, deduplication and the
+later tokenizer all operate on one canonical form. Q-11 asked exactly this question and
+deferred it to Stage 2 on real data; the frozen v2 corpus (D-035) is that real data.
+
+**Alternatives considered:** (a) NFD (decomposed) — rejected as the default: it is the form
+least commonly used by the tools and fonts a reader will meet, so "canonical" would be
+un-canonical for downstream consumers; it stays available as an ablation policy; (b) no
+normalization — rejected as the default: the frozen corpus's own documents are a mix of
+composed and decomposed forms, so an identity built on raw bytes would treat the same word
+as different data; (c) NFC plus aggressive case-folding/character rewrites — rejected: that
+is a lossy transform with no review trail, out of scope for the first pipeline version.
+
+**Consequences:**
+- The normalize stage never removes a document (it only transforms) and reports
+  `documents_changed` plus in/out char/byte totals, so its effect is measurable without
+  re-running.
+- Exact deduplication keys on the *normalized* text, so NFC variants deduplicate together.
+- Changing the policy or its version requires a new decision record and a new pipeline
+  version; existing manifest hashes are never reinterpreted.
+
+**Revisit when:** the tokenizer experiments (MASTER_CONTEXT §37 steps 5–6) show a measurable
+loss difference between the NFC pipeline and an NFD/none ablation on the held-out split —
+then the policy may change, with a new record.
+
+---
+
+## D-037 — FrontierCorpus v1 is a staged, pure-function pipeline over the frozen corpus
+**Date:** 2026-09-26 · **Status:** provisional (built under the founder's 2026-09-26
+"finish up the upcoming tasks quickly" directive; awaits the founder's explicit ratification)
+
+**Decision:** FrontierCorpus v1 is built as a sequence of **pure-function stages** sharing
+one document model (`frontier_ai.corpus`), in the order
+`normalize → langid → quality → exact dedup → (mix → split → shuffle → pack → shard →
+manifest)`. Each stage: takes an ordered list of documents, returns
+`StageOutcome(kept, removed, flagged, stats)`; removes nothing silently — every removal
+carries a machine-readable reason and the measured values that triggered it; has no global
+RNG; is deterministic. The pilot corpus is the frozen `indic-tokenizer/v2` (D-035), 59
+sources; the pipeline **extends** the P004A/B infrastructure (`frontier_ai.data.corpora`,
+`frontier_ai.data.mediawiki`, `frontier_ai.tokenization.research_corpus`) rather than
+forking it. Output is pre-tokenization text shards (one hash per shard) plus a dataset
+manifest — tokenization itself belongs to the later tokenizer experiments (MASTER_CONTEXT
+§37 steps 5–7), not to this pipeline.
+
+**Rationale:** MASTER_CONTEXT §12–13 prescribe a reproducible, versioned, training-ready
+dataset as step 3 before any tokenizer work, and §15 requires that intermediate statistics
+answer "what did the pipeline remove, and why". Pure-function stages with one shared
+contract make that audit possible stage by stage, make every stage independently testable
+without network or model dependencies, and make a later stage (e.g. PII, near-dedup in F3)
+an insertion, not a rewrite. Building on the frozen corpus means the pilot adds **zero new
+acquisition or licensing surface** — the legal and availability risk is already settled by
+D-035.
+
+**Alternatives considered:** (a) one monolithic build script — rejected: an opaque composite
+removes the §15 auditability and makes each new stage a regression risk; (b) forking the
+P004A/B document/split/stats code into the new package — rejected: two divergent
+implementations of the same hashing/splitting would drift and break cross-checks against
+the frozen corpus's own reports; (c) tokenizing inside the pipeline — rejected: no tokenizer
+is selected yet (§37 step 7), and baking a tokenizer into the data pipeline would force a
+corpus rebuild for every tokenizer candidate; (d) a model-based language classifier or
+near-duplicate detector now — rejected as out of scope (F3): the deterministic script gate
+and exact dedup are the defensible first pass and can be cross-checked against the frozen
+corpus's own inspection counts.
+
+**Consequences:**
+- The first buildable slice (this record's companion code) covers `normalize`, `langid`,
+  `quality`, `exact_dedup` with unit tests; `mix/split/shuffle/pack/shard/manifest`, the
+  registry import and the self-recording builder script are the remaining F1 part-2 work.
+- `langid` is a script-profile **gate**, not a classifier: same-script languages
+  (hi/mr, bn/as) are not distinguished at this stage; a word-level classifier is an F3
+  option.
+- Pilot deduplication must reproduce (within a documented, explained delta) the frozen
+  corpus's own identical-document counts (396 total, per `reports/EXP-023-inspection.txt`),
+  because the frozen corpus's cleaner already removed most duplicates upstream.
+- Nothing in this pipeline selects a tokenizer, a data-mix recipe, or a model (MASTER
+  CONTEXT §37 steps 4–7 remain separate).
+
+**Revisit when:** the pilot build's stage statistics (F1 part 2, EXP-027) show a stage whose
+removals cannot be explained by its measured reasons — then that stage's contract changes,
+with a new record.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 
