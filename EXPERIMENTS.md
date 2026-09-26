@@ -1348,7 +1348,48 @@ The 5 missing `bpe_hf` + mark-aware combinations are a documented limitation (th
 - **Expected:** exit 0 with `out/experiments/EXP-028/report.txt` (per-configuration table + per-language table) and `sweep.json` + 15 run records; exit 2 means the frozen input did not verify (stop and report, do not fix the corpus).
 - **Stop condition:** report the exit code, the per-configuration table, and the per-language table. Do not choose a tokenizer.
 
-**Results:** pending PC run.
+**Results (2026-09-26, PC run; COMPLETE):** 15/15 grid cells + 5/5 supplement cells,
+**all gate=PASS** (exit 0 on both runs). Verified by `scripts/summarize_sweep.py`
+(per-run consistency checks over all 20 runs; merged summary at
+`out/experiments/EXP-028/summary.txt`, input `6c43d12695f2ffaa…`).
+Headline (held-out overall chars_per_token; higher = denser):
+
+| Configuration | chars/token |
+|---|---|
+| `mark_aware-32768` (hf and py — identical) | 2.3054 |
+| `mark_aware-16384` | 2.1108 |
+| `mark_aware-8192` | 1.8909 |
+| `mark_aware-4096` | 1.6620 |
+| `mark_aware-2048` | 1.4333 |
+| `hf-byte_level-32768` | 1.5971 |
+| `py-gpt2_style-32768` | 1.5878 |
+
+(small-vocab baseline cells: 1.5831 / 1.5464 / 1.4838 / 1.3891 for hf, 1.5696 / 1.5323 / 1.4702 / 1.3792 for py)
+
+**Findings:**
+- **Mark-aware is a clear winner:** +45 % held-out density over the GPT-2/ByteLevel
+  baselines at 32k vocab (2.3054 vs 1.5971), consistent at every vocab size (matra
+  hypothesis confirmed on the full corpus).
+- **Cross-implementation validation:** `hf-mark_aware-X` and `py-mark_aware-X` produce
+  *identical* held-out metrics at all 5 vocab sizes and across all 13 languages — two
+  independent BPE implementations (pure Python; Rust `tokenizers`) agree on the full
+  424,727-char held-out side. Consequence: the ranked top-2 list
+  (hf-mark_aware-32768, py-mark_aware-32768) is one tokenizer in two implementations.
+- **Per language:** mark_aware-32768 wins 11 of 13 languages; the baselines win `en`
+  (3.9284 vs 2.2645 — English has no combining marks, GPT-2 boundaries are native) and
+  `ur` (3.2352 vs 1.8791 — corpus Urdu is largely unvocalized, so there are few marks to
+  protect).
+- **Vocabulary size has diminishing returns:** 32768 vs 16384 = +9 % density.
+- **Speed:** the HF path with the custom mark-aware pre-tokenizer trains each cell in
+  ~27 s vs 142 s–2049 s for the pure-Python BPE (merging stays in Rust; only the
+  boundary classification is Python).
+
+**EXP-B hand-off (per D-038, no selection before EXP-B):** the literal top-2 is one
+tokenizer twice, so the informative comparison is `mark_aware-32768` (winner) vs
+`mark_aware-16384` (best *distinct* configuration; doubles as the vocab-size question),
+each with ≥ 3 seeds, compared by bits-per-byte of an identical small model. The
+hf/py implementation question is an engineering choice (encodings are identical;
+HF format is the standard artifact). Plan pending founder approval.
 
 **Artifacts (harness):** `scripts/run_tokenizer_sweep.py`, `src/frontier_ai/tokenization/sweep.py`, `src/frontier_ai/corpus/frontier_docs.py`, `tests/test_tokenizer_sweep.py`; pending: `out/experiments/EXP-028/` (PC).
 

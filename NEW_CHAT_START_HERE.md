@@ -284,6 +284,21 @@ comes next. They also update the table in §3.
   hf-mark_aware-8192,hf-mark_aware-16384,hf-mark_aware-32768`), then
   `python scripts/summarize_sweep.py --sweep-dir out/experiments/EXP-028
   out/experiments/EXP-028-hf-mark-aware`; its TOP-2 section hands off to EXP-B.
+* **2026-09-26, Arena agent (EXP-028 COMPLETE, commits `c11ba8f`, `3bae620`):** PC ran
+  the full 15-cell sweep (all gate=PASS) and the 5-cell supplement (all gate=PASS;
+  the runner's `--configs` auto-include fix in `3bae620` made the documented command
+  work). Verified merged summary (20 runs): **mark_aware-32768 = 2.3054 held-out
+  chars/token, +45 % over the GPT-2/ByteLevel baselines (1.5971)**, consistent at all
+  vocab sizes; mark_aware-32768 wins 11 of 13 languages (baselines win `en` and
+  unvocalized `ur`). Key validation: `hf-mark_aware-X` ≡ `py-mark_aware-X` — identical
+  metrics at all 5 vocabs and 13 languages across two independent BPE implementations,
+  so the ranked top-2 is one tokenizer in two implementations; the informative EXP-B
+  pair is therefore `mark_aware-32768` vs `mark_aware-16384`. Results + findings
+  recorded in EXPERIMENTS.md (EXP-028). **Next: founder approves the EXP-B plan
+  (top-2 interpretation + pre-registered decision rule); no EXP-B code before
+  approval.** Note: the sandbox suffered two more fresh-reclone resets today; both
+  recovered via fetch + `git reset --mixed FETCH_HEAD` (tree intact; re-committed as
+  `c11ba8f`).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
