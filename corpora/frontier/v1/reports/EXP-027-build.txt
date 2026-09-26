@@ -1,0 +1,29 @@
+FrontierCorpus v1 pilot build — EXP-027
+generated: 2026-09-26T12:55:52+00:00
+git sha: dbc67be90535f47ea5c38c93c83ff447d33f1b2e
+source registry: indic-tokenizer/v2 (frozen) manifest sha256 aec3dfa091370832e7f48f5fabb3d749716ef50a7cae70fc28b45ea272da67bf — 59 sources
+normalization: nfc (policy version 1)
+split: deterministic-content-hash seed=1337 held_out=0.1
+
+stage summary (documents in -> kept; removed with reasons; flagged kept)
+  normalize     in= 34684  kept= 34684  removed=   0  flagged_docs=   0
+  langid        in= 34684  kept= 34350  removed= 334  flagged_docs=   0
+  quality       in= 34350  kept= 34350  removed=   0  flagged_docs=   1
+  exact_dedup   in= 34350  kept= 34011  removed= 339  flagged_docs=   0
+
+train: 30584 documents / 3778463 chars
+held_out: 3427 documents / 424727 chars
+
+shards
+  train    train-000000    7920 docs     999186 chars  b6a99a89423e4671
+  train    train-000001    8222 docs     999562 chars  d6a0490748a6ca66
+  train    train-000002    7944 docs     999407 chars  9de4e0c0748c9862
+  train    train-000003    6498 docs     810888 chars  be135ad8bd70b75f
+  heldout  heldout-000000    3427 docs     428153 chars  2d1f2f5c2fcab98d
+
+manifest: corpora\frontier\v1\manifest.json (sha256 1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f)
+build took 13 s
+
+Review: compare the exact_dedup removals against the frozen corpus's own identical-document
+counts (reports/EXP-023-inspection.txt: 396 total) — any delta must be explained by the
+stages that ran before dedup (normalization can merge composed/decomposed twins).

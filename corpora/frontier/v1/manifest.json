@@ -1,0 +1,1265 @@
+{
+  "content_sha256": "6c43d12695f2ffaab6be2bae632c7dc4638b171de92c7fe5bbb138547bb47d50",
+  "corpus": {
+    "domains": [
+      "literature"
+    ],
+    "id": "frontier-corpus",
+    "version": "1.0.0-pilot"
+  },
+  "created_at": "2026-09-26T12:55:52+00:00",
+  "identity": {
+    "git_sha": "dbc67be90535f47ea5c38c93c83ff447d33f1b2e",
+    "normalization": {
+      "policy": "nfc",
+      "version": "1"
+    },
+    "source_registry": {
+      "corpus": "indic-tokenizer/v2 (frozen, D-035)",
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "PD-US"
+      ],
+      "path": "corpora\\tokenizer\\indic-tokenizer-v2\\sources.json",
+      "sha256": "aec3dfa091370832e7f48f5fabb3d749716ef50a7cae70fc28b45ea272da67bf",
+      "sources": 59
+    },
+    "sources": [
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "as",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:19Z",
+        "script": "Bengali-Assamese",
+        "sha256": "9876b5c9940e0fd416b349cbdb5e8c6af77396cc18e0bc8067d3ab9e20fb4292",
+        "source_id": "as-wikisource-manomati-part1-ccbysa",
+        "source_url": "https://as.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%AE%E0%A6%A8%E0%A7%8B%E0%A6%AE%E0%A6%A4%E0%A7%80&text=%3Cpages%20index%3D%22Manomati.pdf%22%20from%3D5%20to%3D131%20%2F%3E",
+        "title": "মনোমতী (Manomati) — Rajanikanta Bordoloi — part 1, chapters 1–19"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "as",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:23Z",
+        "script": "Bengali-Assamese",
+        "sha256": "eb4b86b654019c7b0eac0a2e35c4926f611c22d2e9c4261db67a7d13ad90b763",
+        "source_id": "as-wikisource-manomati-part2-ccbysa",
+        "source_url": "https://as.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%AE%E0%A6%A8%E0%A7%8B%E0%A6%AE%E0%A6%A4%E0%A7%80&text=%3Cpages%20index%3D%22Manomati.pdf%22%20from%3D133%20to%3D267%20%2F%3E",
+        "title": "মনোমতী (Manomati) — Rajanikanta Bordoloi — part 2, chapters 1–25"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "bn",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:52Z",
+        "script": "Bengali",
+        "sha256": "14477848f49b5cdeb93ffbe8e909a53372c022bcd93ab638c86aad6e1aec9dfb",
+        "source_id": "bn-wikisource-devdas-ccbysa",
+        "source_url": "https://bn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%A6%E0%A7%87%E0%A6%AC%E0%A6%A6%E0%A6%BE%E0%A6%B8%20%28%E0%A6%B6%E0%A6%B0%E0%A7%8E%E0%A6%9A%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%8D%E0%A6%B0%20%E0%A6%9A%E0%A6%9F%E0%A7%8D%E0%A6%9F%E0%A7%8B%E0%A6%AA%E0%A6%BE%E0%A6%A7%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AF%E0%A6%BC%29&text=%3Cpages%20index%3D%22%E0%A6%A6%E0%A7%87%E0%A6%AC%E0%A6%A6%E0%A6%BE%E0%A6%B8%20-%20%E0%A6%B6%E0%A6%B0%E0%A7%8E%E0%A6%9A%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%8D%E0%A6%B0%20%E0%A6%9A%E0%A6%9F%E0%A7%8D%E0%A6%9F%E0%A7%8B%E0%A6%AA%E0%A6%BE%E0%A6%A7%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AF%E0%A6%BC.pdf%22%20from%3D5%20to%3D110%20%2F%3E",
+        "title": "দেবদাস (Devdas) — Sarat Chandra Chattopadhyay — chapters 1–16"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "bn",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:46Z",
+        "script": "Bengali",
+        "sha256": "333fd22ad5a440fb971b3cac51ac1e32c5fbb0f0e08f3c0806afefb5b278a137",
+        "source_id": "bn-wikisource-gitanjali-1913-ccbysa",
+        "source_url": "https://bn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%97%E0%A7%80%E0%A6%A4%E0%A6%BE%E0%A6%9E%E0%A7%8D%E0%A6%9C%E0%A6%B2%E0%A6%BF%20%28%E0%A7%A7%E0%A7%AF%E0%A7%A7%E0%A7%A9%29&text=%3Cpages%20index%3D%22%E0%A6%97%E0%A7%80%E0%A6%A4%E0%A6%BE%E0%A6%9E%E0%A7%8D%E0%A6%9C%E0%A6%B2%E0%A6%BF%20-%20%E0%A6%B0%E0%A6%AC%E0%A7%80%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%8D%E0%A6%B0%E0%A6%A8%E0%A6%BE%E0%A6%A5%20%E0%A6%A0%E0%A6%BE%E0%A6%95%E0%A7%81%E0%A6%B0.djvu%22%20from%3D13%20to%3D190%20%2F%3E",
+        "title": "গীতাঞ্জলি (Gitanjali, 1913 edition) — Rabindranath Tagore — poems 1–157"
+      },
+      {
+        "domain": "literature",
+        "kind": "gutenberg",
+        "language": "en",
+        "license_id": "PD-US",
+        "retrieved_at": "2026-09-25T19:14:58Z",
+        "script": "Latin",
+        "sha256": "4e04ea77acf3b0215cae2089c977bc07526fc834597a1d463598d895354ba41d",
+        "source_id": "en-gutenberg-alice-pd",
+        "source_url": "https://www.gutenberg.org/cache/epub/11/pg11.txt",
+        "title": "Alice's Adventures in Wonderland"
+      },
+      {
+        "domain": "literature",
+        "kind": "gutenberg",
+        "language": "en",
+        "license_id": "PD-US",
+        "retrieved_at": "2026-09-25T19:15:00Z",
+        "script": "Latin",
+        "sha256": "f5d4e24f4fa087f57845abc3369cd25b0b717f478c0a1c5c3caa7130bcdfaa0b",
+        "source_id": "en-gutenberg-sadhana-pd",
+        "source_url": "https://www.gutenberg.org/cache/epub/6842/pg6842.txt",
+        "title": "Sadhana: The Realisation of Life"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "gu",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:55Z",
+        "script": "Gujarati",
+        "sha256": "c3fe2b7aa706f199ef0de677c912ac1b4d392a0f95ff464b328d6d56fdfa066e",
+        "source_id": "gu-wikisource-saraswatichandra-1-ch01-08-ccbysa",
+        "source_url": "https://gu.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AA%B8%E0%AA%B0%E0%AA%B8%E0%AB%8D%E0%AA%B5%E0%AA%A4%E0%AB%80%E0%AA%9A%E0%AA%82%E0%AA%A6%E0%AB%8D%E0%AA%B0%20%E0%AA%AD%E0%AA%BE%E0%AA%97%20%E0%AB%A7&text=%3Cpages%20index%3D%22Saraswati%20Chandra%20Part%201.pdf%22%20from%3D21%20to%3D106%20%2F%3E",
+        "title": "સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) — Govardhanram Tripathi — chapters 1–8"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "gu",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:00Z",
+        "script": "Gujarati",
+        "sha256": "91e688351017a228c543da4be205128cb6d7c06d8e280b0d693b3ce0d1d0e3d1",
+        "source_id": "gu-wikisource-saraswatichandra-1-ch09-12-ccbysa",
+        "source_url": "https://gu.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AA%B8%E0%AA%B0%E0%AA%B8%E0%AB%8D%E0%AA%B5%E0%AA%A4%E0%AB%80%E0%AA%9A%E0%AA%82%E0%AA%A6%E0%AB%8D%E0%AA%B0%20%E0%AA%AD%E0%AA%BE%E0%AA%97%20%E0%AB%A7&text=%3Cpages%20index%3D%22Saraswati%20Chandra%20Part%201.pdf%22%20from%3D107%20to%3D188%20%2F%3E",
+        "title": "સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) — Govardhanram Tripathi — chapters 9–12"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:02Z",
+        "script": "Devanagari",
+        "sha256": "29b16b4e808d55fb8c94ea366f779ff3005432dabc4f3fad224102b75dba61a2",
+        "source_id": "hi-wikisource-godaan-ch01-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7",
+        "title": "गो-दान (Godaan) — Premchand — chapter 1 of 36 (गो-दान/१)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:04Z",
+        "script": "Devanagari",
+        "sha256": "e9bf25e4b77752679116f0666e50b7ae8e64155baec2b380b7ebb0c308766531",
+        "source_id": "hi-wikisource-godaan-ch02-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8",
+        "title": "गो-दान (Godaan) — Premchand — chapter 2 of 36 (गो-दान/२)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:05Z",
+        "script": "Devanagari",
+        "sha256": "c498f301885d87a80717501e2b2dc5b72055da9b719b8bcb7e03d2416e741b6a",
+        "source_id": "hi-wikisource-godaan-ch03-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9",
+        "title": "गो-दान (Godaan) — Premchand — chapter 3 of 36 (गो-दान/३)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:06Z",
+        "script": "Devanagari",
+        "sha256": "8892b80981642b7d2b06ca1057a4071384917650a082e588efeecae13799d31d",
+        "source_id": "hi-wikisource-godaan-ch04-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AA",
+        "title": "गो-दान (Godaan) — Premchand — chapter 4 of 36 (गो-दान/४)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:08Z",
+        "script": "Devanagari",
+        "sha256": "5884f0dfb3f8275a2109bcc5979c16f2f90b8c97826f43e42b0766213661ffe9",
+        "source_id": "hi-wikisource-godaan-ch05-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AB",
+        "title": "गो-दान (Godaan) — Premchand — chapter 5 of 36 (गो-दान/५)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:09Z",
+        "script": "Devanagari",
+        "sha256": "697f7480f616d93075ac2a155720df7a83fb6a998ae3a768d51e31d0d97cf5f6",
+        "source_id": "hi-wikisource-godaan-ch06-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AC",
+        "title": "गो-दान (Godaan) — Premchand — chapter 6 of 36 (गो-दान/६)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:11Z",
+        "script": "Devanagari",
+        "sha256": "1c9ebd637ca9bccefed8dd498a7508f06735aa1716f29cb16f7d1ea5e9c85641",
+        "source_id": "hi-wikisource-godaan-ch07-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AD",
+        "title": "गो-दान (Godaan) — Premchand — chapter 7 of 36 (गो-दान/७)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:12Z",
+        "script": "Devanagari",
+        "sha256": "4fdc0c7d340af62b362bcd57801278aa183c77d8c289da44f2da3c4d62287884",
+        "source_id": "hi-wikisource-godaan-ch08-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AE",
+        "title": "गो-दान (Godaan) — Premchand — chapter 8 of 36 (गो-दान/८)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:14Z",
+        "script": "Devanagari",
+        "sha256": "692ee82f7114e23459c7277dd6a62aab32f3d10e3e5bbce62fe1ea5bbb8b8956",
+        "source_id": "hi-wikisource-godaan-ch09-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AF",
+        "title": "गो-दान (Godaan) — Premchand — chapter 9 of 36 (गो-दान/९)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:15Z",
+        "script": "Devanagari",
+        "sha256": "7f6f26bd4ea5da9015c7641ec373c89993d70c52116799464708a19c8a95e0c8",
+        "source_id": "hi-wikisource-godaan-ch10-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%A6",
+        "title": "गो-दान (Godaan) — Premchand — chapter 10 of 36 (गो-दान/१०)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:16Z",
+        "script": "Devanagari",
+        "sha256": "ec440f3c1edf5e80b545a2efde8b0d3807fc24f9ad16ec4f6a1d6efa4b2a39ed",
+        "source_id": "hi-wikisource-godaan-ch11-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%A7",
+        "title": "गो-दान (Godaan) — Premchand — chapter 11 of 36 (गो-दान/११)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:17Z",
+        "script": "Devanagari",
+        "sha256": "0c1093508f90442dbd499f9a106f5639129bc03250a88324f6a04c7d82743fb9",
+        "source_id": "hi-wikisource-godaan-ch12-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%A8",
+        "title": "गो-दान (Godaan) — Premchand — chapter 12 of 36 (गो-दान/१२)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:18Z",
+        "script": "Devanagari",
+        "sha256": "d11ffcf76ae885161bbcffe95630851c5aa0cff5e843c8e1e4fdc42d6ab489a2",
+        "source_id": "hi-wikisource-godaan-ch13-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%A9",
+        "title": "गो-दान (Godaan) — Premchand — chapter 13 of 36 (गो-दान/१३)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:19Z",
+        "script": "Devanagari",
+        "sha256": "dce8b25c77fa5bf6bb5172a41489b7f31df972d1f2934bb12eec7c5a0df324a2",
+        "source_id": "hi-wikisource-godaan-ch14-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AA",
+        "title": "गो-दान (Godaan) — Premchand — chapter 14 of 36 (गो-दान/१४)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:20Z",
+        "script": "Devanagari",
+        "sha256": "75c2506ef92ce7688886a6806f3b9fe45ac2be81f2b2c0e4379432fe732efd90",
+        "source_id": "hi-wikisource-godaan-ch15-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AB",
+        "title": "गो-दान (Godaan) — Premchand — chapter 15 of 36 (गो-दान/१५)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:22Z",
+        "script": "Devanagari",
+        "sha256": "db92ce286618ee63e4c0470305db8cc15fe738e2aa20f3ad77abb4e32bf1ec43",
+        "source_id": "hi-wikisource-godaan-ch16-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AC",
+        "title": "गो-दान (Godaan) — Premchand — chapter 16 of 36 (गो-दान/१६)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:23Z",
+        "script": "Devanagari",
+        "sha256": "dd26069b4d4137193d971df2bdbd8a7e5e492ceba284cdd7e5ddb119863e236b",
+        "source_id": "hi-wikisource-godaan-ch17-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AD",
+        "title": "गो-दान (Godaan) — Premchand — chapter 17 of 36 (गो-दान/१७)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:24Z",
+        "script": "Devanagari",
+        "sha256": "248d832b428a5538c5dbe2c003fbdd0b20ebc78747760d9b9178c9f4acec38d1",
+        "source_id": "hi-wikisource-godaan-ch18-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AE",
+        "title": "गो-दान (Godaan) — Premchand — chapter 18 of 36 (गो-दान/१८)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:25Z",
+        "script": "Devanagari",
+        "sha256": "a579aab3cbd5d8dcc813bb15638f3f781cb75a2ad6f33c79ce05d86c8a33ae86",
+        "source_id": "hi-wikisource-godaan-ch19-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AF",
+        "title": "गो-दान (Godaan) — Premchand — chapter 19 of 36 (गो-दान/१९)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:26Z",
+        "script": "Devanagari",
+        "sha256": "fcdd1851801cbe128b32fc3c0da9c2f82466b72738db0f347aa35e646329ecd0",
+        "source_id": "hi-wikisource-godaan-ch20-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%A6",
+        "title": "गो-दान (Godaan) — Premchand — chapter 20 of 36 (गो-दान/२०)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:28Z",
+        "script": "Devanagari",
+        "sha256": "841e48839312f8ca3d1cf85422eb079ff8cb59cdfdc0c9c8bfd5ec87f67ccd26",
+        "source_id": "hi-wikisource-godaan-ch21-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%A7",
+        "title": "गो-दान (Godaan) — Premchand — chapter 21 of 36 (गो-दान/२१)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:29Z",
+        "script": "Devanagari",
+        "sha256": "d629a7f31f547d75044a22be2ca6bcc5c1f704ebfcda1a852fd921538ad21a92",
+        "source_id": "hi-wikisource-godaan-ch22-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%A8",
+        "title": "गो-दान (Godaan) — Premchand — chapter 22 of 36 (गो-दान/२२)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:30Z",
+        "script": "Devanagari",
+        "sha256": "ebc397046a08e013d0ea74b4d634ca1c5cb0a5fa8038ad309320fb05e8fceee9",
+        "source_id": "hi-wikisource-godaan-ch23-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%A9",
+        "title": "गो-दान (Godaan) — Premchand — chapter 23 of 36 (गो-दान/२३)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:31Z",
+        "script": "Devanagari",
+        "sha256": "467f09e2f0b2e446be52c80898016bbd9c9594d6df39058452f9eb4644b9d324",
+        "source_id": "hi-wikisource-godaan-ch24-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AA",
+        "title": "गो-दान (Godaan) — Premchand — chapter 24 of 36 (गो-दान/२४)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:32Z",
+        "script": "Devanagari",
+        "sha256": "d5c09517e7c6e3593cdf5c7794e62877cf5eb94a35d27e31838dd165d1580606",
+        "source_id": "hi-wikisource-godaan-ch25-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AB",
+        "title": "गो-दान (Godaan) — Premchand — chapter 25 of 36 (गो-दान/२५)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:33Z",
+        "script": "Devanagari",
+        "sha256": "6856378c200415c081e15dee114dcb1d63a6d4316a791662cbd3af846b7bf3a2",
+        "source_id": "hi-wikisource-godaan-ch26-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AC",
+        "title": "गो-दान (Godaan) — Premchand — chapter 26 of 36 (गो-दान/२६)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:34Z",
+        "script": "Devanagari",
+        "sha256": "70f749b9dc25ed787d9022333912032aa47c8ff436ce64916a4234f76c974a6c",
+        "source_id": "hi-wikisource-godaan-ch27-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AD",
+        "title": "गो-दान (Godaan) — Premchand — chapter 27 of 36 (गो-दान/२७)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:36Z",
+        "script": "Devanagari",
+        "sha256": "ef935daa16bfc959db0d9ab7a0818766836e85bb1a73d04f0239239fecaafb1c",
+        "source_id": "hi-wikisource-godaan-ch28-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AE",
+        "title": "गो-दान (Godaan) — Premchand — chapter 28 of 36 (गो-दान/२८)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:37Z",
+        "script": "Devanagari",
+        "sha256": "22cd23704490a5818ab29dfce7923c114df2dfd3c8c1e51ee4857342a92dd2e4",
+        "source_id": "hi-wikisource-godaan-ch29-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AF",
+        "title": "गो-दान (Godaan) — Premchand — chapter 29 of 36 (गो-दान/२९)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:38Z",
+        "script": "Devanagari",
+        "sha256": "313511e1ed9d36ac05498ed590b6238eee65ad0685870482c83104df25f30d4c",
+        "source_id": "hi-wikisource-godaan-ch30-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%A6",
+        "title": "गो-दान (Godaan) — Premchand — chapter 30 of 36 (गो-दान/३०)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:39Z",
+        "script": "Devanagari",
+        "sha256": "08bff4930de92bbc507603ad0333d39423b621f026042177c99703406cf8f157",
+        "source_id": "hi-wikisource-godaan-ch31-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%A7",
+        "title": "गो-दान (Godaan) — Premchand — chapter 31 of 36 (गो-दान/३१)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:41Z",
+        "script": "Devanagari",
+        "sha256": "f9646750547c4e22fabbc5ca48634409c5221d3365fc99d0a1927aa6ac85e895",
+        "source_id": "hi-wikisource-godaan-ch32-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%A8",
+        "title": "गो-दान (Godaan) — Premchand — chapter 32 of 36 (गो-दान/३२)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:42Z",
+        "script": "Devanagari",
+        "sha256": "9ad29f4b912f26599f7e2c78f0243c6859e09e2be49d4ca561cf17be6f53a097",
+        "source_id": "hi-wikisource-godaan-ch33-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%A9",
+        "title": "गो-दान (Godaan) — Premchand — chapter 33 of 36 (गो-दान/३३)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:43Z",
+        "script": "Devanagari",
+        "sha256": "c517af4c135b38217657e7c00a84b1a35f58f157b46e552f7bf97f5f23c0144d",
+        "source_id": "hi-wikisource-godaan-ch34-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%AA",
+        "title": "गो-दान (Godaan) — Premchand — chapter 34 of 36 (गो-दान/३४)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:44Z",
+        "script": "Devanagari",
+        "sha256": "5c716c172579c9170537273748403003131e7b1940527497157ffbce400a4799",
+        "source_id": "hi-wikisource-godaan-ch35-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%AB",
+        "title": "गो-दान (Godaan) — Premchand — chapter 35 of 36 (गो-दान/३५)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "hi",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:15:45Z",
+        "script": "Devanagari",
+        "sha256": "edc02cea02c90525668b0f67897a0ea2e9f4b23cf9446a820b2083ff6b9ce772",
+        "source_id": "hi-wikisource-godaan-ch36-ccbysa",
+        "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%AC",
+        "title": "गो-दान (Godaan) — Premchand — chapter 36 of 36 (गो-दान/३६)"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "kn",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:34Z",
+        "script": "Kannada",
+        "sha256": "31ede1440a464a19ba798b0cc9fb22d2466cf54c93bdae4033e41b2f824d2cdb",
+        "source_id": "kn-wikisource-ranganna-ch01-15-ccbysa",
+        "source_url": "https://kn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81&text=%3Cpages%20index%3D%22%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81.pdf%22%20from%3D16%20to%3D178%20%2F%3E",
+        "title": "ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) — M. R. Srinivasamurthy — chapters 1–15"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "kn",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:39Z",
+        "script": "Kannada",
+        "sha256": "1c18873756981becbf3c3a69adf56666ea66f6f17f638870e676cc20ea2578d5",
+        "source_id": "kn-wikisource-ranganna-ch16-30-ccbysa",
+        "source_url": "https://kn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81&text=%3Cpages%20index%3D%22%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81.pdf%22%20from%3D179%20to%3D343%20%2F%3E",
+        "title": "ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) — M. R. Srinivasamurthy — chapters 16–30"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "ml",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:05Z",
+        "script": "Malayalam",
+        "sha256": "beb122a5db7828b5947e1f07412a8ea91d6a321cab20c61d59e1f705c0c29bfb",
+        "source_id": "ml-wikisource-ramarajabahadoor-ch01-13-ccbysa",
+        "source_url": "https://ml.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B4%B0%E0%B4%BE%E0%B4%AE%E0%B4%B0%E0%B4%BE%E0%B4%9C%E0%B4%BE%E0%B4%AC%E0%B4%B9%E0%B4%A6%E0%B5%82%E0%B5%BC&text=%3Cpages%20index%3D%22Ramarajabahadoor.djvu%22%20from%3D4%20to%3D150%20%2F%3E",
+        "title": "രാമരാജാബഹദൂർ (Ramarajabahadoor) — C. V. Raman Pillai — chapters 1–13"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "ml",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:09Z",
+        "script": "Malayalam",
+        "sha256": "db88c28a02b99d6a483874ea267bc145c0b295fd21e4cc886596f0e4ee5dba11",
+        "source_id": "ml-wikisource-ramarajabahadoor-ch14-18-ccbysa",
+        "source_url": "https://ml.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B4%B0%E0%B4%BE%E0%B4%AE%E0%B4%B0%E0%B4%BE%E0%B4%9C%E0%B4%BE%E0%B4%AC%E0%B4%B9%E0%B4%A6%E0%B5%82%E0%B5%BC&text=%3Cpages%20index%3D%22Ramarajabahadoor.djvu%22%20from%3D151%20to%3D207%20%2F%3E",
+        "title": "രാമരാജാബഹദൂർ (Ramarajabahadoor) — C. V. Raman Pillai — chapters 14–18"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "mr",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:56Z",
+        "script": "Devanagari",
+        "sha256": "e1e7dba1bfe55b7a04ef68750b11492b6a84af32d3175f04570613b89b679896",
+        "source_id": "mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa",
+        "source_url": "https://mr.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A4%B8%E0%A5%8D%E0%A4%AB%E0%A5%81%E0%A4%9F%20%E0%A4%97%E0%A5%8B%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A5%80%20%E0%A4%AD%E0%A4%BE%E0%A4%97%20%E0%A4%A4%E0%A4%BF%E0%A4%B8%E0%A4%B0%E0%A4%BE&text=%3Cpages%20index%3D%22%E0%A4%B8%E0%A5%8D%E0%A4%AB%E0%A5%81%E0%A4%9F%20%E0%A4%97%E0%A5%8B%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A5%80%20%E0%A4%AD%E0%A4%BE%E0%A4%97%20%E0%A4%A4%E0%A4%BF%E0%A4%B8%E0%A4%B0%E0%A4%BE.pdf%22%20from%3D13%20to%3D124%20%2F%3E",
+        "title": "स्फुट गोष्टी भाग तिसरा — Hari Narayan Apte — scan pages 13–124"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "or",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:12Z",
+        "script": "Odia",
+        "sha256": "83850852f8f4e85dd38be7e4692a4775723a0bdc5e74c7dabf3711c8b2da9d70",
+        "source_id": "or-wikisource-chha-mana-atha-guntha-ccbysa",
+        "source_url": "https://or.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AC%9B%E0%AC%AE%E0%AC%BE%E0%AC%A3%20%E0%AC%86%E0%AC%A0%E0%AC%97%E0%AD%81%E0%AC%A3%E0%AD%8D%E0%AC%A0&text=%3Cpages%20index%3D%22Chha%20mana%20atha%20guntha.pdf%22%20from%3D4%20to%3D162%20%2F%3E",
+        "title": "ଛମାଣ ଆଠଗୁଣ୍ଠ (Chha Mana Atha Guntha) — Fakir Mohan Senapati — the whole novel"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "pa",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:26Z",
+        "script": "Gurmukhi",
+        "sha256": "0fa06c574b20507761310c947b75af6fa3164839ff7d75280aacf0d606e72bde",
+        "source_id": "pa-wikisource-satwant-kaur-p007-164-ccbysa",
+        "source_url": "https://pa.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0&text=%3Cpages%20index%3D%22%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0.pdf%22%20from%3D7%20to%3D164%20%2F%3E",
+        "title": "ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) — Bhai Vir Singh — scan pages 7–164"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "pa",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:31Z",
+        "script": "Gurmukhi",
+        "sha256": "4d9384360088fdfa3cfc743aba77a1b165b71c7ee49496c5eeeec38bc3e90a36",
+        "source_id": "pa-wikisource-satwant-kaur-p165-336-ccbysa",
+        "source_url": "https://pa.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0&text=%3Cpages%20index%3D%22%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0.pdf%22%20from%3D165%20to%3D336%20%2F%3E",
+        "title": "ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) — Bhai Vir Singh — scan pages 165–336"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "ta",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:49Z",
+        "script": "Tamil",
+        "sha256": "4a8b61e92567efed06f8895662a5aab5e22b693716de5824e168d7b24aa98d02",
+        "source_id": "ta-wikisource-en-charithram-p022-101-ccbysa",
+        "source_url": "https://ta.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D&text=%3Cpages%20index%3D%22%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D%2C%20%E0%AE%89%E0%AE%B5%E0%AF%87%E0%AE%9A%E0%AE%BE%2C%201990.pdf%22%20from%3D22%20to%3D101%20%2F%3E",
+        "title": "என் சரித்திரம் (En Charithram) — U. V. Swaminatha Iyer — scan pages 22–101"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "ta",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:53Z",
+        "script": "Tamil",
+        "sha256": "50ef1de96f98473c5d81d243324d54fdfacec1746a34918456f3269466d14dea",
+        "source_id": "ta-wikisource-en-charithram-p102-189-ccbysa",
+        "source_url": "https://ta.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D&text=%3Cpages%20index%3D%22%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D%2C%20%E0%AE%89%E0%AE%B5%E0%AF%87%E0%AE%9A%E0%AE%BE%2C%201990.pdf%22%20from%3D102%20to%3D189%20%2F%3E",
+        "title": "என் சரித்திரம் (En Charithram) — U. V. Swaminatha Iyer — scan pages 102–189"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "te",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:43Z",
+        "script": "Telugu",
+        "sha256": "31d455d7192f365db6b623c5221849bad9b5a55e1df3b4abfcb1c5333744fbd7",
+        "source_id": "te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa",
+        "source_url": "https://te.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B0%B0%E0%B0%BE%E0%B0%9C%E0%B0%B6%E0%B1%87%E0%B0%96%E0%B0%B0%20%E0%B0%9A%E0%B0%B0%E0%B0%BF%E0%B0%A4%E0%B1%8D%E0%B0%B0%E0%B0%AE%E0%B1%81%20%28%E0%B0%8E%E0%B0%AE%E0%B1%86%E0%B0%B8%E0%B1%8D%E0%B0%95%E0%B1%8B%29&text=%3Cpages%20index%3D%22Rajasekhara%20Charitramu%20-%20Kandukuri%20Veeresalingam.pdf%22%20from%3D15%20to%3D104%20%2F%3E",
+        "title": "రాజశేఖర చరిత్రము (Rajasekhara Charitramu) — Kandukuri Veeresalingam — chapters 1–7"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "te",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:16:46Z",
+        "script": "Telugu",
+        "sha256": "e6bd442e01d58e8ca86b0888873f659eb9cfbb96fb1d68296c8045104792cb80",
+        "source_id": "te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa",
+        "source_url": "https://te.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B0%B0%E0%B0%BE%E0%B0%9C%E0%B0%B6%E0%B1%87%E0%B0%96%E0%B0%B0%20%E0%B0%9A%E0%B0%B0%E0%B0%BF%E0%B0%A4%E0%B1%8D%E0%B0%B0%E0%B0%AE%E0%B1%81%20%28%E0%B0%8E%E0%B0%AE%E0%B1%86%E0%B0%B8%E0%B1%8D%E0%B0%95%E0%B1%8B%29&text=%3Cpages%20index%3D%22Rajasekhara%20Charitramu%20-%20Kandukuri%20Veeresalingam.pdf%22%20from%3D105%20to%3D217%20%2F%3E",
+        "title": "రాజశేఖర చరిత్రము (Rajasekhara Charitramu) — Kandukuri Veeresalingam — chapters 8–15"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "ur",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:17:10Z",
+        "script": "Perso-Arabic",
+        "sha256": "36cd31410d2b60da7f09b85e5d080f02b0037f5538606398a403053771080b18",
+        "source_id": "ur-wikisource-ram-charcha-premchand-p171-307-ccbysa",
+        "source_url": "https://ur.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand&text=%3Cpages%20index%3D%22Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand.pdf%22%20from%3D171%20to%3D307%20%2F%3E",
+        "title": "رام چرچا (Ram Charcha) — Munshi Premchand — scan pages 171–307"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "ur",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:17:13Z",
+        "script": "Perso-Arabic",
+        "sha256": "4835213b51c2c7507876d3459460dba8928752cf029e86bfa57650498fbc56c5",
+        "source_id": "ur-wikisource-ram-charcha-premchand-p309-342-ccbysa",
+        "source_url": "https://ur.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand&text=%3Cpages%20index%3D%22Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand.pdf%22%20from%3D309%20to%3D342%20%2F%3E",
+        "title": "رام چرچا (Ram Charcha) — Munshi Premchand — scan pages 309–342"
+      },
+      {
+        "domain": "literature",
+        "kind": "mediawiki-parse",
+        "language": "ur",
+        "license_id": "CC-BY-SA-4.0",
+        "retrieved_at": "2026-09-25T19:17:05Z",
+        "script": "Perso-Arabic",
+        "sha256": "fb22db9983ef7bb861a64ded75e6f7a43d7590bcc009fac4d4c01b5f35a56c53",
+        "source_id": "ur-wikisource-ram-charcha-premchand-p7-170-ccbysa",
+        "source_url": "https://ur.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand&text=%3Cpages%20index%3D%22Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand.pdf%22%20from%3D7%20to%3D170%20%2F%3E",
+        "title": "رام چرچا (Ram Charcha) — Munshi Premchand — scan pages 7–170"
+      }
+    ],
+    "split": {
+      "held_out_fraction": 0.1,
+      "level": "document",
+      "method": "deterministic-content-hash",
+      "seed": 1337
+    }
+  },
+  "schema_version": "1.0",
+  "sides": {
+    "held_out": {
+      "bytes": 1052401,
+      "chars": 428153,
+      "documents": 3427,
+      "per_language": {
+        "as": {
+          "chars": 21467,
+          "documents": 236
+        },
+        "bn": {
+          "chars": 19335,
+          "documents": 408
+        },
+        "en": {
+          "chars": 33376,
+          "documents": 574
+        },
+        "gu": {
+          "chars": 29497,
+          "documents": 190
+        },
+        "hi": {
+          "chars": 74215,
+          "documents": 551
+        },
+        "kn": {
+          "chars": 38135,
+          "documents": 269
+        },
+        "ml": {
+          "chars": 45688,
+          "documents": 226
+        },
+        "mr": {
+          "chars": 27461,
+          "documents": 158
+        },
+        "or": {
+          "chars": 17823,
+          "documents": 176
+        },
+        "pa": {
+          "chars": 39978,
+          "documents": 249
+        },
+        "ta": {
+          "chars": 24377,
+          "documents": 103
+        },
+        "te": {
+          "chars": 25627,
+          "documents": 148
+        },
+        "ur": {
+          "chars": 27748,
+          "documents": 139
+        }
+      },
+      "shards": [
+        {
+          "bytes": 1052401,
+          "chars": 428153,
+          "documents": 3427,
+          "name": "heldout-000000",
+          "sha256": "2d1f2f5c2fcab98da7a4ddb98f1353e447ca72999dc475f0be85a095b6cd20ba"
+        }
+      ]
+    },
+    "train": {
+      "bytes": 9398863,
+      "chars": 3809043,
+      "documents": 30584,
+      "per_language": {
+        "as": {
+          "chars": 215825,
+          "documents": 2224
+        },
+        "bn": {
+          "chars": 188518,
+          "documents": 3604
+        },
+        "en": {
+          "chars": 308784,
+          "documents": 5324
+        },
+        "gu": {
+          "chars": 264587,
+          "documents": 1775
+        },
+        "hi": {
+          "chars": 680655,
+          "documents": 4728
+        },
+        "kn": {
+          "chars": 349697,
+          "documents": 2352
+        },
+        "ml": {
+          "chars": 350559,
+          "documents": 1822
+        },
+        "mr": {
+          "chars": 228415,
+          "documents": 1480
+        },
+        "or": {
+          "chars": 183198,
+          "documents": 1693
+        },
+        "pa": {
+          "chars": 317998,
+          "documents": 2143
+        },
+        "ta": {
+          "chars": 259470,
+          "documents": 967
+        },
+        "te": {
+          "chars": 249979,
+          "documents": 1249
+        },
+        "ur": {
+          "chars": 180778,
+          "documents": 1223
+        }
+      },
+      "shards": [
+        {
+          "bytes": 2464109,
+          "chars": 999186,
+          "documents": 7920,
+          "name": "train-000000",
+          "sha256": "b6a99a89423e467169d989f0d470d877eb2c28d54d992d27262dc854c42e49e4"
+        },
+        {
+          "bytes": 2456354,
+          "chars": 999562,
+          "documents": 8222,
+          "name": "train-000001",
+          "sha256": "d6a0490748a6ca66cfd040b6859aee28b42f0f94074dd1b2e600a2d3a0d65a35"
+        },
+        {
+          "bytes": 2473122,
+          "chars": 999407,
+          "documents": 7944,
+          "name": "train-000002",
+          "sha256": "9de4e0c0748c9862bf22e59965dfb6e8239fb6c1fa7a4ab50d8f2ca7da795aaa"
+        },
+        {
+          "bytes": 2005278,
+          "chars": 810888,
+          "documents": 6498,
+          "name": "train-000003",
+          "sha256": "be135ad8bd70b75fa27150e5033d282c84ffd33292e93a0a6fde3e6a82e7b87b"
+        }
+      ]
+    }
+  },
+  "stages": [
+    {
+      "flagged": {},
+      "kept": 34684,
+      "removed": 0,
+      "stage": "normalize",
+      "stats": {
+        "bytes_in": 10436181,
+        "bytes_out": 10434702,
+        "chars_in": 4211707,
+        "chars_out": 4210228,
+        "documents_changed": 1167,
+        "documents_in": 34684,
+        "documents_out": 34684,
+        "policy": "nfc",
+        "policy_version": "1"
+      }
+    },
+    {
+      "flagged": {},
+      "kept": 34350,
+      "removed": 334,
+      "stage": "langid",
+      "stats": {
+        "documents_in": 34684,
+        "documents_out": 34350,
+        "method": "script-profile",
+        "min_declared_share": 0.6,
+        "note": "script gate, not a language classifier: same-script languages (hi/mr in Devanagari, bn/as in Bengali) are not distinguished here",
+        "per_language": {
+          "as": {
+            "in": 2519,
+            "kept": 2499,
+            "removed": 20
+          },
+          "bn": {
+            "in": 4386,
+            "kept": 4225,
+            "removed": 161
+          },
+          "en": {
+            "in": 5926,
+            "kept": 5913,
+            "removed": 13
+          },
+          "gu": {
+            "in": 1985,
+            "kept": 1965,
+            "removed": 20
+          },
+          "hi": {
+            "in": 5323,
+            "kept": 5290,
+            "removed": 33
+          },
+          "kn": {
+            "in": 2635,
+            "kept": 2632,
+            "removed": 3
+          },
+          "ml": {
+            "in": 2054,
+            "kept": 2052,
+            "removed": 2
+          },
+          "mr": {
+            "in": 1667,
+            "kept": 1658,
+            "removed": 9
+          },
+          "or": {
+            "in": 1902,
+            "kept": 1873,
+            "removed": 29
+          },
+          "pa": {
+            "in": 2427,
+            "kept": 2400,
+            "removed": 27
+          },
+          "ta": {
+            "in": 1077,
+            "kept": 1074,
+            "removed": 3
+          },
+          "te": {
+            "in": 1405,
+            "kept": 1401,
+            "removed": 4
+          },
+          "ur": {
+            "in": 1378,
+            "kept": 1368,
+            "removed": 10
+          }
+        },
+        "removed": 334
+      }
+    },
+    {
+      "flagged": {
+        "kn-wikisource-ranganna-ch01-15-ccbysa-000475": [
+          "digit_runs"
+        ]
+      },
+      "kept": 34350,
+      "removed": 0,
+      "stage": "quality",
+      "stats": {
+        "documents_in": 34350,
+        "documents_out": 34350,
+        "flagged_documents": 1,
+        "per_language": {
+          "as": {
+            "in": 2499,
+            "kept": 2499,
+            "removed": 0
+          },
+          "bn": {
+            "in": 4225,
+            "kept": 4225,
+            "removed": 0
+          },
+          "en": {
+            "in": 5913,
+            "kept": 5913,
+            "removed": 0
+          },
+          "gu": {
+            "in": 1965,
+            "kept": 1965,
+            "removed": 0
+          },
+          "hi": {
+            "in": 5290,
+            "kept": 5290,
+            "removed": 0
+          },
+          "kn": {
+            "in": 2632,
+            "kept": 2632,
+            "removed": 0
+          },
+          "ml": {
+            "in": 2052,
+            "kept": 2052,
+            "removed": 0
+          },
+          "mr": {
+            "in": 1658,
+            "kept": 1658,
+            "removed": 0
+          },
+          "or": {
+            "in": 1873,
+            "kept": 1873,
+            "removed": 0
+          },
+          "pa": {
+            "in": 2400,
+            "kept": 2400,
+            "removed": 0
+          },
+          "ta": {
+            "in": 1074,
+            "kept": 1074,
+            "removed": 0
+          },
+          "te": {
+            "in": 1401,
+            "kept": 1401,
+            "removed": 0
+          },
+          "ur": {
+            "in": 1368,
+            "kept": 1368,
+            "removed": 0
+          }
+        },
+        "per_language_overrides": {},
+        "per_rule": {
+          "control_chars": {
+            "flags": 0,
+            "rejects": 0
+          },
+          "digit_runs": {
+            "flags": 1,
+            "rejects": 0
+          },
+          "max_chars": {
+            "flags": 0,
+            "rejects": 0
+          },
+          "min_chars": {
+            "flags": 0,
+            "rejects": 0
+          },
+          "repetition": {
+            "flags": 0,
+            "rejects": 0
+          },
+          "template_residue": {
+            "flags": 0,
+            "rejects": 0
+          },
+          "url_density": {
+            "flags": 0,
+            "rejects": 0
+          }
+        },
+        "policy": {
+          "digit_run_length": 5,
+          "max_chars": 20000,
+          "max_control_ratio": 0.02,
+          "max_url_density_per_1000": 2.0,
+          "min_chars": 1,
+          "min_repetition_ratio": 0.3,
+          "repetition_min_tokens": 8,
+          "template_residue_limit": 0
+        },
+        "removed": 0
+      }
+    },
+    {
+      "flagged": {},
+      "kept": 34011,
+      "removed": 339,
+      "stage": "exact_dedup",
+      "stats": {
+        "documents_in": 34350,
+        "documents_out": 34011,
+        "duplicate_pairs": {
+          "as-wikisource-manomati-part1-ccbysa": 8,
+          "as-wikisource-manomati-part1-ccbysa|as-wikisource-manomati-part2-ccbysa": 22,
+          "as-wikisource-manomati-part2-ccbysa": 9,
+          "bn-wikisource-devdas-ccbysa": 11,
+          "bn-wikisource-gitanjali-1913-ccbysa": 202,
+          "en-gutenberg-alice-pd": 13,
+          "en-gutenberg-sadhana-pd": 2,
+          "hi-wikisource-godaan-ch09-ccbysa|hi-wikisource-godaan-ch34-ccbysa": 3,
+          "hi-wikisource-godaan-ch15-ccbysa|hi-wikisource-godaan-ch30-ccbysa": 1,
+          "hi-wikisource-godaan-ch20-ccbysa|hi-wikisource-godaan-ch34-ccbysa": 2,
+          "hi-wikisource-godaan-ch21-ccbysa": 2,
+          "hi-wikisource-godaan-ch30-ccbysa|hi-wikisource-godaan-ch34-ccbysa": 1,
+          "hi-wikisource-godaan-ch33-ccbysa": 1,
+          "hi-wikisource-godaan-ch34-ccbysa": 1,
+          "kn-wikisource-ranganna-ch01-15-ccbysa": 4,
+          "kn-wikisource-ranganna-ch01-15-ccbysa|kn-wikisource-ranganna-ch16-30-ccbysa": 4,
+          "kn-wikisource-ranganna-ch16-30-ccbysa": 3,
+          "ml-wikisource-ramarajabahadoor-ch01-13-ccbysa": 3,
+          "ml-wikisource-ramarajabahadoor-ch14-18-ccbysa": 1,
+          "mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa": 20,
+          "or-wikisource-chha-mana-atha-guntha-ccbysa": 4,
+          "pa-wikisource-satwant-kaur-p007-164-ccbysa": 4,
+          "pa-wikisource-satwant-kaur-p007-164-ccbysa|pa-wikisource-satwant-kaur-p165-336-ccbysa": 1,
+          "pa-wikisource-satwant-kaur-p165-336-ccbysa": 3,
+          "ta-wikisource-en-charithram-p022-101-ccbysa": 1,
+          "ta-wikisource-en-charithram-p102-189-ccbysa": 3,
+          "te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa": 3,
+          "te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa|te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa": 1,
+          "ur-wikisource-ram-charcha-premchand-p171-307-ccbysa|ur-wikisource-ram-charcha-premchand-p309-342-ccbysa": 3,
+          "ur-wikisource-ram-charcha-premchand-p171-307-ccbysa|ur-wikisource-ram-charcha-premchand-p7-170-ccbysa": 3
+        },
+        "per_language": {
+          "as": {
+            "in": 2499,
+            "kept": 2460,
+            "removed": 39
+          },
+          "bn": {
+            "in": 4225,
+            "kept": 4012,
+            "removed": 213
+          },
+          "en": {
+            "in": 5913,
+            "kept": 5898,
+            "removed": 15
+          },
+          "gu": {
+            "in": 1965,
+            "kept": 1965,
+            "removed": 0
+          },
+          "hi": {
+            "in": 5290,
+            "kept": 5279,
+            "removed": 11
+          },
+          "kn": {
+            "in": 2632,
+            "kept": 2621,
+            "removed": 11
+          },
+          "ml": {
+            "in": 2052,
+            "kept": 2048,
+            "removed": 4
+          },
+          "mr": {
+            "in": 1658,
+            "kept": 1638,
+            "removed": 20
+          },
+          "or": {
+            "in": 1873,
+            "kept": 1869,
+            "removed": 4
+          },
+          "pa": {
+            "in": 2400,
+            "kept": 2392,
+            "removed": 8
+          },
+          "ta": {
+            "in": 1074,
+            "kept": 1070,
+            "removed": 4
+          },
+          "te": {
+            "in": 1401,
+            "kept": 1397,
+            "removed": 4
+          },
+          "ur": {
+            "in": 1368,
+            "kept": 1362,
+            "removed": 6
+          }
+        },
+        "removed": 339,
+        "removed_per_source": {
+          "as-wikisource-manomati-part1-ccbysa": 8,
+          "as-wikisource-manomati-part2-ccbysa": 31,
+          "bn-wikisource-devdas-ccbysa": 11,
+          "bn-wikisource-gitanjali-1913-ccbysa": 202,
+          "en-gutenberg-alice-pd": 13,
+          "en-gutenberg-sadhana-pd": 2,
+          "hi-wikisource-godaan-ch21-ccbysa": 2,
+          "hi-wikisource-godaan-ch30-ccbysa": 1,
+          "hi-wikisource-godaan-ch33-ccbysa": 1,
+          "hi-wikisource-godaan-ch34-ccbysa": 7,
+          "kn-wikisource-ranganna-ch01-15-ccbysa": 4,
+          "kn-wikisource-ranganna-ch16-30-ccbysa": 7,
+          "ml-wikisource-ramarajabahadoor-ch01-13-ccbysa": 3,
+          "ml-wikisource-ramarajabahadoor-ch14-18-ccbysa": 1,
+          "mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa": 20,
+          "or-wikisource-chha-mana-atha-guntha-ccbysa": 4,
+          "pa-wikisource-satwant-kaur-p007-164-ccbysa": 4,
+          "pa-wikisource-satwant-kaur-p165-336-ccbysa": 4,
+          "ta-wikisource-en-charithram-p022-101-ccbysa": 1,
+          "ta-wikisource-en-charithram-p102-189-ccbysa": 3,
+          "te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa": 3,
+          "te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa": 1,
+          "ur-wikisource-ram-charcha-premchand-p309-342-ccbysa": 3,
+          "ur-wikisource-ram-charcha-premchand-p7-170-ccbysa": 3
+        },
+        "unique_keys": 34011
+      }
+    }
+  ]
+}

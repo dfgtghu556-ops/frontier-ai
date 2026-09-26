@@ -795,6 +795,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-024 | P004B: complete the real tokenizer research corpus | complete | 2026-09-26 | 13 of 14 slots EVALUATED; 59 sources verified and pinned; hi-en honestly NOT_EVALUATED |
 | EXP-025 | **Corpus freeze + verification** (not a benchmark): freeze and verify `indic-tokenizer/v2` (MASTER_CONTEXT §37 step 2) | complete | 2026-09-26 | 59/59 pins present and well-formed; all 59 hashes match the EXP-023 report prefixes; totals 34,684 docs / 4,211,707 chars; 415 passed, 1 skipped; manifest sha256 `aec3dfa0…` frozen (D-035); live re-fetch NOT YET VERIFIED from the sandbox |
 | EXP-026 | P004B: live freshness re-fetch of frozen `indic-tokenizer/v2` | complete | 2026-09-26 | build exit 0; inspection: 59/59 sources verified and pinned, no flagged rows or REFUSED lines |
+| EXP-027 | FrontierCorpus v1 frozen-corpus pilot | complete | 2026-09-26 | build/check exit 0; 34,684 input docs → 34,011 post-stages; train 30,584 / held_out 3,427; 4 train + 1 held-out shards |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1274,3 +1275,39 @@ applies: what exists, what is missing, smallest useful step, founder approval.
 
 **Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-026-refetch.txt`,
 `corpora/tokenizer/indic-tokenizer-v2/FREEZE.json`.
+
+### EXP-027 — FrontierCorpus v1 frozen-corpus pilot
+
+- **Status:** complete
+- **Date:** 2026-09-26
+- **Objective:** build and verify the FrontierCorpus v1 pilot from the frozen `indic-tokenizer/v2` corpus, without fetching or changing sources.
+- **Baseline:** EXP-026 freshness check; frozen manifest SHA-256 `aec3dfa091370832e7f48f5fabb3d749716ef50a7cae70fc28b45ea272da67bf`.
+- **Environment:** Windows, operator's machine; branch `arena/01a0dc16-frontier-ai`.
+- **Commands:** `python scripts/build_frontier_corpus.py --exp-id EXP-027`; `python scripts/build_frontier_corpus.py --check`.
+- **Initial build exit code:** 2. The pilot compared raw file bytes with text hashes, while Windows had stored the same decoded text with CRLF newlines. All 59 cached sources' decoded text matched their pins; no fetch was performed. Fixed in `dbc67be` to validate the decoded text consumed by the pipeline, with a CRLF regression test.
+- **Final build exit code:** 0. **`--check` exit code:** 0.
+
+**Stage summary (documents in -> kept; removed with reasons; flagged kept):**
+
+```text
+  normalize     in= 34684  kept= 34684  removed=   0  flagged_docs=   0
+  langid        in= 34684  kept= 34350  removed= 334  flagged_docs=   0
+  quality       in= 34350  kept= 34350  removed=   0  flagged_docs=   1
+  exact_dedup   in= 34350  kept= 34011  removed= 339  flagged_docs=   0
+```
+
+**Output:** train 30,584 documents / 3,778,463 chars; held_out 3,427 documents / 424,727 chars. Shards: 4 train, 1 held_out. Manifest SHA-256: `1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f`.
+
+**`exact_dedup` per-language statistics** (copied from `manifest.json`):
+
+```json
+{"as":{"in":2499,"kept":2460,"removed":39},"bn":{"in":4225,"kept":4012,"removed":213},"en":{"in":5913,"kept":5898,"removed":15},"gu":{"in":1965,"kept":1965,"removed":0},"hi":{"in":5290,"kept":5279,"removed":11},"kn":{"in":2632,"kept":2621,"removed":11},"ml":{"in":2052,"kept":2048,"removed":4},"mr":{"in":1658,"kept":1638,"removed":20},"or":{"in":1873,"kept":1869,"removed":4},"pa":{"in":2400,"kept":2392,"removed":8},"ta":{"in":1074,"kept":1070,"removed":4},"te":{"in":1401,"kept":1397,"removed":4},"ur":{"in":1368,"kept":1362,"removed":6}}
+```
+
+**Dedup cross-check:** EXP-023 counted 396 duplicate occurrences on the original text. NFC normalization yields 399 duplicate occurrences before langid; the langid stage removes 60 duplicate occurrences along with other rejected documents, leaving the observed 339 for exact dedup. Thus the difference is accounted for by pre-dedup stages (three additional NFC-equivalent duplicates, then 60 duplicate occurrences filtered by langid).
+
+**Conclusion:** The frozen corpus built successfully into the pilot dataset, and `--check` confirmed every shard hash. No source was fetched or re-pinned.
+
+**Next action:** Review the pilot statistics and proceed to the next approved FrontierCorpus step.
+
+**Artifacts:** `corpora/frontier/v1/manifest.json`, `corpora/frontier/v1/reports/EXP-027-build.txt`, `scripts/build_frontier_corpus.py`, `tests/test_frontier_corpus_build.py`.
