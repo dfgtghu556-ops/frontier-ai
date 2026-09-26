@@ -13,8 +13,13 @@ It is byte-level (the base vocabulary is the 256 possible byte values), so any U
 string — Devanagari, emoji, ZWJ sequences, URLs — can be encoded, and decoding is
 lossless. There is no UNK token unless you ask for one.
 
-This is a *research reference*, not an optimised production tokenizer: it is O(merges ×
-corpus) and is meant for corpora of a few megabytes at most.
+This is a *research reference*, but fast enough for corpus-scale training: the
+merge loop maintains the pair counts incrementally (only the words containing the
+merged pair are touched each iteration) instead of re-scanning the whole corpus per
+merge. The incremental update maintains *exactly* the same pair counts as the classic
+full re-scan, and the tie-break (frequency desc, pair asc) is unchanged, so the merge
+sequence is identical — a regression test asserts that against a full-rescan
+implementation.
 """
 
 from __future__ import annotations
@@ -57,7 +62,7 @@ def _char_class(ch: str) -> str:
 
 
 def pretokenize(text: str) -> list[str]:
-    """Split text into the units BPE merges are learned over."""
+    """Split text into the units BPE merges are learned over (mark-aware)."""
     chunks: list[str] = []
     buffer: list[str] = []
     current: str | None = None
@@ -73,8 +78,147 @@ def pretokenize(text: str) -> list[str]:
     return chunks
 
 
+@lru_cache(maxsize=8192)
+def _char_class_gpt2(ch: str) -> str:
+    """GPT-2-style character classes: letter run, number run, whitespace, other.
+
+    Mirrors the classes of the GPT-2 pre-tokenization regex
+    (`` ?\\p{L}+ | ?\\p{N}+ | ?[^\\s\\p{L}\\p{N}]+ | \\s+(?!\\S) | \\s``) with stdlib
+    only: ``\\p{L}`` -> Unicode category ``L*``, ``\\p{N}`` -> ``N*``. Combining marks
+    (``M*``) are **not** letters in that regex, so they fall into ``other`` — which is
+    precisely the documented difference from the mark-aware pre-tokenizer (Indic
+    syllables shatter at their marks; BPE then never re-joins them across the
+    pre-token boundary).
+    """
+    if ch.isspace():
+        return "S"
+    cat = unicodedata.category(ch)
+    if cat[0] == "L":
+        return "L"
+    if cat[0] == "N":
+        return "N"
+    return "P"
+
+
+def pretokenize_gpt2_style(text: str) -> list[str]:
+    """GPT-2-style split, stdlib-only, faithful to the regex's chunk boundaries:
+
+    * letter runs and number runs are separate chunks; a single space immediately
+      before such a run belongs to that run (the regex's `` ?`` prefix);
+    * every other character (punctuation, marks, symbols) forms runs of its own —
+      combining marks land here, so "मैं" splits into "म" + "ैं", exactly like
+      GPT-2's ``\\p{L}``-based regex;
+    * whitespace not attached to a following letter/number run is one chunk per
+      character, as the regex's single-character ``\\s`` alternative matches.
+    """
+    n = len(text)
+    i = 0
+    chunks: list[str] = []
+    while i < n:
+        kind = _char_class_gpt2(text[i])
+        if kind == "S":
+            j = i
+            while j < n and text[j].isspace():
+                j += 1
+            attaches = j < n and _char_class_gpt2(text[j]) in ("L", "N")
+            # all spaces except (optionally) the last, which joins the next run
+            end = j - 1 if attaches else j
+            chunks.extend(text[k] for k in range(i, end))
+            i = j
+            continue
+        j = i
+        while j < n and _char_class_gpt2(text[j]) == kind:
+            j += 1
+        start = i
+        if kind in ("L", "N") and i > 0 and text[i - 1].isspace():
+            start = i - 1  # the regex glues one leading space onto the run
+        chunks.append(text[start:j])
+        i = j
+    return chunks
+
+
+_PRETOKENIZERS = {
+    "mark_aware": pretokenize,
+    "gpt2_style": pretokenize_gpt2_style,
+}
+
+
+def _merge_word(word: tuple[int, ...], pair: tuple[int, int], new_id: int) -> tuple[int, ...]:
+    """Merge every non-overlapping occurrence of ``pair`` in one word, left to right."""
+    first, second = pair
+    out: list[int] = []
+    i = 0
+    while i < len(word):
+        if i < len(word) - 1 and word[i] == first and word[i + 1] == second:
+            out.append(new_id)
+            i += 2
+        else:
+            out.append(word[i])
+            i += 1
+    return tuple(out)
+
+
+def _pair_multiset(word: tuple[int, ...]) -> Counter:
+    """Counts of adjacent pairs in one word (empty for single-symbol words)."""
+    counts: Counter = Counter()
+    for i in range(len(word) - 1):
+        counts[(word[i], word[i + 1])] += 1
+    return counts
+
+
+def train_merges(word_counts: Counter, n_merges: int) -> list[tuple[int, int]]:
+    """The BPE merge loop with incremental pair counts.
+
+    Maintains exactly the pair counts the classic full re-scan would compute at
+    every step (only the words containing the merged pair are touched), and
+    applies the same tie-break — (frequency desc, pair asc) — so the merge
+    sequence is identical to the classic algorithm. See the regression test in
+    ``tests/test_tokenization.py`` that asserts this against a full re-scan.
+    """
+    pair_counts: Counter = Counter()
+    pair_words: dict[tuple[int, int], set[tuple[int, ...]]] = {}
+    for word, count in word_counts.items():
+        for i in range(len(word) - 1):
+            p = (word[i], word[i + 1])
+            pair_counts[p] += count
+            pair_words.setdefault(p, set()).add(word)
+
+    merges: list[tuple[int, int]] = []
+    for _ in range(n_merges):
+        if not pair_counts:
+            break  # no pairs left to merge
+        pair, _total = min(pair_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+        new_id = 256 + len(merges)
+        merges.append(pair)
+        affected = pair_words.pop(pair)
+        del pair_counts[pair]
+        for word in affected:
+            count = word_counts[word]
+            merged = _merge_word(word, pair, new_id)
+            if merged == word:
+                continue
+            old_pairs = _pair_multiset(word)
+            new_pairs = _pair_multiset(merged)
+            for p in set(old_pairs) | set(new_pairs):
+                if p == pair:
+                    continue  # its words are exactly ``affected``; count is now 0
+                pair_counts[p] += (new_pairs.get(p, 0) - old_pairs.get(p, 0)) * count
+                if old_pairs.get(p, 0) > 0 and pair_words.get(p) is not None:
+                    ws = pair_words[p]
+                    ws.discard(word)
+                    if not ws:
+                        pair_words.pop(p, None)
+                if new_pairs.get(p, 0) > 0:
+                    pair_words.setdefault(p, set()).add(merged)
+                if not pair_counts.get(p, 0):
+                    pair_counts.pop(p, None)
+            word_counts[merged] += count
+            del word_counts[word]
+    return merges
+
+
 class PythonBPE(SubwordTokenizer):
-    """Byte-level BPE trained with the classic count-and-merge loop."""
+    """Byte-level BPE trained with the count-and-merge loop (incremental pair counts)."""
 
     name = "bpe_python"
 
@@ -87,6 +231,7 @@ class PythonBPE(SubwordTokenizer):
         self._target_vocab_size = 256
         self._unk_token: str | None = None
         self._trained_chars = 0
+        self._pretoken: str = "mark_aware"
 
     # ---------------------------------------------------------------- train --
     def train(
@@ -95,13 +240,26 @@ class PythonBPE(SubwordTokenizer):
         vocab_size: int,
         special_tokens: Sequence[str] = (),
         max_train_chars: int | None = None,
+        pretoken: str = "mark_aware",
         **kwargs: object,
     ) -> None:
         """Fit merges on a local text file.
 
         Deterministic: merges are chosen by (frequency desc, pair asc), so the same
-        corpus and vocab size always produce the same tokenizer.
+        corpus, vocab size and pre-tokenization always produce the same tokenizer.
+
+        ``pretoken`` selects the pre-tokenization boundaries: ``"mark_aware"``
+        (default; combining marks stay attached to words — the script-aware choice)
+        or ``"gpt2_style"`` (GPT-2's ``\\p{L}``/``\\p{N}``-based classes, where marks
+        shatter Indic syllables — the comparison variant of the EXP-A sweep).
         """
+        if pretoken not in _PRETOKENIZERS:
+            raise TokenizerError(
+                f"unknown pre-tokenization {pretoken!r}; expected one of {sorted(_PRETOKENIZERS)}"
+            )
+        self._pretoken = pretoken
+        pre_fn = _PRETOKENIZERS[pretoken]
+
         path = Path(corpus_path)
         if not path.exists():
             raise FileNotFoundError(f"training corpus not found: {path}")
@@ -120,27 +278,15 @@ class PythonBPE(SubwordTokenizer):
             raise TokenizerError(f"training corpus is empty: {path}")
 
         word_counts: Counter[tuple[int, ...]] = Counter()
-        for chunk in pretokenize(text):
+        for chunk in pre_fn(text):
             word_counts[tuple(chunk.encode("utf-8"))] += 1
 
-        merges: list[tuple[int, int]] = []
-        for _ in range(n_merges):
-            stats: Counter[tuple[int, int]] = Counter()
-            for symbols, count in word_counts.items():
-                for i in range(len(symbols) - 1):
-                    stats[(symbols[i], symbols[i + 1])] += count
-            if not stats:
-                break  # no pairs left to merge
-            best = sorted(stats.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
-            merges.append(best)
-            word_counts = _apply_merge(word_counts, best, 256 + len(merges) - 1)
-
-        self._merges = merges
-        self._ranks = {pair: i for i, pair in enumerate(merges)}
+        self._merges = train_merges(word_counts, n_merges)
+        self._ranks = {pair: i for i, pair in enumerate(self._merges)}
         self._special_tokens = specials
-        self._special_ids = {t: 256 + len(merges) + i for i, t in enumerate(specials)}
+        self._special_ids = {t: 256 + len(self._merges) + i for i, t in enumerate(specials)}
         self._id_to_bytes = [bytes([i]) for i in range(256)]
-        for a, b in merges:
+        for a, b in self._merges:
             self._id_to_bytes.append(self._id_to_bytes[a] + self._id_to_bytes[b])
         for token in specials:
             self._id_to_bytes.append(token.encode("utf-8"))
@@ -150,12 +296,13 @@ class PythonBPE(SubwordTokenizer):
 
     # ------------------------------------------------------------- encoding --
     def encode(self, text: str) -> list[int]:
+        pre_fn = _PRETOKENIZERS[self._pretoken]
         ids: list[int] = []
         for segment, is_special in iter_segments(text, self._special_tokens):
             if is_special:
                 ids.append(self._special_ids[segment])
             else:
-                for chunk in pretokenize(segment):
+                for chunk in pre_fn(segment):
                     ids.extend(self._encode_chunk(chunk))
         return ids
 
@@ -222,7 +369,9 @@ class PythonBPE(SubwordTokenizer):
                 "format_version": FORMAT_VERSION,
                 "vocab_size": self.vocab_size,
                 "special_tokens": self._special_tokens,
-                "pretoken_pattern": PRETOKEN_PATTERN,
+                "pretoken": self._pretoken,
+                "pretoken_pattern": PRETOKEN_PATTERN if self._pretoken == "mark_aware"
+                else "gpt2-style (letter | number | whitespace | other; one leading space glues to a run)",
                 "trained_chars": self._trained_chars,
                 "merges": [[a, b] for a, b in self._merges],
             },
@@ -239,6 +388,10 @@ class PythonBPE(SubwordTokenizer):
             raise TokenizerError(f"{path}: expected format '{FORMAT_NAME}', got '{data.get('format')}'")
 
         tok = cls()
+        # older artifacts predate the pretoken field and are always mark-aware
+        tok._pretoken = data.get("pretoken", "mark_aware")
+        if tok._pretoken not in _PRETOKENIZERS:
+            raise TokenizerError(f"{path}: unknown pretoken {tok._pretoken!r}")
         tok._merges = [(int(a), int(b)) for a, b in data["merges"]]
         tok._ranks = {pair: i for i, pair in enumerate(tok._merges)}
         tok._special_tokens = list(data.get("special_tokens", []))
@@ -251,26 +404,6 @@ class PythonBPE(SubwordTokenizer):
         tok._target_vocab_size = int(data.get("vocab_size", tok.vocab_size))
         tok._trained_chars = int(data.get("trained_chars", 0))
         return tok
-
-
-def _apply_merge(
-    word_counts: Counter, pair: tuple[int, int], new_id: int
-) -> Counter:
-    """Replace every occurrence of ``pair`` in all words with ``new_id``."""
-    updated: Counter = Counter()
-    first, second = pair
-    for symbols, count in word_counts.items():
-        out: list[int] = []
-        i = 0
-        while i < len(symbols):
-            if i < len(symbols) - 1 and symbols[i] == first and symbols[i + 1] == second:
-                out.append(new_id)
-                i += 2
-            else:
-                out.append(symbols[i])
-                i += 1
-        updated[tuple(out)] += count
-    return updated
 
 
 register(PythonBPE.name, PythonBPE)

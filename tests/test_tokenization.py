@@ -8,8 +8,10 @@ handling, and a small end-to-end CLI workflow.
 from __future__ import annotations
 
 import json
+import random
 import subprocess
 import sys
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -18,7 +20,7 @@ from frontier_ai.tokenization import available, create, is_available
 from frontier_ai.tokenization.adapters import CharTokenizerAdapter, WordTokenizerAdapter
 from frontier_ai.tokenization.artifact import load_artifact, load_manifest, save_artifact
 from frontier_ai.tokenization.base import TokenizerError, iter_segments
-from frontier_ai.tokenization.bpe_python import PythonBPE, pretokenize
+from frontier_ai.tokenization.bpe_python import PythonBPE, pretokenize, pretokenize_gpt2_style
 from frontier_ai.tokenization.compare import build_comparison, render_comparison
 from frontier_ai.tokenization.corpus import (
     CATEGORY_BANK,
@@ -232,6 +234,163 @@ def test_pretokenize_keeps_indic_words_whole():
 def test_iter_segments_prefers_longest_special_token():
     segments = iter_segments("a<unk>b<unkx>c", ["<unk>", "<unkx>"])
     assert segments == [("a", False), ("<unk>", True), ("b", False), ("<unkx>", True), ("c", False)]
+
+
+# ---------------------------------------------------------------------------
+# GPT-2-style pre-tokenizer
+# ---------------------------------------------------------------------------
+def test_gpt2_pretokenizer_splits_at_word_boundaries_and_single_spaces():
+    # GPT-2 class regex: whitespace | (mark? letter+ | number+) | other, and a
+    # single space glues onto the run that follows it.
+    assert pretokenize_gpt2_style("hello world") == ["hello", " world"]
+    assert pretokenize_gpt2_style("a  b") == ["a", " ", " b"]
+    assert pretokenize_gpt2_style(" lead") == [" lead"]
+    assert pretokenize_gpt2_style("a.") == ["a", "."]
+    # letter runs and number runs are separate alternatives in the regex
+    assert pretokenize_gpt2_style("a42b") == ["a", "42", "b"]
+    assert pretokenize_gpt2_style("42!") == ["42", "!"]
+
+
+def test_gpt2_pretokenizer_shatters_combining_marks_like_gpt2():
+    # GPT-2's \p{L}/\p{N} classes do NOT include marks, so "मैं" shatters into
+    # base + matra — the documented behaviour of the gpt2_style variant.
+    chunks = pretokenize_gpt2_style("मैं")
+    assert chunks == ["म", "ैं"]
+    # ...while the default mark-aware pre-tokenizer keeps the syllable whole.
+    assert pretokenize("मैं") == ["मैं"]
+    # Every chunk must still be decodable and the concatenation is lossless.
+    assert "".join(chunks) == "मैं"
+
+
+def test_gpt2_pretokenizer_is_lossless_and_word_like():
+    for text in MULTILINGUAL_PROBE:
+        chunks = pretokenize_gpt2_style(text)
+        assert "".join(chunks) == text, f"gpt2 pre-tokenization not lossless for {text!r}"
+        for chunk in chunks:
+            assert chunk  # no empty chunks
+
+
+# ---------------------------------------------------------------------------
+# incremental BPE merge loop == classic full re-scan
+# ---------------------------------------------------------------------------
+def _classic_merges(word_counts: Counter, n_merges: int) -> list[tuple[int, int]]:
+    """Reference oracle: the ORIGINAL full-rescan BPE loop (pre-optimization).
+
+    Recomputes every pair count from scratch on every iteration. Kept here so
+    the fast incremental loop can be proven to pick the identical merge
+    sequence — the whole point of the optimization is bit-for-bit parity.
+    """
+    merges: list[tuple[int, int]] = []
+    wc = Counter(word_counts)
+    for _ in range(n_merges):
+        stats: Counter[tuple[int, int]] = Counter()
+        for symbols, count in wc.items():
+            for i in range(len(symbols) - 1):
+                stats[(symbols[i], symbols[i + 1])] += count
+        if not stats:
+            break
+        best = sorted(stats.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
+        merges.append(best)
+        first, second = best
+        new_id = 256 + len(merges) - 1
+        updated: Counter = Counter()
+        for symbols, count in wc.items():
+            out: list[int] = []
+            i = 0
+            while i < len(symbols):
+                if i < len(symbols) - 1 and symbols[i] == first and symbols[i + 1] == second:
+                    out.append(new_id)
+                    i += 2
+                else:
+                    out.append(symbols[i])
+                    i += 1
+            updated[tuple(out)] += count
+        wc = updated
+    return merges
+
+
+def test_incremental_merges_identical_to_classic_full_rescan():
+    """The fast incremental loop must choose exactly the same merges as the
+    classic full re-scan, across varied alphabet sizes, word shapes and counts."""
+    from frontier_ai.tokenization.bpe_python import train_merges
+
+    rng = random.Random(20260926)
+    for trial in range(6):
+        alphabet_size = rng.choice([16, 32, 80, 256])
+        nwords = rng.randint(200, 600)
+        maxw = rng.randint(1, 12)
+        wc: Counter = Counter()
+        for _ in range(nwords):
+            w = tuple(rng.randint(0, 255) for _ in range(rng.randint(1, maxw)))
+            wc[w] += rng.randint(1, 5)
+        n_merges = rng.randint(50, 400)
+        assert train_merges(Counter(wc), n_merges) == _classic_merges(Counter(wc), n_merges), (
+            f"incremental != classic on trial {trial} (alph={alphabet_size})"
+        )
+
+
+def test_incremental_merges_match_classic_on_real_indic_text():
+    from frontier_ai.tokenization.bpe_python import train_merges
+
+    # Deterministic multilingual training string: every word bank + the probes.
+    text = " ".join(" ".join(WORD_BANK[lang]) for lang in WORD_BANK) * 8
+    text += "\n" + "\n".join(MULTILINGUAL_PROBE)
+    wc: Counter = Counter()
+    for chunk in pretokenize(text):
+        t = tuple(chunk.encode("utf-8"))
+        if t:
+            wc[t] += 1
+    n_merges = 500
+    assert train_merges(Counter(wc), n_merges) == _classic_merges(Counter(wc), n_merges)
+
+
+def test_train_accepts_pretoken_variant_and_rejects_unknown(tmp_path):
+    corpus = write_tiny_corpus(tmp_path / "tiny.txt")
+    tok = PythonBPE()
+    with pytest.raises(TokenizerError, match="unknown pre-tokenization"):
+        tok.train(corpus, vocab_size=320, pretoken="bogus")
+    tok2 = PythonBPE()
+    tok2.train(corpus, vocab_size=320, pretoken="gpt2_style")
+    assert tok2._pretoken == "gpt2_style"
+    # both variants are lossless on the probe
+    for text in MULTILINGUAL_PROBE:
+        assert tok2.decode(tok2.encode(text)) == text
+
+
+def test_gpt2_pretoken_changes_merge_sequence_vs_mark_aware(tmp_path):
+    corpus = write_tiny_corpus(tmp_path / "tiny.txt")
+    mark = PythonBPE()
+    mark.train(corpus, vocab_size=400, pretoken="mark_aware")
+    gpt2 = PythonBPE()
+    gpt2.train(corpus, vocab_size=400, pretoken="gpt2_style")
+    # different pre-tokenization boundaries -> different byte-pair counts ->
+    # different merges (at least on a corpus with combining marks, which this has)
+    assert mark.merges != gpt2.merges
+    assert mark._pretoken == "mark_aware"
+    assert gpt2._pretoken == "gpt2_style"
+
+
+def test_save_load_preserves_pretoken_variant(tmp_path):
+    corpus = write_tiny_corpus(tmp_path / "tiny.txt")
+    tok = PythonBPE()
+    tok.train(corpus, vocab_size=360, pretoken="gpt2_style")
+    directory = tok.save(tmp_path / "artifact")
+    reloaded = PythonBPE.load(directory)
+    assert reloaded._pretoken == "gpt2_style"
+    for text in MULTILINGUAL_PROBE:
+        assert reloaded.encode(text) == tok.encode(text)
+        assert reloaded.decode(tok.encode(text)) == text
+    # a legacy artifact without the pretoken field loads as mark_aware
+    import json as _json
+
+    artifact = directory / "bpe_python.json"
+    data = _json.loads(artifact.read_text(encoding="utf-8"))
+    data.pop("pretoken", None)
+    legacy = tmp_path / "legacy"
+    legacy.mkdir()
+    (legacy / "bpe_python.json").write_text(_json.dumps(data), encoding="utf-8")
+    legacy_tok = PythonBPE.load(legacy)
+    assert legacy_tok._pretoken == "mark_aware"
 
 
 # ---------------------------------------------------------------------------
