@@ -334,9 +334,29 @@ def _run(args: argparse.Namespace) -> int:
         known = {c.name for c in configs}
         unknown = [name for name in wanted if name not in known]
         if unknown:
+            # supplemental cells are opt-in, but a subset run that names them
+            # includes them automatically (a full-grid run never reaches here)
+            supp = {c.name for c in SweepConfig.grid_supplemental(vocab_sizes)}
+            if set(unknown) <= supp:
+                n_named = len(set(unknown))
+                configs += [c for c in SweepConfig.grid_supplemental(vocab_sizes)
+                            if c.name not in known]
+                known |= supp
+                unknown = [name for name in wanted if name not in known]
+                print(f"[sweep] --configs named {n_named} supplemental hf-mark_aware "
+                      "cell(s) — including the supplemental grid (off-grid supplement, D-039)")
+        if unknown:
+            hint = ""
+            if not args.include_hf_mark_aware:
+                supp = sorted(c.name for c in SweepConfig.grid_supplemental(vocab_sizes)
+                              if c.name not in known)
+                if supp:
+                    hint = (f"\n  the supplemental cells {', '.join(supp)} are not part of "
+                            "the approved 15-cell grid; name them in --configs or pass "
+                            "--include-hf-mark-aware")
             raise SystemExit(
                 f"[sweep] unknown configuration name(s): {', '.join(unknown)} — "
-                f"known: {', '.join(sorted(known))}"
+                f"known: {', '.join(sorted(known))}{hint}"
             )
         wanted_set = set(wanted)
         configs = [c for c in configs if c.name in wanted_set]

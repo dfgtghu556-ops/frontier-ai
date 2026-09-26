@@ -315,6 +315,26 @@ def test_sweep_e2e_smoke_on_fake_corpus(tmp_path):
     assert (out / "_shared" / "heldout_docs.jsonl").is_file()
 
 
+def test_sweep_e2e_subset_run_names_supplemental_cells_without_flag(tmp_path):
+    """``--configs`` naming supplemental cells auto-includes them (no flag needed)."""
+    pytest.importorskip("tokenizers")
+    fake = _make_fake_frozen_corpus(tmp_path)
+    frontier = _build_fake_frontier(fake, tmp_path / "frontier")
+    out = tmp_path / "supp_out"
+    proc = _run_sweep_script(
+        ["--exp-id", "EXP-999", "--frontier-dir", str(frontier),
+         "--manifest", str(fake["manifest"]), "--freeze", str(fake["freeze"]),
+         "--corpus-dir", str(fake["corpus_dir"]), "--vocab-sizes", "512",
+         "--max-train-chars", "4000", "--out", str(out), "--no-record",
+         "--configs", "hf-mark_aware-512"]
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "including the supplemental grid" in proc.stdout
+    sweep = json.loads((out / "sweep.json").read_text(encoding="utf-8"))
+    assert sweep["sweep"]["runs_successful"] == 1
+    assert sweep["runs"][0]["configuration"] == "hf-mark_aware-512"
+
+
 def test_sweep_e2e_full_records_mode_smoke(tmp_path):
     """Without --no-record the outer script record is written too (D-032)."""
     fake = _make_fake_frozen_corpus(tmp_path, n_hi=30, n_en=10)
