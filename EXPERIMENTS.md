@@ -793,6 +793,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-022 | P004B: repair and re-fetch Marathi and Urdu sources | complete | 2026-09-26 | 59/59 verified; prior 55 pins unchanged; all four new sources clean, mr 256,165 and ur 208,621 characters |
 | EXP-023 | P004B: lock Marathi and Urdu sources | complete | 2026-09-26 | 59/59 pinned; four new fingerprints match EXP-022; 55 earlier fingerprints unchanged |
 | EXP-024 | P004B: complete the real tokenizer research corpus | complete | 2026-09-26 | 13 of 14 slots EVALUATED; 59 sources verified and pinned; hi-en honestly NOT_EVALUATED |
+| EXP-025 | **Corpus freeze + verification** (not a benchmark): freeze and verify `indic-tokenizer/v2` (MASTER_CONTEXT §37 step 2) | complete | 2026-09-26 | 59/59 pins present and well-formed; all 59 hashes match the EXP-023 report prefixes; totals 34,684 docs / 4,211,707 chars; 415 passed, 1 skipped; manifest sha256 `aec3dfa0…` frozen (D-035); live re-fetch NOT YET VERIFIED from the sandbox |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1175,3 +1176,74 @@ are claimed in this entry.
 
 **Next action:** The operator may merge `arena/01a0d31f-frontier-ai` into `main` when ready; no pull request was opened.
 **Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-021-inspection.txt`, `EXP-022-inspection.txt`, `EXP-023-inspection.txt`, `corpora/tokenizer/indic-tokenizer-v2/sources.json`.
+
+### EXP-025 — Freeze and verify `indic-tokenizer/v2` (MASTER_CONTEXT §37 step 2)
+
+> **This entry freezes and verifies a corpus definition, not a model.** No tokenizer is
+> trained, no vocabulary is sized and no claim about tokenizer quality is made. It answers
+> one question: *is the corpus that P004B locked exactly the corpus downstream stages will
+> use, and is that identity recorded so it cannot silently change?*
+
+- **Status:** complete (corpus definition frozen; one live check intentionally out of reach, recorded below)
+- **Date:** 2026-09-26
+- **Objective:** freeze `indic-tokenizer/v2` at the state P004B locked (EXP-018…EXP-024), and verify that freeze from the committed repository state: every pin present and well-formed, every pin consistent with the independent inspection report, the recorded coverage totals correct, and the test suite green.
+- **Baseline:** EXP-024 (P004B complete). All of its numbers must still hold.
+- **Environment:** Arena sandbox, Linux (Python 3.11.2, torch 2.14.0+cu130, tokenizers 0.23.2). **No route to the corpus hosts** (wikisource.org, gutenberg.org fail TLS — re-checked 2026-09-25 and 2026-09-26), so everything below is measured from git, not from a live fetch.
+
+**Commands (exact, all read-only with respect to the corpus):**
+
+```bash
+# 1. manifest identity and pin audit (python one-liner over sources.json)
+# 2. offline build check, handover §4 — must exit 0, all source slots UNVERIFIED without text
+python scripts/build_tokenizer_corpus.py --exp-id OFFLINE-CHECK --out /tmp/offline-check-corpus --no-record
+# 3. full suite + lint
+python -m pytest
+ruff check src tests scripts
+# 4. pin cross-check: every manifest sha256 vs the 12-hex prefix in the committed report
+#    (python one-liner over sources.json + reports/EXP-023-inspection.txt)
+```
+
+**Metrics**
+
+| check | expected | observed | verdict |
+|---|---|---|---|
+| sources declared / pinned / verified | 59 / 59 / 59 | 59 / 59 / 59, every pin a 64-hex sha256, every pinned source has `retrieved_at` | pass |
+| licences within the allow-list | only CC0-1.0 / CC-BY-4.0 / CC-BY-SA-4.0 / PD-US | CC-BY-SA-4.0 × 57, PD-US × 2 | pass |
+| licence evidence recorded | every non-Gutenberg source declares `license_evidence` | all 57 mediawiki-parse sources do | pass |
+| pin ↔ report cross-check | every manifest hash starts with the prefix EXP-023's inspection reported for that source | 59 of 59 match; no mismatches, no duplicate rows | pass |
+| coverage totals (summed from `reports/EXP-023-inspection.txt`) | 34,684 documents / 4,211,707 characters (the PROJECT_CONTEXT claim) | 34,684 / 4,211,707 exactly; all 13 `EVALUATED` slots above both targets (min: 1,077 documents, 201,209 characters) | pass |
+| offline build check (handover §4) | exit 0; source slots `UNVERIFIED` without fetched text; hi-en `NOT_EVALUATED` | exit 0; 13 `UNVERIFIED` (en hi bn mr gu ta te kn ml pa or as ur), 1 `NOT_EVALUATED` (hi-en) | pass |
+| test suite (Linux) | green | **415 passed, 1 skipped** in 161 s (skip = the smoke-corpus fetch test, needs a fetched smoke corpus); matches the state recorded in PROJECT_CONTEXT | pass |
+| lint | clean | `ruff check src tests scripts`: All checks passed | pass |
+| manifest untouched by this run | `sources.json` unmodified | git status: no change to the manifest | pass |
+
+**Freeze identity**
+
+- corpus id/version: `indic-tokenizer` / `v2` (schema 1.0)
+- manifest: `corpora/tokenizer/indic-tokenizer-v2/sources.json`
+- manifest sha256: `aec3dfa091370832e7f48f5fabb3d749716ef50a7cae70fc28b45ea272da67bf`
+- corpus state commit: `76bb127` (main after PR #2)
+- machine-readable record: `corpora/tokenizer/indic-tokenizer-v2/FREEZE.json`
+- policy: D-035 — any manifest change needs the founder's approval, a new experiment, and
+  produces `v3` with its own freeze record; v2 is never edited in place.
+
+**Not yet verified (recorded rather than hidden):** the live re-fetch that proves no pinned
+source's text has changed since the EXP-023 lock. The Arena sandbox cannot reach the hosts,
+so the pins are as fresh as 2026-09-26 (EXP-023). On a network-enabled machine,
+`python scripts/build_tokenizer_corpus.py --fetch --exp-id EXP-0NN --out
+data/tokenizer/indic-tokenizer-v2` is that check: exit 0 means every pin still holds, a
+`REFUSED:` line names a changed source (runbook §0.5), and the outcome must be appended to
+`FREEZE.json`'s `not_yet_verified` note.
+
+**Conclusion:** the corpus P004B acquired is frozen and its identity is recorded and
+verifiable from git alone. Downstream stages (tokenizer sweeps, tokenizer-vs-tokenizer
+model experiments) must cite `indic-tokenizer/v2` + the manifest sha256 above, train on its
+train split and evaluate on its held-out split.
+
+**Next action:** MASTER_CONTEXT §37 step 3 — design and build the FoundationCorpus
+(FrontierCorpus v1) pipeline. Before any code, the same audit as before the last step
+applies: what exists, what is missing, smallest useful step, founder approval.
+
+**Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/FREEZE.json`,
+`corpora/tokenizer/indic-tokenizer-v2/reports/EXP-023-inspection.txt` (evidence),
+`DECISIONS.md` D-035.

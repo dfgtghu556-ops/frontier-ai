@@ -180,6 +180,16 @@ comes next. They also update the table in §3.
   Synced PROJECT_CONTEXT.md (CURRENT POSITION, §7, §10, §17), ROADMAP.md, README.md and
   CLAUDE.md with the repository; this is MASTER_CONTEXT §37 step 1. Next: the founder
   merges PR #2, then step 2, freezing and verifying `indic-tokenizer/v2`.
+* **2026-09-26, Arena agent, branch `arena/01a0dc16-frontier-ai`:** MASTER_CONTEXT §37
+  step 2 done, after the founder merged PR #2 (main is now `76bb127`). Verified the
+  finished state from git: 59/59 pins present and well-formed, every manifest hash
+  matching its EXP-023 report prefix, coverage totals exactly 34,684 documents /
+  4,211,707 characters, offline build check exit 0, 415 passed / 1 skipped, ruff clean.
+  Added `corpora/tokenizer/indic-tokenizer-v2/FREEZE.json` (manifest sha256
+  `aec3dfa0…`), D-035 (frozen; any change means `v3` + founder approval) and EXP-025.
+  Not yet verified from the sandbox: a live re-fetch (no route to the hosts). Next:
+  STEP 3–4 — the FrontierCorpus v1 pipeline; audit first, smallest useful step, founder
+  approval before code.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

@@ -1003,6 +1003,54 @@ existing records keep their schema version `1.0`.
 (artifacts, per-epoch series), or a body changes environment state that is not restored
 today (cuDNN determinism flags, MPS/CPU affinity).
 
+---
+
+## D-035 — `indic-tokenizer/v2` is frozen at its locked state; changes mean a new version
+**Date:** 2026-09-26 · **Status:** accepted (MASTER_CONTEXT §37 step 2)
+
+**Decision:** the tokenizer-research corpus `indic-tokenizer/v2` is **frozen** at the state
+P004B locked and verified: 59 sources, all `verified: true` with a pinned `sha256` and a
+`retrieved_at`, 13 of 14 slots `EVALUATED` (34,684 documents / 4,211,707 characters), `hi-en`
+`NOT_EVALUATED`. The machine-readable identity is
+`corpora/tokenizer/indic-tokenizer-v2/FREEZE.json`, which records the manifest
+sha256 `aec3dfa091370832e7f48f5fabb3d749716ef50a7cae70fc28b45ea272da67bf` and the per-slot
+coverage as evidence in `reports/EXP-023-inspection.txt`. The freeze was verified offline in
+EXP-025.
+
+**Rationale:** MASTER_CONTEXT §37 step 2 says "freeze and verify the newly acquired corpus"
+before any pipeline or tokenizer work (steps 3–7) uses it. Downstream stages must train on
+one stable, hash-identified corpus and evaluate on its held-out split; if the corpus can
+silently change underneath them, no later number is comparable to the next. Freezing records
+*exactly* what "this corpus" means, so a future reader can tell a result built on v2 apart
+from one that would require v3.
+
+**Alternatives considered:** (a) treat the manifest as always-current and let later stages
+re-read it (rejected: a later edit — a re-pin, a cleaner change that moves hashes, a new
+source — would change the corpus under already-recorded experiments); (b) freeze by copying
+the text into git (rejected: the text is intentionally git-ignored; the manifest plus pinned
+hashes plus reports already make it reproducible from a network-enabled machine, and copying
+would bloat the repo and duplicate the licensing record); (c) freeze the whole repository
+(rejected: too broad — P001–P003 and the code are not this corpus).
+
+**Consequences:**
+- The frozen object is the corpus **definition and its locks** (manifest bytes, hashes,
+  licences, evidence, per-slot coverage). The corpus **text** is still rebuilt by
+  `scripts/build_tokenizer_corpus.py --fetch` on a machine that can reach the sources; the
+  freeze does not make the Arena sandbox (which cannot) able to build it.
+- Any change to the manifest — new source, new slot, licence change, a deliberate re-pin, or
+  a cleaner change that moves a pinned hash — requires the founder's approval, is recorded as
+  a new experiment, and produces **`indic-tokenizer/v3`** with its own freeze record. v2 is
+  never edited in place (the manifest is only ever changed through the format-preserving
+  Python-script rule in the handover, §7).
+- The live re-fetch that proves no pinned source's text has changed since the EXP-023 lock
+  (2026-09-26) is **NOT YET VERIFIED** from the Arena sandbox (no route to the hosts); it is
+  the one remaining live check, and the build's `hash_mismatch` gate is the designed
+  protection in the meantime (runbook §0.5).
+- This freeze covers the tokenizer-research corpus only. It is not a pretraining corpus and
+  does not freeze the future FrontierCorpus v1 source inventory (MASTER_CONTEXT §10, §12).
+
+**Revisit when:** a stage (tokenizer sweep, tokenizer-vs-tokenizer model experiment) needs a
+corpus that differs from v2 — then open v3, do not amend v2.
 
 ---
 

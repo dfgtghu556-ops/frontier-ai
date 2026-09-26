@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "indic-tokenizer",
+  "corpus_version": "v2",
+  "status": "frozen",
+  "frozen_at": "2026-09-26",
+  "frozen_by": "EXP-025 (MASTER_CONTEXT.md section 37, step 2)",
+  "corpus_state_commit": "76bb127",
+  "corpus_state_commit_note": "main after PR #2 (P004B complete; all 59 sources locked). The freeze record and its verification were committed on top of that state.",
+  "manifest": {
+    "path": "corpora/tokenizer/indic-tokenizer-v2/sources.json",
+    "schema_version": "1.0",
+    "sha256": "aec3dfa091370832e7f48f5fabb3d749716ef50a7cae70fc28b45ea272da67bf"
+  },
+  "sources": {
+    "declared": 59,
+    "verified_and_pinned": 59,
+    "unpinned": 0,
+    "kinds": { "mediawiki-parse": 57, "gutenberg": 2 },
+    "license_ids": { "CC-BY-SA-4.0": 57, "PD-US": 2 },
+    "license_allow_list": ["CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "PD-US"],
+    "note": "All 59 sources carry sha256 (of the cleaned text), verified=true and retrieved_at. All 57 mediawiki-parse sources carry a license_evidence block. The 2 PD-US sources (Gutenberg) verified by payload marker."
+  },
+  "language_slots": {
+    "total": 14,
+    "evaluated": 13,
+    "not_evaluated": 1,
+    "targets": { "documents": 500, "characters": 200000 },
+    "totals": { "documents": 34684, "characters": 4211707 },
+    "per_slot": {
+      "en": { "status": "EVALUATED", "documents": 5926, "characters": 344060 },
+      "hi": { "status": "EVALUATED", "documents": 5323, "characters": 755125 },
+      "hi-en": { "status": "NOT_EVALUATED", "documents": 0, "characters": 0, "reason": "no licensed, attributable Hinglish corpus identified (manifest notes; runbook section 9)" },
+      "bn": { "status": "EVALUATED", "documents": 4386, "characters": 211709 },
+      "mr": { "status": "EVALUATED", "documents": 1667, "characters": 256165 },
+      "gu": { "status": "EVALUATED", "documents": 1985, "characters": 294751 },
+      "ta": { "status": "EVALUATED", "documents": 1077, "characters": 283972 },
+      "te": { "status": "EVALUATED", "documents": 1405, "characters": 275663 },
+      "kn": { "status": "EVALUATED", "documents": 2635, "characters": 387971 },
+      "ml": { "status": "EVALUATED", "documents": 2054, "characters": 396374 },
+      "pa": { "status": "EVALUATED", "documents": 2427, "characters": 358198 },
+      "or": { "status": "EVALUATED", "documents": 1902, "characters": 201209 },
+      "as": { "status": "EVALUATED", "documents": 2519, "characters": 237889 },
+      "ur": { "status": "EVALUATED", "documents": 1378, "characters": 208621 }
+    },
+    "identical_documents_per_language_same_side_of_split": { "as": 46, "bn": 218, "en": 22, "gu": 0, "hi": 14, "kn": 11, "ml": 4, "mr": 20, "or": 27, "pa": 20, "ta": 4, "te": 4, "ur": 6 }
+  },
+  "verified_in_EXP-025": {
+    "environment": "Arena sandbox (Linux, no route to the corpus hosts); everything measured from the committed repository state",
+    "manifest_validation": "build without --fetch exits 0; every slot with sources reports UNVERIFIED without fetched text, hi-en NOT_EVALUATED (handover section 4 offline check)",
+    "pin_cross_check": "all 59 manifest sha256 values start with the 12-hex prefix reported per source in reports/EXP-023-inspection.txt; no mismatches, no duplicates, 59 of 59",
+    "coverage_totals": "per-slot document and character counts summed from reports/EXP-023-inspection.txt equal 34,684 documents and 4,211,707 characters, matching PROJECT_CONTEXT.md",
+    "test_suite": "415 passed, 1 skipped (2:41) on Linux; ruff check src tests scripts clean",
+    "test_skip": "the single skip is the smoke-corpus fetch test (needs a fetched smoke corpus); tokenizer-extra tests all ran"
+  },
+  "not_yet_verified": {
+    "live_refetch": "the Arena sandbox cannot reach wikisource.org / gutenberg.org (TLS EOF, checked 2026-09-25 and 2026-09-26). A fresh --fetch from a network-enabled machine is the only way to confirm that no pinned source's text has changed since the EXP-023 lock (2026-09-26). Until then the pins are as fresh as EXP-023, and the build's hash_mismatch gate is the designed protection (runbook section 0.5)."
+  },
+  "freeze_terms": {
+    "definition": "The frozen object is the corpus DEFINITION and its LOCKS: the manifest (sources, slots, targets, notes, hashes, licences, evidence) at the sha256 above, and the per-slot coverage recorded above, as evidence in reports/.",
+    "change_policy": "Any change to the manifest (new source, new slot, licence change, re-pin, cleaner change that moves hashes) requires the founder's approval, is recorded as a new experiment, and produces corpus version v3 with its own freeze record. v2 is never edited in place.",
+    "downstream_use": "Tokenizer research stages (vocabulary sizing, pre-tokenization ablations, tokenizer-vs-tokenizer model experiments) train on the train split of this corpus and evaluate on its held-out split; they cite indic-tokenizer/v2 plus the manifest sha256.",
+    "scope": "This freeze covers the tokenizer-research corpus only. It is NOT a pretraining corpus (MASTER_CONTEXT section 10) and does not freeze the future FrontierCorpus v1 source inventory."
+  }
+}

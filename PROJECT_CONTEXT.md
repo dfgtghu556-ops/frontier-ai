@@ -29,6 +29,13 @@ P004B in detail:
 * 59 sources are verified and pinned by SHA-256.
 * 13 of 14 language slots are `EVALUATED`: 34,684 documents and 4,211,707 characters in total.
 * `hi-en` is `NOT_EVALUATED`, because no lawful source was found.
+* **Frozen (2026-09-26, EXP-025, D-035):** `indic-tokenizer/v2` is frozen at that locked
+  state. Machine-readable identity: `corpora/tokenizer/indic-tokenizer-v2/FREEZE.json`
+  (manifest sha256 `aec3dfa091370832e7f48f5fabb3d749716ef50a7cae70fc28b45ea272da67bf`,
+  corpus state commit `76bb127`). Any manifest change needs the founder's approval and
+  produces `v3`; v2 is never edited in place. One live check remains out of reach from the
+  Arena sandbox (no route to the hosts): a fresh `--fetch` on a network-enabled machine
+  confirms no pinned text has changed since the EXP-023 lock.
 
 - **Where the code is.** P001–P003 are on `main` (PR #1, merged 2026-09-10). P004A and
   P004B are on branch `arena/01a0d31f-frontier-ai`, open as **PR #2** against `main`. The
@@ -45,8 +52,10 @@ P004B in detail:
   - The founder's Windows PC: some tests fail because of line-ending/encoding settings and
     missing synthetic data (EXP-024).
 - **Next, by the founder's roadmap (MASTER_CONTEXT §37):**
-  1. STEP 2: freeze and verify `indic-tokenizer/v2`.
-  2. STEP 3–4: FrontierCorpus v1, the foundation data pipeline (ROADMAP Stage 3).
+  1. ~~STEP 2: freeze and verify `indic-tokenizer/v2`.~~ **Done (EXP-025, 2026-09-26; D-035).**
+  2. **STEP 3–4: FrontierCorpus v1, the foundation data pipeline (ROADMAP Stage 3).** This
+     is the next step. Audit the repo first and propose the smallest useful step before
+     any code.
   3. STEP 5–7: the tokenizer decision, after FrontierCorpus v1.
 
   Confirm each step with the founder before starting it.
