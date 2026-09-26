@@ -139,7 +139,13 @@ in `corpus.json` and in the provenance file. Rules:
 * no evidence configured and no payload marker ⇒ the source stays unverified. There is no
   path that silently bypasses licence verification.
 
-Current declared sources (all three **unverified**):
+Sources declared at the end of Stage A (all three **unverified**). **Superseded in Stage B
+(2026-09-24):** the first live fetch showed both Wikisource roots were not the works (a
+localized redirect and a Wikidata infocard); Godaan is now 36 rendered chapter sources
+(`hi-wikisource-godaan-ch01-ccbysa` … `ch36`) and Gitanjali one rendered range source
+(`bn-wikisource-gitanjali-1913-ccbysa`), kind `mediawiki-parse` — see
+[the Stage B runbook, §3.1](tokenizer_corpus_stage_b_acquisition.md). The table below is the
+Stage A record:
 
 | id | language | licence | evidence | `max_chars` | `sha256` |
 |---|---|---|---|---|---|
@@ -210,7 +216,7 @@ researcher can always tell that a source is partial.
 **Local files.** Lawfully obtained text can be supplied without any network:
 
 ```
-python scripts/build_tokenizer_corpus.py --local-file hi-wikisource-godan-ccbysa=~/godan.txt
+python scripts/build_tokenizer_corpus.py --local-file en-gutenberg-alice-pd=~/alice.txt
 python scripts/build_tokenizer_corpus.py --local-dir data/local-sources   # <source_id>.txt
 ```
 
@@ -221,8 +227,11 @@ enters the split only with `--include-unverified`. An unknown source id or a fil
 matches no declared source is a hard error (exit 2), never a silently ignored input.
 
 Documents are paragraphs. A paragraph longer than 1,200 characters is cut on sentence
-punctuation (`। ॥ . ! ?`) and only then hard-wrapped, so no text is ever dropped;
-document ids are `<source_id>-<index:06d>` in document order.
+punctuation (`। ॥ . ! ?`, and `৷` U+09F7, which much Assamese and Bengali digital text types
+for the danda); a sentence still longer than that is cut at the last space inside the limit
+(only a 1,200-character run without any space is cut where the limit falls), so no word is
+torn apart and no text is dropped but the separating space; document ids are
+`<source_id>-<index:06d>` in document order.
 
 ## 7. Split
 
@@ -336,11 +345,11 @@ python scripts/build_tokenizer_corpus.py --no-record
 python scripts/build_tokenizer_corpus.py --fetch --pin --exp-id EXP-008
 
 # one source, longer timeout
-python scripts/build_tokenizer_corpus.py --fetch --source hi-wikisource-godan-ccbysa \
+python scripts/build_tokenizer_corpus.py --fetch --source hi-wikisource-godaan-ch01-ccbysa \
     --timeout 60 --exp-id EXP-008
 
 # ingest lawfully obtained local text (local_unverified; never EVALUATED)
-python scripts/build_tokenizer_corpus.py --local-file hi-wikisource-godan-ccbysa=~/godan.txt \
+python scripts/build_tokenizer_corpus.py --local-file en-gutenberg-alice-pd=~/alice.txt \
     --include-unverified --no-record
 python scripts/build_tokenizer_corpus.py --local-dir data/local-sources --no-record
 

@@ -1,7 +1,7 @@
 # ROADMAP.md
 
 > A staged path from today's 139k-parameter educational model to a genuine frontier lab.
-> Read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) first.
+> Read [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) and the founder's [MASTER_CONTEXT.md](MASTER_CONTEXT.md) first.
 
 ## How to read this roadmap
 
@@ -15,8 +15,12 @@
   a skeptical reader would accept, it is not finished.
 - **This roadmap is a proposal.** The user approves what becomes the next project. An agent
   must not start a stage on its own.
-- **Stage 0 (Project 001) and part of Stage 2 (Project 002) are done.** The tokenizer
-  *framework* exists and has produced first measurements; the tokenizer *decision* is open.
+- **Status (2026-09-26):**
+  - Stages 0 and 1 are complete (Projects 001 and 003).
+  - Stage 2 has its framework (Project 002) and a real, licensed research corpus
+    (Project 004, 13 of 14 language slots). The tokenizer *decision* is open.
+  - The founder's next step is Stage 3, FrontierCorpus v1
+    ([MASTER_CONTEXT.md](MASTER_CONTEXT.md) §37–§38).
 
 ---
 
@@ -147,7 +151,7 @@ verification **EXP-007**). Every item of Stage 1 is therefore delivered.
 - Wiring the existing `scripts/train.py` and `scripts/tokenizer_*.py` entry points to write
   experiment records themselves (today the CLI wraps them from outside).
 
-## Stage 2 — Tokenizer 🔶 FRAMEWORK BUILT, DECISION PENDING (Project 002)
+## Stage 2 — Tokenizer 🔶 FRAMEWORK BUILT, RESEARCH CORPUS ACQUIRED, DECISION PENDING (Projects 002, 004)
 
 **Goal:** a tokenizer trained on our own data, with coverage for Indian languages,
 *chosen on measurements*.
@@ -165,6 +169,17 @@ verification **EXP-007**). Every item of Stage 1 is therefore delivered.
   corpus and refuses cross-corpus comparisons.
 - 38 tests and full documentation ([docs/tokenization.md](docs/tokenization.md));
   first measurements recorded as **EXP-002** in [EXPERIMENTS.md](EXPERIMENTS.md).
+
+**What Project 004 delivered (2026-09-26):** a real, licensed tokenizer-research corpus,
+`indic-tokenizer/v2`.
+- It holds 59 public-domain works: Wikisource transcriptions under CC BY-SA, plus Project
+  Gutenberg for English. Every source is verified and pinned by SHA-256.
+- 13 of 14 language slots meet the 500-document / 200,000-character target: 34,684
+  documents and about 4.2 million characters in total.
+- `hi-en` has no lawful source yet.
+- It is far too small for pretraining, and no tokenizer has been trained on it yet.
+- See [docs/tokenizer_corpus_stage_a.md](docs/tokenizer_corpus_stage_a.md) and EXP-018 to
+  EXP-024.
 
 **What Project 002 deliberately did NOT do:** select a production tokenizer, sweep
 vocabulary size, compare BPE vs Unigram, ablate normalization, or measure how tokenizer
@@ -190,9 +205,13 @@ selected.**
 **Risk:** deciding from a 179-example fixture. The framework is explicitly designed to make
 that mistake visible — every report carries the fixture caveat.
 
-## Stage 3 — Real data pipeline
+## Stage 3 — Real data pipeline ⏭ NEXT (FrontierCorpus v1)
 
 **Goal:** a defensible, versioned pipeline from licensed/public sources to training shards.
+
+**Founder's decision (2026-09-26):** this is the next project, FrontierCorpus v1 (see
+[MASTER_CONTEXT.md](MASTER_CONTEXT.md) §12–§17). It starts with freezing and verifying
+`indic-tokenizer/v2` (§37 step 2).
 
 - Source inventory with **license and provenance recorded per source**; nothing enters
   training without a documented right to use it.

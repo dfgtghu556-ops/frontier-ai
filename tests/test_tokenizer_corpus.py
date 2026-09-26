@@ -26,6 +26,7 @@ from frontier_ai.tokenization.corpus import (
 from frontier_ai.tokenization.research_corpus import (
     CORPUS_ID,
     CORPUS_VERSION,
+    MAX_DOC_CHARS,
     MAX_NGRAM_DOCS,
     MAX_SOURCE_CHARS,
     STATUS_EVALUATED,
@@ -347,6 +348,39 @@ def test_normalization_is_preserved(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # documents and split
 # ---------------------------------------------------------------------------
+def test_assamese_danda_substitute_ends_sentences_when_a_paragraph_is_split() -> None:
+    """মনোমতী part 1 ends its sentences with U+09F7 (typed as the danda), not U+0964: a
+    long paragraph must still split there, one sentence per document."""
+    sentences = [
+        f"আজি বৰপেটাৰ চাৰিউফালৰে পৰা হাজাৰ হাজাৰ মানুহে কীৰ্ত্তনঘৰলৈ লৰ ধৰিছে {i}\u09f7" for i in range(40)
+    ]
+    paragraph = " ".join(sentences)
+    assert len(paragraph) > MAX_DOC_CHARS
+    assert [doc.text for doc in documents_from_text("as-src", "as", paragraph)] == sentences
+
+
+def test_urdu_sentence_marks_end_sentences_when_a_paragraph_is_split() -> None:
+    """Urdu uses U+06D4 and U+061F rather than the Devanagari danda."""
+    sentences = [
+        f"یہ اردو جملہ نمبر {i} ہے\u06d4" if i % 2 == 0 else f"کیا یہ جملہ نمبر {i} ہے\u061f"
+        for i in range(80)
+    ]
+    paragraph = " ".join(sentences)
+    assert len(paragraph) > MAX_DOC_CHARS
+    assert [doc.text for doc in documents_from_text("ur-src", "ur", paragraph)] == sentences
+
+
+def test_an_overlong_sentence_is_cut_between_words() -> None:
+    """A sentence longer than the cap is cut at spaces: no word (and no vowel sign) is torn
+    from its letters. Only a run with no whitespace at all is cut where the limit falls."""
+    words = [f"শব্দ{i}" for i in range(600)]  # no sentence mark anywhere
+    docs = documents_from_text("as-src", "as", " ".join(words))
+    assert len(docs) > 1 and max(doc.chars for doc in docs) <= MAX_DOC_CHARS
+    assert [word for doc in docs for word in doc.text.split(" ")] == words
+    solid = "ক" * (MAX_DOC_CHARS + 5)
+    assert [doc.text for doc in documents_from_text("x", "as", solid)] == ["ক" * MAX_DOC_CHARS, "ক" * 5]
+
+
 def test_documents_are_paragraphs_and_never_drop_text() -> None:
     docs = documents_from_text("src", "hi", HINDI_TEXT)
     assert len(docs) == 10
@@ -543,6 +577,43 @@ def test_build_writes_the_expected_artifacts(tmp_path: Path, monkeypatch) -> Non
     assert corpus["split"]["seed"] == 1337
     assert corpus["normalization_policy"] == "none"
     assert corpus["sources"][0]["ingest"]["status"] == "verified"
+
+
+def test_build_reports_progress_while_downloading(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(HINDI_TEXT + "\n" + BENGALI_TEXT),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi"), _source("bn-src", "bn")],
+        slots=[
+            {"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]},
+            {"code": "bn", "display": "Bengali", "script": "Bengali", "sources": ["bn-src"]},
+        ],
+    )
+    seen: list[tuple[int, int, str]] = []
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True,
+                          progress=lambda number, total, source_id: seen.append((number, total, source_id)))
+    assert seen == [(1, 2, "hi-src"), (2, 2, "bn-src")]  # before each download, in order
+    assert result.verified_sources == 2
+    # a report-only build downloads nothing, so it reports no progress
+    seen.clear()
+    build_corpus(manifest_path, tmp_path / "report", fetch=False,
+                 progress=lambda number, total, source_id: seen.append((number, total, source_id)))
+    assert seen == []
+
+
+def test_cli_progress_lines_and_duration_read_plainly(capsys) -> None:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("build_tokenizer_corpus", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module._show_progress(12, 40, "hi-wikisource-godaan-ch10-ccbysa")
+    assert capsys.readouterr().err == "[corpus] downloading 12 of 40: hi-wikisource-godaan-ch10-ccbysa\n"
+    assert [module._took(seconds) for seconds in (0.4, 45, 125.2, 3600)] == [
+        "0 s", "45 s", "2 min 5 s", "60 min 0 s"]
 
 
 def test_build_is_reproducible(tmp_path: Path, monkeypatch) -> None:
@@ -1155,6 +1226,38 @@ def test_pin_does_not_add_noise_fields(tmp_path: Path, monkeypatch) -> None:
             assert "reason" not in slot
 
 
+@pytest.mark.parametrize("ending", ["\r\n", "\n"], ids=["crlf", "lf"])
+def test_pin_keeps_the_line_endings_the_manifest_already_has(
+    tmp_path: Path, monkeypatch, ending: str
+) -> None:
+    """A Windows checkout may hold the manifest with CRLF endings (core.autocrlf=true), a
+    Linux one with LF. Either way the pin must change the three pinned fields and nothing
+    else, so that `git diff` shows only them - not every line of the file."""
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(MARATHI_TEXT),
+    )
+    manifest_path = _manifest(
+        tmp_path, [_source("hi-src", "hi")], slots=[{"code": "hi", "sources": ["hi-src"]}]
+    )
+    TokenizerCorpusManifest.load(manifest_path).save(manifest_path)  # the project's formatting
+    formatted = manifest_path.read_bytes().decode("utf-8")
+    assert "\r" not in formatted, "a manifest without CRLF endings is written with LF"
+    manifest_path.write_bytes(formatted.replace("\n", ending).encode("utf-8"))
+    before = manifest_path.read_bytes().decode("utf-8").split(ending)
+
+    build_corpus(manifest_path, tmp_path / "build", fetch=True, pin=True)
+
+    written = manifest_path.read_bytes().decode("utf-8")
+    assert written.count(ending) == written.count("\n"), "every line keeps its ending"
+    after = written.split(ending)
+    assert len(after) == len(before)
+    changed = [(old, new) for old, new in zip(before, after) if old != new]
+    assert {new.split(":")[0].strip() for _, new in changed} == {
+        '"sha256"', '"verified"', '"retrieved_at"'
+    }
+
+
 # ---------------------------------------------------------------------------
 # H-3: local file ingestion
 # ---------------------------------------------------------------------------
@@ -1682,6 +1785,138 @@ def test_ingest_accepts_prose_and_short_verse(tmp_path: Path, monkeypatch) -> No
         result = build_corpus(manifest_path, tmp_path / "build", fetch=True)
         assert result.ingested[0].status == "verified", body[:20]
         assert result.ingested[0].licence_proof == "payload-marker"
+
+
+def test_content_shape_detects_localized_redirects_and_sparql_cards() -> None:
+    """#REDIRECT is localized; SPARQL infocards must be refused regardless of language."""
+    # Hindi redirect (#पुनर्प्रेषित — the actual payload from hi.wikisource.org)
+    r = content_shape("#पुनर्प्रेषित [[गो-दान]]     ", "wikitext")
+    assert r["is_redirect"] is True
+    assert r["looks_like_index_page"] is True
+
+    # English #REDIRECT still works
+    r = content_shape("#REDIRECT [[Some Page]]\n", "wikitext")
+    assert r["is_redirect"] is True
+    assert r["looks_like_index_page"] is True
+
+    # Gutenberg/plain kind never flags
+    assert content_shape("#REDIRECT [[x]]", "gutenberg")["is_redirect"] is False
+    assert content_shape("#REDIRECT [[x]]", "plain")["is_redirect"] is False
+
+    # Line starting with # but no [[link]] and no redirect keyword is not a redirect
+    # (e.g. a markdown heading or a numbered verse line)
+    r = content_shape("# १. प्रथम अध्याय\nयहाँ कहानी शुरू होती है।\nऔर आगे बढ़ती है।", "wikitext")
+    assert r["is_redirect"] is False
+
+    # SPARQL/Wikidata infocard (the actual payload from bn.wikisource.org for Gitanjali)
+    sparql = (
+        "select ?item\n"
+        "select distinct ?work (sample(?edition) as ?edition_) (count(distinct ?edition) as ?editions) {\n"
+        "values ?title { \"\"@bn }\n"
+        "{ ?title ^wdt:P1476 ?work } union { ?title ^wdt:P1476/wdt:P629 ?work }\n"
+        "{ ?work ^wdt:P629 ?edition . ?edition wdt:P1957 ?url . filter(contains(str(?url),\"bn.wikisource.org\")) }\n"
+        "}\n"
+        "bind(if(?editions = 1,?edition_,?work) as ?item)\n"
+        "|columns=item,label,p577\n"
+    )
+    r = content_shape(sparql, "wikitext")
+    assert r["is_sparql_card"] is True
+    assert r["looks_like_index_page"] is True
+
+
+def test_ingest_refuses_redirect_and_sparql_pages(tmp_path: Path, monkeypatch) -> None:
+    """Localized #REDIRECT and Wikidata SPARQL cards must be refused, not 'verified'."""
+    # Hindi #पुनर्प्रेषित (the real hi.wikisource.org payload for Godaan root)
+    hi_redirect = "#पुनर्प्रेषित [[गो-दान]]     "
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, _b=hi_redirect, **k: fake_wikisource_text(_b),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]}],
+    )
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True)
+    assert result.ingested[0].status == "index_page_refused", result.ingested[0].error
+    assert "REDIRECT" in result.ingested[0].error or "redirect" in result.ingested[0].error
+
+    # Bengali SPARQL infocard (the real bn.wikisource.org payload for Gitanjali root)
+    bn_sparql = (
+        "select ?item\n"
+        "select distinct ?work (sample(?edition) as ?edition_) "
+        "(count(distinct ?edition) as ?editions) {\n"
+        "values ?title { \"\"@bn }\n"
+        "{ ?title ^wdt:P1476 ?work } union { ?title ^wdt:P1476/wdt:P629 ?work }\n"
+        "{ ?work ^wdt:P629 ?edition . ?edition wdt:P1957 ?url . "
+        "filter(contains(str(?url),\"bn.wikisource.org\")) }\n"
+        "bind(if(?editions = 1,?edition_,?work) as ?item)\n"
+        "|columns=item,label,p577\n"
+    )
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, _b=bn_sparql, **k: fake_wikisource_text(_b),
+    )
+    manifest_path2 = _manifest(
+        tmp_path,
+        [_source("bn-src", "bn")],
+        slots=[{"code": "bn", "display": "Bengali", "script": "Bengali", "sources": ["bn-src"]}],
+    )
+    result2 = build_corpus(manifest_path2, tmp_path / "build2", fetch=True)
+    assert result2.ingested[0].status == "index_page_refused", result2.ingested[0].error
+    assert "SPARQL" in result2.ingested[0].error or "sparql" in result2.ingested[0].error
+
+
+def test_tiny_stub_is_refused_after_cleaning(tmp_path: Path, monkeypatch) -> None:
+    """A short wikitext stub (fewer than MIN_LINES navigation lines, but cleans to almost
+    nothing and carries markup) must be refused by the post-clean stub gate.
+
+    This catches the Hindi Godaan case (1 redirect line / 20 chars after cleaning)
+    which the old line-ratio gate missed because it required >=20 lines.
+    """
+    # 3 link lines — too few for the ratio gate (MIN_LINES=5) but cleans to <500 chars
+    tiny_stub = "\n".join(
+        [
+            "{{काम/हेडर}}",
+            "[[गोदान/अध्याय_१|अध्याय १]]",
+            "[[गोदान/अध्याय_२|अध्याय २]]",
+        ]
+    )
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(tiny_stub),
+    )
+    manifest_path = _manifest(
+        tmp_path,
+        [_source("hi-src", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src"]}],
+    )
+    result = build_corpus(manifest_path, tmp_path / "build", fetch=True)
+    item = result.ingested[0]
+    assert item.status == "index_page_refused", item.error
+    assert item.verified is False
+    # Either gate is acceptable; what matters is refusal.
+    assert "index" in item.error.lower() or "stub" in item.error.lower() or "cleaned to only" in item.error
+    # payload kept for inspection, never enters corpus
+    assert item.path is not None and Path(item.path).exists()
+    assert result.train == [] and result.held_out == []
+    # the payload carried a licence marker, but a refused stub is never "verified"
+    provenance = json.loads(Path(item.provenance_path).read_text(encoding="utf-8"))
+    assert item.licence_proof == "payload-marker"
+    assert provenance["verification"] == "unverified"
+
+    # Short plain prose (no wiki links/templates) must NOT be refused — a short poem is still prose
+    monkeypatch.setattr(
+        "frontier_ai.tokenization.research_corpus.fetch_text",
+        lambda *a, **k: fake_wikisource_text(_verse_sample()),
+    )
+    manifest_path2 = _manifest(
+        tmp_path,
+        [_source("hi-src2", "hi")],
+        slots=[{"code": "hi", "display": "Hindi", "script": "Devanagari", "sources": ["hi-src2"]}],
+    )
+    result2 = build_corpus(manifest_path2, tmp_path / "build2", fetch=True)
+    assert result2.ingested[0].status == "verified", result2.ingested[0].error
 
 
 def test_pinned_content_that_changes_is_refused(tmp_path: Path, monkeypatch) -> None:

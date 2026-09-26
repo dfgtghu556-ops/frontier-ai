@@ -32,11 +32,15 @@ Read these first if you are joining the project (human or AI agent):
 
 | Document | What it covers |
 | --- | --- |
+| [MASTER_CONTEXT.md](MASTER_CONTEXT.md) | the founder's mission, working rules, 24-step roadmap and required answer format |
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
 | [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
 | [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-034) and open questions |
-| [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log (EXP-001…EXP-007) |
+| [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log |
 | [docs/tokenization.md](docs/tokenization.md) | tokenizer research: why it matters, metrics, Indic/Unicode notes, workflow |
+| [docs/tokenizer_corpus_stage_a.md](docs/tokenizer_corpus_stage_a.md) | Project 004 Stage A: the tokenizer research corpus (manifest, licensing, split, leakage) |
+| [docs/tokenizer_corpus_stage_b_acquisition.md](docs/tokenizer_corpus_stage_b_acquisition.md) | Project 004 Stage B: how the real corpus was acquired and verified |
+| [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md) | how a new AI chat catches up with the latest branch |
 | [docs/experiments.md](docs/experiments.md) | Project 003: experiment records, seeding and documented limits, git/data/env provenance, the runner |
 
 The rest of this README is the technical quickstart.
