@@ -132,7 +132,8 @@ def _verify_inputs(
         if not text_path.is_file():
             problems.append(f"missing text file {text_path}")
             continue
-        actual = hashlib.sha256(text_path.read_bytes()).hexdigest()
+        text = text_path.read_text(encoding="utf-8")
+        actual = hashlib.sha256(text.encode("utf-8")).hexdigest()
         if actual != source.sha256:
             problems.append(
                 f"{source.source_id}: text hash {actual} != pinned {source.sha256} "

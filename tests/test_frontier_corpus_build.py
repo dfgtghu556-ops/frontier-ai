@@ -298,6 +298,19 @@ def test_builder_e2e_on_fake_frozen_corpus(tmp_path):
         assert a == b  # byte-identical shards
 
 
+def test_builder_accepts_windows_newlines_for_frozen_text(tmp_path):
+    fake = _make_fake_frozen_corpus(tmp_path)
+    for path in (fake["corpus_dir"] / "sources").glob("*.txt"):
+        path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+
+    proc = _run_builder(
+        ["--manifest", str(fake["manifest"]), "--freeze", str(fake["freeze"]),
+         "--corpus-dir", str(fake["corpus_dir"]), "--out", str(tmp_path / "out"), "--no-record"]
+    )
+
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+
+
 def test_builder_refuses_drifted_corpus_text(tmp_path):
     fake = _make_fake_frozen_corpus(tmp_path)
     out = tmp_path / "out"
