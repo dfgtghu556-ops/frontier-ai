@@ -461,6 +461,95 @@ def test_huggingface_bpe_round_trips_and_saves(tmp_path):
     assert reloaded.impl_version().startswith("tokenizers-")
 
 
+def test_mark_aware_hf_pretokenizer_boundaries_match_python():
+    """The HF mark-aware component must cut at exactly the Python boundaries."""
+    pytest.importorskip("tokenizers")
+    from tokenizers import PreTokenizedString, pre_tokenizers
+
+    from frontier_ai.tokenization.bpe_hf import MarkAwarePreTokenizer
+
+    for text in [
+        "नमस्ते", "मैं 123, world!", "कॉन्टेस्ट x", "a b  c", "x", "नमो.",
+        " leading space", "trailing space ", "a,b c.d", "12 34", "🙏 emoji",
+    ]:
+        composed = pre_tokenizers.Sequence([
+            pre_tokenizers.PreTokenizer.custom(MarkAwarePreTokenizer()),
+            pre_tokenizers.ByteLevel(add_prefix_space=False, use_regex=False),
+        ])
+        ps = PreTokenizedString(text)
+        composed.pre_tokenize(ps)
+        # the ByteLevel stage byte-escapes but must not add split points: the
+        # chunk COUNT and the original-text offsets define the boundaries
+        chunks = ps.get_splits()
+        py_chunks = pretokenize(text)
+        assert len(chunks) == len(py_chunks), f"boundary count differs for {text!r}"
+        for (_chunk, (start, end), _tokens), py in zip(chunks, py_chunks):
+            # chunk is byte-escaped; the offsets point back into the original text
+            assert text[start:end] == py, f"boundary differs for {text!r}"
+
+
+def test_huggingface_bpe_mark_aware_round_trips_including_unseen_chars(tmp_path):
+    """Losslessness must hold for characters the training file never saw."""
+    pytest.importorskip("tokenizers")
+    from frontier_ai.tokenization.bpe_hf import HuggingFaceBPE
+
+    corpus = tmp_path / "tiny_ma.txt"
+    corpus.write_text("नमस्ते दोस्त मैं हूँ\n" * 120, encoding="utf-8")
+    tok = HuggingFaceBPE()
+    tok.train(corpus, vocab_size=400, pretoken="mark_aware")
+    for text in [
+        "नमस्ते दोस्त मैं हूँ",           # seen
+        "नया शब्द जो कहीं नहीं मिला",     # unseen characters
+        " mixed: नमस्ते hello! 👋",       # leading space + emoji
+        "  double leading space",
+    ]:
+        assert tok.decode(tok.encode(text)) == text, f"HF mark_aware round trip failed for {text!r}"
+
+
+def test_huggingface_bpe_mark_aware_save_load_reattaches_pretokenizer(tmp_path):
+    """save() persists a serializable placeholder; load() restores the boundaries."""
+    pytest.importorskip("tokenizers")
+    from frontier_ai.tokenization.bpe_hf import HuggingFaceBPE
+
+    corpus = tmp_path / "tiny_ma.txt"
+    corpus.write_text("नमस्ते दोस्त मैं हूँ\n" * 120, encoding="utf-8")
+    tok = HuggingFaceBPE()
+    tok.train(corpus, vocab_size=400, pretoken="mark_aware")
+    probes = ["मैं", "कॉन्टेस्ट", "नमस्ते world, hi!"]
+    in_memory = [tok.encode(p) for p in probes]
+
+    directory = tok.save(tmp_path / "hf_ma")
+    tokenizer_json = (directory / "tokenizer.json").read_text(encoding="utf-8")
+    import json as _json
+
+    from tokenizers import Tokenizer as _Tokenizer
+
+    saved = _json.loads(tokenizer_json)
+    # the custom component itself is NOT in the file; a serializable
+    # ByteLevel placeholder is, and the artifact must be a valid tokenizer.json
+    assert saved.get("pre_tokenizer", {}).get("type") == "ByteLevel"
+    _Tokenizer.from_file(str(directory / "tokenizer.json"))
+    config = _json.loads((directory / "hf_config.json").read_text(encoding="utf-8"))
+    assert config["pre_tokenizer"] == "mark_aware"
+
+    reloaded = HuggingFaceBPE.load(directory)
+    assert reloaded._pretoken == "mark_aware"
+    for probe, ids in zip(probes, in_memory):
+        assert reloaded.encode(probe) == ids, f"reload changed the boundaries for {probe!r}"
+    assert reloaded.decode(reloaded.encode("नया शब्द 👋")) == "नया शब्द 👋"
+
+
+def test_huggingface_bpe_rejects_unknown_pretoken(tmp_path):
+    pytest.importorskip("tokenizers")
+    from frontier_ai.tokenization.bpe_hf import HuggingFaceBPE
+
+    corpus = tmp_path / "tiny.txt"
+    corpus.write_text("hello world\n" * 100, encoding="utf-8")
+    tok = HuggingFaceBPE()
+    with pytest.raises(TokenizerError, match="unknown pre-tokenization"):
+        tok.train(corpus, vocab_size=400, pretoken="gpt2_style")
+
+
 def test_all_implementations_round_trip_text_containing_special_tokens(tmp_path):
     """decode(encode(x)) must equal x even when x contains a special token."""
     corpus = write_tiny_corpus(tmp_path / "tiny.txt")

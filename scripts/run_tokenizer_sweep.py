@@ -32,6 +32,14 @@ Examples
     # smoke: tiny vocabs, truncated train side (sandbox / preflight)
     python scripts/run_tokenizer_sweep.py --exp-id EXP-028 \
         --vocab-sizes 512,1024 --max-train-chars 200000 --no-record
+
+    # the 5 supplemental bpe_hf + mark_aware cells ONLY (a separate out dir so
+    # the main sweep's sweep.json is not overwritten; summarize_sweep.py can
+    # then merge both dirs)
+    python scripts/run_tokenizer_sweep.py --exp-id EXP-028 \
+        --out out/experiments/EXP-028-hf-mark-aware \
+        --configs hf-mark_aware-2048,hf-mark_aware-4096,hf-mark_aware-8192, \
+hf-mark_aware-16384,hf-mark_aware-32768
 """
 
 from __future__ import annotations
@@ -82,6 +90,13 @@ def build_parser() -> argparse.ArgumentParser:
                    help="v2 build directory holding sources/<id>.txt (default: %(default)s)")
     p.add_argument("--vocab-sizes", default=DEFAULT_VOCAB_SIZES,
                    help="comma-separated vocab sizes (default: %(default)s)")
+    p.add_argument("--include-hf-mark-aware", action="store_true",
+                   help="also run the 5 supplemental bpe_hf + mark_aware cells "
+                        "(a supplement to the approved 15-configuration grid)")
+    p.add_argument("--configs", default=None,
+                   help="comma-separated configuration names to run (a subset of the "
+                        "selected grid; default: all of it). Example: "
+                        "hf-mark_aware-2048,hf-mark_aware-4096")
     p.add_argument("--out", default=None,
                    help="sweep output dir (default: out/experiments/<exp-id>)")
     p.add_argument("--seed", type=int, default=1337,
@@ -305,12 +320,32 @@ def _run(args: argparse.Namespace) -> int:
 
     vocab_sizes = _parse_vocab_sizes(args.vocab_sizes)
     configs = list(SweepConfig.grid(vocab_sizes))
+    if args.include_hf_mark_aware:
+        configs += list(SweepConfig.grid_supplemental(vocab_sizes))
     skipped_hf = False
     if not is_available(IMPL_BPE_HF):
         print("[sweep] WARNING: the 'tokenizers' package is not installed — "
-              "the 5 bpe_hf configurations are skipped (pip install '.[tokenizer]')")
+              "all bpe_hf configurations are skipped (pip install '.[tokenizer]')")
         configs = [c for c in configs if c.impl != IMPL_BPE_HF]
         skipped_hf = True
+
+    if args.configs:
+        wanted = [name.strip() for name in args.configs.split(",") if name.strip()]
+        known = {c.name for c in configs}
+        unknown = [name for name in wanted if name not in known]
+        if unknown:
+            raise SystemExit(
+                f"[sweep] unknown configuration name(s): {', '.join(unknown)} — "
+                f"known: {', '.join(sorted(known))}"
+            )
+        wanted_set = set(wanted)
+        configs = [c for c in configs if c.name in wanted_set]
+        if not args.out:
+            print(f"[sweep] WARNING: partial run (only {len(configs)} of "
+                  f"{len(known)} configurations) with the DEFAULT output dir — "
+                  "sweep.json in that dir will be OVERWRITTEN with this partial "
+                  "run's record. For a supplement run, pass --out to a separate "
+                  "directory (e.g. out/experiments/EXP-028-hf-mark-aware).")
 
     per_language: dict[str, list[str]] = {}
     for doc in held_docs:

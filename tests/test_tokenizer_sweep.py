@@ -124,12 +124,12 @@ def test_measure_docs_reports_per_language_and_overall():
     assert all(ex.category == "document" for ex in examples)
 
 
-def test_run_one_config_rejects_hf_with_non_bytelevel_pretoken(tmp_path):
-    from frontier_ai.tokenization.sweep import IMPL_BPE_HF, run_one_config
+def test_run_one_config_rejects_hf_with_gpt2_style_pretoken(tmp_path):
+    from frontier_ai.tokenization.sweep import IMPL_BPE_HF, PRETOKEN_GPT2_STYLE, run_one_config
 
-    with pytest.raises(TokenizerError, match="only supports the built-in"):
+    with pytest.raises(TokenizerError, match="not 'gpt2_style'"):
         run_one_config(
-            SweepConfig(IMPL_BPE_HF, PRETOKEN_MARK_AWARE, 300),
+            SweepConfig(IMPL_BPE_HF, PRETOKEN_GPT2_STYLE, 300),
             train_file=tmp_path / "nope.txt",
             train_documents=[],
             heldout_documents=[],
@@ -159,6 +159,49 @@ def test_headline_metric_path_is_numeric_in_real_results(tmp_path):
         node = node[part]
     assert isinstance(node, (int, float)) and node > 0
     assert results["gate"]["lossless"] is True
+
+
+def test_grid_supplemental_is_the_five_hf_mark_aware_cells():
+    sizes = [2048, 4096]
+    grid = SweepConfig.grid(sizes)
+    supplemental = SweepConfig.grid_supplemental(sizes)
+    assert len(grid) == 2 * 2 + 2  # unchanged approved grid shape
+    assert all(cfg not in grid for cfg in supplemental)
+    assert [c.name for c in supplemental] == ["hf-mark_aware-2048", "hf-mark_aware-4096"]
+    assert all(c.impl == "bpe_hf" and c.pretoken == PRETOKEN_MARK_AWARE for c in supplemental)
+
+
+def test_run_one_config_hf_mark_aware_smoke(tmp_path):
+    """The supplemental cell trains, gates lossless, and records the metric."""
+    pytest.importorskip("tokenizers")
+    from frontier_ai.tokenization.sweep import run_one_config
+
+    train_file = tmp_path / "train.txt"
+    train_file.write_text(("मेरी जान तुम हो। " * 50) + "hello world " * 40, encoding="utf-8")
+    docs = [
+        _doc("t-000001", "hi", "मेरी जान तुम हो।"),
+        _doc("t-000002", "en", "hello world"),
+    ]
+    results = run_one_config(
+        SweepConfig("bpe_hf", PRETOKEN_MARK_AWARE, 300),
+        train_file=train_file,
+        train_documents=docs,
+        heldout_documents=docs,
+        out_dir=tmp_path,
+    )
+    assert results["gate"]["lossless"] is True
+    assert results["config"] == {"impl": "bpe_hf", "pretoken": "mark_aware", "vocab_size": 300}
+    node = results
+    for part in HEADLINE_METRIC.split("."):
+        node = node[part]
+    assert isinstance(node, (int, float)) and node > 0
+    # the artifact must reload with the mark-aware boundaries re-attached
+    from frontier_ai.tokenization.bpe_hf import HuggingFaceBPE
+
+    artifact_dir = Path(results["artifact"])
+    reloaded = HuggingFaceBPE.load(artifact_dir)
+    assert reloaded._pretoken == "mark_aware"
+    assert reloaded.decode(reloaded.encode("मेरी जान तुम हो।")) == "मेरी जान तुम हो।"
 
 
 # ---------------------------------------------------------------------------
@@ -334,3 +377,58 @@ def test_sweep_refuses_missing_frontier_dir(tmp_path):
     assert proc.returncode in (2, 127, 1)
     assert proc.returncode != 0
     assert "INPUT GATE" in proc.stderr or "no dataset manifest" in (proc.stderr + proc.stdout)
+
+
+# ---------------------------------------------------------------------------
+# summarize_sweep: verify + rank a finished sweep
+# ---------------------------------------------------------------------------
+def _run_summarize(args: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts/summarize_sweep.py"), *args],
+        capture_output=True, text=True, timeout=120,
+    )
+
+
+def test_summarize_sweep_verifies_and_ranks(tmp_path):
+    fake = _make_fake_frozen_corpus(tmp_path, n_hi=30, n_en=12)
+    frontier = _build_fake_frontier(fake, tmp_path / "frontier")
+    out = tmp_path / "sweep_out"
+    proc = _run_sweep_script(
+        ["--exp-id", "EXP-999", "--frontier-dir", str(frontier),
+         "--manifest", str(fake["manifest"]), "--freeze", str(fake["freeze"]),
+         "--corpus-dir", str(fake["corpus_dir"]), "--vocab-sizes", "512,768",
+         "--max-train-chars", "4000", "--out", str(out), "--no-record"]
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+
+    summ = _run_summarize(["--sweep-dir", str(out)])
+    assert summ.returncode == 0, summ.stdout + summ.stderr
+    assert "EXP-A sweep — verified summary" in summ.stdout
+    # all 6 configurations present, ranked, gate PASS for every one
+    assert summ.stdout.count("PASS") >= 6
+    assert "TOP-2 CANDIDATES FOR EXP-B" in summ.stdout
+    assert "hi" in summ.stdout and "en" in summ.stdout
+    assert (out / "summary.txt").is_file()
+    # the ranking is real: first listed config has the max chars/token of the runs
+    sweep = json.loads((out / "sweep.json").read_text(encoding="utf-8"))
+    best = max(
+        (run["metric_value"] for run in sweep["runs"] if run["status"] == "success"),
+        default=None,
+    )
+    assert best is not None
+    first_row = next(
+        line for line in summ.stdout.splitlines()
+        if line.startswith("1   ")
+    )
+    assert f"{best:.4f}" in first_row
+
+    # tamper with one run record -> the verifier must catch it (exit 1)
+    run = sweep["runs"][0]
+    record_path = out / run["record"]
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    record["results"]["gate"]["lossless"] = False
+    record_path.write_text(json.dumps(record, ensure_ascii=False), encoding="utf-8")
+    summ2 = _run_summarize(["--sweep-dir", str(out), "--no-write"])
+    assert summ2.returncode == 1
+    assert "CONSISTENCY PROBLEMS" in summ2.stdout
+    assert "losslessness gate FAILED" in summ2.stdout

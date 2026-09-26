@@ -261,6 +261,29 @@ comes next. They also update the table in §3.
      two tables from `report.txt`. **Do not choose a tokenizer** — the top-2 go to EXP-B.
   6. Commit rule: the run writes only under `out\experiments\EXP-028\` (git-ignored).
      Nothing to commit unless the run says so.
+* **2026-09-26, Arena agent (EXP-028 in flight):** the harness push had failed on expired
+  auth and a sandbox reset had lost the commit; the same content was re-committed and
+  pushed as `580d797` (the PC pulled it and re-ran the sweep). As of this entry the PC is
+  mid-run: 12/15 cells done, **all gate=PASS**; the three remaining cells are the
+  `py-mark_aware` ones (the longest — 30–60 min for 32768 from the PC's own timings).
+  In parallel (founder directive: keep working while the PC job runs) three things were
+  delivered and are in this commit: (1) `scripts/summarize_sweep.py` — a read-only
+  verifier + ranked summarizer for a finished sweep (consistency checks per run, ranked
+  table, per-language matrix, TOP-2-for-EXP-B; exit 0/1/2; multiple `--sweep-dir` to
+  merge runs); (2) the previously out-of-grid 5 `bpe_hf` + mark-aware cells are now
+  **implemented** (D-039): `bpe_hf.MarkAwarePreTokenizer` via the `tokenizers` custom
+  pre-tokenizer API, boundaries identical to `bpe_python`'s, save/load via a
+  serializable placeholder + re-attach; runner flags `--include-hf-mark-aware` /
+  `--configs` let them run into their own out dir after the main sweep; sandbox
+  cross-validation shows `hf-mark_aware` ≡ `py-mark_aware` on a fake corpus; (3) no EXP-B
+  code yet — that plan comes after the sweep numbers, per the approved scope.
+  **Next (PC, after the sweep finishes):** founder pastes the final table + exit code;
+  then `git pull --ff-only`, then the supplement run
+  (`python scripts/run_tokenizer_sweep.py --exp-id EXP-028 --out
+  out/experiments/EXP-028-hf-mark-aware --configs hf-mark_aware-2048,hf-mark_aware-4096,
+  hf-mark_aware-8192,hf-mark_aware-16384,hf-mark_aware-32768`), then
+  `python scripts/summarize_sweep.py --sweep-dir out/experiments/EXP-028
+  out/experiments/EXP-028-hf-mark-aware`; its TOP-2 section hands off to EXP-B.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

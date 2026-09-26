@@ -1351,3 +1351,9 @@ The 5 missing `bpe_hf` + mark-aware combinations are a documented limitation (th
 **Results:** pending PC run.
 
 **Artifacts (harness):** `scripts/run_tokenizer_sweep.py`, `src/frontier_ai/tokenization/sweep.py`, `src/frontier_ai/corpus/frontier_docs.py`, `tests/test_tokenizer_sweep.py`; pending: `out/experiments/EXP-028/` (PC).
+
+**Supplement (D-039, implemented 2026-09-26 while the PC run was in flight):** the 5 previously out-of-grid `bpe_hf` + mark-aware cells are now implemented (`bpe_hf.MarkAwarePreTokenizer` via the `tokenizers` custom pre-tokenizer API; boundaries identical to `bpe_python`'s, byte-remapped by the built-in `ByteLevel(use_regex=False)`; save/load handled via a serializable placeholder + re-attach). To run them after the main sweep finishes (separate out dir, same frozen input):
+
+    python scripts/run_tokenizer_sweep.py --exp-id EXP-028 --out out/experiments/EXP-028-hf-mark-aware --configs hf-mark_aware-2048,hf-mark_aware-4096,hf-mark_aware-8192,hf-mark_aware-16384,hf-mark_aware-32768
+
+then merge both runs for review: `python scripts/summarize_sweep.py --sweep-dir out/experiments/EXP-028 out/experiments/EXP-028-hf-mark-aware`. Also new: `scripts/summarize_sweep.py` — a read-only verifier + ranked summarizer for a finished sweep (per-run consistency checks, ranked table, per-language matrix, TOP-2-for-EXP-B; exit 0/1/2).

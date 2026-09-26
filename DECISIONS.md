@@ -1216,6 +1216,43 @@ losslessness gate fails (a real bug, not a metric), or when the grid is extended
 
 ---
 
+## D-039 — The 5 `bpe_hf` + mark-aware cells are implemented as a sweep *supplement*, not part of the approved grid
+**Date:** 2026-09-26 · **Status:** accepted (founder directive 2026-09-26: finish upcoming roadmap work in parallel while the EXP-028 PC run is in flight)
+
+**Decision:** the 5 `bpe_hf` + mark-aware combinations that D-038 documented as an
+open limitation are now implemented and can be run as a **supplement** to EXP-028
+(runner flags `--include-hf-mark-aware` / `--configs`; `SweepConfig.grid_supplemental()`).
+The approved 15-configuration grid (D-038) is unchanged: the supplement cells are off by
+default, run into their own output directory, and are merged into the review by
+`scripts/summarize_sweep.py` (multiple `--sweep-dir`).
+
+**Mechanism (the previously missing piece):** `tokenizers` ≥ 0.22 provides the custom
+pre-tokenizer API (`pre_tokenizers.PreTokenizer.custom(obj)`, where `obj.pre_tokenize`
+receives a `PreTokenizedString`). `bpe_hf.MarkAwarePreTokenizer` splits into exactly the
+chunks of `bpe_python.pretokenize` (same `_char_class` classification imported as the
+single source of truth), composed with the built-in `ByteLevel(use_regex=False)` so the
+model stays in the lossless 256-byte space (the `hf-byte_level` baseline's encoding with
+mark-aware boundaries). Custom components **cannot be serialized**, so `save()` writes a
+serializable `ByteLevel` placeholder into `tokenizer.json` and records
+`pre_tokenizer: mark_aware` in `hf_config.json`; `load()` re-attaches the component.
+
+**Rationale:** the supplement answers "how much of the mark-aware gain is the
+boundaries, and how much the implementation?" without changing the approved scope.
+Sandbox cross-validation on a fake corpus: `hf-mark_aware` and `py-mark_aware` produce
+identical held-out chars/token and per-language numbers, and both beat `gpt2_style` /
+`byte_level` on the Indic side.
+
+**Consequences accepted:** (a) the supplement cells take as long as the `bpe_python`
+mark-aware cells (the Python splitting step runs per line; BPE merging itself stays in
+Rust); (b) artifacts for these cells only reload through `HuggingFaceBPE.load` (the
+raw `tokenizer.json` carries the placeholder pre-tokenizer).
+
+**Revisit when:** `tokenizers` v1 (the successor of the 0.23 line) changes the custom
+component API, or when EXP-B's bits-per-character comparison makes the supplement
+redundant.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

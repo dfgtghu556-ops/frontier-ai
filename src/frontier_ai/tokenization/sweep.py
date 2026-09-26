@@ -19,9 +19,15 @@ Per-configuration metrics (EXP-A is model-free by design):
 Bits-per-character (which needs a language model) is deliberately NOT an
 EXP-A metric — that comparison belongs to EXP-B.
 
-The five ``bpe_hf`` + mark-aware combinations are out of the grid: they would
-need a custom HuggingFace ``PreTokenizer``, which cannot be tested until the
-PC run; they are recorded as a documented limitation, not silently skipped.
+The five ``bpe_hf`` + mark-aware combinations are OUT of the approved 15-
+configuration grid (the scope D-038 approved is the 15 cells above). They ARE
+implemented, though, via a custom HuggingFace ``PreTokenizer``
+(``bpe_hf.MarkAwarePreTokenizer`` through ``tokenizers``' custom component
+API) and can be run as a supplement to the sweep:
+``SweepConfig.grid_supplemental()`` / the runner's ``--include-hf-mark-aware``
+flag. They answer the question "how much of the mark-aware gain is the
+boundaries, and how much the implementation?" without changing the approved
+grid.
 """
 
 from __future__ import annotations
@@ -75,6 +81,14 @@ class SweepConfig:
             SweepConfig(IMPL_BPE_HF, PRETOKEN_HF_BYTE_LEVEL, vocab) for vocab in vocab_sizes
         ]
         return tuple(configs)
+
+    @staticmethod
+    def grid_supplemental(vocab_sizes: Sequence[int]) -> tuple[SweepConfig, ...]:
+        """The 5 ``bpe_hf`` + mark-aware cells (a supplement to the grid, not part
+        of the approved 15-configuration EXP-A scope; see the module docstring)."""
+        return tuple(
+            SweepConfig(IMPL_BPE_HF, PRETOKEN_MARK_AWARE, vocab) for vocab in vocab_sizes
+        )
 
 
 def docs_to_examples(documents: Sequence[PipelineDocument]) -> list[Example]:
@@ -144,12 +158,12 @@ def run_one_config(
     if config.impl == IMPL_BPE_PYTHON:
         kwargs: dict[str, Any] = {"pretoken": config.pretoken}
     elif config.impl == IMPL_BPE_HF:
-        if config.pretoken != PRETOKEN_HF_BYTE_LEVEL:
+        if config.pretoken not in (PRETOKEN_HF_BYTE_LEVEL, PRETOKEN_MARK_AWARE):
             raise TokenizerError(
-                f"{config.impl} only supports the built-in {PRETOKEN_HF_BYTE_LEVEL} "
-                "pre-tokenization in EXP-A (a mark-aware PreTokenizer is not part of the grid)"
+                f"{config.impl} supports {PRETOKEN_HF_BYTE_LEVEL!r} and "
+                f"{PRETOKEN_MARK_AWARE!r} pre-tokenization, not {config.pretoken!r}"
             )
-        kwargs = {}
+        kwargs = {"pretoken": config.pretoken}
     else:
         raise TokenizerError(f"unknown tokenizer implementation {config.impl!r}")
 
