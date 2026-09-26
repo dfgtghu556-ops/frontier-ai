@@ -198,22 +198,22 @@ comes next. They also update the table in §3.
   STEP 3–4 — the FrontierCorpus v1 pipeline; audit first, smallest useful step, founder
   approval before code.
 * **2026-09-26, Arena agent, branch `arena/01a0dc16-frontier-ai`:** MASTER_CONTEXT §37
-  step 3 built **locally** (under the founder's "finish the upcoming tasks" directive;
-  D-036 NFC and D-037 staged pipeline recorded as **provisional** pending ratification):
-  `src/frontier_ai/corpus/` — normalize (NFC, policy v1), langid (script-profile gate),
-  quality (7 measurable rules, per-language overrides), exact dedup (cross-source,
-  order-independent), split (reused P004B content-hash rule), seeded shuffle,
-  character-budget shards (per-shard SHA-256), dataset manifest (`content_sha256`
-  excludes the timestamp); `scripts/build_frontier_corpus.py` — self-recording (D-032),
-  `--check`, exit 0/1/2, and a hard gate: refuses unless the freeze identity and all 59
-  pinned text hashes verify. 46 new unit tests incl. an offline e2e of the builder on a
-  fake frozen corpus; full suite 458 passed / 4 skipped (environmental), ruff clean.
-  Plan doc: `docs/frontier_corpus_v1.md`. Commits `841795a` and `23c46ce` are **local
-  only, not pushed** — the founder's PC job (EXP-026 live re-fetch) is in flight on this
-  branch, and the sandbox's GitHub token expired mid-session (reconnect needed to push).
-  Not yet run on the real corpus (needs its text — a PC job). Next: verify EXP-026 →
-  push → EXP-027 pilot on the PC (`python scripts/build_frontier_corpus.py --exp-id
-  EXP-027`) → cross-check dedup removals against EXP-023's 396 identical documents.
+  step 3 built (the founder directed "finish up the upcoming tasks quickly", then
+  ratified the STEP 3 plan: "Arena agent starts the STEP 3 plan" — D-036 NFC and D-037
+  staged pipeline are **accepted**): `src/frontier_ai/corpus/` — normalize (NFC,
+  policy v1), langid (script-profile gate), quality (7 measurable rules, per-language
+  overrides), exact dedup (cross-source, order-independent), split (reused P004B
+  content-hash rule), seeded shuffle, character-budget shards (per-shard SHA-256),
+  dataset manifest (`content_sha256` excludes the timestamp);
+  `scripts/build_frontier_corpus.py` — self-recording (D-032), `--check`, exit 0/1/2,
+  and a hard gate: refuses unless the freeze identity and all 59 pinned text hashes
+  verify. 46 new unit tests incl. an offline e2e of the builder on a fake frozen
+  corpus; full suite 458 passed / 4 skipped (environmental), ruff clean. Plan doc:
+  `docs/frontier_corpus_v1.md`. EXP-026 was then verified from the repository (59/59
+  pins unchanged, 396 identical documents exactly matching EXP-023) and merged with
+  this work (merge `6dafd07`), then pushed. Not yet run on the real corpus (needs its
+  text — a PC job). Next: EXP-027 pilot on the PC (`python scripts/build_frontier_corpus.py
+  --exp-id EXP-027`) → cross-check dedup removals against the 396 identical documents.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

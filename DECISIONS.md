@@ -1055,8 +1055,9 @@ corpus that differs from v2 — then open v3, do not amend v2.
 ---
 
 ## D-036 — FrontierCorpus v1 normalizes text to NFC, policy version 1
-**Date:** 2026-09-26 · **Status:** provisional (built under the founder's 2026-09-26
-"finish up the upcoming tasks quickly" directive; awaits the founder's explicit ratification)
+**Date:** 2026-09-26 · **Status:** accepted (built under the founder's 2026-09-26
+"finish up the upcoming tasks quickly" directive; ratified with the STEP 3 go-ahead of
+2026-09-26: "Arena agent starts the STEP 3 plan")
 
 **Decision:** every FrontierCorpus v1 document is normalized **once**, at the front of the
 pipeline, to **NFC** (Unicode composed form), with deterministic whitespace canonicalization
@@ -1095,8 +1096,9 @@ then the policy may change, with a new record.
 ---
 
 ## D-037 — FrontierCorpus v1 is a staged, pure-function pipeline over the frozen corpus
-**Date:** 2026-09-26 · **Status:** provisional (built under the founder's 2026-09-26
-"finish up the upcoming tasks quickly" directive; awaits the founder's explicit ratification)
+**Date:** 2026-09-26 · **Status:** accepted (built under the founder's 2026-09-26
+"finish up the upcoming tasks quickly" directive; ratified with the STEP 3 go-ahead of
+2026-09-26: "Arena agent starts the STEP 3 plan")
 
 **Decision:** FrontierCorpus v1 is built as a sequence of **pure-function stages** sharing
 one document model (`frontier_ai.corpus`), in the order

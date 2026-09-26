@@ -2,12 +2,14 @@
 
 **Status (2026-09-26):** parts 1 and 2 implemented and unit-tested (stages, split,
 shuffle/pack/shard, manifest, registry import, self-recording builder with `--check`,
-offline e2e test). Remaining: the pilot run on a network-enabled machine (needs the
-v2 corpus text), recorded as **EXP-027**, followed by the EXP-023 396-duplicate
-cross-check review and an EXPERIMENTS.md entry. Decisions D-036 (NFC) and D-037 (staged
-pipeline) are **provisional** pending the founder's explicit ratification.
-Governing context: MASTER_CONTEXT §10–15 (what a pretraining corpus must be), §37
-step 3 (freeze → pipeline → tokenizer sweep).
+offline e2e test) and pushed. D-036 (NFC) and D-037 (staged pipeline) are **accepted**
+(ratified by the founder's STEP 3 go-ahead). EXP-026 (live re-fetch) verified: 59/59
+pins unchanged, 396 identical documents exactly matching EXP-023 — the corpus is
+fresh, so the pilot's dedup cross-check baseline is that same count. Remaining: the
+pilot run on a network-enabled machine (needs the v2 corpus text), recorded as
+**EXP-027**, followed by the 396-duplicate cross-check review and an EXPERIMENTS.md
+entry. Governing context: MASTER_CONTEXT §10–15 (what a pretraining corpus must be),
+§37 step 3 (freeze → pipeline → tokenizer sweep).
 
 ## 1. What this is
 
