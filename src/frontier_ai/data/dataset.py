@@ -248,6 +248,50 @@ def write_tokens(
     return meta
 
 
+def write_split_tokens(
+    out_path: str | Path,
+    train_ids,
+    val_ids,
+    vocab_size: int,
+    level: str,
+    train_bytes: int,
+    train_chars: int,
+    val_bytes: int,
+    val_chars: int,
+    source_provenance: dict | None = None,
+) -> DataMeta:
+    """Persist a document-aligned train/val token file (the EXP-B layout).
+
+    Unlike :func:`write_tokens` — which splits one flat stream by a fraction —
+    the two splits are given explicitly: the FrontierCorpus v1 train side and
+    held-out side, so ``n_train``/``n_val`` and the per-split byte/character
+    totals are exact by construction. The file layout is the standard one
+    (``train || val``), so :class:`TokenDataset` consumes it unchanged.
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    dtype = _dtype_for(vocab_size)
+    arr = np.concatenate(
+        [np.asarray(train_ids, dtype=dtype), np.asarray(val_ids, dtype=dtype)]
+    )
+    arr.tofile(out_path)
+    meta = DataMeta(
+        n_tokens=int(len(arr)),
+        vocab_size=int(vocab_size),
+        dtype=str(dtype),
+        level=level,
+        n_train=int(len(train_ids)),
+        n_val=int(len(val_ids)),
+        n_bytes_train=int(train_bytes),
+        n_bytes_val=int(val_bytes),
+        n_chars_train=int(train_chars),
+        n_chars_val=int(val_chars),
+        source_provenance=dict(source_provenance) if source_provenance else None,
+    )
+    meta.save(out_path.with_suffix(".meta.json"))
+    return meta
+
+
 def summary(ds: TokenDataset) -> dict[str, int | float | None]:
     out: dict[str, int | float | None] = {
         "n_tokens": int(ds.meta.n_tokens),

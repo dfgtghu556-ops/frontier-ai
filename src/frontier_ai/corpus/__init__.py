@@ -20,6 +20,7 @@ from .frontier_docs import (  # noqa: F401
     derive_documents,
     derive_frontier_documents,
     run_stages,
+    verify_and_derive_frontier,
     verify_frozen_inputs,
 )
 from .langid import (  # noqa: F401

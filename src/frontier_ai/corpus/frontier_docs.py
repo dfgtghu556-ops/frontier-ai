@@ -24,6 +24,7 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -38,7 +39,7 @@ from .normalize import POLICY_VERSION, normalize_documents
 from .pipeline import PipelineDocument, StageOutcome
 from .quality import quality_filter
 from .registry import FrontierSource, RegistryError, language_scripts, load_frontier_registry
-from .shards import Shard, pack, seeded_shuffle, write_shards
+from .shards import Shard, check_shards, pack, seeded_shuffle, write_shards
 from .split import train_holdout
 
 
@@ -234,3 +235,150 @@ def build_frontier_dataset(
         manifest=manifest,
         manifest_sha256=manifest_sha,
     )
+
+
+# ---------------------------------------------------------------------------
+# input identity gates (shared by every consumer of a frozen dataset)
+# ---------------------------------------------------------------------------
+def _load_frontier(frontier_dir: Path) -> dict:
+    manifest_file = frontier_dir / "manifest.json"
+    if not manifest_file.is_file():
+        print(
+            f"[frontier] INPUT GATE FAILED: no dataset manifest at {manifest_file} — build the "
+            "pilot first (scripts/build_frontier_corpus.py) or point --frontier-dir at the "
+            "existing build (on the PC: corpora/frontier/v1)",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+    return json.loads(manifest_file.read_text(encoding="utf-8"))
+
+
+def _gate_shards_match_manifest(frontier_dir: Path, manifest: dict) -> None:
+    problems: list[str] = []
+    for side, sub in (("train", "train"), ("held_out", "heldout")):
+        expected = {s["name"]: s["sha256"] for s in manifest["sides"][side]["shards"]}
+        problems.extend(f"[{side}] {p}" for p in check_shards(frontier_dir / "shards" / sub, expected))
+    if problems:
+        print(
+            "[frontier] INPUT GATE FAILED: on-disk shards do not match the frozen dataset "
+            f"manifest ({len(problems)} problem(s)):\n  " + "\n  ".join(problems),
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+
+def _gate_derivation_matches_shards(
+    frontier_dir: Path, manifest: dict, derivation: FrontierDerivation
+) -> None:
+    """The re-derived documents must reproduce the frozen shards exactly."""
+    split = derivation.split.stats
+    problems: list[str] = []
+
+    # (a) counts: totals and per-language, side by side, against the manifest
+    for side in ("train", "held_out"):
+        manifest_side = manifest["sides"][side]
+        derived_side = split[side]
+        if derived_side["documents"] != manifest_side["documents"]:
+            problems.append(
+                f"[{side}] derived {derived_side['documents']} documents, "
+                f"manifest has {manifest_side['documents']}"
+            )
+        for lang in sorted(set(manifest_side["per_language"]) | set(derived_side["per_language"])):
+            m = manifest_side["per_language"].get(lang, {"documents": 0, "chars": 0})
+            d = derived_side["per_language"].get(lang, {"documents": 0, "chars": 0})
+            if (m["documents"], m["chars"]) != (d["documents"], d["chars"]):
+                problems.append(
+                    f"[{side}/{lang}] derived {d['documents']} docs / {d['chars']} chars, "
+                    f"manifest has {m['documents']} docs / {m['chars']} chars"
+                )
+
+    # (b) exact sequence: the shard lines, in shard order, side by side
+    for side, sub, docs in (
+        ("train", "train", list(derivation.train)),
+        ("held_out", "heldout", list(derivation.held_out)),
+    ):
+        shard_text: list[str] = []
+        for shard in manifest["sides"][side]["shards"]:
+            shard_text.append((frontier_dir / "shards" / sub / f"{shard['name']}.txt")
+                              .read_text(encoding="utf-8"))
+        shard_lines = [line for text in shard_text for line in text.split("\n")]
+        seed = split["seed"]
+        shuffled = seeded_shuffle(docs, seed) if side == "train" else seeded_shuffle(docs, seed + 1)
+        derived_lines = [d.text for d in shuffled]
+        if shard_lines != derived_lines:
+            n_shard, n_derived = len(shard_lines), len(derived_lines)
+            first_diff = next(
+                (i for i, (a, b) in enumerate(zip(shard_lines, derived_lines)) if a != b),
+                min(n_shard, n_derived),
+            )
+            problems.append(
+                f"[{side}] shard line sequence differs from the deterministic re-derivation "
+                f"({n_shard} vs {n_derived} lines; first difference at line {first_diff}) — "
+                "the frozen build and the pipeline on this machine disagree"
+            )
+    if problems:
+        print(
+            "[frontier] INPUT GATE FAILED: the re-derived documents do not reproduce the frozen "
+            f"shards ({len(problems)} problem(s)):\n  " + "\n  ".join(problems),
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+
+def verify_and_derive_frontier(
+    frontier_dir: str | Path,
+    manifest_path: str | Path,
+    freeze_path: str | Path,
+    corpus_dir: str | Path,
+) -> tuple[list[PipelineDocument], list[PipelineDocument], dict]:
+    """The frozen-input identity gates + deterministic re-derivation (one call).
+
+    On-disk shards must hash to their manifest; the manifest's split parameters
+    drive a deterministic re-derivation of the per-language documents; the
+    re-derivation must reproduce the frozen shards exactly (per-language counts
+    and the full shard line sequence). Any failure: message on stderr,
+    ``SystemExit(2)``. On success returns ``(train_docs, held_out_docs, manifest)``.
+
+    Shared by ``scripts/run_tokenizer_sweep.py`` (EXP-A) and
+    ``scripts/prepare_exp_b_data.py`` (EXP-B) so every consumer of the frozen
+    dataset proves its identity the same way before touching the documents.
+    """
+    frontier_dir = Path(frontier_dir)
+    manifest = _load_frontier(frontier_dir)
+    _gate_shards_match_manifest(frontier_dir, manifest)
+
+    split_identity = manifest["identity"]["split"]
+    split_seed = int(split_identity["seed"])
+    held_out_fraction = float(split_identity["held_out_fraction"])
+
+    if not Path(manifest_path).is_file() or not Path(freeze_path).is_file():
+        print(
+            f"[frontier] INPUT GATE FAILED: missing frozen input: {manifest_path} or {freeze_path}",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+    try:
+        derivation = derive_frontier_documents(
+            manifest_path=Path(manifest_path),
+            freeze_path=Path(freeze_path),
+            corpus_dir=Path(corpus_dir),
+            seed=split_seed,
+            held_out_fraction=held_out_fraction,
+        )
+    except RegistryError as exc:
+        print(f"[frontier] INPUT GATE FAILED: {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
+    _gate_derivation_matches_shards(frontier_dir, manifest, derivation)
+
+    train_docs = list(derivation.train)
+    held_docs = list(derivation.held_out)
+    print(
+        f"[frontier] input verified: {manifest['content_sha256'][:16]}… (frozen shards match; "
+        f"re-derivation reproduces them exactly)"
+    )
+    print(
+        f"[frontier] documents: train {len(train_docs)} / {sum(d.chars for d in train_docs):,} chars; "
+        f"held_out {len(held_docs)} / {sum(d.chars for d in held_docs):,} chars "
+        f"(split seed {split_seed}, held_out {held_out_fraction})"
+    )
+    return train_docs, held_docs, manifest

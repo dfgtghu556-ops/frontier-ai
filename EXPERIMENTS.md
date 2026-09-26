@@ -796,7 +796,8 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-025 | **Corpus freeze + verification** (not a benchmark): freeze and verify `indic-tokenizer/v2` (MASTER_CONTEXT §37 step 2) | complete | 2026-09-26 | 59/59 pins present and well-formed; all 59 hashes match the EXP-023 report prefixes; totals 34,684 docs / 4,211,707 chars; 415 passed, 1 skipped; manifest sha256 `aec3dfa0…` frozen (D-035); live re-fetch NOT YET VERIFIED from the sandbox |
 | EXP-026 | P004B: live freshness re-fetch of frozen `indic-tokenizer/v2` | complete | 2026-09-26 | build exit 0; inspection: 59/59 sources verified and pinned, no flagged rows or REFUSED lines |
 | EXP-027 | FrontierCorpus v1 frozen-corpus pilot | complete | 2026-09-26 | build/check exit 0; 34,684 input docs → 34,011 post-stages; train 30,584 / held_out 3,427; 4 train + 1 held-out shards |
-| EXP-028 | **Production tokenizer sweep (EXP-A)** (MASTER_CONTEXT §37 step 5) | in progress — harness delivered 2026-09-26, PC run pending | 2026-09-26 | grid: 15 configs (bpe_python × {mark_aware, gpt2_style} × 5 vocabs + bpe_hf × 5 vocabs); input gates + losslessness gate + model-free held-out density; incremental BPE loop proven identical to classic full-rescan; smoke e2e on fake frozen corpus passes |
+| EXP-028 | **Production tokenizer sweep (EXP-A)** (MASTER_CONTEXT §37 step 5) | complete (PC run 2026-09-26) | 2026-09-26 | 20/20 cells gate PASS (15 grid + 5 supplement); mark_aware-32768 winner at 2.3054 held-out chars/token (+45 % over the 1.5971 baseline); hf-mark_aware ≡ py-mark_aware at every cell (cross-implementation validation); verified by scripts/summarize_sweep.py |
+| EXP-029 | **Tokenizer-vs-tokenizer small-model comparison (EXP-B)** (MASTER_CONTEXT §37 step 6) | in progress — approved 2026-09-26, harness delivered, PC run pending | 2026-09-26 | mark_aware-32768 vs mark_aware-16384 × 3 seeds, fixed small model (configs/exp_b.json), held-out bits-per-byte; pre-registered decision rule (lower mean bpb wins; tie -> smaller vocab); selection becomes D-040 (Frontier Tokenizer v1) after review |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1398,3 +1399,78 @@ HF format is the standard artifact). Plan pending founder approval.
     python scripts/run_tokenizer_sweep.py --exp-id EXP-028 --out out/experiments/EXP-028-hf-mark-aware --configs hf-mark_aware-2048,hf-mark_aware-4096,hf-mark_aware-8192,hf-mark_aware-16384,hf-mark_aware-32768
 
 then merge both runs for review: `python scripts/summarize_sweep.py --sweep-dir out/experiments/EXP-028 out/experiments/EXP-028-hf-mark-aware`. Also new: `scripts/summarize_sweep.py` — a read-only verifier + ranked summarizer for a finished sweep (per-run consistency checks, ranked table, per-language matrix, TOP-2-for-EXP-B; exit 0/1/2).
+### EXP-029 — Tokenizer-vs-tokenizer small-model comparison (EXP-B) — MASTER_CONTEXT §37 step 6
+**Date:** 2026-09-26 · **Status:** approved (founder: "approve EXP-B"), harness delivered, PC run pending
+
+**Purpose:** EXP-028 (EXP-A) measured token *density* model-free. EXP-B answers the
+remaining question before a selection: given the *same* small model, *same* data,
+*same* budget, *same* seeds — which tokenizer's token sequence yields the better
+held-out **bits-per-byte** (lower = better)? Per D-038, the tokenizer is selected
+**after** this experiment.
+
+**Cells (the informative top-2 from EXP-028):**
+| Tokenizer | EXP-028 artifact | EXP-028 held-out chars/token |
+|---|---|---|
+| `mark_aware-32768` | `out/experiments/EXP-028/py-mark_aware-32768/seed-1337/tokenizer` | 2.3054 |
+| `mark_aware-16384` | `out/experiments/EXP-028/py-mark_aware-16384/seed-1337/tokenizer` | 2.1108 |
+
+The ranked top-2 of EXP-028 is `hf-mark_aware-32768` + `py-mark_aware-32768` — one
+tokenizer in two implementations (identical held-out metrics at all 5 vocabs × 13
+languages), so running both would double the cost for zero information. The second
+cell is `mark_aware-16384`, the best *distinct* configuration; it doubles as the
+vocab-size question (32k is +9 % denser at the token level — is it worth the larger
+embedding table at the LM level?). The py artifacts are used (canonical loader, zero
+dependency; hf ≡ py proven, so the implementation choice is an engineering decision
+after the selection, not an experimental variable).
+
+**Fixed for every cell (pre-registered, do not vary):**
+* model: `configs/exp_b.json` — 4 layers / 4 heads / 128 embd / block 128 / RMSNorm /
+  SwiGLU / learned positions / tied embeddings, dropout 0 (~9M params at 32k vocab);
+* step budget: 1000 steps, **may be revised once, after the PC timing smoke, and the
+  same budget is then used for all 6 cells**;
+* seeds: 1337, 1338, 1339 (each varying both model init `train.seed` and data
+  sampling `data.seed`);
+* data: the frozen FrontierCorpus v1 — train side for training, held-out side for
+  validation (identity re-gated by the same shared verification as EXP-A);
+  documents in canonical doc_id order, encoded per-document and concatenated;
+* determinism: `train.deterministic=true`, fp32, CPU.
+
+**Metric:** held-out **bits-per-byte** (`best_bpb` of each cell; the trainer derives
+it from the val loss × the exact UTF-8 byte count of the held-out side recorded in the
+prepared data metadata). Per tokenizer: mean and std across its 3 seeds.
+
+**Decision rule (pre-registered; the script applies it mechanically):**
+1. winner = the tokenizer with the **lower mean** held-out bits-per-byte across seeds;
+2. if `|mean_A − mean_B| < (std_A + std_B) / 2` (the gap is within seed noise) →
+   **TIE → the smaller-vocabulary tokenizer wins** (deployment economy at equal quality;
+   for this experiment that is `mark_aware-16384`);
+3. the selection is recorded as **D-040 — Frontier Tokenizer v1** (MASTER_CONTEXT §37
+   step 7) only after founder review of the table.
+
+**Harness:**
+* `scripts/prepare_exp_b_data.py` — input gates (shared
+  `frontier_ai.corpus.verify_and_derive_frontier`, now also used by the sweep runner) +
+  per-tokenizer encoding of both sides + document-aligned token files
+  (`data.dataset.write_split_tokens`, exact per-split byte/char counts for bpb) + a
+  data manifest with artifact fingerprints.
+* `scripts/run_exp_b.py` — the 2×3 matrix as self-recording `scripts/train.py` runs
+  (D-032: one record per cell, `EXP-0291`…`EXP-0296`), aggregate table, the
+  pre-registered decision, `runs/report.txt`, outer record. `--smoke` runs one cell at
+  300 steps and prints the estimated wall time for the full matrix on this CPU.
+
+**Commands (PC, in order):**
+1. `git pull --ff-only origin arena/01a0dc16-frontier-ai`
+2. prepare:
+   `.\.venv\Scripts\python scripts\prepare_exp_b_data.py --exp-id EXP-029 --tokens mark_aware-32768=out/experiments/EXP-028/py-mark_aware-32768/seed-1337/tokenizer,mark_aware-16384=out/experiments/EXP-028/py-mark_aware-16384/seed-1337/tokenizer`
+3. timing smoke: `.\.venv\Scripts\python scripts\run_exp_b.py --smoke` → report the
+   printed estimate; if ~2 h or less for the full matrix, continue; otherwise propose a
+   smaller `--max-steps` (one revision, applied to all cells).
+4. full matrix: `.\.venv\Scripts\python scripts\run_exp_b.py --seeds 1337,1338,1339 --max-steps <budget>`
+   (paste back: the 6 `bpb=` lines + the final table + exit code).
+
+**Verification (sandbox, pre-PC):** e2e smoke on the fake frozen corpus (prepare +
+2-cell × 2-seed matrix with a tiny model) exits 0 with a decision line; a repeated cell
+(same seed, fresh dir) reproduces the identical bits-per-byte (determinism); the
+refactored sweep runner still passes all its e2e gates.
+
+**Results:** pending PC run.

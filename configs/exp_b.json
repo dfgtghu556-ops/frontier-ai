@@ -1,0 +1,52 @@
+{
+  "_comment": "EXP-B fixed model for the tokenizer-vs-tokenizer comparison (D-038 hand-off). Deliberately small: the goal is to compare tokenizers under identical conditions on CPU, not to build a strong model. Every cell (every tokenizer, every seed) must use this exact model; only data.path, data.seed, train.seed, train.out_dir and train.max_steps vary per run. The step budget default (1000) may be revised ONCE, after the PC timing smoke, and the same budget must be used for all cells.",
+  "model": {
+    "n_layer": 4,
+    "n_head": 4,
+    "n_embd": 128,
+    "block_size": 128,
+    "dropout": 0.0,
+    "norm": "rmsnorm",
+    "ffn": "swiglu",
+    "pos": "learned",
+    "tie_embeddings": true
+  },
+  "data": {
+    "path": "data/synthetic.bin",
+    "tokenizer": "",
+    "level": "bpe",
+    "batch_size": 16,
+    "num_workers": 0,
+    "seed": 1337
+  },
+  "optim": {
+    "lr": 0.003,
+    "min_lr_ratio": 0.1,
+    "weight_decay": 0.1,
+    "betas": [0.9, 0.95],
+    "grad_clip": 1.0,
+    "warmup_steps": 50,
+    "schedule": "cosine"
+  },
+  "train": {
+    "out_dir": "out/exp_b/EXP-029",
+    "max_steps": 1000,
+    "accum_steps": 4,
+    "eval_interval": 100,
+    "eval_iters": 25,
+    "log_interval": 50,
+    "save_interval": 0,
+    "save_best": true,
+    "device": "auto",
+    "precision": "fp32",
+    "seed": 1337,
+    "deterministic": true,
+    "num_threads": 0
+  },
+  "gen": {
+    "max_new_tokens": 100,
+    "temperature": 0.8,
+    "top_k": 20,
+    "top_p": 1.0
+  }
+}
