@@ -1481,4 +1481,19 @@ are unchanged.
 (same seed, fresh dir) reproduces the identical bits-per-byte (determinism); the
 refactored sweep runner still passes all its e2e gates.
 
-**Results:** pending PC run.
+**Results (in progress — PC):**
+- **Prep (2026-09-27):** gates passed (`input verified: 6c43d12695f2ffaa…`).
+  Prepared data in `out/exp_b/EXP-029/`: `mark_aware-32768` → train 1,608,987
+  tokens / val 184,233 tokens; `mark_aware-16384` → train 1,772,551 / val 201,215
+  tokens; byte totals identical for both (train 9,368,283 / val 1,048,975 UTF-8
+  bytes) — the bits-per-byte normalization base.
+- **Timing smoke (2026-09-27):** `mark_aware-32768` seed 1337, 300 steps: 2205 s
+  wall (~7.3 s/step steady state, ~1120 tok/s), held-out bpb 1.2747 at step 300
+  (still improving). Runner estimate for the 1000-step budget: 6 cells ≈ 735 min
+  (~12.3 h) — over the ~2 h stop condition.
+- **Budget revision (the one permitted revision, applied to all cells):
+  `--max-steps 150`** → ~1115 s/cell, 6 cells ≈ 111 min (~1.9 h). 150 steps ≈ 0.76
+  passes over the train side (1 pass = 1,608,987 / 8192 ≈ 196 steps at
+  eff_batch 8192); both tokenizers receive the identical budget, so the comparison
+  stays symmetric.
+- **Matrix results:** pending.
