@@ -1,15 +1,13 @@
 # FrontierCorpus v1 — living plan and state
 
-**Status (2026-09-26):** parts 1 and 2 implemented and unit-tested (stages, split,
-shuffle/pack/shard, manifest, registry import, self-recording builder with `--check`,
-offline e2e test) and pushed. D-036 (NFC) and D-037 (staged pipeline) are **accepted**
-(ratified by the founder's STEP 3 go-ahead). EXP-026 (live re-fetch) verified: 59/59
-pins unchanged, 396 identical documents exactly matching EXP-023 — the corpus is
-fresh, so the pilot's dedup cross-check baseline is that same count. Remaining: the
-pilot run on a network-enabled machine (needs the v2 corpus text), recorded as
-**EXP-027**, followed by the 396-duplicate cross-check review and an EXPERIMENTS.md
-entry. Governing context: MASTER_CONTEXT §10–15 (what a pretraining corpus must be),
-§37 step 3 (freeze → pipeline → tokenizer sweep).
+**Status (2026-09-26):** pipeline complete; the **pilot dataset is built and verified**
+(EXP-027 on the PC, reviewed from the repository by the Arena agent): 34,684 frozen
+documents in → 34,011 out (334 langid, 339 dedup), train 30,584 / held_out 3,427,
+5 hash-recorded shards, `--check` exit 0. D-036 (NFC) and D-037 (staged pipeline) are
+**accepted** (ratified by the founder's STEP 3 go-ahead). Governing context:
+MASTER_CONTEXT §10–15 (what a pretraining corpus must be), §37 step 3 (freeze →
+pipeline → tokenizer sweep). Next: MASTER_CONTEXT §37 step 5 — the production
+tokenizer sweep (EXP-A), which needs this pilot dataset as its input.
 
 ## 1. What this is
 
@@ -166,6 +164,41 @@ mismatch refusal, and content-identity equality across two builds.
   records separately from the content identity).
 - Pilot run happens on a network-enabled machine (the Arena sandbox cannot reach the
   corpus hosts) and is recorded as **EXP-027**.
+
+## 5a. Pilot results (EXP-027, run on the PC 2026-09-26, reviewed from the repo)
+
+| Stage | in | kept | removed | note |
+|---|---|---|---|---|
+| normalize (NFC) | 34,684 | 34,684 | 0 | transforms only |
+| langid (script gate) | 34,684 | 34,350 | **334** | largest: bn 161, or 29, pa 27, hi 33, as 20, gu 20 |
+| quality (7 rules) | 34,350 | 34,350 | 0 | 1 kept doc flagged (`digit_runs`, kn) |
+| exact dedup | 34,350 | 34,011 | **339** | per-source + cross-source pairs in the manifest |
+
+Train 30,584 docs / held_out 3,427 docs (10.08%); 4 train shards + 1 held-out shard,
+each with a SHA-256; `--check` exit 0. Manifest `content_sha256` `6c43d126…`; the
+shard-file char counts equal document chars + joining newlines (checked exactly).
+
+**396 cross-check (the verification-plan requirement):** EXP-023/026 counted 396
+identical documents on the raw text; the pilot dedup removed 339. Reconciled:
+NFC first merges 3 extra composed/decomposed twins (396 → 399, as reported by the
+PC run), then the langid stage rejects 60 of those duplicate copies before dedup runs
+(399 − 60 = 339). Every language's deficit (396→339) is ≤ that language's langid
+removal count, and 7 languages (kn, ml, mr, ta, te, ur, gu) are unchanged — the
+delta is fully attributable to the pre-dedup stages, as the plan requires. (The
+per-language 399/60 sub-counts come from the PC's local recomputation; they are
+internally consistent with the manifest and recomputable on the PC.)
+
+**One fix made during the run** (`dbc67be`): the input gate compared raw file bytes
+against the pin, but the v2 pin hashes the *decoded text* (CRLF on disk on Windows) —
+the gate was corrected to validate the decoded text exactly as the v2 pipeline
+pinned it, with a CRLF regression test; the refusal tests (drifted text, tampered
+freeze) still pass, so the safety gate is unchanged in strength.
+
+**Known pilot limitation (for F2):** the manifest records stage *counts* and the
+dedup per-source/per-language breakdown, but not the per-document removal reasons of
+the 334 langid rejections. The build is deterministic, so a reviewer can re-run it and
+dump the `Removal` details at any time; if a deeper review of the 334 is wanted, that
+dump is a small follow-up.
 
 ## 6. Out of scope (F2/F3)
 

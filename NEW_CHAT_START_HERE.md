@@ -218,6 +218,15 @@ comes next. They also update the table in §3.
   then built the FrontierCorpus v1 pilot from the frozen corpus; build and `--check` passed.
   Manifest/report and EXP-027 metrics recorded; shards remain git-ignored. Next: review the
   pilot results and proceed to the next approved FrontierCorpus step.
+* **2026-09-26, Arena agent:** verified EXP-027 from the repository. Stage math matches the
+  manifest (34,684 in → 34,011 post-stages; train 30,584 / held_out 3,427; shard chars
+  = doc chars + joining newlines, checked exactly); the 339 dedup removals reconcile with
+  the 396 baseline per language (every language's deficit ≤ its langid removals; the PC's
+  399 NFC-equivalents − 60 langid-removed duplicates is internally consistent and
+  recomputable on the PC); reviewed the `dbc67be` CRLF fix against the v2 pin derivation
+  (`research_corpus` hashes the decoded text, not file bytes) — correct, not a weakening,
+  and the refusal tests still pass. Suite 459 passed / 4 skipped, ruff clean. Next:
+  MASTER_CONTEXT §37 step 5 — the production tokenizer sweep (plan needs founder approval).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
