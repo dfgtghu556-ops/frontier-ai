@@ -1411,8 +1411,8 @@ held-out **bits-per-byte** (lower = better)? Per D-038, the tokenizer is selecte
 **Cells (the informative top-2 from EXP-028):**
 | Tokenizer | EXP-028 artifact | EXP-028 held-out chars/token |
 |---|---|---|
-| `mark_aware-32768` | `out/experiments/EXP-028/py-mark_aware-32768/seed-1337/tokenizer` | 2.3054 |
-| `mark_aware-16384` | `out/experiments/EXP-028/py-mark_aware-16384/seed-1337/tokenizer` | 2.1108 |
+| `mark_aware-32768` | `out/experiments/EXP-028/py-mark_aware-32768/seed-0000001337/tokenizer` | 2.3054 |
+| `mark_aware-16384` | `out/experiments/EXP-028/py-mark_aware-16384/seed-0000001337/tokenizer` | 2.1108 |
 
 The ranked top-2 of EXP-028 is `hf-mark_aware-32768` + `py-mark_aware-32768` — one
 tokenizer in two implementations (identical held-out metrics at all 5 vocabs × 13
@@ -1461,12 +1461,20 @@ prepared data metadata). Per tokenizer: mean and std across its 3 seeds.
 **Commands (PC, in order):**
 1. `git pull --ff-only origin arena/01a0dc16-frontier-ai`
 2. prepare:
-   `.\.venv\Scripts\python scripts\prepare_exp_b_data.py --exp-id EXP-029 --tokens mark_aware-32768=out/experiments/EXP-028/py-mark_aware-32768/seed-1337/tokenizer,mark_aware-16384=out/experiments/EXP-028/py-mark_aware-16384/seed-1337/tokenizer`
+   `.\.venv\Scripts\python scripts\prepare_exp_b_data.py --exp-id EXP-029 --tokens mark_aware-32768=out/experiments/EXP-028/py-mark_aware-32768/seed-0000001337/tokenizer,mark_aware-16384=out/experiments/EXP-028/py-mark_aware-16384/seed-0000001337/tokenizer`
 3. timing smoke: `.\.venv\Scripts\python scripts\run_exp_b.py --smoke` → report the
    printed estimate; if ~2 h or less for the full matrix, continue; otherwise propose a
    smaller `--max-steps` (one revision, applied to all cells).
 4. full matrix: `.\.venv\Scripts\python scripts\run_exp_b.py --seeds 1337,1338,1339 --max-steps <budget>`
    (paste back: the 6 `bpb=` lines + the final table + exit code).
+
+**Path correction (2026-09-26, first PC attempt):** the seed directories written by
+the sweep runner are zero-padded — `seed-0000001337`, per `SEED_DIR_TEMPLATE =
+"seed-{seed:010d}"` (`src/frontier_ai/experiments/sweep.py`) — not `seed-1337`. The
+first prep attempt on the PC failed on that path *after* the input gate passed
+(`input verified: 6c43d12695f2ffaa…`), so only the `--tokens` paths above (and the
+cells table) are corrected; the cells, fixed config, budget rule and decision rule
+are unchanged.
 
 **Verification (sandbox, pre-PC):** e2e smoke on the fake frozen corpus (prepare +
 2-cell × 2-seed matrix with a tiny model) exits 0 with a decision line; a repeated cell
