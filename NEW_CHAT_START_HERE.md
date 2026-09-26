@@ -227,6 +227,40 @@ comes next. They also update the table in §3.
   (`research_corpus` hashes the decoded text, not file bytes) — correct, not a weakening,
   and the refusal tests still pass. Suite 459 passed / 4 skipped, ruff clean. Next:
   MASTER_CONTEXT §37 step 5 — the production tokenizer sweep (plan needs founder approval).
+* **2026-09-26, Arena agent:** the founder approved EXP-A ("approve EXP-A"). Delivered the
+  sweep harness (commit `7f13a17` + this session's harness commit): `bpe_python` now has an
+  **incremental BPE loop** (provably identical merges to the old loop — the old loop was
+  infeasible at corpus scale: 2048 vocab on 400k chars did not finish in 20 min) and a new
+  `gpt2_style` pre-tokenizer (GPT-2's regex, where Indic syllables shatter at their
+  combining marks; the default `mark_aware` is unchanged). New: `src/frontier_ai/corpus/
+  frontier_docs.py` (shared derivation, builder refactored onto it, output byte-identical),
+  `src/frontier_ai/tokenization/sweep.py` (15-config grid, losslessness gate, per-language
+  scoring), `scripts/run_tokenizer_sweep.py` (self-recording, exit 0/1/2, smoke mode).
+  D-038 records the design (15 cells, model-free, re-derived input verified against the
+  frozen shards). Suite 479 passed / 1 skipped, ruff clean. **Next: run the sweep on the
+  PC** (the corpus text + shards are PC-only). PC handover:
+  1. In `E:\frontier-ai` (PowerShell): `git fetch origin arena/01a0dc16-frontier-ai` then
+     `git switch arena/01a0dc16-frontier-ai` (if not already there) then
+     `git pull --ff-only origin arena/01a0dc16-frontier-ai`.
+  2. Rebuild the venv (it must have the tokenizer extra): `python -m venv .venv` then
+     `.\.venv\Scripts\pip install -q --upgrade pip` then
+     `.\.venv\Scripts\pip install -q -e ".[dev,tokenizer]"` then
+     `.\.venv\Scripts\python scripts\prepare_data.py --source synthetic`.
+  3. Sanity (fast, ~4 min): `.\.venv\Scripts\python -m pytest -q` → expect
+     **479 or 480 passed, 0 failed** (the count depends only on which optional packages
+     the venv has; on the PC the git-tracking hygiene test also passes);
+     `.\.venv\Scripts\python -m ruff check .` → "All checks passed!".
+  4. The sweep (background-friendly, tens of minutes to a couple of hours, CPU only):
+     `.\.venv\Scripts\python scripts\run_tokenizer_sweep.py --exp-id EXP-028`.
+     Expected: input-verified lines, then one `gate=PASS` line per configuration (15),
+     then a results table; exit code 0. Full report:
+     `E:\frontier-ai\out\experiments\EXP-028\report.txt`.
+  5. Stop condition: if the exit code is **2**, the frozen input did not verify — STOP, do
+     not edit the corpus, report the `[sweep] INPUT GATE FAILED:` lines here. If **1**, a
+     configuration failed — report the failing lines from `sweep.json`. If **0**, paste the
+     two tables from `report.txt`. **Do not choose a tokenizer** — the top-2 go to EXP-B.
+  6. Commit rule: the run writes only under `out\experiments\EXP-028\` (git-ignored).
+     Nothing to commit unless the run says so.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

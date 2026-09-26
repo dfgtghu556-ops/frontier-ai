@@ -33,9 +33,7 @@ records this script itself when run directly and publishes metrics when nested.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -48,28 +46,16 @@ from frontier_ai.corpus import (  # noqa: E402
     FRONTIER_CORPUS_VERSION,
     POLICY_VERSION,
     FrontierSource,
-    PipelineDocument,
     RegistryError,
+    build_frontier_dataset,
     check_shards,
-    exact_dedup,
-    langid_documents,
-    language_scripts,
-    load_frontier_registry,
-    normalize_documents,
-    pack,
-    quality_filter,
-    seeded_shuffle,
-    train_holdout,
-    write_manifest,
-    write_shards,
+    verify_frozen_inputs,
 )
-from frontier_ai.corpus.manifest import build_manifest  # noqa: E402
 from frontier_ai.experiments import ExperimentSpec  # noqa: E402
 from frontier_ai.experiments.autowire import run_self_recorded, stable_results  # noqa: E402
 from frontier_ai.tokenization.research_corpus import (  # noqa: E402
     DEFAULT_HELD_OUT_FRACTION,
     DEFAULT_SPLIT_SEED,
-    documents_from_text,
 )
 
 DEFAULT_MANIFEST = "corpora/tokenizer/indic-tokenizer-v2/sources.json"
@@ -118,53 +104,9 @@ def _took(seconds: float) -> str:
 
 def _verify_inputs(
     manifest_path: Path, freeze_path: Path, corpus_dir: Path
-) -> tuple[list[FrontierSource], str]:
-    """Load the freeze-verified registry and verify every on-disk text file.
-
-    Returns (registry, freeze_sha256). Raises RegistryError on any input problem
-    (the caller maps it to exit 2).
-    """
-    registry = list(load_frontier_registry(manifest_path, freeze_path))
-    freeze_sha256 = json.loads(freeze_path.read_text(encoding="utf-8"))["manifest"]["sha256"]
-    problems: list[str] = []
-    for source in registry:
-        text_path = corpus_dir / "sources" / f"{source.source_id}.txt"
-        if not text_path.is_file():
-            problems.append(f"missing text file {text_path}")
-            continue
-        text = text_path.read_text(encoding="utf-8")
-        actual = hashlib.sha256(text.encode("utf-8")).hexdigest()
-        if actual != source.sha256:
-            problems.append(
-                f"{source.source_id}: text hash {actual} != pinned {source.sha256} "
-                "(stale or drifted file — rebuild the v2 corpus first)"
-            )
-    if problems:
-        raise RegistryError(
-            "the v2 corpus text under "
-            f"{corpus_dir} is not the frozen corpus ({len(problems)} problem(s)); the pilot "
-            f"refuses to build on it:\n  " + "\n  ".join(problems)
-        )
-    return registry, freeze_sha256
-
-
-def _derive_documents(registry: list[FrontierSource], corpus_dir: Path) -> list[PipelineDocument]:
-    """The frozen corpus documents: the same document derivation the v2 build used."""
-    documents: list[PipelineDocument] = []
-    for source in sorted(registry, key=lambda s: s.source_id):
-        text = (corpus_dir / "sources" / f"{source.source_id}.txt").read_text(encoding="utf-8")
-        for d in documents_from_text(source.source_id, source.language, text):
-            documents.append(PipelineDocument(d.doc_id, d.source_id, d.language, d.text))
-    return documents
-
-
-def _git_sha() -> str:
-    try:
-        return subprocess.run(
-            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
-        ).stdout.strip()
-    except Exception:
-        return "unknown (not a git checkout)"
+) -> tuple[tuple[FrontierSource, ...], str]:
+    """Freeze-verified registry + every on-disk text hash-checked (exit 2 on problem)."""
+    return verify_frozen_inputs(manifest_path, freeze_path, corpus_dir)
 
 
 def _render_report(
@@ -249,45 +191,27 @@ def main() -> int:
         print(f"[frontier] {exc}", file=sys.stderr)
         return 2
 
-    lang_scripts = language_scripts(registry)
-
     def body() -> dict:
         started = time.monotonic()
-        documents = _derive_documents(registry, corpus_dir)
-
-        n = normalize_documents(documents, "nfc")
-        lang = langid_documents(list(n.kept), lang_scripts)
-        q = quality_filter(list(lang.kept))
-        d = exact_dedup(list(q.kept))
-        stages = (n, lang, q, d)
-
-        split_out, held = train_holdout(list(d.kept), seed=args.seed, held_out_fraction=args.held_out)
-        train_docs = seeded_shuffle(list(split_out.kept), args.seed)
-        held_docs = seeded_shuffle(list(held), args.seed + 1)  # derived seed, recorded in the manifest
-        train_shards = pack(train_docs, args.max_shard_chars, "train")
-        held_shards = pack(held_docs, args.max_shard_chars, "heldout")
-        write_shards(train_shards, out_dir / "shards" / "train")
-        write_shards(held_shards, out_dir / "shards" / "heldout")
-
-        git_sha = _git_sha()
-        manifest = build_manifest(
-            git_sha=git_sha,
-            registry=registry,
-            source_registry_path=str(manifest_path),
-            freeze_sha256=freeze_sha256,
+        build = build_frontier_dataset(
+            manifest_path=manifest_path,
+            freeze_path=freeze_path,
+            corpus_dir=corpus_dir,
+            out_dir=out_dir,
             seed=args.seed,
             held_out_fraction=args.held_out,
-            normalization_policy="nfc",
-            policy_version=POLICY_VERSION,
-            split_stats=split_out.stats,
-            stages=stages,
-            train_shards=train_shards,
-            heldout_shards=held_shards,
-            train_per_language=split_out.stats["train"]["per_language"],
-            heldout_per_language=split_out.stats["held_out"]["per_language"],
-            created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            max_shard_chars=args.max_shard_chars,
+            source_registry_path=str(manifest_path),
         )
-        manifest_sha = write_manifest(manifest, out_dir / "manifest.json")
+        stages = build.derivation.stages
+        split_out = build.derivation.split
+        train_docs = list(build.train_docs)
+        held_docs = list(build.held_docs)
+        train_shards = build.train_shards
+        held_shards = build.held_shards
+        manifest = build.manifest
+        manifest_sha = build.manifest_sha256
+        git_sha = manifest["identity"]["git_sha"]
 
         stage_lines = [
             f"  {stage.stage:<13} in={stage.stats['documents_in']:>6}  "
@@ -321,8 +245,10 @@ def main() -> int:
         )
 
         print(f"[frontier] {FRONTIER_CORPUS_ID} v{FRONTIER_CORPUS_VERSION} built under {out_dir}")
+        documents_in = stages[0].stats["documents_in"]
+        after_stages = stages[-1].stats["documents_out"]
         print(
-            f"[frontier] documents: {len(documents)} in -> {len(d.kept)} after stages "
+            f"[frontier] documents: {documents_in} in -> {after_stages} after stages "
             f"-> train {len(train_docs)} / held_out {len(held_docs)}"
         )
         print(

@@ -1152,6 +1152,70 @@ with a new record.
 
 ---
 
+## D-038 — EXP-A is a 15-configuration, model-free sweep over the frozen FrontierCorpus v1
+**Date:** 2026-09-26 · **Status:** accepted (founder approval 2026-09-26: "approve EXP-A")
+
+**Decision:** MASTER_CONTEXT §37 step 5 runs as **EXP-A**: train 15 configurations —
+`bpe_python` × {`mark_aware`, `gpt2_style`} × {2048, 4096, 8192, 16384, 32768} and
+`bpe_hf` (built-in ByteLevel pre-tokenization) × the same 5 vocab sizes — on the frozen
+FrontierCorpus v1 train side; gate every configuration on **losslessness** (exact
+round-trip of every train and held-out document; 100 % required, D-022); score the
+held-out side with **model-free** metrics (per-language token density, vocab stats,
+training time). No tokenizer is selected by EXP-A: the top-2 configurations go to **EXP-B**
+(small language model, ≥ 3 seeds) before any selection (MASTER_CONTEXT §37).
+
+**Design refinements (delivered with the harness, 2026-09-26):**
+- The grid is **15 cells, not 20**: a mark-aware pre-tokenizer for `bpe_hf` would need a
+  custom HuggingFace `PreTokenizer` that cannot be tested until the PC run — the 5 missing
+  `bpe_hf` + mark-aware combinations are a documented limitation, not a silent skip.
+  `bpe_hf`'s ByteLevel pre-tokenizer *is* the GPT-2-style variant; mark-aware is
+  represented by `bpe_python`.
+- **Input = re-derived, not re-tokenized shards.** The frozen shards are packed text
+  without per-document language annotation, so the sweep re-derives per-language documents
+  from the frozen v2 sources with the deterministic pipeline (the manifest's own split
+  seed/fraction) and proves identity against the frozen shards before any training:
+  shard hashes match the manifest; per-language counts match; the full shard line sequence
+  equals the deterministic re-derivation. The frozen dataset is never modified.
+- **`bpe_python`'s BPE loop became incremental** (pair counts maintained instead of
+  full corpus re-scan per merge): the classic loop was infeasible at corpus scale
+  (benchmark: 2048 vocab on 400k chars did not finish in 20 min). The incremental loop
+  maintains exactly the pair counts the classic loop computes and applies the same
+  tie-break, so the merge sequence is identical — asserted by regression tests against
+  the classic loop kept in the test file.
+- Training input is canonical (documents sorted by doc_id; `special_tokens=()`), so the
+  sweep isolates pre-tokenization and vocab size as the only variables.
+
+**Rationale:** EXP-A must answer "which implementation × pre-tokenization × vocab size
+compresses our held-out text best, without loss" before any model cost is spent — that is
+the only comparison a small model in EXP-B can then sharpen with bits-per-character.
+Model-free metrics keep EXP-A CPU-only and cheap enough to run the full grid; the
+losslessness gate (D-022) is the floor a tokenizer must clear to be considered at all.
+
+**Alternatives considered:** (a) 20-cell grid including `bpe_hf` + mark-aware — rejected:
+an untested custom `PreTokenizer` in the only run that can use the real corpus would
+confound the comparison; (b) scoring on packed shard text without document boundaries —
+rejected: the gate and the per-language metrics need documents; (c) bits-per-character in
+EXP-A via a bigram model — rejected: model-free was the approved scope, and a model
+metric on 3.78M chars × 15 configs is an EXP-B-scale job; (d) running the sweep on the
+sandbox — rejected: the corpus text and shards are PC-only (git-ignored, D-035/D-037).
+
+**Consequences:**
+- The sweep is a PC job; the sandbox delivers the harness + tests (this record's code).
+- Expected wall time (sandbox-CPU estimates, per-merge linear scale as upper bound):
+  the two 32k `bpe_python` cells ≈ 13 / 5 min each, the whole 15-cell grid ≈ 45 min–2 h
+  (a slower PC CPU: up to a few hours); the run is a background PC job.
+- `train_holdout` order/packing is proven irrelevant to the sweep's comparisons (BPE pair
+  counts are order-independent); the sweep still trains in canonical doc_id order for
+  determinism.
+- EXP-B consumes the top-2 configurations from `out/experiments/EXP-028/report.txt` —
+  nothing else.
+
+**Revisit when:** the sweep's held-out per-language table shows a configuration whose
+losslessness gate fails (a real bug, not a metric), or when the grid is extended (e.g.
+`bpe_hf` + mark-aware after a custom `PreTokenizer` exists, or Unigram per Q-12).
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

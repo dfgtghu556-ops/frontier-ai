@@ -13,6 +13,15 @@ the model and each stage module for its contract.
 """
 
 from .dedup import exact_dedup  # noqa: F401
+from .frontier_docs import (  # noqa: F401
+    FrontierBuild,
+    FrontierDerivation,
+    build_frontier_dataset,
+    derive_documents,
+    derive_frontier_documents,
+    run_stages,
+    verify_frozen_inputs,
+)
 from .langid import (  # noqa: F401
     DEFAULT_MIN_DECLARED_SHARE,
     langid_documents,

@@ -796,6 +796,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-025 | **Corpus freeze + verification** (not a benchmark): freeze and verify `indic-tokenizer/v2` (MASTER_CONTEXT §37 step 2) | complete | 2026-09-26 | 59/59 pins present and well-formed; all 59 hashes match the EXP-023 report prefixes; totals 34,684 docs / 4,211,707 chars; 415 passed, 1 skipped; manifest sha256 `aec3dfa0…` frozen (D-035); live re-fetch NOT YET VERIFIED from the sandbox |
 | EXP-026 | P004B: live freshness re-fetch of frozen `indic-tokenizer/v2` | complete | 2026-09-26 | build exit 0; inspection: 59/59 sources verified and pinned, no flagged rows or REFUSED lines |
 | EXP-027 | FrontierCorpus v1 frozen-corpus pilot | complete | 2026-09-26 | build/check exit 0; 34,684 input docs → 34,011 post-stages; train 30,584 / held_out 3,427; 4 train + 1 held-out shards |
+| EXP-028 | **Production tokenizer sweep (EXP-A)** (MASTER_CONTEXT §37 step 5) | in progress — harness delivered 2026-09-26, PC run pending | 2026-09-26 | grid: 15 configs (bpe_python × {mark_aware, gpt2_style} × 5 vocabs + bpe_hf × 5 vocabs); input gates + losslessness gate + model-free held-out density; incremental BPE loop proven identical to classic full-rescan; smoke e2e on fake frozen corpus passes |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1311,3 +1312,42 @@ applies: what exists, what is missing, smallest useful step, founder approval.
 **Next action:** Review the pilot statistics and proceed to the next approved FrontierCorpus step.
 
 **Artifacts:** `corpora/frontier/v1/manifest.json`, `corpora/frontier/v1/reports/EXP-027-build.txt`, `scripts/build_frontier_corpus.py`, `tests/test_frontier_corpus_build.py`.
+
+### EXP-028 — Production tokenizer sweep (EXP-A) — MASTER_CONTEXT §37 step 5
+
+- **Status:** in progress — harness delivered and tested 2026-09-26; the full grid runs on the operator's PC (the corpus text and the frozen shards are git-ignored and PC-only)
+- **Date:** 2026-09-26 (harness)
+- **Approved:** founder, 2026-09-26 ("approve EXP-A")
+- **Objective:** train the approved 15-configuration grid on FrontierCorpus v1, gate every configuration on losslessness (exact round-trip of EVERY train and held-out document), and score the held-out side with model-free token-density metrics. **No tokenizer is selected by this experiment** — the top-2 hand-off to EXP-B (small model, ≥ 3 seeds) happens after the sweep is reviewed.
+
+**Grid (15 configurations — D-038):**
+
+| implementation | pre-tokenization | vocab sizes | cells |
+| --- | --- | --- | --- |
+| `bpe_python` | `mark_aware` (default; combining marks stay attached) | 2048, 4096, 8192, 16384, 32768 | 5 |
+| `bpe_python` | `gpt2_style` (GPT-2's `\p{L}`/`\p{N}`-based regex; marks shatter syllables) | 2048, 4096, 8192, 16384, 32768 | 5 |
+| `bpe_hf` | built-in `ByteLevel` (the GPT-2-style variant) | 2048, 4096, 8192, 16384, 32768 | 5 |
+
+The 5 missing `bpe_hf` + mark-aware combinations are a documented limitation (they need a custom HuggingFace `PreTokenizer` that cannot be tested until the PC run) — not silently skipped.
+
+**Metrics (model-free by design):** losslessness gate (100 % required, both sides); held-out `tokens_per_char` / `chars_per_token` / `tokens_per_word` overall and per language (via `evaluate._measure` with documents mapped to examples); vocab size; training time. Bits-per-character needs a language model — that is EXP-B.
+
+**Input identity (hard gates, exit 2):** the frozen `corpora/frontier/v1` is never modified. On-disk shards must hash to their manifest; the manifest's split parameters drive a deterministic re-derivation of the per-language documents from the frozen v2 sources; the re-derivation must reproduce the frozen shards exactly (per-language counts and the full shard line sequence, side by side).
+
+**Harness (this delivery):**
+- `src/frontier_ai/corpus/frontier_docs.py` — shared derivation (frozen-input verification, stages, split) used by both the builder and the sweep; the builder was refactored onto it with byte-identical output (its e2e test re-passes).
+- `src/frontier_ai/tokenization/sweep.py` — grid, losslessness gate, doc-level measurement, per-config training.
+- `scripts/run_tokenizer_sweep.py` — self-recording (D-032; one full record per configuration via the sweep framework + the script's own record), exit 0/1/2, `--vocab-sizes`, `--max-train-chars` smoke mode.
+- `bpe_python` prerequisites (this experiment's code): the classic full-rescan BPE loop was infeasible at corpus scale (benchmark: 2048 vocab on 400k chars did not finish in 20 min), so `train()` now uses an **incremental pair-count loop that maintains exactly the pair counts the classic loop computes** (only words containing the merged pair are touched) with the same (frequency desc, pair asc) tie-break — regression tests assert merge-list equality against the classic loop re-implemented in the test file (6 random corpora + real Indic text). A `gpt2_style` pre-tokenizer (stdlib-only, faithful to GPT-2's regex boundaries) was added; default behavior is unchanged.
+
+**Verification so far (sandbox):** suite 479 passed / 1 skipped, ruff clean; sweep e2e smoke on a fake frozen corpus (fake pins + FREEZE.json, no network) runs the real script end to end — all configurations gate PASS, per-language metrics present, tampered shard / manifest-count-mismatch / missing-dataset gates exit 2.
+
+**Commands (PC):** see NEW_CHAT_START_HERE.md status log 2026-09-26 (harness entry).
+
+- **Commands:** `python scripts/run_tokenizer_sweep.py --exp-id EXP-028` (full grid); smoke: `python scripts/run_tokenizer_sweep.py --exp-id EXP-028 --vocab-sizes 512,1024 --max-train-chars 200000 --no-record`
+- **Expected:** exit 0 with `out/experiments/EXP-028/report.txt` (per-configuration table + per-language table) and `sweep.json` + 15 run records; exit 2 means the frozen input did not verify (stop and report, do not fix the corpus).
+- **Stop condition:** report the exit code, the per-configuration table, and the per-language table. Do not choose a tokenizer.
+
+**Results:** pending PC run.
+
+**Artifacts (harness):** `scripts/run_tokenizer_sweep.py`, `src/frontier_ai/tokenization/sweep.py`, `src/frontier_ai/corpus/frontier_docs.py`, `tests/test_tokenizer_sweep.py`; pending: `out/experiments/EXP-028/` (PC).
