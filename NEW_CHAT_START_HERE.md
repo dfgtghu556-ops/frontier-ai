@@ -214,6 +214,10 @@ comes next. They also update the table in §3.
   this work (merge `6dafd07`), then pushed. Not yet run on the real corpus (needs its
   text — a PC job). Next: EXP-027 pilot on the PC (`python scripts/build_frontier_corpus.py
   --exp-id EXP-027`) → cross-check dedup removals against the 396 identical documents.
+* **2026-09-26, Arena agent, `dbc67be`, `6a8788d`:** fixed Windows CRLF hash validation,
+  then built the FrontierCorpus v1 pilot from the frozen corpus; build and `--check` passed.
+  Manifest/report and EXP-027 metrics recorded; shards remain git-ignored. Next: review the
+  pilot results and proceed to the next approved FrontierCorpus step.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
