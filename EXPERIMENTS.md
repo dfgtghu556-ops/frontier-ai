@@ -794,6 +794,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-023 | P004B: lock Marathi and Urdu sources | complete | 2026-09-26 | 59/59 pinned; four new fingerprints match EXP-022; 55 earlier fingerprints unchanged |
 | EXP-024 | P004B: complete the real tokenizer research corpus | complete | 2026-09-26 | 13 of 14 slots EVALUATED; 59 sources verified and pinned; hi-en honestly NOT_EVALUATED |
 | EXP-025 | **Corpus freeze + verification** (not a benchmark): freeze and verify `indic-tokenizer/v2` (MASTER_CONTEXT §37 step 2) | complete | 2026-09-26 | 59/59 pins present and well-formed; all 59 hashes match the EXP-023 report prefixes; totals 34,684 docs / 4,211,707 chars; 415 passed, 1 skipped; manifest sha256 `aec3dfa0…` frozen (D-035); live re-fetch NOT YET VERIFIED from the sandbox |
+| EXP-026 | P004B: live freshness re-fetch of frozen `indic-tokenizer/v2` | complete | 2026-09-26 | build exit 0; inspection: 59/59 sources verified and pinned, no flagged rows or REFUSED lines |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1247,3 +1248,29 @@ applies: what exists, what is missing, smallest useful step, founder approval.
 **Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/FREEZE.json`,
 `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-023-inspection.txt` (evidence),
 `DECISIONS.md` D-035.
+
+### EXP-026 — Live freshness re-fetch of frozen `indic-tokenizer/v2`
+
+- **Status:** complete
+- **Date:** 2026-09-26
+- **Objective:** confirm from a network-enabled machine that each of the 59 pinned source texts still matches the frozen EXP-023 fingerprint.
+- **Baseline:** EXP-025; frozen manifest SHA-256 `aec3dfa091370832e7f48f5fabb3d749716ef50a7cae70fc28b45ea272da67bf`.
+- **Environment:** Windows, operator's machine; branch `arena/01a0dc16-frontier-ai`.
+- **Command:** `python scripts/build_tokenizer_corpus.py --fetch --exp-id EXP-026 --out data/tokenizer/indic-tokenizer-v2`
+- **Build exit code:** 0.
+
+**Results**
+
+| check | observed | verdict |
+|---|---|---|
+| Live source fetch | 59 sources ingested, 59 verified | pass |
+| Pinned fingerprints | 59 sources pinned in the manifest | pass |
+| Changed-source refusals | no `REFUSED:` lines | pass |
+| Inspection flags | no flagged rows | pass |
+
+**Conclusion:** All 59 sources were freshly fetched and verified against their existing pins; no fingerprint changed. No source was re-pinned and the manifest was not edited.
+
+**Next action:** Arena agent starts the STEP 3 plan for the FrontierCorpus v1 pipeline.
+
+**Artifacts:** `corpora/tokenizer/indic-tokenizer-v2/reports/EXP-026-refetch.txt`,
+`corpora/tokenizer/indic-tokenizer-v2/FREEZE.json`.
