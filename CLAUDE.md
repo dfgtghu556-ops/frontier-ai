@@ -1,8 +1,14 @@
 # Notes for Claude Code
 
-General orientation for this repository is in [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
+General orientation for this repository is in [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md). The founder's
+mission, working rules and roadmap are in [MASTER_CONTEXT.md](MASTER_CONTEXT.md).
 
-## P004B — the tokenizer research corpus (yours since 2026-09-25)
+## P004B — the tokenizer research corpus (complete, 2026-09-26)
+
+**Status: complete** (EXP-024; PR #2). Treat `indic-tokenizer/v2` as finished: change its
+manifest only with the founder's approval. New work follows
+[PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) → CURRENT POSITION and
+[MASTER_CONTEXT.md](MASTER_CONTEXT.md). The notes below are kept for any later P004B work.
 
 **Who is who.** In these docs, *the local assistant* means **you**: Claude Code on the
 operator's computer. *The Arena agent* is a different AI in a web chat. It wrote the

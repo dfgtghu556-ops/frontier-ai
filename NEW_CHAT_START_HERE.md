@@ -1,5 +1,11 @@
 # New chat? Start here
 
+> **2026-09-26:** P004B is complete (EXP-024) and is in PR #2.
+> * The founder's master context is [MASTER_CONTEXT.md](MASTER_CONTEXT.md).
+> * The verified project state is in [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md), section
+>   "CURRENT POSITION".
+> * The P004B detail below is kept as history.
+
 Written on 2026-09-25 by the Arena agent working on branch `arena/01a0d31f-frontier-ai`. It
 lets a **new Arena chat**, which has none of the earlier conversation, pick up the work.
 Read all of it before doing anything. Whoever works on the project last keeps it current;
@@ -30,6 +36,8 @@ git merge --ff-only FETCH_HEAD
 
 ## 2. What this project is
 
+* The founder's master context: [MASTER_CONTEXT.md](MASTER_CONTEXT.md), covering the
+  mission, working rules, roadmap and the required answer format (§39).
 * Background: [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) covers projects 001–003 and the
   mission. Also read [ROADMAP.md](ROADMAP.md), [DECISIONS.md](DECISIONS.md), and
   [EXPERIMENTS.md](EXPERIMENTS.md), which records every run.
@@ -168,6 +176,10 @@ comes next. They also update the table in §3.
     is clean. So the 22 failures that EXP-024 reports come from the Windows machine's setup,
     as EXP-024 itself says.
   * Next: the operator decides whether to merge this branch into `main`.
+* **2026-09-26, Arena agent:** saved the founder's [MASTER_CONTEXT.md](MASTER_CONTEXT.md).
+  Synced PROJECT_CONTEXT.md (CURRENT POSITION, §7, §10, §17), ROADMAP.md, README.md and
+  CLAUDE.md with the repository; this is MASTER_CONTEXT §37 step 1. Next: the founder
+  merges PR #2, then step 2, freezing and verifying `indic-tokenizer/v2`.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

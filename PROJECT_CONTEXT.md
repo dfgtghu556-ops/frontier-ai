@@ -4,47 +4,55 @@
 > new chat with no other context. It describes the mission, what exists today, what has
 > been proven, what has not, and where to start.
 >
-> **Newest status (2026-09-25):** the latest work, P004B (the tokenizer corpus), is on
-> branch `arena/01a0d31f-frontier-ai`. If you are a new chat, read
-> [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md) first, then come back here for the
-> project's background.
+> * **The founder's master context:** [MASTER_CONTEXT.md](MASTER_CONTEXT.md) covers the
+>   mission, working rules, roadmap and the required answer format.
+> * **Verified repository state:** the next section.
+> * **A new Arena chat** also reads [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md), which
+>   explains how to get the latest branch.
 
 ---
 
 ## CURRENT POSITION — START HERE
 
-**Projects 001 and 002 are COMPLETE. Project 003 (ROADMAP Stage 1: reproducible experiment
-infrastructure) is COMPLETE — every Stage 1 item is built, tested, documented and verified
-from a fresh clone of the branch: provenance records, multi-seed and multi-configuration
-sweeps, loss per byte/character, real licensed smoke-test data, and CLIs that record
-themselves. It is open as PR #1, which the human merges.**
+*Verified from the repository on 2026-09-26. The mission, working rules, the 24-step roadmap
+and the required answer format are in [MASTER_CONTEXT.md](MASTER_CONTEXT.md).*
 
-- **Project 001** = the CPU-first, GPU-ready PyTorch GPT training pipeline
-  (data → model → training loop → evaluation → checkpointing → sampling, plus 47 tests).
-- **Project 002** = the tokenizer research subsystem: a pluggable tokenizer framework,
-  two byte-level BPE baselines (ours + HuggingFace `tokenizers`), a deterministic
-  Indian-language evaluation fixture, and an evaluator/comparator that produce
-  machine-readable metrics. Documented in [docs/tokenization.md](docs/tokenization.md);
-  results recorded as **EXP-002** in [EXPERIMENTS.md](EXPERIMENTS.md).
-- **Project 003** = reproducible experiment infrastructure (`src/frontier_ai/experiments/`):
-  experiment specs, one seeding mechanism with documented limits, git/data/environment
-  provenance, a JSON experiment record with a content fingerprint, a runner with a
-  validate → record lifecycle, `scripts/experiment_record.py`, and sweeps over seeds **and
-  configurations** (one record per run + a mean ± spread aggregate,
-  `scripts/experiment_sweep.py`). Documented in
-  [docs/experiments.md](docs/experiments.md); validation recorded as **EXP-003**,
-  **EXP-004**, **EXP-005** and **EXP-006** (infrastructure/metric verification,
-  *not* benchmarks).
-- All three are committed on branch `arena/01a08a78-frontier-ai` and open as **PR #1**
-  against `main`. PR #1 is **not merged** — the human merges it.
-- The most likely next steps are ROADMAP Stage 2/3: the tokenizer decision (vocabulary
-  sweeps, pre-tokenization, Unicode policy) and real data. What remains of Stage 1 is the
-  deliberate out-of-scope list — sweep orchestration beyond seeds/configurations (Q-8) and
-  an external tracker. Confirm the actual scope with the user before writing code; the
-  roadmap is a proposal, not an approved plan.
+| Project | What it is | Status (verified) |
+|---|---|---|
+| P001 | CPU-first, GPU-ready PyTorch GPT training stack (ROADMAP Stage 0) | complete; proven only by a CPU smoke run (EXP-001) |
+| P002 | Tokenizer research framework ([docs/tokenization.md](docs/tokenization.md)) | framework complete; **no production tokenizer selected** |
+| P003 | Reproducible experiment infrastructure ([docs/experiments.md](docs/experiments.md); ROADMAP Stage 1) | complete (EXP-003 to EXP-007) |
+| P004A | Foundation for the tokenizer research corpus: manifest, licence evidence, gates, split, leakage checks ([docs/tokenizer_corpus_stage_a.md](docs/tokenizer_corpus_stage_a.md)) | complete |
+| P004B | Real corpus acquisition for `indic-tokenizer/v2` ([runbook](docs/tokenizer_corpus_stage_b_acquisition.md), [handover](docs/tokenizer_corpus_handover.md)) | complete (EXP-018 to EXP-024), see below |
+
+P004B in detail:
+* 59 sources are verified and pinned by SHA-256.
+* 13 of 14 language slots are `EVALUATED`: 34,684 documents and 4,211,707 characters in total.
+* `hi-en` is `NOT_EVALUATED`, because no lawful source was found.
+
+- **Where the code is.** P001–P003 are on `main` (PR #1, merged 2026-09-10). P004A and
+  P004B are on branch `arena/01a0d31f-frontier-ai`, open as **PR #2** against `main`. The
+  founder merges it (see §17).
+- **The corpus text is not in git.** `data/` is git-ignored. The manifest
+  (`corpora/tokenizer/indic-tokenizer-v2/sources.json`) pins every source by SHA-256.
+  `scripts/build_tokenizer_corpus.py --fetch` rebuilds the text on a machine that can reach
+  the sources, which today is the founder's Windows PC. The Arena sandbox reaches only
+  GitHub and PyPI (checked 2026-09-26).
+- **Scale.** About 4.2 million characters is a *tokenizer-research* corpus, not a
+  pretraining corpus (MASTER_CONTEXT §10).
+- **Tests.**
+  - Linux, 2026-09-26: 415 passed, 1 skipped.
+  - The founder's Windows PC: some tests fail because of line-ending/encoding settings and
+    missing synthetic data (EXP-024).
+- **Next, by the founder's roadmap (MASTER_CONTEXT §37):**
+  1. STEP 2: freeze and verify `indic-tokenizer/v2`.
+  2. STEP 3–4: FrontierCorpus v1, the foundation data pipeline (ROADMAP Stage 3).
+  3. STEP 5–7: the tokenizer decision, after FrontierCorpus v1.
+
+  Confirm each step with the founder before starting it.
 - **Project 002 did NOT choose a production tokenizer.** It built the framework for that
   decision and took the first measurements. Do not treat EXP-002 as a verdict.
-- Before changing any code, read: this file, [ROADMAP.md](ROADMAP.md),
+- Before changing any code, read: this file, [MASTER_CONTEXT.md](MASTER_CONTEXT.md), [ROADMAP.md](ROADMAP.md),
   [DECISIONS.md](DECISIONS.md), [EXPERIMENTS.md](EXPERIMENTS.md),
   [docs/tokenization.md](docs/tokenization.md), [docs/experiments.md](docs/experiments.md)
   and [README.md](README.md).
@@ -347,6 +355,15 @@ README.md                     user-facing quickstart
 Makefile, pyproject.toml, LICENSE (MIT), .gitignore
 ```
 
+Project 004 added the following, which is not yet drawn in the tree above:
+* `corpora/tokenizer/indic-tokenizer-v2/`: the manifest `sources.json` and `reports/`.
+* `src/frontier_ai/tokenization/research_corpus.py`: manifest, gates, split, leakage checks
+  and the build.
+* `src/frontier_ai/data/mediawiki.py`: the Wikisource/MediaWiki cleaner.
+* Scripts: `scripts/build_tokenizer_corpus.py`, `scripts/inspect_corpus_sources.py` and
+  `scripts/discover_wiki_chapters.py`.
+* Tests: `tests/test_tokenizer_corpus.py`, `tests/test_tokenizer_corpus_mediawiki.py`, plus `tests/tokenizer_corpus_fixtures.py`.
+
 Ignored (never committed): `data/` (prepared corpora), `out/` (runs and checkpoints),
 `.venv/`, caches.
 
@@ -444,6 +461,10 @@ Smoke-config step economics: `batch_size=8 × block_size=64 × accum_steps=4`
   still uses the Project 001 char/word tokenizers.* Wiring a research tokenizer into
   training is a later step — the interface (`encode`/`decode`/`save`/`load`) was designed
   so that it is a small change, but it has not been made yet.
+- **Real research corpus (Project 004).** `indic-tokenizer/v2` has 59 licensed sources in 13
+  language slots. `scripts/build_tokenizer_corpus.py` builds it into `data/`: train and
+  held-out JSONL, stats, coverage, leakage and per-source provenance. It serves tokenizer
+  research only and is **not wired into model training**.
 
 ## 11. Current evaluation and testing approach
 
@@ -566,20 +587,22 @@ results at the current size (see [ROADMAP.md](ROADMAP.md)).
 
 ## 17. Exact current state of the GitHub project
 
-- Repository: `https://github.com/dfgtghu556-ops/frontier-ai`
-- Current branch (and the only branch this work happens on): **`arena/01a08a78-frontier-ai`**
-- Base branch: `main` (contains one commit, `89b9a1c Initial commit`, a README stub)
-- Commits on the branch (oldest → newest):
-  - `e467eb0` — Project 001: "Add CPU-first, GPU-ready PyTorch GPT training pipeline"
-  - `4ede476` — "Add permanent project documentation for long-term development"
-  - a third commit adds Project 002 (tokenizer research subsystem) — see `git log`
-  - further commits on the same branch add Project 003 (experiment infrastructure) — see `git log`
-- **PR: #1** — OPEN, not a draft, mergeable:
-  https://github.com/dfgtghu556-ops/frontier-ai/pull/1
-- CI: no checks have ever run on the branch (workflow not installable under
-  `.github/workflows` with the available App permission — see D-013)
-- Verified locally in the development sandbox: Python 3.11.2, torch 2.14.0+cu130,
-  `tokenizers` 0.23.2, `torch.cuda.is_available() == False`, 2 CPUs, 3 GB RAM
+*Checked 2026-09-26.*
+
+- Repository: `https://github.com/dfgtghu556-ops/frontier-ai` (public).
+- `main` has Projects 001–003, merged from PR #1 (branch `arena/01a08a78-frontier-ai`) on
+  2026-09-10. Its tip is `7fb7f49`.
+- Branch `arena/01a0d31f-frontier-ai` has Project 004 (Stage A foundation and Stage B
+  acquisition). It is open as **PR #2** against `main`, mergeable; the founder merges it:
+  https://github.com/dfgtghu556-ops/frontier-ai/pull/2
+- Each Arena chat works on its own `arena/<id>-frontier-ai` branch; see
+  [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md) §1. The founder's local assistant
+  (Claude Code) follows [CLAUDE.md](CLAUDE.md).
+- CI: no checks have ever run (D-013).
+- Verified in the Arena sandbox on 2026-09-26:
+  - Python 3.11.2; the full test suite gives 415 passed, 1 skipped; Ruff is clean; no GPU.
+  - The sandbox reaches GitHub and PyPI but not Wikimedia, Project Gutenberg or
+    Hugging Face, so corpus builds run on the founder's Windows PC.
 
 ## 18. Commands a new agent should run first
 
