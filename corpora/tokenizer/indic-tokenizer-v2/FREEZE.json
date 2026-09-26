@@ -54,7 +54,7 @@
     "test_skip": "the single skip is the smoke-corpus fetch test (needs a fetched smoke corpus); tokenizer-extra tests all ran"
   },
   "not_yet_verified": {
-    "live_refetch": "the Arena sandbox cannot reach wikisource.org / gutenberg.org (TLS EOF, checked 2026-09-25 and 2026-09-26). A fresh --fetch from a network-enabled machine is the only way to confirm that no pinned source's text has changed since the EXP-023 lock (2026-09-26). Until then the pins are as fresh as EXP-023, and the build's hash_mismatch gate is the designed protection (runbook section 0.5)."
+    "live_refetch": "Verified by live fetch on 2026-09-26 (EXP-026): build exit code 0; inspection reported 59 sources, 59 verified, 59 pinned; no REFUSED lines. All locked fingerprints remained unchanged."
   },
   "freeze_terms": {
     "definition": "The frozen object is the corpus DEFINITION and its LOCKS: the manifest (sources, slots, targets, notes, hashes, licences, evidence) at the sha256 above, and the per-slot coverage recorded above, as evidence in reports/.",

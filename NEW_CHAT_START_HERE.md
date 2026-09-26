@@ -53,7 +53,7 @@ git merge --ff-only FETCH_HEAD
   * [corpora/tokenizer/indic-tokenizer-v2/reports/](corpora/tokenizer/indic-tokenizer-v2/reports/):
     the reports.
 
-## 3. Where P004B stands (2026-09-26; EXP-023 lock commit `d9ddf6a`)
+## 3. Where P004B stands (2026-09-26; EXP-026 freshness check; EXP-023 lock commit `d9ddf6a`)
 
 | Languages | State | Run |
 |---|---|---|
@@ -74,6 +74,10 @@ fingerprints stayed unchanged; the four new fingerprints match EXP-022, and the 
 diff contains only the permitted lock fields. EXP-021–024 and their reports are recorded in
 `EXPERIMENTS.md` and the runbook. Thirteen of 14 slots are `EVALUATED`; hi-en remains
 `NOT_EVALUATED` without substitute text.
+
+EXP-026 live freshness re-fetch exited 0: 59 sources verified and pinned, with no
+`REFUSED:` lines or inspection flags. The freeze record now reflects this network-enabled
+verification; see `FREEZE.json` and `reports/EXP-026-refetch.txt`.
 
 ## 4. Who does what
 
@@ -180,6 +184,9 @@ comes next. They also update the table in §3.
   Synced PROJECT_CONTEXT.md (CURRENT POSITION, §7, §10, §17), ROADMAP.md, README.md and
   CLAUDE.md with the repository; this is MASTER_CONTEXT §37 step 1. Next: the founder
   merges PR #2, then step 2, freezing and verifying `indic-tokenizer/v2`.
+* **2026-09-26, Arena agent, branch `arena/01a0dc16-frontier-ai`:** ran EXP-026 live
+  freshness check: exit 0, 59/59 verified and pinned, no `REFUSED:` lines; report and freeze
+  update committed as `989b669`. Next: Arena agent starts STEP 3 plan.
 * **2026-09-26, Arena agent, branch `arena/01a0dc16-frontier-ai`:** MASTER_CONTEXT §37
   step 2 done, after the founder merged PR #2 (main is now `76bb127`). Verified the
   finished state from git: 59/59 pins present and well-formed, every manifest hash
