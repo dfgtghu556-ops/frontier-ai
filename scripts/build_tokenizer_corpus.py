@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -181,6 +182,18 @@ def _parse_local_files(
     return texts, origins
 
 
+def _show_progress(number: int, total: int, source_id: str) -> None:
+    """One line per source while downloading: the report itself only appears at the end."""
+    sys.stdout.flush()  # keep the order right when both streams go to one file
+    print(f"[corpus] downloading {number} of {total}: {source_id}", file=sys.stderr, flush=True)
+
+
+def _took(seconds: float) -> str:
+    """A duration in plain words: '45 s', '2 min 5 s'."""
+    minutes, secs = divmod(round(seconds), 60)
+    return f"{minutes} min {secs} s" if minutes else f"{secs} s"
+
+
 def main() -> int:
     args = build_parser().parse_args()
 
@@ -225,6 +238,7 @@ def main() -> int:
     drifted: list[str] = []
 
     def body() -> dict:
+        started = time.monotonic()
         result = build_corpus(
             args.manifest,
             args.out,
@@ -237,8 +251,13 @@ def main() -> int:
             pin=args.pin,
             local_texts=local_texts,
             local_origins=local_origins,
+            progress=_show_progress if args.fetch else None,
         )
-        print(_render(result))
+        # flushed: the timing line goes to stderr and must not land inside the report
+        print(_render(result), flush=True)
+        if args.fetch:
+            print(f"[corpus] this run took {_took(time.monotonic() - started)}", file=sys.stderr,
+                  flush=True)
         drifted.extend(
             item.source_id for item in result.ingested if item.status == "hash_mismatch"
         )

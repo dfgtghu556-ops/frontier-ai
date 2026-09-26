@@ -1,0 +1,232 @@
+[inspect] data\tokenizer\indic-tokenizer-v2 — 59 sources, 59 verified, 59 pinned in the manifest, built 2026-09-25T19:17:16Z (read-only: nothing is stored, verified or pinned)
+[inspect]   source                               status                  chars  lines  script             pages              sha256        flags
+[inspect]   en-gutenberg-alice-pd                verified              144,599   2494  LATIN 100.0%       -                  4e04ea77acf3  OK
+[inspect]   en-gutenberg-sadhana-pd              verified              206,965   3432  LATIN 100.0%       -                  f5d4e24f4fa0  OK
+[inspect]   hi-wikisource-godaan-ch01-ccbysa     verified               15,382     55  DEVANAGARI 100.0%  ११-१८ q3:8         29b16b4e808d  OK
+[inspect]   hi-wikisource-godaan-ch02-ccbysa     verified                9,863     14  DEVANAGARI 100.0%  १८-२२ q3:5         e9bf25e4b777  OK
+[inspect]   hi-wikisource-godaan-ch03-ccbysa     verified               21,372    122  DEVANAGARI 100.0%  २२-३२ q3:11        c498f301885d  OK
+[inspect]   hi-wikisource-godaan-ch04-ccbysa     verified               41,033    202  DEVANAGARI 100.0%  ३२-५१ q3:20        8892b8098164  OK
+[inspect]   hi-wikisource-godaan-ch05-ccbysa     verified               13,392     52  DEVANAGARI 100.0%  ५१-५७ q3:7         5884f0dfb3f8  OK
+[inspect]   hi-wikisource-godaan-ch06-ccbysa     verified               50,531    218  DEVANAGARI 100.0%  ५७-८० q3:24        697f7480f616  OK
+[inspect]   hi-wikisource-godaan-ch07-ccbysa     verified               55,020    372  DEVANAGARI 100.0%  ८०-१०७ q3:27,q4:1  1c9ebd637ca9  OK
+[inspect]   hi-wikisource-godaan-ch08-ccbysa     verified               13,575     61  DEVANAGARI 100.0%  १०७-११३ q3:7       4fdc0c7d340a  OK
+[inspect]   hi-wikisource-godaan-ch09-ccbysa     verified               15,643    101  DEVANAGARI 100.0%  ११३-१२१ q3:9       692ee82f7114  OK
+[inspect]   hi-wikisource-godaan-ch10-ccbysa     verified               15,496     74  DEVANAGARI 100.0%  १२१-१२८ q3:8       7f6f26bd4ea5  OK
+[inspect]   hi-wikisource-godaan-ch11-ccbysa     verified               17,324     48  DEVANAGARI 100.0%  १२८-१३५ q3:8       ec440f3c1edf  OK
+[inspect]   hi-wikisource-godaan-ch12-ccbysa     verified               16,189     79  DEVANAGARI 100.0%  १३५-१४२ q3:8       0c1093508f90  OK
+[inspect]   hi-wikisource-godaan-ch13-ccbysa     verified               21,380    122  DEVANAGARI 100.0%  १४२-१५२ q3:11      d11ffcf76ae8  OK
+[inspect]   hi-wikisource-godaan-ch14-ccbysa     verified               15,272     88  DEVANAGARI 100.0%  १५२-१५९ q3:8       dce8b25c77fa  OK
+[inspect]   hi-wikisource-godaan-ch15-ccbysa     verified               27,607    140  DEVANAGARI 100.0%  १५९-१७२ q3:14      75c2506ef92c  OK
+[inspect]   hi-wikisource-godaan-ch16-ccbysa     verified               20,073     45  DEVANAGARI 100.0%  १७२-१८१ q3:10      db92ce286618  OK
+[inspect]   hi-wikisource-godaan-ch17-ccbysa     verified               21,527    130  DEVANAGARI 100.0%  १८१-१९१ q3:11      dd26069b4d41  OK
+[inspect]   hi-wikisource-godaan-ch18-ccbysa     verified               25,085    100  DEVANAGARI 100.0%  १९१-२०२ q3:12      248d832b428a  OK
+[inspect]   hi-wikisource-godaan-ch19-ccbysa     verified                8,230     28  DEVANAGARI 100.0%  २०२-२०६ q3:5       a579aab3cbd5  OK
+[inspect]   hi-wikisource-godaan-ch20-ccbysa     verified               26,113    140  DEVANAGARI 100.0%  २०६-२१९ q3:14      fcdd1851801c  OK
+[inspect]   hi-wikisource-godaan-ch21-ccbysa     verified               25,997    142  DEVANAGARI 100.0%  २१९-२३१ q3:13      841e48839312  OK
+[inspect]   hi-wikisource-godaan-ch22-ccbysa     verified               31,076    143  DEVANAGARI 99.8%   २३१-२४६ q3:16      d629a7f31f54  OK
+[inspect]   hi-wikisource-godaan-ch23-ccbysa     verified               23,283    104  DEVANAGARI 100.0%  २४६-२५६ q3:11      ebc397046a08  OK
+[inspect]   hi-wikisource-godaan-ch24-ccbysa     verified               18,593    102  DEVANAGARI 100.0%  २५७-२६५ q3:9       467f09e2f0b2  OK
+[inspect]   hi-wikisource-godaan-ch25-ccbysa     verified               13,024     44  DEVANAGARI 100.0%  २६५-२७१ q3:7       d5c09517e7c6  OK
+[inspect]   hi-wikisource-godaan-ch26-ccbysa     verified               10,132     72  DEVANAGARI 100.0%  २७१-२७६ q3:6       6856378c2004  OK
+[inspect]   hi-wikisource-godaan-ch27-ccbysa     verified               26,081     97  DEVANAGARI 100.0%  २७६-२८८ q3:13      70f749b9dc25  OK
+[inspect]   hi-wikisource-godaan-ch28-ccbysa     verified               16,597     47  DEVANAGARI 100.0%  २८८-२९५ q3:8       ef935daa16bf  OK
+[inspect]   hi-wikisource-godaan-ch29-ccbysa     verified               23,183     76  DEVANAGARI 100.0%  २९५-३०५ q3:11      22cd23704490  OK
+[inspect]   hi-wikisource-godaan-ch30-ccbysa     verified               25,198     94  DEVANAGARI 100.0%  ३०५-३१६ q3:12      313511e1ed9d  OK
+[inspect]   hi-wikisource-godaan-ch31-ccbysa     verified               23,815     95  DEVANAGARI 100.0%  ३१७-३२७ q3:11      08bff4930de9  OK
+[inspect]   hi-wikisource-godaan-ch32-ccbysa     verified                7,714     28  DEVANAGARI 100.0%  ३२७-३३१ q3:5       f9646750547c  OK
+[inspect]   hi-wikisource-godaan-ch33-ccbysa     verified               28,464    129  DEVANAGARI 100.0%  ३३१-३४३ q3:13      9ad29f4b912f  OK
+[inspect]   hi-wikisource-godaan-ch34-ccbysa     verified                9,951     88  DEVANAGARI 100.0%  ३४४-३४९ q3:6       c517af4c135b  OK
+[inspect]   hi-wikisource-godaan-ch35-ccbysa     verified               17,736     75  DEVANAGARI 100.0%  ३४९-३५७ q3:9       5c716c172579  OK
+[inspect]   hi-wikisource-godaan-ch36-ccbysa     verified               13,013     63  DEVANAGARI 100.0%  ३५७-३६३ q3:7       edc02cea02c9  OK
+[inspect]   bn-wikisource-gitanjali-1913-ccbysa  verified               65,172   3133  BENGALI 100.0%     ১৩-১৯০ q4:178      333fd22ad5a4  OK
+[inspect]   bn-wikisource-devdas-ccbysa          verified              152,768   1180  BENGALI 100.0%     ৫-১১০ q3:101,q4:5  14477848f49b  OK
+[inspect]   gu-wikisource-saraswatichandra-1-ch01-08-ccbysa verified              152,483    446  GUJARATI 99.8%     ૨૧-૧૦૬ q4:86       c3fe2b7aa706  OK
+[inspect]   gu-wikisource-saraswatichandra-1-ch09-12-ccbysa verified              145,145    472  GUJARATI 99.7%     ૧૦૭-૧૮૮ q4:82      91e688351017  OK
+[inspect]   ml-wikisource-ramarajabahadoor-ch01-13-ccbysa verified              288,952    544  MALAYALAM 100.0%   4-150 q3:144,q4:3  beb122a5db78  ascii_digit_runs=1
+[inspect]   ml-wikisource-ramarajabahadoor-ch14-18-ccbysa verified              110,216    244  MALAYALAM 100.0%   151-207 q3:57      db88c28a02b9  OK
+[inspect]   or-wikisource-chha-mana-atha-guntha-ccbysa verified              203,444    420  ORIYA 100.0%       ୪-୧୬୨ q4:159       83850852f8f4  OK
+[inspect]   as-wikisource-manomati-part1-ccbysa  verified              114,802    553  BENGALI 100.0%     ৫-১৩১ q4:127       9876b5c9940e  OK
+[inspect]   as-wikisource-manomati-part2-ccbysa  verified              126,223    302  BENGALI 100.0%     ১৩৩-২৬৭ q4:135     eb4b86b65401  OK
+[inspect]   pa-wikisource-satwant-kaur-p007-164-ccbysa verified              175,182    577  GURMUKHI 100.0%    7-164 q4:158       0fa06c574b20  OK
+[inspect]   pa-wikisource-satwant-kaur-p165-336-ccbysa verified              186,368    455  GURMUKHI 100.0%    165-336 q4:172     4d9384360088  OK
+[inspect]   kn-wikisource-ranganna-ch01-15-ccbysa verified              191,246    636  KANNADA 100.0%     ೧೬-೧೭೮ q4:163      31ede1440a46  ascii_digit_runs=2
+[inspect]   kn-wikisource-ranganna-ch16-30-ccbysa verified              200,554    566  KANNADA 100.0%     ೧೭೯-೩೪೩ q4:165     1c1887375698  OK
+[inspect]   te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa verified              124,690    206  TELUGU 100.0%      15-104 q4:90       31d455d7192f  OK
+[inspect]   te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa verified              152,982    409  TELUGU 100.0%      105-217 q4:113     e6bd442e01d5  OK
+[inspect]   ta-wikisource-en-charithram-p022-101-ccbysa verified              136,610    442  TAMIL 100.0%       22-101 q3:80       4a8b61e92567  ascii_digit_runs=7
+[inspect]   ta-wikisource-en-charithram-p102-189-ccbysa verified              149,312    479  TAMIL 100.0%       102-189 q3:88      50ef1de96f98  ascii_digit_runs=11
+[inspect]   mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa verified              257,901    340  DEVANAGARI 100.0%  १३-१२४ q3:112      e1e7dba1bfe5  OK
+[inspect]   ur-wikisource-ram-charcha-premchand-p7-170-ccbysa verified               99,732    256  ARABIC 100.0%      7-170 q3:133,q4:31 fb22db9983ef  OK
+[inspect]   ur-wikisource-ram-charcha-premchand-p171-307-ccbysa verified               89,056    194  ARABIC 100.0%      171-307 q3:132,q4:5 36cd31410d2b  OK
+[inspect]   ur-wikisource-ram-charcha-premchand-p309-342-ccbysa verified               21,706     51  ARABIC 100.0%      309-342 q3:33,q4:1 4835213b51c2  OK
+[inspect] identical documents per language (always on the same side of the split): as=46, bn=218, en=22, gu=0, hi=14, kn=11, ml=4, mr=20, or=27, pa=20, ta=4, te=4, ur=6
+[inspect] coverage per language slot (targets: 500 documents and 200,000 characters):
+[inspect]   en     EVALUATED        5,926 documents    344,060 characters
+[inspect]   hi     EVALUATED        5,323 documents    755,125 characters
+[inspect]   hi-en  NOT_EVALUATED        0 documents          0 characters  — no licensed, attributable Hinglish corpus identified: published Hinglish/Romanised-Hindi corpora are derived from social
+[inspect]   bn     EVALUATED        4,386 documents    211,709 characters
+[inspect]   mr     EVALUATED        1,667 documents    256,165 characters
+[inspect]   gu     EVALUATED        1,985 documents    294,751 characters
+[inspect]   ta     EVALUATED        1,077 documents    283,972 characters
+[inspect]   te     EVALUATED        1,405 documents    275,663 characters
+[inspect]   kn     EVALUATED        2,635 documents    387,971 characters
+[inspect]   ml     EVALUATED        2,054 documents    396,374 characters
+[inspect]   pa     EVALUATED        2,427 documents    358,198 characters
+[inspect]   or     EVALUATED        1,902 documents    201,209 characters
+[inspect]   as     EVALUATED        2,519 documents    237,889 characters
+[inspect]   ur     EVALUATED        1,378 documents    208,621 characters
+[inspect] flagged sources: ml-wikisource-ramarajabahadoor-ch01-13-ccbysa, kn-wikisource-ranganna-ch01-15-ccbysa, ta-wikisource-en-charithram-p022-101-ccbysa, ta-wikisource-en-charithram-p102-189-ccbysa
+[inspect] where to look (up to 5 places per kind, 3 for letters of another script; «…» marks the spot, ' | ' = line break):
+[inspect]   hi-wikisource-godaan-ch07-ccbysa
+[inspect]       other-script letters (LATIN 1) — information, not a flag:
+[inspect]         …स मालती को साथ लिये आ पहुँची, «l»एक वन-पुष्प की भाँति धूप में ख…
+[inspect]   hi-wikisource-godaan-ch22-ccbysa
+[inspect]       other-script letters (LATIN 52) — information, not a flag — 3 of 11 places shown:
+[inspect]         …े साथ खास रिआयत की जाय; लेकिन «Business» is Business यह आप जानते हैं। …
+[inspect]         … रिआयत की जाय; लेकिन Business «is» Business यह आप जानते हैं। पर …
+[inspect]         …आयत की जाय; लेकिन Business is «Business» यह आप जानते हैं। पर मेरा कमीश…
+[inspect]   gu-wikisource-saraswatichandra-1-ch01-08-ccbysa
+[inspect]       other-script letters (DEVANAGARI 254) — information, not a flag — 3 of 35 places shown:
+[inspect]         …વરની ઈચ્છા” કહો નિ:શ્વાસ સાથે «गतं» न शोचामि કરી ભવિષ્યના વિચારમા…
+[inspect]         … ઈચ્છા” કહો નિ:શ્વાસ સાથે गतं «न» शोचामि કરી ભવિષ્યના વિચારમાં …
+[inspect]         …ચ્છા” કહો નિ:શ્વાસ સાથે गतं न «शोचामि» કરી ભવિષ્યના વિચારમાં પડ્યો. | …
+[inspect]   gu-wikisource-saraswatichandra-1-ch09-12-ccbysa
+[inspect]       other-script letters (DEVANAGARI 324) — information, not a flag — 3 of 48 places shown:
+[inspect]         …ગાઓ.” ભાભી એ ગાવા માંડ્યું. |  | "«रुरुदिया» वदनाम्बुरुहश्रिय: |  | "सुतनु सत्…
+[inspect]         …ી એ ગાવા માંડ્યું. |  | "रुरुदिया «वदनाम्बुरुहश्रिय»: |  | "सुतनु सत्यमलंकरणाय ते । |  | "…
+[inspect]         …"रुरुदिया वदनाम्बुरुहश्रिय: |  | "«सुतनु» सत्यमलंकरणाय ते । |  | "तदपि संप्…
+[inspect]   ml-wikisource-ramarajabahadoor-ch01-13-ccbysa
+[inspect]       ascii_digit_runs:
+[inspect]         …യകോയിക്കൽ' കൊട്ടാരമായിരുന്നു. «1033»-ലെ മുറജപക്കാലത്തു രാജകീയഏർപ്പ…
+[inspect]   or-wikisource-chha-mana-atha-guntha-ccbysa
+[inspect]       other-script letters (LATIN 25) — information, not a flag — 3 of 25 places shown:
+[inspect]         … ବାଦେ ବାକି ଛାଡ଼ ଦେଢ଼ ଗଣ୍ଡା |  | --«o»- |  | ତୃତୀୟ ପରିଚ୍ଛେଦ |  | ବାଣିଜ୍ୟେ ବସ…
+[inspect]         …, ବାହାରେ ବାହାରେ ହାଟକୁଯାଏ । |  | --«o»-- |  | ଚତୁର୍ଥ ପରିଚ୍ଛେଦ |  | ଅହଂ ନିଜଃ …
+[inspect]         …ବର୍ଣ୍ଣତେ ବିବିଧପ୍ରବନ୍ଧେ ।୮। |  | --«o»-- |  | ସପ୍ତମ ପରିଚ୍ଛେଦ |  | ବୁଢ଼ୀ ମଙ୍ଗ…
+[inspect]   as-wikisource-manomati-part2-ccbysa
+[inspect]       other-script letters (LATIN 21) — information, not a flag:
+[inspect]         …কৰিবলৈ একো অভিপ্ৰায় নকৰিলে। («Non»-intervention policy) (১) ননইণ…
+[inspect]         …লৈ একো অভিপ্ৰায় নকৰিলে। (Non-«intervention» policy) (১) ননইণ্টাৰভেনচন পলি…
+[inspect]         …ায় নকৰিলে। (Non-intervention «policy») (১) ননইণ্টাৰভেনচন পলিচিৰ অৰ্…
+[inspect]   kn-wikisource-ranganna-ch01-15-ccbysa
+[inspect]       ascii_digit_runs:
+[inspect]         … ಮೇಲೆ ಹತ್ತಿ ಹತ್ತದಂಧ ಸುಣ್ಣದಿಂದ,«378547896»X5458945 ಎಂಬುದೊಂದು ಗುಣಾಕಾರದ ಲೆ…
+[inspect]         …ಿ ಹತ್ತದಂಧ ಸುಣ್ಣದಿಂದ,378547896X«5458945» ಎಂಬುದೊಂದು ಗುಣಾಕಾರದ ಲೆಕ್ಕವನ್ನು…
+[inspect]       other-script letters (LATIN 53) — information, not a flag — 3 of 12 places shown:
+[inspect]         …ಈಚೆಗೆ ನೀನೂ ಸ್ವಲ್ಪ ಪಾಲಿಟಿಕ್ಸ್ («politics») ಕಲಿತ ಹಾಗೆ ಕಾಣುತ್ತದೆ.?' |  | 'ಇಲ್…
+[inspect]         … ಇದೇನು! ಹಳ್ಳಿಯವರು ಇನ್ ಫಂಟ್ರಿ («Infantry») ಸ್ಕೂಲಿಗೆ ಅರ್ಜಿ ಕೊಡುತ್ತಾರೆ! ಪ…
+[inspect]         …ುತ್ತಿರುವುದು ಇನ್ ಫೆಂಟ್ ಸ್ಕೂಲು («Infant» School) ಇನ್ ಫೆಂಟ್ರಿ ಸ್ಕೂಲ್” (…
+[inspect]   te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa
+[inspect]       other-script letters (LATIN 4) — information, not a flag — 3 of 4 places shown:
+[inspect]         …ని కడుపులోనుండి దుఃఖము బయలుదేఱ«c»గాఁ గొంచె మాపుకొనుచుఁ గన్నీరు …
+[inspect]         …టి__దానిని మగఁడు తిన్నగా ఒల్లడ«c»ట- అని బుగ్గను చేయిపెట్టుకొని …
+[inspect]         …సాధ్యమని విడిచి పెట్టినారు. ఆత«c»డు మూడుదినమలు జల మభిమంత్రించి …
+[inspect]   te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa
+[inspect]       other-script letters (LATIN 6) — information, not a flag — 3 of 6 places shown:
+[inspect]         …ను. ఆ పెట్టుతో మొదలు నఱికిన యర«c»టిచెట్టు వలె రుక్మిణి నేల కొఱి…
+[inspect]         …? |  | తొమ్మిదవ ప్రకరణము |  | రాజశేఖరు«c»డు__గారు పెద్దాపురము చేరుట__రు…
+[inspect]         …__శోభనాద్రిరా జంతటి దుర్మార్గు«c»డా? ఆతని సంగతి నేను మొదట దర్శన…
+[inspect]   ta-wikisource-en-charithram-p022-101-ccbysa
+[inspect]       ascii_digit_runs — 5 of 7 places shown:
+[inspect]         …டுள்ளன. |  | டாக்டர்‌ ஐயரவர்கள்‌ | («1855»-1942) |  | ஐயரவர்களின்‌ பெற்றோர்க…
+[inspect]         …ன. |  | டாக்டர்‌ ஐயரவர்கள்‌ | (1855-«1942») |  | ஐயரவர்களின்‌ பெற்றோர்கள்‌ |  | …
+[inspect]         …்திய ஆனந்த வருஷம் நிகழ்ந்தது («1854»). |  | உத்தமதானபுரத்தில் என் தந்த…
+[inspect]         …9-ஆம் தேதி திங்கட்கிழமை (19-2-«1855») இரவு நான் பிறந்தேன். என் ஜாத…
+[inspect]         …ரௌத்திரி வருஷம் வைகாசி மாதம் («1860») அவர் தேக வியோகமானார். அதற்கு…
+[inspect]   ta-wikisource-en-charithram-p102-189-ccbysa
+[inspect]       ascii_digit_runs — 5 of 11 places shown:
+[inspect]         …துந்துபி வருஷம் வைகாசி மாதம் («1862», ஜூன்) என் பாட்டனாருக்கு ஆப்த…
+[inspect]         …ஷம் ஆனி மாதம் 4-ம் தேதி (16-6-«1868») என் விவாகம் நடந்தது. அன்று இ…
+[inspect]         …கியது சுக்கில வருஷம் மார்கழி («1869») மாதத்திலாகும். விடியற்காலையி…
+[inspect]         …ம் கொடுத்தார். அது துந்துபி௵ («1862») சந்திரசேகர கவிராஜ பண்டிதரென்…
+[inspect]         …ந்தன. அது நளவருஷம் ஆனி மாதம் («1856») காஞ்சீபுரம் சபாபதி முதலியாரா…
+[inspect]   mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa
+[inspect]       other-script letters (LATIN 30) — information, not a flag — 3 of 4 places shown:
+[inspect]         …ेक डॉक्टरांना व जोगवणकरणींना («nurses») क्षणमात्र डोके फिरून मूर्च्छ…
+[inspect]         …ाची सोय झाली होती. जोगवणकरणी («nurses») घरोघर जाऊन रोगी घेऊन येत. त्…
+[inspect]         … रावबहादूर न्या. रानडे यांनी "«Protestant» Hinduism" ह्या विषयावर दिलेल्…
+[inspect] repairs by the cleaner (markup typed wrongly on the wiki, removed; from provenance):
+[inspect]   hi-wikisource-godaan-ch03-ccbysa: broken {{gap}} template -> removed (2); link to missing template साँचा:GaP -> removed (1)
+[inspect]   hi-wikisource-godaan-ch04-ccbysa: broken {{gap}} template -> removed (9)
+[inspect]   hi-wikisource-godaan-ch06-ccbysa: broken {{gap}} template -> removed (5)
+[inspect]   hi-wikisource-godaan-ch07-ccbysa: broken {{gap}} template -> removed (3)
+[inspect]   hi-wikisource-godaan-ch09-ccbysa: broken {{gap}} template -> removed (1)
+[inspect]   hi-wikisource-godaan-ch21-ccbysa: link to missing template साँचा:GP -> removed (2); link to missing template साँचा:Gpa -> removed (2)
+[inspect]   hi-wikisource-godaan-ch24-ccbysa: link to missing template साँचा:GAP -> removed (3)
+[inspect]   bn-wikisource-gitanjali-1913-ccbysa: stray }} -> removed (1)
+[inspect]   or-wikisource-chha-mana-atha-guntha-ccbysa: literal <poem> tag -> removed (1)
+[inspect]   ur-wikisource-ram-charcha-premchand-p7-170-ccbysa: Ram Charcha page 62 scan-inconsistent 1004 -> removed (1); broken {{|xx-larger}} heading -> markup removed (1); stray }} -> removed (1)
+[inspect]   ur-wikisource-ram-charcha-premchand-p171-307-ccbysa: unmatched [[ or ]] -> removed (1)
+[inspect] samples (read these — the report cannot tell a work from another work):
+[inspect]   en-gutenberg-alice-pd   (' | ' = line break)
+[inspect]       starts: [Illustration] | Alice’s Adventures in Wonderland | by Lewis Carroll | THE MILLENNIUM FULCRUM EDITION 3.0 | Contents |  CHAPTER I.     Down the Rabbit-Hole |  C
+[inspect]       ends:   would feel with all their simple sorrows, and find a pleasure in all | their simple joys, remembering her own child-life, and the happy summer | days. | THE END
+[inspect]   en-gutenberg-sadhana-pd   (' | ' = line break)
+[inspect]       starts: Produced by Chetan Jain at BharatLiterature | SĀDHANĀ | THE REALISATION OF LIFE | By | Rabindranath Tagore | Author of 'Gitanjali' | 1916 | To | Ernest Rhys | A
+[inspect]       ends:   !"  For here rolls the sea, and even here | lies the other shore waiting to be reached--yes, here is this | everlasting present, not distant, not anywhere else.
+[inspect]   hi-wikisource-godaan-ch01-ccbysa   (' | ' = line break)
+[inspect]       starts: होरीराम ने दोनों बैलों को सानी-पानी देकर अपनी स्त्री धनिया से कहा—गोबर को ऊख गोड़ने भेज देना। में न जाने कब लौटूं। जरा मेरी लाठी दे दे। | धनिया के दोनों हाथ गोब
+[inspect]       ends:   ्खियाँ उड़ाती, सिर हिलाती, मस्तानी, मंद-गति से झूमती चली जाती थी, जैसे वादियों के बीच में कोई रानी हो। कैसा शुभ होगा वह दिन, जब यह कामधेनु उसके द्वार पर बँधेगी!
+[inspect]   hi-wikisource-godaan-ch36-ccbysa   (' | ' = line break)
+[inspect]       starts: ३६ | दो दिन तक गाँव में खूब धूम-धाम रही। बाजे बजे, गाना-बजाना हुआ और रूपा रो-धोकर बिदा हो गयी; मगर होरी को किसी ने घर से निकलते न देखा। ऐसा छिपा बैठा था, जैसे म
+[inspect]       ends:   लायी और पति के ठंडे हाथ में रखकर सामने खड़े दातादीन से बोली--महराज, घर में न गाय है, न बछिया, न पैसा। यही पैसे हैं, यही इनका गो-दान है | और पछाड़ खाकर गिर पड़ी।
+[inspect]   bn-wikisource-gitanjali-1913-ccbysa   (' | ' = line break)
+[inspect]       starts: ১ | আমার মাথা নত করে দাও হে তোমার | চরণ-ধূলার তলে। | সকল অহঙ্কার হে আমার | ডুবাও চোখের জলে। | নিজেরে করিতে গৌরব দান, | নিজেরে কেবলি করি অপমান, | আপনারে শুধু ঘের
+[inspect]       ends:   র পড়িতে চায় টুটে,— | ঢাকিয়া দিক তাহার ক্ষতব্যথা | করুণাঘন গভীর গোপনতা, | ঘুচায়ে লাজ ফুটাও তারে নবীন উষা পানে | কুড়ায়ে তারে আঁধার সুধাজলে॥ | ১০ শ্রাবন ১৩১৭
+[inspect]   bn-wikisource-devdas-ccbysa   (' | ' = line break)
+[inspect]       starts: এক | একদিন বৈশাখের দ্বিপ্রহরে রৌদ্রেরও অন্ত ছিল না উত্তাপেরও সীমা ছিল না। ঠিক সেই সময়টিতে মুখুয্যেদের দেবদাস পাঠশালা-ঘরের এক কোণে ছেঁড়া মাদুরের উপর বসিয়া, শ্
+[inspect]       ends:   ্শ তাহার ললাটে পৌঁছে—যেন একটিও করুণার্দ্র স্নেহময় মুখ দেখিতে দেখিতে এ জীবনের অন্ত হয়। মরিবার সময় যেন কাহারও এক ফোঁটা চোখের জল দেখিয়া সে মরিতে পারে। | সমাপ্ত
+[inspect]   gu-wikisource-saraswatichandra-1-ch01-08-ccbysa   (' | ' = line break)
+[inspect]       starts: સરસ્વતીચંદ્ર. | પ્રકરણ ૧. | સુવર્ણપુરનો અતિથિ. | “ ઘર તજી ભમું હું દૂર સ્વજન-હીન, ઉર ભરાઈ આવે, | “નહીં ચરણ ઉપડે હુંથી શોકને માર્યે.” | * * * * | "સુખ વસો ત્યાં
+[inspect]       ends:   ા ન દેતી. અા બનાવનો ઈતિહાસ ચારણ જેવો પલંગ “કચડ કચડ” બોલી - ગાન કરી – કાનવિનાના ચહેરા શુન્ય શયનગૃહને સંભળાવવા યત્ન કરતો. શિયાળાની લાંબી રાત અામ ટુંકી થઈ જતી હતી.
+[inspect]   gu-wikisource-saraswatichandra-1-ch09-12-ccbysa   (' | ' = line break)
+[inspect]       starts: પ્રક૨ણ ૯. | ઉન્મત્તપણાનું પરિણામ , | લીલાપુરથી પાછાં આવ્યા પછી રાણાની ઉદારતાને લીધે બુદ્ધિધને સારું અને વિશાળ ઘર બંધાવ્યું હતું. દરવાજા અંદર મ્હોટી ખડકી હતી અને
+[inspect]       ends:   કી ગયેલી ક૯પના શિથિલ પડી જઈ એ ઓથારના હઠ- સંભોગને જાતે જ અનુકૂળતા કરી આપવા લાગી. મનની સાથે શરીર પણ થાક્યું હતું. બાર વાગવાથી ભુખ પણ કકડીને લાગી હતી. સૂર્ય તનમનને
+[inspect]   ml-wikisource-ramarajabahadoor-ch01-13-ccbysa   (' | ' = line break)
+[inspect]       starts: അദ്ധ്യായം ഒന്ന് | "ബഹുമാനിയാ ഞാനാരെയും തൃണവൽ" | മൈസൂർ രാജ്യത്തിന്റെ ഉത്തരപരിധിയിൽനിന്ന് ഒന്നൊന്നര ദിവസത്തെ യാത്രാദൂരം വടക്കുകിഴക്കു നീങ്ങി, കേരളത്തിലെങ്ങും കാണ്
+[inspect]       ends:   ികയാൽ പ്രതിബന്ധിച്ചു. ശ്രീരാമന്റെ ദിവ്യബാണങ്ങളാൽ വിച്ഛിന്നാംഗമായ കുംഭകർണ്ണമഹാവിഗ്രഹംപോലെ ഗൗണ്ഡൻ നിലത്തു വീണു വക്ത്രനാസാദ്വാരങ്ങളിൽക്കൂടി രക്തം പ്രസ്രവിപ്പിച്ചു.
+[inspect]   ml-wikisource-ramarajabahadoor-ch14-18-ccbysa   (' | ' = line break)
+[inspect]       starts: അദ്ധ്യായം പതിനാല് | "അത്രിയെന്നുള്ള താപസശ്രേഷ്ഠന്റെ ആശ്രമംനോക്കിപ്പോയാലുമേവരും | എല്ലാറ്റിനുമൊരു കഴിവുണ്ടാകും- കല്യാണാംഗീകനിവുള്ള താപസീ!" | "എനിക്കിന്നിതു കേട്ട
+[inspect]       ends:   ീകരിച്ചുകൊണ്ടും ടിപ്പുസുൽത്താനായ ഡിംഭസമഗ്രന്റെ പദാതിനിരയായ വ്യാഘ്രസഹസ്രങ്ങളെ അമർത്താൻ, യശശ്ചന്ദ്രഹാരത്താൽ പരിവേഷ്ടിതനായ ആ നായകകുലമഹാരത്നം രശ്മിസൂത്രത്തെ ഇളക്കി.
+[inspect]   or-wikisource-chha-mana-atha-guntha-ccbysa   (' | ' = line break)
+[inspect]       starts: ପ୍ରଥମ ପରିଚ୍ଛେଦ | ରାମଚନ୍ଦ୍ର ମଙ୍ଗରାଜ : | ରାମଚନ୍ଦ୍ର ମଙ୍ଗରାଜ ଜଣେ ମଫସଲର ଜମିଦାର, ମଧ୍ୟ ମହାଜନ ନଗଦ ଟଙ୍କା କାରବାର ଠାରୁ ଧାନର ମହାଜନୀ ବେଶି । ଶୁଣାଯାଏ, ଆଡ଼େ ଦୀର୍ଘେ ଚାରି କୋଶ ମଧ୍
+[inspect]       ends:   ଳି ସଙ୍କେତ କରି ମଙ୍ଗରାଜଙ୍କୁ ପାଶକୁ ଡାକୁଛନ୍ତି । ମଙ୍ଗରାଜଙ୍କ ଆତ୍ମା ସେହି ମୂର୍ତ୍ତିକୁ ଲକ୍ଷ୍ୟକରି ଧାବିତ ହେଲା । ମଙ୍ଗରାଜଙ୍କ ଉଆସରେ ଚହଳ ପଡିଗଲା । ହରିବୋଲ ହରିବୋଲ ହରିବୋଲ । | --o--
+[inspect]   as-wikisource-manomati-part1-ccbysa   (' | ' = line break)
+[inspect]       starts: মনোমতী | প্ৰথম খণ্ড | প্ৰথম অধ্যায় | বৰপেটাৰ কীৰ্ত্তনঘৰত | ফাগুন মাহ৷ ভৰ দুপৰীয়া৷ আকাশ ধুৱঁলি-কুৱঁলি৷ পচিম ফালৰ পৰা খৰাং পচোৱা মাৰিছে৷ বাটে-পথে হাবি পোৰা ছাইব
+[inspect]       ends:   িৰলৈ আনি একে ঠাইতে লগ কৰিলে। তাৰ পাছত বৰুৱাৰ হাউলিত জুই দিলে আৰু গাওঁখনত যাকে যতে পালে কাটি মাৰি বৰুৱাৰ সোণৰ হাউলিক শ্মশানত পৰিণত কৰিলে। | ( প্ৰথম খণ্ড সমাপ্ত )
+[inspect]   as-wikisource-manomati-part2-ccbysa   (' | ' = line break)
+[inspect]       starts: দ্বিতীয় খণ্ড | প্ৰথম অধ্যায় | নাৱেৰে | এইদৰে মিঙ্গিমাহা ক্যাডেউঙে বৰনগৰীয়া বৰুৱাৰ গড় আক্ৰমণ কৰি আৰু বৰুৱাৰ সোণৰ হাউলিক শ্মশানত পৰিণত কৰি তাৰ পিছদিনা ৰাতি পু
+[inspect]       ends:   ়েক, বোৱাৰীয়েক সকলোকে আশীৰ্বাদ দি সন্ন্যাসীৰ পাছে পাছে গ’ল৷ | আচৰিত কথা৷ সন্ন্যাসী আৰু হলকান্ত বৰুৱা যাবৰ দিনৰে পৰা বদনৰ ঘৰৰ পৰা শান্তিৰামো নিৰুদ্দেশ হ’ল৷ | ⸺⸻
+[inspect]   pa-wikisource-satwant-kaur-p007-164-ccbysa   (' | ' = line break)
+[inspect]       starts: ੧ਓ ਸ੍ਰੀ ਵਾਹਿਗੁਰੂ ਜੀ ਕੀ ਫਤਹ॥ | ————— | ਬਲੁ ਛੁਟਕਿਓ ਬੰਧਨ ਪਰੇ ਕਛੂ ਨ ਹੋਤ ਉਪਾਇ॥ | ਕਹੁ ਨਾਨਕ ਅਬ ਓਟ ਹਰਿ ਗਜਿ ਜਿਉ ਹੋਹੁ ਸਹਾਇ॥ | ਸਤਵੰਤ ਕੌਰ | ੧. ਕਾਂਡ। | ਹੇ ਅਕਾਲ ਪੁਰਖ! ਮੈਂ ਕੀ
+[inspect]       ends:   ਤੀ ਕਰਵਾਈ। ਦੁਪਹਿਰ ਤੋਂ ਬਾਦ ਵੇਹਲ ਹੋ ਗਈ। ਅਮੀਰ ਪਾਸ ਖ਼ਬਰ ਗਈ ਕਿ ਕਾਫ਼ਲੇ ਵਿਚ ਚੀਜ਼ ਨਹੀਂ ਹੈ, ਹੁਕਮ ਹੋਵੇ ਤਾਂ ਕਾਫ਼ਲਾ ਟੁਰੇ, ਸੰਝ ਵੇਲੇ ਟੁਰਨ ਦਾ ਹੁਕਮ ਆ ਰਿਆ। ਐਡੀ ਛੇਤੀ ਭਾਵੇਂ ਹੁਕਮ ਨਾ
+[inspect]   pa-wikisource-satwant-kaur-p165-336-ccbysa   (' | ' = line break)
+[inspect]       starts: ਆਉਂਦਾ ਪਰ ਚੋਰ ਕਿਸੇ ਹੋਰ ਤਰ੍ਹਾਂ ਨਾਲ ਤੇ ਹੋਰ ਥਾਂਉਂ ਤੋਂ ਅੱਜ ਹੀ ਫੜਿਆ ਗਿਆ ਸੀ ਅਰ ਉਹ ਹੀਰਾ ਮਿਲ ਗਿਆ ਸੀ। | ਰਾਤ ਨੂੰ ਡੇਰਾ ਓਥੇ ਹੀ ਰਿਹਾ। ਆਗ਼ਾ ਖਾਂ ਨੂੰ ਬੇਚੈਨੀ ਖਾ ਰਹੀ ਸੀ, ਉਸ ਦੀ ਵਿਉ
+[inspect]       ends:   ਰਹੇ ਇਹ ਮੂਰਤੀ, ਪਰੇਮ ਦਾ ਨੂਰ ਵਰਸਾਂਦੀ ਰਹੇ ਇਹ ਚਿਤ੍ਰ-ਕਾਰੀ। ਪਰੇਮ ਦੀ ਸੁਗੰਧੀ ਇਸ ਪਿਆਰੇ ਨਕਸ਼ੇ ਤੋਂ ਮਹਿਕ ਮਹਿਕ ਮੁਸ਼ਕਾਂ ਮਚਾਂਦੀ ਰਹੇ, ਸਮੇਂ ਦਰ ਸਮੇਂ ਮਗਨ ਕਰਦੀ ਰਹੇ; ਮਨਾਂ ਨੂੰ-ਪਰੇਮ ਦੇ
+[inspect]   kn-wikisource-ranganna-ch01-15-ccbysa   (' | ' = line break)
+[inspect]       starts: ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು | ಪ್ರಕರಣ ೧. | ತಿಮ್ಮರಾಯಪ್ಪನ ಕಥೆ | ರಂಗಣ್ಣ ಎರಡು ತಿಂಗಳ ಕಾಲ ರಜ ತೆಗೆದುಕೊಂಡು ಬೆ೦ಗಳೂರಿಗೆ ಬಂದು ವಾಸಮಾಡುತ್ತಿದ್ದನು, ಶಿವಮೊಗ್ಗದಲ್ಲಿ ಪಿತ್ತವೇರಿಸುವ ತುಂಗಾ ಪಾ
+[inspect]       ends:   ನರಿಯೆನೇ ! ಬೆಳಗ್ಗೆ ನಿಮ್ಮ ಮುಖ ಸಪ್ಪಗಿತ್ತು ! ಅದಕ್ಕೋಸ್ಕರವೇ ನಾನು ಕೇಳಿದ್ದು, ಈಗ ನಿಮ್ಮ ಮುಖ ಎಂದಿನಂತೆ ಕಳಕಳಿಸುತ್ತಿದೆ' ಎಂದು ಹೇಳುತ್ತ, ಕಾಫಿ ತುಂಬಿದ ಬೆಳ್ಳಿಯ ಲೋಟವನ್ನು ಮುಂದಿಟ್ಟಳು.
+[inspect]   kn-wikisource-ranganna-ch16-30-ccbysa   (' | ' = line break)
+[inspect]       starts: ಪ್ರಕರಣ ೧೬ | ತಿಪ್ಪೇನಹಳ್ಳಿಯ ಮೇಷ್ಟ್ರು | ಕೆಲವು ದಿನಗಳ ತರುವಾಯ ಕಿತ್ತೂರಿನ ಸೈಮರಿ ಸ್ಕೂಲಿನ ವಿಚಾರದಲ್ಲಿ ಬದಲಾವಣೆಗಳಾದುವು. ಕಟ್ಟಡವನ್ನು ರಿಪೇರಿ ಮಾಡಿ ಕೊಟ್ಟಿಲ್ಲದ ಕಾರಣದಿಂದಲೂ, ಅಲ್ಲಿ ಪ
+[inspect]       ends:   ವರಿಬ್ಬರೂ ನೋಡಿ ನಗುತ್ತಿದಾರೆ ! ನನ್ನ ಇನ್ ಸ್ಪೆಕ್ಟರ್‌ಗಿರಿ ಇರಲಿ. ನಿನ್ನ ಸ್ನೇಹ ನಿಜವಾಗಿಯೂ ಒಂದು ಮಹಾ ಕಾವ್ಯ ! ಅದು ಆಚಂದ್ರಾರ್ಕವಾಗಿ ನಿಂತಿರುತ್ತದೆ !' ಎಂದು ರಂಗಣ್ಣ ನಗುತ್ತಾ ಹೇಳಿದನು.
+[inspect]   te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa   (' | ' = line break)
+[inspect]       starts: వివేక చంద్రిక | అను | రాజశేఖర చరిత్రము | వెుదటి ప్రకరణము | ధవళగిరి__ దేవాలయవర్ణనము__ గోదావరి యొడ్డున నున్న ధర్మశాల మీఁద ప్రాతఃకాలమున రాజశేఖరుఁడుగారు వచ్చి కూర్చ
+[inspect]       ends:    వారును విడుపు స్నానమునకై పోయిరి. శుద్ధమోక్ష మయిన తరు వాత ముందుగా స్నానము చేసివచ్చి యాఁడువారు వంటచేసినందున దీపములు పెట్టించి యెల్లవారును ప్రధమ భోజనములను జేసిరి.
+[inspect]   te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa   (' | ' = line break)
+[inspect]       starts: ఎనిమిదవ ప్రకరణము | సంవత్సరాది__రాజశేఖరుఁడు గారి ప్రయాణము__రాజానగరము నకు సమీపమున నొకరాజు వడగొట్టి పడిపోవుట __నల్లచెఱువు సమీపమున నొకయోగి కనఁబడుట__ దొంగలు కొట్టుట_
+[inspect]       ends:   లు పొందిన వారి సంతతివా రిప్పటికిని ఆయనను బ్రశంసించుచుందురు. రాజశేఖరుఁడుగారి సంతతి వారుకూడ దేశ మంతటను వ్యాపించి యిప్పుడు పెక్కుచోట్ల గొప్ప స్థితికలవారయియున్నారు.
+[inspect]   ta-wikisource-en-charithram-p022-101-ccbysa   (' | ' = line break)
+[inspect]       starts: என் சரித்திரம் | மகாமகோபாத்தியாய | டாக்டர் உ.வே. சாமிநாதை ஐயர் | அத்தியாயம் 1 | 1. எங்கள் ஊர் | சற்றேறக்குறைய இருநூறு வருஷங்களுக்கு முன்பு தஞ்சாவூர் ஸமஸ்தானத்தை
+[inspect]       ends:   ு கீர்த்தனம் பாடினார். அதுவே, “ரவிகுல தாமனே” என்ற பாட்டு. | இந்த வரலாற்றை அவர் சொல்லிவிட்டுக் கீர்த்தனத்தைப் பாடினார். பாடும்போது பழைய ஞாபகங்கள் அவருக்கு வந்தன.
+[inspect]   ta-wikisource-en-charithram-p102-189-ccbysa   (' | ' = line break)
+[inspect]       starts: கண்ணில் நீர் துளித்தது. அவர் மனம் ஸாம்பையரது வீணாகானத்தை அப்பொழுதும் கேட்டதென்பதை அவர் முகக்குறிப்பு விளக்கியது. “சங்கீதம் ஒரு தெய்விக வித்தை. அது யாவருக்கும் ப
+[inspect]       ends:   சியினால் அமைதியில்லாமல் பலவகையான காட்சிகளைக் கற்பனை செய்து பார்த்தேன். “இனி நமக்கு ஒரு குறைவும் இல்லை” என்ற நம்பிக்கை என் அந்தரங்கத்திலிருந்து ஒளிவிட்டு வந்தது.
+[inspect]   mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa   (' | ' = line break)
+[inspect]       starts: स्फुट गोष्टी. | भाग तिसरा. | राणी भवानी. | उत्तर हिंदुस्थानांत अगदी अर्वाचीन काळी ज्या कित्येक अत्यंत परोपकारी स्त्रिया होऊन गेल्या, त्यांत राणी भवानी ही फार सु
+[inspect]       ends:   कधीही ठीक होत नाहीं. | "राजे, राजपुत्र व अधिकारी लोक यांजविषयीं फार आदर बाळगावा. कां कीं, ते अपराध्यांस दंड करितात, व निरपराध्यांचे त्यांजपासून संरक्षण करितात."
+[inspect]   ur-wikisource-ram-charcha-premchand-p7-170-ccbysa   (' | ' = line break)
+[inspect]       starts: رام چرچا | بال کانْڈ | (۱) پَیدائیش | پیارے بچّو! تُم نے بجے دسْمی کا میلہ تو دیکھا ہی ہوگا۔ کِہیں کہیں اِسے رام لیلا کا میلہ بھی کہْتے ہَین۔ اِس میلے میں تُم ن
+[inspect]       ends:   ر مجھے نہ پائینگے تو اُن کا کیا حال ہوگا. | یہ سوچتے ہوئے سیتا جی نے چاہا کہ رتھ پر سے کود پڑیں ۔ مگر راون بھی غافل نہ تھا ۔ اُن کا ارادہ ناڑ گیا ۔ فوراً اُن کا
+[inspect]   ur-wikisource-ram-charcha-premchand-p309-342-ccbysa   (' | ' = line break)
+[inspect]       starts: اتنی ترقی ہوئی، رعایا اتنی خوشحال تھی کہ ”رام راج“ ایک مثل ہو گیا ہے۔ جب کسی زمانہ کی بہت تعریف کرنا ہوتا ہے تو اُسے ”رام راج“ کہتے ہیں۔ اُس زمانہ میں چھوٹے بڑے
+[inspect]       ends:   ی تھیں۔ وہ سر جُھکائے ہُوئے رشی والمیک کے پیچھے پیچھے آ کر مجمع كے بیچ میں کھڑی ہو گئیں ٭ | مهرشی ایک کُش کے آسن پر بیٹھ گۓ۔ اور بڑے متین انداز سے بولے ۔ ’دیوی‘

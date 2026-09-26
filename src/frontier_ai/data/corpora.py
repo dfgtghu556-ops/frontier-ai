@@ -12,7 +12,9 @@ came from:
   from memory.
 * :func:`clean_gutenberg_text` / :func:`clean_wikitext` — deterministic text cleaning
   that strips Project Gutenberg's legal wrapper and wiki markup, so the corpus is text
-  and nothing else.
+  and nothing else. Rendered wiki pages (``mediawiki-parse``, used by the tokenizer
+  corpus for scanned-book transcriptions) are cleaned by
+  :func:`frontier_ai.data.mediawiki.clean_mediawiki_parse`.
 * :func:`write_provenance` — the provenance record that travels with the corpus: what
   it is, where it came from, under which licence, when it was retrieved, and the hash
   of the bytes we actually kept.
@@ -27,14 +29,19 @@ model.
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
+import logging
 import re
+import time
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from .mediawiki import MEDIAWIKI_PARSE_KIND, clean_mediawiki_parse
 
 SCHEMA_VERSION = "1.0"
 
@@ -49,6 +56,10 @@ ALLOWED_LICENSES = {
 
 # A smoke fixture, not a training corpus: hard upper bound per source.
 DEFAULT_MAX_CHARS = 200_000
+
+# Wikimedia's User-Agent policy asks for a descriptive agent with a contact URL; generic
+# agents (e.g. Python-urllib's default) are answered with HTTP 403.
+USER_AGENT = "frontier-ai-corpus/1.0 (https://github.com/dfgtghu556-ops/frontier-ai)"
 
 GUTENBERG_START = "*** START OF THE PROJECT GUTENBERG EBOOK"
 GUTENBERG_END = "*** END OF THE PROJECT GUTENBERG EBOOK"
@@ -92,7 +103,7 @@ class CorpusSource:
     license_url: str
     attribution: str
     max_chars: int = DEFAULT_MAX_CHARS
-    kind: str = "gutenberg"  # "gutenberg" | "wikitext" | "plain"
+    kind: str = "gutenberg"  # "gutenberg" | "wikitext" | "plain" | "mediawiki-parse" (tokenizer corpus)
     sha256: str | None = None
     verified: bool = False
     retrieved_at: str | None = None
@@ -249,6 +260,10 @@ def clean_text(text: str, kind: str) -> str:
         return clean_wikitext(text)
     if kind == "plain":
         return text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    if kind == MEDIAWIKI_PARSE_KIND:
+        # A rendered wiki page (api.php?action=parse JSON). Only the tokenizer corpus
+        # declares this kind; the smoke manifest's validate_source() does not allow it.
+        return clean_mediawiki_parse(text)
     raise ValueError(f"unknown corpus kind {kind!r}")
 
 
@@ -358,14 +373,57 @@ class FetchError(RuntimeError):
     """Raised when a source cannot be retrieved (no network, 404, bad encoding)."""
 
 
-def fetch_text(url: str, timeout: float = 30.0) -> str:
-    """Download `url` and return it as text. The only network call in the package."""
-    request = urllib.request.Request(url, headers={"User-Agent": "frontier-ai-smoke-corpus/1.0"})
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            raw = response.read()
-    except (urllib.error.URLError, OSError, TimeoutError) as exc:
-        raise FetchError(f"could not retrieve {url}: {exc}") from exc
+_LOG = logging.getLogger(__name__)
+
+# Retrying is only for failures *after* the server answered: the connection dropped in
+# the middle of the body (http.client.IncompleteRead — seen live on gutenberg.org), the
+# server hung up, or it said "busy, try again" (429 / 5xx). A timeout, a DNS failure or a
+# TLS handshake error means there is no route; retrying those would only make an offline
+# run crawl. A partial body is never returned: every attempt reads the whole response.
+FETCH_ATTEMPTS = 3
+FETCH_BACKOFF_S = 2.0
+_RETRY_HTTP_STATUS = frozenset({429, 500, 502, 503, 504})
+_MID_TRANSFER_ERRORS = (http.client.IncompleteRead, ConnectionResetError, ConnectionAbortedError)
+
+
+def _retryable(exc: BaseException) -> bool:
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code in _RETRY_HTTP_STATUS
+    if isinstance(exc, urllib.error.URLError):  # wraps the socket-level cause
+        return isinstance(exc.reason, _MID_TRANSFER_ERRORS)
+    # RemoteDisconnected is a ConnectionResetError; IncompleteRead is an HTTPException
+    return isinstance(exc, _MID_TRANSFER_ERRORS)
+
+
+def fetch_text(
+    url: str,
+    timeout: float = 30.0,
+    *,
+    attempts: int = FETCH_ATTEMPTS,
+    backoff_s: float = FETCH_BACKOFF_S,
+) -> str:
+    """Download `url` and return it as text. The only network call in the package.
+
+    Transient mid-transfer failures are retried up to ``attempts`` times in total (see
+    ``_retryable``); anything else fails at once. Either way the caller gets the complete
+    body or a :class:`FetchError`, never a truncated text.
+    """
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    for attempt in range(1, max(1, attempts) + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                raw = response.read()
+            break
+        except (urllib.error.URLError, OSError, TimeoutError, http.client.HTTPException) as exc:
+            if attempt < attempts and _retryable(exc):
+                _LOG.warning(
+                    "retrying %s after %s: %s (attempt %d of %d)",
+                    url, type(exc).__name__, exc, attempt + 1, attempts,
+                )
+                time.sleep(backoff_s * attempt)
+                continue
+            tried = f" after {attempt} attempts" if attempt > 1 else ""
+            raise FetchError(f"could not retrieve {url}{tried}: {type(exc).__name__}: {exc}") from exc
     try:
         return raw.decode("utf-8")
     except UnicodeDecodeError as exc:

@@ -37,7 +37,7 @@ import re
 import time
 import urllib.request
 from collections import Counter
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -45,6 +45,7 @@ from typing import Any
 
 from ..data.corpora import (
     ALLOWED_LICENSES,
+    USER_AGENT,
     CorpusSource,
     FetchError,
     build_provenance,
@@ -54,6 +55,16 @@ from ..data.corpora import (
     sha256_file,
     sha256_text,
     trim_text,
+)
+from ..data.mediawiki import (
+    MEDIAWIKI_PARSE_KIND,
+    QUALITY_NAMES,
+    UNPROOFREAD_LEVELS,
+    page_quality_urls,
+    parse_page_quality_response,
+    read_parse_payload,
+    render_html,
+    validate_parse_url,
 )
 from .corpus import LANGUAGES
 
@@ -82,12 +93,21 @@ DEFAULT_HELD_OUT_FRACTION = 0.1
 
 # A tokenizer corpus is bigger than the smoke fixture, so its per-source cap is larger.
 MAX_SOURCE_CHARS = 2_000_000
-VALID_KINDS = {"gutenberg", "wikitext", "plain"}
+# ``mediawiki-parse``: a page rendered by MediaWiki (api.php?action=parse JSON). This is
+# how scanned-book transcriptions on Wikisource are acquired: their chapter pages hold
+# only a ProofreadPage <pages/> tag, so ?action=raw never contains the text. See
+# frontier_ai.data.mediawiki for the conversion rules and runbook §3.1 for the procedure.
+VALID_KINDS = {"gutenberg", "wikitext", "plain", MEDIAWIKI_PARSE_KIND}
 
 # Splitting: documents are paragraphs; very long paragraphs are cut on sentence
 # punctuation, and only then hard-wrapped, so no text is silently dropped.
 MAX_DOC_CHARS = 1_200
-_SENTENCE_BOUNDARY = re.compile(r"(?<=[\u0964\u0965।॥.!?])\s+")
+# U+09F7 (BENGALI CURRENCY NUMERATOR FOUR) is typed as the danda in much Assamese and
+# Bengali digital text: মনোমতী part 1 ends its sentences with it (part 2 with U+0964).
+# Devanagari (hi, mr, ne): | (U+0964), || (U+0965)
+# Bengali (bn, as): | (U+0964), || (U+0965), \u09f7 (U+09F7)
+# Urdu (ur): \u06d4 (U+06D4), \u061f (U+061F)
+_SENTENCE_BOUNDARY = re.compile(r"(?<=[\u0964\u0965\u09f7\u06d4\u061f.!?])\s+")
 
 # Leakage diagnostics: word n-grams (character n-grams for scripts with little
 # whitespace), over a deterministically chosen sample so the check is bounded.
@@ -100,12 +120,31 @@ PREFLIGHT_SAMPLE_BYTES = 65_536
 
 # Content-shape gate: a Wikisource *work root* is often just a header plus a list of
 # chapter links. Those lines carry wiki markup and almost no prose, which is what these
-# three numbers measure. The gate is deliberately conservative — a page is only called an
-# index page when a *majority* of at least INDEX_PAGE_MIN_LINES lines are navigation —
-# because refusing a real work is worse than asking a human to look.
-INDEX_PAGE_MIN_LINES = 20
+# numbers measure. The gate is deliberately conservative — a page is only called an
+# index page when a *majority* of lines are navigation — because refusing a real work is
+# worse than asking a human to look.
+#
+# Three kinds of non-work pages are caught:
+#   1. ``#REDIRECT [[Target]]`` — the wiki URL redirects elsewhere; the work lives at a
+#      different title. Always refused.
+#   2. Classic TOC: ≥ INDEX_PAGE_MIN_LINES lines with ≥ INDEX_PAGE_LINK_LINE_RATIO of them
+#      being wiki-link lines with < INDEX_PAGE_MIN_PROSE_CHARS of prose left.
+#   3. "Tiny stub" gate: a page that, after wikitext cleaning, yields fewer than
+#      INDEX_PAGE_MIN_CLEANED_CHARS characters of prose for a wikitext source that still
+#      carries wiki markup in the raw payload. Whole novels are many thousands of
+#      characters; a single chapter title line or a navigation card is not. This catches
+#      the <20-line stub pages (redirects already handled) that the TOC gate misses.
+INDEX_PAGE_MIN_LINES = 5
 INDEX_PAGE_MIN_PROSE_CHARS = 20
 INDEX_PAGE_LINK_LINE_RATIO = 0.5
+INDEX_PAGE_MIN_CLEANED_CHARS = 500
+# Proofreading gate (mediawiki-parse only). ProofreadPage records, for every scanned page,
+# whether a human has checked the transcription against the scan: 0 without text (a
+# blank page), 1 not proofread (raw OCR), 2 problematic, 3 proofread, 4 validated. A
+# source that transcludes any page at level 1 or 2 is refused as ``unproofread_refused``:
+# unchecked OCR in an Indic script produces broken conjuncts and wrong matras, which is
+# exactly the kind of noise a tokenizer comparison must not learn from.
+STATUS_UNPROOFREAD_REFUSED = "unproofread_refused"
 SAMPLING_RULE = (
     "stratified: an equal per-language budget of limit // n_languages documents "
     "in (language, doc_id) order, then any leftover budget filled in the same order"
@@ -335,8 +374,14 @@ class TokenizerCorpusManifest:
         payload = json.dumps(
             self.to_dict(omit_empty_optional=omit_empty_optional), indent=2, ensure_ascii=False
         ) + "\n"
+        # Keep the line endings the file already has: a Windows checkout may hold it with CRLF
+        # (core.autocrlf=true), any other with LF. A pin must change the pinned fields and
+        # nothing else, on every platform, so `git diff` shows only them. (Not write_text:
+        # it would use the platform's ending, and its newline= needs Python 3.10.)
+        newline = "\r\n" if target.exists() and b"\r\n" in target.read_bytes() else "\n"
         tmp = target.with_suffix(target.suffix + ".tmp")
-        tmp.write_text(payload, encoding="utf-8")
+        with open(tmp, "w", encoding="utf-8", newline=newline) as handle:
+            handle.write(payload)
         tmp.replace(target)
 
     def evidence_for(self, source_id: str) -> LicenseEvidence | None:
@@ -457,6 +502,11 @@ def _validate_source(source: CorpusSource) -> list[str]:
         problems.append(f"{source.id}: max_chars must be in (0, {MAX_SOURCE_CHARS}]")
     if source.kind not in VALID_KINDS:
         problems.append(f"{source.id}: kind must be one of {sorted(VALID_KINDS)}")
+    if source.kind == MEDIAWIKI_PARSE_KIND:
+        problems.extend(
+            f"{source.id}: mediawiki-parse source_url {problem}"
+            for problem in validate_parse_url(source.source_url)
+        )
     if source.sha256 is not None and not re.fullmatch(r"[0-9a-f]{64}", source.sha256):
         problems.append(f"{source.id}: sha256 must be 64 lowercase hex characters")
     if source.verified and not source.sha256:
@@ -475,7 +525,8 @@ class IngestedSource:
     language: str
     status: str = "not_attempted"      # verified | local_unverified | fetch_failed |
     #                                  # licence_marker_missing | index_page_refused |
-    #                                  # hash_mismatch | not_attempted | empty
+    #                                  # unproofread_refused | hash_mismatch |
+    #                                  # not_attempted | empty
     path: str | None = None
     provenance_path: str | None = None
     sha256: str | None = None
@@ -535,7 +586,25 @@ def content_shape(text: str, kind: str) -> dict[str, Any]:
     **and** has almost no prose left once that markup is removed. Short lines of verse are
     prose, not navigation, and must never be counted — otherwise the gate would refuse
     poetry, which is exactly what the Bengali slot is made of.
+
+    Three flags can mark a wikitext payload as not-the-work:
+
+    * ``is_redirect`` — the first non-blank line is a MediaWiki ``#REDIRECT [[…]]``
+      (case-insensitive). The URL points somewhere other than the work.
+    * ``looks_like_index_page`` — a high fraction of lines are wiki-link navigation lines
+      with little prose left (classic table of contents).
+    * A separate *post-cleaning* stub check runs after ``clean_wikitext`` has stripped
+      markup: if the cleaned prose is shorter than INDEX_PAGE_MIN_CLEANED_CHARS and the
+      raw page still carried wiki markup, it is a stub, not a work, and is refused by the
+      ingest path as ``index_page_refused``. This catches short navigation pages that
+      have too few lines to trip the ratio gate.
+
+    A ``mediawiki-parse`` payload (rendered HTML inside API JSON) is measured by
+    :func:`_mediawiki_parse_shape` instead: same keys, same thresholds, measured on the
+    rendered text rather than on wiki markup.
     """
+    if kind == MEDIAWIKI_PARSE_KIND:
+        return _mediawiki_parse_shape(text)
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     link_lines = 0
     for line in lines:
@@ -546,6 +615,32 @@ def content_shape(text: str, kind: str) -> dict[str, Any]:
         if len(stripped) < INDEX_PAGE_MIN_PROSE_CHARS:
             link_lines += 1
     ratio = round(link_lines / len(lines), 3) if lines else 0.0
+    # MediaWiki #REDIRECT detection.  The magic word is localized: English uses
+    # "#REDIRECT", Hindi uses "#पुनर्प्रेषित" / "#अनुप्रेषित", Bengali uses
+    # "#পুনর্নির্দেশ", etc.  Rather than enumerate every language, follow what
+    # MediaWiki actually does: the first non-blank content line starts with '#'
+    # and contains a wiki link ([[…]]) that is the redirect target, and the page
+    # is essentially empty after that line (≤3 non-blank lines total).  We also
+    # match the English "#redirect" explicitly (case-insensitive) as a fast path.
+    first_line = lines[0] if lines else ""
+    is_redirect = bool(kind == "wikitext" and first_line) and (
+        bool(re.match(r"#redirect\b", first_line, re.IGNORECASE))
+        or (
+            first_line.startswith("#")
+            and "[[" in first_line
+            and len(lines) <= 3
+        )
+    )
+    # Wikidata/SPARQL card detection: some Wikisource "work root" URLs resolve to
+    # an infocard page that contains an embedded SPARQL query (select ?item ...
+    # wdt:P1476 ... bind(...) etc.) instead of the work text.  These are always
+    # metadata cards, never the prose.
+    lower_text = text.lower()
+    sparql_markers = ("select ?", "wdt:p", "bind(if(", "union {", "filter(contains", "^wdt:")
+    is_sparql_card = bool(
+        kind == "wikitext"
+        and sum(1 for marker in sparql_markers if marker in lower_text) >= 2
+    )
     return {
         "sample_chars": len(text),
         "sample_lines": len(lines),
@@ -553,13 +648,184 @@ def content_shape(text: str, kind: str) -> dict[str, Any]:
         "wiki_templates": len(re.findall(r"\{\{[^{}]*\}\}", text)),
         "link_line_ratio": ratio,
         "link_lines": link_lines,
+        "is_redirect": is_redirect,
+        "is_sparql_card": is_sparql_card,
+        "first_line_excerpt": first_line[:120] if first_line else "",
+        "cleaned_chars_hint": len(clean_text(text, kind)) if kind == "wikitext" else None,
         # Conservative hint, not a verdict: a human still has to look.
         "looks_like_index_page": (
             kind == "wikitext"
             and len(lines) >= INDEX_PAGE_MIN_LINES
             and ratio >= INDEX_PAGE_LINK_LINE_RATIO
-        ),
+        )
+        or is_redirect
+        or is_sparql_card,
         "gutenberg_marker_seen": "*** start of the project gutenberg ebook" in text.lower(),
+    }
+
+
+def _mediawiki_parse_shape(raw: str) -> dict[str, Any]:
+    """:func:`content_shape` for a ``mediawiki-parse`` payload.
+
+    Returns the keys every caller relies on (``sample_lines``, ``link_lines``,
+    ``link_line_ratio``, ``is_redirect``, ``looks_like_index_page``, …) measured on the
+    *rendered* text, plus what only a rendered page can tell us:
+
+    * ``api_error`` — the API answered with an error object (e.g. ``missingtitle``);
+    * ``sample_truncated`` — the payload was not complete JSON (a preflight sample; for a
+      real fetch this is a failure);
+    * ``page_quality`` — the ProofreadPage level of every transcluded scan page;
+    * ``mediawiki`` — title, page id, revision id, categories, whether ProofreadPage
+      content was present;
+    * ``artifacts_removed`` — how many invisible rendering artifacts the cleaner dropped.
+
+    A navigation line is one whose visible text is link text with fewer than
+    ``INDEX_PAGE_MIN_PROSE_CHARS`` characters left outside links — the same rule the
+    wikitext gate applies to ``[[…]]`` lines.
+    """
+    payload = read_parse_payload(raw, allow_truncated=True)
+    shape: dict[str, Any] = {
+        "sample_chars": len(raw),
+        "sample_lines": 0,
+        "wiki_links": 0,       # wikitext-only measures: not applicable to rendered HTML
+        "wiki_templates": 0,
+        "link_line_ratio": 0.0,
+        "link_lines": 0,
+        "is_redirect": False,
+        "is_sparql_card": False,
+        "first_line_excerpt": "",
+        "cleaned_chars_hint": 0,
+        "looks_like_index_page": False,
+        "gutenberg_marker_seen": False,
+        "api_error": None,
+        "sample_truncated": payload.truncated,
+        "mediawiki": {
+            "title": payload.title,
+            "pageid": payload.pageid,
+            "revid": payload.revid,
+            "categories": list(payload.categories),
+            "has_prp_output": False,
+        },
+        "page_quality": None,
+        "artifacts_removed": {},
+    }
+    if not payload.ok:
+        shape["api_error"] = {"code": payload.error_code, "info": payload.error_info}
+        return shape
+    rendered = render_html(payload.html, min_prose_chars=INDEX_PAGE_MIN_PROSE_CHARS)
+    n_lines = len(rendered.lines)
+    ratio = round(rendered.navigation_lines / n_lines, 3) if n_lines else 0.0
+    shape.update(
+        {
+            "sample_lines": n_lines,
+            "link_lines": rendered.navigation_lines,
+            "link_line_ratio": ratio,
+            "is_redirect": rendered.is_redirect,
+            "first_line_excerpt": rendered.lines[0][:120] if rendered.lines else "",
+            "cleaned_chars_hint": len(rendered.text),
+            "looks_like_index_page": rendered.is_redirect
+            or (n_lines >= INDEX_PAGE_MIN_LINES and ratio >= INDEX_PAGE_LINK_LINE_RATIO),
+            "page_quality": rendered.quality_summary(),
+            "artifacts_removed": rendered.artifacts_removed,
+        }
+    )
+    shape["mediawiki"]["has_prp_output"] = rendered.has_prp_output
+    return shape
+
+
+def _mediawiki_payload_problem(source: CorpusSource, shape: dict[str, Any] | None) -> str:
+    """Why a ``mediawiki-parse`` payload cannot be used at all ("" when it can).
+
+    An API error (``missingtitle``, ``invalidtitle``, …) or a response that is not
+    complete JSON means we did not get the page — that is a failed fetch, not a short
+    text, and it must never be cleaned, hashed or pinned.
+    """
+    if source.kind != MEDIAWIKI_PARSE_KIND or shape is None:
+        return ""
+    error = shape.get("api_error")
+    if error:
+        code = error.get("code", "unknown")
+        info = error.get("info", "")
+        if code == "malformed":
+            return f"{source.source_url} did not return usable action=parse JSON ({info})"
+        return (
+            f"the MediaWiki API answered {source.source_url} with an error instead of a "
+            f"page: {code}: {info}. Check the page title in source_url"
+        )
+    if shape.get("sample_truncated"):
+        return f"{source.source_url} did not return complete action=parse JSON (cut off?)"
+    return ""
+
+
+def _checked_evidence(
+    source: CorpusSource,
+    evidence: LicenseEvidence,
+    *,
+    timeout: float,
+    cache: dict[tuple[str, str, str, str], dict[str, Any]] | None,
+) -> dict[str, Any]:
+    """:func:`check_license_evidence`, fetched once per build for a shared endpoint.
+
+    Only an *accepted* result is reused, and a reused result is labelled
+    ``reused_within_run: true`` with this source's own note — the evidence is the same
+    fetch, recorded honestly, not a fresh one.
+    """
+    marker = evidence.effective_marker(source)
+    key = (evidence.url, marker.lower(), evidence.kind, evidence.scope)
+    if cache is not None and key in cache:
+        return {**cache[key], "note": evidence.note, "reused_within_run": True}
+    result = check_license_evidence(source, evidence, timeout=timeout)
+    if cache is not None and result["accepted"]:
+        cache[key] = dict(result)
+    return result
+
+
+def _confirm_page_levels(source: CorpusSource, shape: dict[str, Any], *, timeout: float) -> None:
+    """Ask the wiki for the level of every rendered scan page whose render hid it.
+
+    Some wikis' page anchors carry no level (gu, or), so the render alone cannot show that
+    a page was proofread. The wiki's own API can; its answers replace the unknowns in
+    ``shape["page_quality"]`` and the lookup is recorded there (``level_lookup``). A page
+    it cannot confirm stays in ``unknown_level``, and the proofreading gate refuses the
+    source: a level nobody could read is never taken as "proofread".
+    """
+    quality = shape.get("page_quality")
+    if not quality or not quality.get("unknown_level"):
+        return
+    asked = list(quality["unknown_level"])
+    urls = page_quality_urls(source.source_url, asked)
+    found: dict[str, int | None] = {}
+    error = ""
+    for url in urls:
+        try:
+            found.update(parse_page_quality_response(fetch_text(url, timeout=timeout)))
+        except Exception as exc:  # noqa: BLE001 - any failure leaves the pages unconfirmed
+            error = f"{type(exc).__name__}: {exc}"
+            break
+    by_level = dict(quality.get("by_level") or {})
+    still_unknown: list[str] = []
+    for name in asked:
+        level = found.get(name)
+        if level is None:
+            still_unknown.append(name)
+            continue
+        by_level["unknown"] = by_level.get("unknown", 0) - 1
+        by_level[str(level)] = by_level.get(str(level), 0) + 1
+        if level in UNPROOFREAD_LEVELS:
+            quality["unproofread"].append(
+                {"page": name, "level": level, "meaning": QUALITY_NAMES[level]}
+            )
+    if not by_level.get("unknown"):
+        by_level.pop("unknown", None)
+    quality["by_level"] = dict(sorted(by_level.items()))
+    quality["unknown_level"] = still_unknown
+    quality["level_lookup"] = {
+        "why": "the render does not show these pages' proofreading level",
+        "endpoint": urls[0].split("&titles=", 1)[0] if urls else "",
+        "requests": len(urls),
+        "asked": len(asked),
+        "confirmed": len(asked) - len(still_unknown),
+        "error": error or None,
     }
 
 
@@ -573,6 +839,7 @@ def ingest_source(
     local_origin: str | None = None,
     license_evidence: LicenseEvidence | None = None,
     expected_sha256: str | None = None,
+    evidence_cache: dict[tuple[str, str, str, str], dict[str, Any]] | None = None,
 ) -> IngestedSource:
     """Fetch (or accept) one source, clean it, and write text + provenance.
 
@@ -601,6 +868,17 @@ def ingest_source(
       an acquisition reproducible: a pinned hash describes the bytes, so changing bytes
       have to be a deliberate, recorded decision (clear ``sha256``/``verified`` first).
 
+    For ``mediawiki-parse`` sources (rendered wiki pages) three more checks apply: an API
+    error or an incomplete JSON response is a failed fetch (``fetch_failed``); a render
+    shorter than ``INDEX_PAGE_MIN_CLEANED_CHARS`` is a stub (``index_page_refused``); and a
+    render that transcludes any scan page nobody has proofread is refused as
+    ``unproofread_refused`` (its text is kept for inspection, never verified or pinned).
+
+    ``evidence_cache`` lets one build fetch a shared licence-evidence endpoint once:
+    36 chapters of one book all point at the same wiki's rightsinfo. Only *accepted*
+    results are reused (a transient failure is retried by the next source), and a reused
+    result says so (``reused_within_run: true``).
+
     Locally supplied text (test fixtures, or text a human lawfully obtained) is ingested
     as ``local_unverified``: its hash is a content hash only and proves nothing about
     licensing, so it cannot make a language slot count as evaluated.
@@ -616,6 +894,20 @@ def ingest_source(
         raw = local_text
         shape = content_shape(raw, source.kind)  # the same gate, local text included
         status = "local_unverified"
+        problem = _mediawiki_payload_problem(source, shape)
+        if problem:
+            return IngestedSource(
+                source_id=source.id,
+                language=source.language,
+                status="empty",
+                retrieved_at=retrieved_at,
+                local=True,
+                local_origin=local_origin,
+                error=(
+                    f"{problem}. Local text for a mediawiki-parse source must be the saved "
+                    "api.php?action=parse JSON response, not already-cleaned text."
+                ),
+            )
     elif fetch:
         try:
             raw = fetch_text(source.source_url, timeout=timeout)
@@ -637,13 +929,24 @@ def ingest_source(
             )
 
         shape = content_shape(raw, source.kind)
+        problem = _mediawiki_payload_problem(source, shape)
+        if problem:
+            return IngestedSource(
+                source_id=source.id,
+                language=source.language,
+                status="fetch_failed",
+                retrieved_at=retrieved_at,
+                error=f"{problem}; nothing was stored and no hash was computed",
+            )
         if shape["looks_like_index_page"]:
             # Not the work: refuse to verify it, but keep the payload for inspection.
             licence_proof = ""
         elif license_marker_found(raw, source):
             licence_proof = "payload-marker"
         elif license_evidence is not None:
-            evidence_result = check_license_evidence(source, license_evidence, timeout=timeout)
+            evidence_result = _checked_evidence(
+                source, license_evidence, timeout=timeout, cache=evidence_cache
+            )
             licence_proof = "licence-evidence" if evidence_result["accepted"] else ""
         else:
             licence_proof = ""
@@ -665,6 +968,8 @@ def ingest_source(
                     f"{source.source_url}, and {checked}; refusing to pin a hash"
                 ),
             )
+        if source.kind == MEDIAWIKI_PARSE_KIND and not shape["looks_like_index_page"]:
+            _confirm_page_levels(source, shape, timeout=timeout)
         status = "verified"
     else:
         return IngestedSource(source_id=source.id, language=source.language, status="not_attempted")
@@ -679,6 +984,150 @@ def ingest_source(
             license_evidence=evidence_result,
             error="cleaned text is empty",
         )
+
+    def refuse_with_text(status: str, content_check: dict[str, Any], error: str) -> IngestedSource:
+        """Keep what we got on disk for a human to read, but verify and pin nothing."""
+        text_path = raw_dir / f"{source.id}.txt"
+        text_path.write_text(text, encoding="utf-8")
+        provenance_path = raw_dir / f"{source.id}.provenance.json"
+        _write_provenance(
+            provenance_path,
+            source,
+            text,
+            retrieved_at=retrieved_at,
+            truncated=truncated,
+            chars_before_trim=before_trim,
+            licence_proof=licence_proof,
+            license_evidence=evidence_result,
+            content_check=content_check,
+            local=local_text is not None,
+            local_origin=local_origin if local_text is not None else None,
+            refused=True,
+        )
+        return IngestedSource(
+            source_id=source.id,
+            language=source.language,
+            status=status,
+            retrieved_at=retrieved_at,
+            path=str(text_path),
+            provenance_path=str(provenance_path),
+            sha256=sha256_text(text),
+            chars=len(text),
+            bytes=len(text.encode("utf-8")),
+            truncated=truncated,
+            chars_before_trim=before_trim,
+            licence_proof=licence_proof,
+            license_evidence=evidence_result,
+            local=local_text is not None,
+            local_origin=local_origin if local_text is not None else None,
+            error=error,
+        )
+
+    # Post-cleaning stub gate: a page that, after markup is stripped, still yields almost
+    # no prose is a stub/navigation card, not the declared work. For wikitext, the
+    # wiki_links/template count in the raw payload is what distinguishes "a tiny stub
+    # with navigation markup" from "a short poem" — verse carries no [[…]] / {{…}} in the
+    # raw. Catches pages too short to trip the line-ratio gate (e.g. a single #REDIRECT
+    # line, or 18 lines that are mostly chapter links). A rendered page is always HTML,
+    # so for mediawiki-parse the length alone decides.
+    tiny_wikitext = (
+        source.kind == "wikitext"
+        and shape is not None
+        and (shape["wiki_links"] + shape["wiki_templates"]) > 0
+    )
+    tiny_render = source.kind == MEDIAWIKI_PARSE_KIND
+    if (
+        (tiny_wikitext or tiny_render)
+        and shape is not None
+        and not shape["looks_like_index_page"]
+        and len(text) < INDEX_PAGE_MIN_CLEANED_CHARS
+    ):
+        gate = {
+            "gate": "tiny_stub",
+            "cleaned_chars": len(text),
+            "min_cleaned_chars": INDEX_PAGE_MIN_CLEANED_CHARS,
+            "sample_lines": shape["sample_lines"],
+            "link_lines": shape["link_lines"],
+            "link_line_ratio": shape["link_line_ratio"],
+        }
+        if tiny_wikitext:
+            gate["wiki_links_raw"] = shape["wiki_links"]
+            gate["wiki_templates_raw"] = shape["wiki_templates"]
+            why = (
+                f"{source.source_url} cleaned to only {len(text)} characters of prose "
+                f"but still carries wiki markup ({shape['wiki_links']} links, "
+                f"{shape['wiki_templates']} templates in {shape['sample_lines']} raw "
+                "lines) — this looks like a stub, redirect or navigation card, not the "
+                f"declared work. Threshold is {INDEX_PAGE_MIN_CLEANED_CHARS} cleaned "
+                "characters for a wikitext source. Acquire the chapter subpages instead "
+                "(runbook §3)."
+            )
+        else:
+            gate["mediawiki"] = shape.get("mediawiki")
+            gate["page_quality"] = shape.get("page_quality")
+            why = (
+                f"{source.source_url} rendered to only {len(text)} characters of text "
+                f"(threshold {INDEX_PAGE_MIN_CLEANED_CHARS}) — this looks like a stub, an "
+                "empty chapter or a navigation card, not the declared work. Open the page "
+                "on the wiki; for short poems, render a range of scan pages with a single "
+                "<pages> tag instead of one poem per source (runbook §3.1)."
+            )
+        return refuse_with_text("index_page_refused", gate, why)
+
+    # Proofreading gate (rendered scanned books only): text that no human has checked
+    # against the scan is never verified. Kept on disk so the pages can be named.
+    page_quality = shape.get("page_quality") if shape is not None else None
+    if source.kind == MEDIAWIKI_PARSE_KIND and shape is not None:
+        unproofread = (page_quality or {}).get("unproofread") or []
+        unknown = (page_quality or {}).get("unknown_level") or []
+        # ProofreadPage content without a single page anchor: which scan pages it holds,
+        # and whether anyone proofread them, cannot be checked at all
+        anchorless = bool((shape.get("mediawiki") or {}).get("has_prp_output")) and not (
+            page_quality or {}
+        ).get("pages")
+        problems: list[str] = []
+        if unproofread:
+            listed = ", ".join(
+                f"{row['page']} (level {row['level']}: {row['meaning']})"
+                for row in unproofread[:5]
+            )
+            more = f" and {len(unproofread) - 5} more" if len(unproofread) > 5 else ""
+            problems.append(
+                f"{len(unproofread)} of the {page_quality['pages']} scan pages rendered by "
+                f"{source.source_url} have not been proofread on the wiki: {listed}{more}. "
+                "Their text is unchecked OCR"
+            )
+        if unknown:
+            lookup = page_quality.get("level_lookup") or {}
+            reason = (
+                f"the wiki's API could not be asked ({lookup['error']})" if lookup.get("error")
+                else "the wiki's API did not confirm a level for them" if lookup
+                else "this run could not ask the wiki's API (only a fetch can)"
+            )
+            listed = ", ".join(unknown[:5])
+            more = f" and {len(unknown) - 5} more" if len(unknown) > 5 else ""
+            problems.append(
+                f"the proofreading level of {len(unknown)} of the {page_quality['pages']} "
+                f"scan pages rendered by {source.source_url} could not be confirmed: the "
+                f"render does not show it and {reason}: {listed}{more}"
+            )
+        if anchorless:
+            problems.append(
+                f"{source.source_url} rendered ProofreadPage content without any page "
+                "anchor, so which scan pages it holds, and whether anyone proofread them, "
+                "cannot be checked"
+            )
+        if problems:
+            return refuse_with_text(
+                STATUS_UNPROOFREAD_REFUSED,
+                {**shape, "gate": "proofreading"},
+                (
+                    "; ".join(problems) + ". The source is refused (text kept for "
+                    "inspection, nothing verified or pinned). Wait until those pages reach "
+                    "'proofread' (3) or 'validated' (4), or declare a range that excludes "
+                    "them (runbook §3.1)."
+                ),
+            )
 
     digest = sha256_text(text)
     if expected_sha256 and digest != expected_sha256:
@@ -708,13 +1157,29 @@ def ingest_source(
 
     if shape is not None and shape["looks_like_index_page"]:
         status = "index_page_refused"
-        error = (
-            f"{source.source_url} looks like a contents/index page, not the work: "
-            f"{shape['link_lines']} of {shape['sample_lines']} sampled lines are wiki "
-            f"links with almost no prose (link_line_ratio={shape['link_line_ratio']}). "
-            "The text was kept for inspection, but it is not verified, not part of the "
-            "corpus and not pinned. Acquire the chapter subpages instead (runbook §3)."
-        )
+        if shape.get("is_sparql_card"):
+            error = (
+                f"{source.source_url} is a Wikidata/SPARQL infocard page, not the declared "
+                "work (the payload contains embedded SPARQL: 'select ?...', 'wdt:P...'). "
+                "The actual prose lives on chapter subpages or under a different page "
+                "title — find them via the wiki's chapter index and add one source per "
+                "chapter (runbook §3)."
+            )
+        elif shape.get("is_redirect"):
+            error = (
+                f"{source.source_url} is a MediaWiki #REDIRECT page (first line: "
+                f"{shape.get('first_line_excerpt', '')!r}) — it points to a different "
+                "title, not to the declared work. Update source_url to the redirect "
+                "target (or to the chapter subpages) in the manifest, with a note."
+            )
+        else:
+            error = (
+                f"{source.source_url} looks like a contents/index page, not the work: "
+                f"{shape['link_lines']} of {shape['sample_lines']} sampled lines are "
+                f"wiki links with almost no prose (link_line_ratio={shape['link_line_ratio']}). "
+                "The text was kept for inspection, but it is not verified, not part of "
+                "the corpus and not pinned. Acquire the chapter subpages instead (runbook §3)."
+            )
     else:
         error = ""
 
@@ -733,6 +1198,7 @@ def ingest_source(
         content_check=shape,
         local=local_text is not None,
         local_origin=local_origin,
+        refused=status == "index_page_refused",
     )
 
     return IngestedSource(
@@ -768,12 +1234,24 @@ def _write_provenance(
     local: bool,
     local_origin: str | None,
     content_check: dict[str, Any] | None = None,
+    refused: bool = False,
 ) -> dict[str, Any]:
-    """The shared provenance record, extended (never weakened) with Stage A fields."""
+    """The shared provenance record, extended (never weakened) with Stage A fields.
+
+    ``refused`` marks text a content gate rejected. Its licence may well have been
+    proven (``licence_proof`` records that fact), but the *source* is not verified, and
+    the record must never say it is.
+    """
     record = build_provenance(source, text, retrieved_at=retrieved_at)
+    if local:
+        verification = "local_unverified"
+    elif refused or not licence_proof:
+        verification = "unverified"
+    else:
+        verification = "verified"
     record.update(
         {
-            "verification": "local_unverified" if local else ("verified" if licence_proof else "unverified"),
+            "verification": verification,
             "local_source": local,
             "local_origin_path": local_origin,
             "hash_is_licence_proof": False,  # a hash identifies bytes; it never proves a licence
@@ -856,11 +1334,36 @@ def _chunk(paragraph: str) -> list[str]:
     pieces = [piece.strip() for piece in _SENTENCE_BOUNDARY.split(paragraph) if piece.strip()]
     merged: list[str] = []
     for piece in pieces:
-        if len(piece) > MAX_DOC_CHARS:  # a sentence longer than the cap: hard wrap it
-            merged.extend(piece[i : i + MAX_DOC_CHARS] for i in range(0, len(piece), MAX_DOC_CHARS))
+        if len(piece) > MAX_DOC_CHARS:  # a sentence longer than the cap: wrap it
+            merged.extend(_wrap(piece))
         else:
             merged.append(piece)
     return merged or [paragraph[:MAX_DOC_CHARS]]
+
+
+def _wrap(piece: str) -> list[str]:
+    """Cut a sentence longer than ``MAX_DOC_CHARS`` into pieces that fit, between words.
+
+    Each cut is at the last whitespace inside the limit, which is dropped like the space
+    between two sentences; only a run of ``MAX_DOC_CHARS`` characters without any
+    whitespace is cut where the limit falls. (A cut at a fixed position would split
+    words, and in Indic scripts even a consonant from its vowel sign.)
+    """
+    out: list[str] = []
+    rest = piece.strip()
+    while len(rest) > MAX_DOC_CHARS:
+        window = rest[: MAX_DOC_CHARS + 1]
+        cut = max(window.rfind(" "), window.rfind("\t"))
+        if cut > 0:
+            head, rest = rest[:cut], rest[cut + 1 :]
+        else:
+            head, rest = rest[:MAX_DOC_CHARS], rest[MAX_DOC_CHARS:]
+        if head.strip():
+            out.append(head.strip())
+        rest = rest.lstrip()
+    if rest:
+        out.append(rest)
+    return out
 
 
 def split_documents(
@@ -1295,6 +1798,9 @@ def acquisition_report(
             "index_page_refused": sum(
                 1 for row in rows if row["verification_status"] == "index_page_refused"
             ),
+            "unproofread_refused": sum(
+                1 for row in rows if row["verification_status"] == STATUS_UNPROOFREAD_REFUSED
+            ),
             "hash_mismatch": sum(1 for row in rows if row["verification_status"] == "hash_mismatch"),
             "pinned": sum(1 for row in rows if row["pinned_sha256"]),
         },
@@ -1321,7 +1827,7 @@ def render_sources(result: BuildResult) -> str:
     lines = ["[corpus] per-source acquisition"]
     for row in source_report(result):
         lines.append(
-            "[corpus]   {source:<32} {status:<20} {licence:<12} reachable={reachable:<3} "
+            "[corpus]   {source:<36} {status:<20} {licence:<12} reachable={reachable:<3} "
             "content={content:<3} proof={proof:<16} chars={chars:>10,}".format(
                 source=row["source_id"],
                 status=row["verification_status"],
@@ -1411,8 +1917,13 @@ def build_corpus(
     pin: bool = False,
     local_texts: Mapping[str, str] | None = None,
     local_origins: Mapping[str, str] | None = None,
+    progress: Callable[[int, int, str], None] | None = None,
 ) -> BuildResult:
     """Ingest the declared sources, split them, and write the corpus artifacts.
+
+    ``progress(number, total, source_id)`` is called before each source is downloaded (only
+    when fetching), so a caller can show how much of a long run is left; it never affects
+    what is built.
 
     Files written under ``out_dir``:
 
@@ -1449,8 +1960,12 @@ def build_corpus(
 
     ingested: list[IngestedSource] = []
     documents: list[CorpusDocument] = []
-    for source in selected:
+    # One accepted licence-evidence fetch per endpoint per build (see ingest_source).
+    evidence_cache: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for number, source in enumerate(selected, start=1):
         local_text = (local_texts or {}).get(source.id)
+        if progress is not None and fetch and local_text is None:
+            progress(number, len(selected), source.id)
         item = ingest_source(
             source,
             raw_dir,
@@ -1462,6 +1977,7 @@ def build_corpus(
             # A pinned hash is the recorded identity of this source; a re-fetch that
             # disagrees is refused rather than silently re-pinned.
             expected_sha256=source.sha256,
+            evidence_cache=evidence_cache,
         )
         if item.has_text:
             docs = documents_from_text(source.id, source.language,
@@ -1617,7 +2133,7 @@ def probe_url(
     request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "frontier-ai-tokenizer-corpus/1.0",
+            "User-Agent": USER_AGENT,
             "Range": f"bytes=0-{max_bytes - 1}",
         },
     )
@@ -1719,12 +2235,46 @@ def preflight_source(
                 "no Gutenberg START marker in the sampled bytes: this URL may not be a "
                 "Project Gutenberg text file"
             )
-        if report["looks_like_index_page"]:
+        if report.get("is_sparql_card"):
+            report["notes"].append(
+                "the payload is a Wikidata/SPARQL infocard template (contains 'select ?' "
+                "and 'wdt:P…' triples), not the work text. The actual prose lives on "
+                "chapter subpages or under a different page title — find them via the wiki's "
+                "chapter index."
+            )
+        elif report.get("is_redirect"):
+            excerpt = report.get("first_line_excerpt", "")[:80]
+            if source.kind == MEDIAWIKI_PARSE_KIND:
+                report["notes"].append(
+                    f"MediaWiki rendered a redirect page ({excerpt!r}) — redirects are "
+                    "refused, not followed. Name the target page in source_url."
+                )
+            else:
+                report["notes"].append(
+                    f"the first line is a MediaWiki #REDIRECT ({excerpt!r}) — this URL points "
+                    "to a different title, not to the declared work. Update source_url to the "
+                    "redirect target (or to the chapter subpages)."
+                )
+        elif report["looks_like_index_page"]:
             report["notes"].append(
                 "the sampled lines are mostly wiki links: this looks like a contents/index "
                 "page, not the work itself. Acquire the chapter subpages or use the API "
                 "instead of trusting the work root"
             )
+        if (
+            source.kind == "wikitext"
+            and report.get("cleaned_chars_hint") is not None
+            and report["cleaned_chars_hint"] < INDEX_PAGE_MIN_CLEANED_CHARS
+            and (report.get("wiki_links", 0) + report.get("wiki_templates", 0)) > 0
+            and not report["looks_like_index_page"]
+        ):
+            report["notes"].append(
+                f"sampled wikitext cleans to only {report['cleaned_chars_hint']} characters "
+                f"but carries wiki markup — a likely stub/navigation card, not the full "
+                f"work (threshold {INDEX_PAGE_MIN_CLEANED_CHARS} chars)."
+            )
+        if source.kind == MEDIAWIKI_PARSE_KIND:
+            report["notes"].extend(_mediawiki_preflight_notes(report, max_bytes))
         if not report["payload_licence_marker_seen"] and evidence is None:
             report["notes"].append(
                 "no licence marker in the sampled bytes and no evidence endpoint declared: "
@@ -1734,6 +2284,55 @@ def preflight_source(
         report["notes"].append(f"unreachable: {probe['error']}")
     report["evidence"] = preflight_evidence(source, evidence, timeout=timeout) if evidence else None
     return report
+
+
+def _mediawiki_preflight_notes(report: dict[str, Any], max_bytes: int) -> list[str]:
+    """What preflight can say about a rendered page from its first ``max_bytes``."""
+    notes: list[str] = []
+    error = report.get("api_error")
+    if error and error.get("code") != "malformed":
+        notes.append(
+            f"the API returned an error instead of a page: {error.get('code')}: "
+            f"{error.get('info', '')} — a real build would record fetch_failed"
+        )
+        return notes
+    if error:
+        notes.append(f"the sample is not usable action=parse JSON ({error.get('info', '')})")
+        return notes
+    if report.get("sample_truncated"):
+        notes.append(
+            f"sampled the first {max_bytes:,} bytes of a larger response: line and "
+            "page-quality counts cover only that part (a real build reads all of it)"
+        )
+    quality = report.get("page_quality") or {}
+    if quality.get("unproofread"):
+        notes.append(
+            f"{len(quality['unproofread'])} of the {quality.get('pages', 0)} sampled scan "
+            "pages are not proofread (level 1/2): a real build would refuse this source "
+            "as unproofread_refused"
+        )
+    if quality.get("unknown_level"):
+        notes.append(
+            f"{len(quality['unknown_level'])} of the {quality.get('pages', 0)} sampled scan "
+            "pages do not show their proofreading level in the render: a real build asks "
+            "the wiki's API for them and refuses the source if it cannot confirm them"
+        )
+    if not (report.get("mediawiki") or {}).get("has_prp_output"):
+        notes.append(
+            "no ProofreadPage content in the rendered sample: fine for a born-digital "
+            "page, but check the text is the work and not a notice"
+        )
+    if (
+        not report.get("sample_truncated")
+        and not report.get("looks_like_index_page")
+        and (report.get("cleaned_chars_hint") or 0) < INDEX_PAGE_MIN_CLEANED_CHARS
+    ):
+        notes.append(
+            f"the page renders to only {report.get('cleaned_chars_hint', 0)} characters of "
+            f"text: a real build would refuse it as a stub (threshold "
+            f"{INDEX_PAGE_MIN_CLEANED_CHARS})"
+        )
+    return notes
 
 
 def preflight_manifest(
@@ -1788,13 +2387,35 @@ def render_preflight(report: dict[str, Any]) -> str:
     ]
     for row in report["sources"]:
         status = f"OK  http={row['http_status']}" if row["ok"] else "FAIL"
-        detail = (
-            f"lines={row.get('sample_lines', 0)} links={row.get('wiki_links', 0)} "
-            f"licence_marker={'yes' if row.get('payload_licence_marker_seen') else 'no'}"
-            if row["ok"]
-            else str(row["error"])[:70]
-        )
-        lines.append(f"[preflight]   {row['source_id']:<30} {status:<14} {detail}")
+        if row["ok"]:
+            quality = row.get("page_quality") or {}
+            if row.get("api_error"):
+                status = "WARN APIERROR"
+            elif row.get("is_sparql_card"):
+                status = "WARN SPARQL "
+            elif row.get("is_redirect"):
+                status = "WARN REDIRECT"
+            elif row.get("looks_like_index_page"):
+                status = "WARN INDEX   "
+            elif quality.get("unproofread"):
+                status = "WARN UNPROOFED"
+            marker = "yes" if row.get("payload_licence_marker_seen") else "no"
+            if row.get("kind") == MEDIAWIKI_PARSE_KIND:
+                levels = " ".join(
+                    f"q{level}={count}" for level, count in (quality.get("by_level") or {}).items()
+                )
+                detail = (
+                    f"pages={quality.get('pages', 0)} {levels} "
+                    f"lines={row.get('sample_lines', 0)} licence_marker={marker}"
+                ).replace("  ", " ")
+            else:
+                detail = (
+                    f"lines={row.get('sample_lines', 0)} links={row.get('wiki_links', 0)} "
+                    f"licence_marker={marker}"
+                )
+        else:
+            detail = str(row["error"])[:70]
+        lines.append(f"[preflight]   {row['source_id']:<36} {status:<14} {detail}")
         for note in row.get("notes") or []:
             lines.append(f"[preflight]       note: {note}")
         evidence = row.get("evidence")

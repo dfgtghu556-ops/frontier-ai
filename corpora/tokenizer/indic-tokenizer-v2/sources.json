@@ -18,7 +18,7 @@
     "note": "Each document is assigned by sha256('<seed>:<doc_id>') < heldout_fraction. No global RNG, so the split is reproducible and independent of document order."
   },
   "normalization_policy": "none",
-  "cleaning_policy": "prepare_source_text (kind-specific wrapper/markup removal only: Gutenberg header/footer, wikitext markup). Unicode normalization is NOT applied; NFC/NFD/NFKC experiments belong to a later Project 004 stage.",
+  "cleaning_policy": "prepare_source_text (kind-specific wrapper/markup removal only: Gutenberg header/footer; wikitext markup; for mediawiki-parse, MediaWiki's rendered HTML minus what Wikisource marks ws-noexport (header template, hidden metadata, page anchors), <style>/<script>, footnote markers/lists and display:none elements - see frontier_ai.data.mediawiki). The mediawiki-parse cleaner also removes four invisible rendering artifacts (U+200B, U+200E, U+2060, U+FEFF) and turns U+00A0 into a space, recording the counts in provenance; U+200C/U+200D (ZWNJ/ZWJ) are kept. It also drops the verbatim residue of a mistyped {{gap}} template that MediaWiki printed as text ({{Gap{}, {{Gap}], {{Gap]}, {Gap}}, {{Gap)), {{Gap@)), {{Gap before the text, <gap>): a correct {{gap}} renders as a removed U+2060 spacer, so the result is the text a correctly typed page gives (counted as 'broken {{gap}} template -> removed'). Likewise it drops a red link that MediaWiki prints for a template that does not exist (a misspelt name, e.g. साँचा:GaP; only redlink=1 links into the Template namespace, counted per template as 'link to missing template <title> -> removed') and a '}}' that closes nothing on a line without '{' or '|' ('stray }} -> removed'). It drops the text of a <poem> tag MediaWiki could not pair (a closing tag typed <poem/> makes the opening tag print verbatim; counted as 'literal <poem> tag -> removed'). Page anchors come in three wiki-specific shapes (name and level attributes on hi, bn and as; a percent-encoded page title on gu and or; an older <span id=\"pr_page\"> link on ml): none reaches the text, ml's bracketed page number included. Everything else odd stays in the text for the inspection report. Unicode normalization is NOT applied; NFC/NFD/NFKC experiments belong to a later Project 004 stage. The Urdu additions remove U+200E bidi formatting controls, a malformed xx-larger heading wrapper and unpaired square-link delimiters while retaining their prose; the scan-inconsistent 1004 in Ram Charcha page 62 is removed only in its observed surrounding phrase. Each removal is counted.",
   "language_slots": [
     {
       "code": "en",
@@ -27,7 +27,8 @@
       "target_sentences": 500,
       "target_chars": 200000,
       "sources": [
-        "en-gutenberg-alice-pd"
+        "en-gutenberg-alice-pd",
+        "en-gutenberg-sadhana-pd"
       ]
     },
     {
@@ -37,7 +38,42 @@
       "target_sentences": 500,
       "target_chars": 200000,
       "sources": [
-        "hi-wikisource-godan-ccbysa"
+        "hi-wikisource-godaan-ch01-ccbysa",
+        "hi-wikisource-godaan-ch02-ccbysa",
+        "hi-wikisource-godaan-ch03-ccbysa",
+        "hi-wikisource-godaan-ch04-ccbysa",
+        "hi-wikisource-godaan-ch05-ccbysa",
+        "hi-wikisource-godaan-ch06-ccbysa",
+        "hi-wikisource-godaan-ch07-ccbysa",
+        "hi-wikisource-godaan-ch08-ccbysa",
+        "hi-wikisource-godaan-ch09-ccbysa",
+        "hi-wikisource-godaan-ch10-ccbysa",
+        "hi-wikisource-godaan-ch11-ccbysa",
+        "hi-wikisource-godaan-ch12-ccbysa",
+        "hi-wikisource-godaan-ch13-ccbysa",
+        "hi-wikisource-godaan-ch14-ccbysa",
+        "hi-wikisource-godaan-ch15-ccbysa",
+        "hi-wikisource-godaan-ch16-ccbysa",
+        "hi-wikisource-godaan-ch17-ccbysa",
+        "hi-wikisource-godaan-ch18-ccbysa",
+        "hi-wikisource-godaan-ch19-ccbysa",
+        "hi-wikisource-godaan-ch20-ccbysa",
+        "hi-wikisource-godaan-ch21-ccbysa",
+        "hi-wikisource-godaan-ch22-ccbysa",
+        "hi-wikisource-godaan-ch23-ccbysa",
+        "hi-wikisource-godaan-ch24-ccbysa",
+        "hi-wikisource-godaan-ch25-ccbysa",
+        "hi-wikisource-godaan-ch26-ccbysa",
+        "hi-wikisource-godaan-ch27-ccbysa",
+        "hi-wikisource-godaan-ch28-ccbysa",
+        "hi-wikisource-godaan-ch29-ccbysa",
+        "hi-wikisource-godaan-ch30-ccbysa",
+        "hi-wikisource-godaan-ch31-ccbysa",
+        "hi-wikisource-godaan-ch32-ccbysa",
+        "hi-wikisource-godaan-ch33-ccbysa",
+        "hi-wikisource-godaan-ch34-ccbysa",
+        "hi-wikisource-godaan-ch35-ccbysa",
+        "hi-wikisource-godaan-ch36-ccbysa"
       ]
     },
     {
@@ -56,7 +92,8 @@
       "target_sentences": 500,
       "target_chars": 200000,
       "sources": [
-        "bn-wikisource-gitanjali-ccbysa"
+        "bn-wikisource-gitanjali-1913-ccbysa",
+        "bn-wikisource-devdas-ccbysa"
       ]
     },
     {
@@ -65,15 +102,9 @@
       "script": "Devanagari",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Marathi Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (mr.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - selecting a work, confirming its licence tag and pinning its hash require network access and a licence review that have not happened."
+      "sources": [
+        "mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa"
+      ]
     },
     {
       "code": "gu",
@@ -81,15 +112,10 @@
       "script": "Gujarati",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Gujarati Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (gu.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "gu-wikisource-saraswatichandra-1-ch01-08-ccbysa",
+        "gu-wikisource-saraswatichandra-1-ch09-12-ccbysa"
+      ]
     },
     {
       "code": "ta",
@@ -97,15 +123,10 @@
       "script": "Tamil",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Tamil Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (ta.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "ta-wikisource-en-charithram-p022-101-ccbysa",
+        "ta-wikisource-en-charithram-p102-189-ccbysa"
+      ]
     },
     {
       "code": "te",
@@ -113,15 +134,10 @@
       "script": "Telugu",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Telugu Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (te.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa",
+        "te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa"
+      ]
     },
     {
       "code": "kn",
@@ -129,15 +145,10 @@
       "script": "Kannada",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Kannada Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (kn.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "kn-wikisource-ranganna-ch01-15-ccbysa",
+        "kn-wikisource-ranganna-ch16-30-ccbysa"
+      ]
     },
     {
       "code": "ml",
@@ -145,15 +156,10 @@
       "script": "Malayalam",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Malayalam Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (ml.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "ml-wikisource-ramarajabahadoor-ch01-13-ccbysa",
+        "ml-wikisource-ramarajabahadoor-ch14-18-ccbysa"
+      ]
     },
     {
       "code": "pa",
@@ -161,15 +167,10 @@
       "script": "Gurmukhi",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Punjabi Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (pa.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "pa-wikisource-satwant-kaur-p007-164-ccbysa",
+        "pa-wikisource-satwant-kaur-p165-336-ccbysa"
+      ]
     },
     {
       "code": "or",
@@ -177,15 +178,9 @@
       "script": "Odia",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Odia Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (or.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "or-wikisource-chha-mana-atha-guntha-ccbysa"
+      ]
     },
     {
       "code": "as",
@@ -193,15 +188,10 @@
       "script": "Bengali-Assamese",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Assamese Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (as.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "as-wikisource-manomati-part1-ccbysa",
+        "as-wikisource-manomati-part2-ccbysa"
+      ]
     },
     {
       "code": "ur",
@@ -209,15 +199,11 @@
       "script": "Perso-Arabic",
       "target_sentences": 500,
       "target_chars": 200000,
-      "sources": [],
-      "candidates": [
-        {
-          "provider": "Urdu Wikisource",
-          "license_id": "CC-BY-SA-4.0",
-          "note": "family-level candidate; no concrete work declared"
-        }
-      ],
-      "reason": "candidate provider identified (ur.wikisource.org, CC BY-SA 4.0 assumed conservatively); no specific work declared yet - requires network access and licence review."
+      "sources": [
+        "ur-wikisource-ram-charcha-premchand-p7-170-ccbysa",
+        "ur-wikisource-ram-charcha-premchand-p171-307-ccbysa",
+        "ur-wikisource-ram-charcha-premchand-p309-342-ccbysa"
+      ]
     }
   ],
   "sources": [
@@ -232,57 +218,1338 @@
       "attribution": "Alice's Adventures in Wonderland by Lewis Carroll, text from Project Gutenberg (ebook 11). Public domain in the United States; verify local copyright terms before use elsewhere. Used here as a tokenizer-research fixture, not as a redistribution.",
       "max_chars": 400000,
       "kind": "gutenberg",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
+      "sha256": "4e04ea77acf3b0215cae2089c977bc07526fc834597a1d463598d895354ba41d",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:14:58Z",
       "notes": "English slot. The Gutenberg header/footer is stripped by clean_gutenberg_text(); the licence is recorded in the provenance file. Hash is pinned only after a verified fetch."
     },
     {
-      "id": "hi-wikisource-godan-ccbysa",
-      "title": "गोदान (Godaan) — Munshi Premchand",
+      "id": "en-gutenberg-sadhana-pd",
+      "title": "Sadhana: The Realisation of Life",
+      "language": "en",
+      "script": "Latin",
+      "source_url": "https://www.gutenberg.org/cache/epub/6842/pg6842.txt",
+      "license_id": "PD-US",
+      "license_url": "https://www.gutenberg.org/policy/license.html",
+      "attribution": "Sadhana: The Realisation of Life by Rabindranath Tagore (first published 1913; the Gutenberg text follows the 1916 printing), text from Project Gutenberg (ebook 6842, produced by Chetan Jain at BharatLiterature). Public domain in the United States; Tagore died in 1941, so the work is also public domain in India. Used here as a tokenizer-research fixture, not as a redistribution.",
+      "max_chars": 400000,
+      "kind": "gutenberg",
+      "sha256": "f5d4e24f4fa087f57845abc3369cd25b0b717f478c0a1c5c3caa7130bcdfaa0b",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:00Z",
+      "notes": "Second English source: Alice alone is 144,599 characters, below the 200,000-character target. Chosen for genre diversity (philosophical essays, non-fiction, next to a children's novel) and for Indian English: Upanishadic terms, Indian names and romanised Sanskrit with diacritics (Sādhanā, Daurbhikshāt …). Checked on 2026-09-24: gutenberg.org/ebooks/6842 lists it as 'Public domain in the USA' (plain text 226 kB); pg6842.txt carries the standard '*** START/END OF THE PROJECT GUTENBERG EBOOK SADHANA : THE REALISATION OF LIFE ***' markers, the text begins with the author's preface and ends with chapter VIII ('…not distant, not anywhere else.'). The header/footer is stripped by clean_gutenberg_text(), which keeps everything between the markers — so the cleaned text starts with the producer's credit line 'Produced by Chetan Jain at BharatLiterature' (43 characters, accepted) and the 1916 title page; the licence marker is the payload's own Project Gutenberg header. Hash is pinned only after a verified fetch."
+    },
+    {
+      "id": "hi-wikisource-godaan-ch01-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 1 of 36 (गो-दान/१)",
       "language": "hi",
       "script": "Devanagari",
-      "source_url": "https://hi.wikisource.org/wiki/%E0%A4%97%E0%A5%8B%E0%A4%A6%E0%A4%BE%E0%A4%A8?action=raw",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7",
       "license_id": "CC-BY-SA-4.0",
       "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "attribution": "Hindi Wikisource contributors, गोदान (Godaan) by Munshi Premchand, via hi.wikisource.org, licensed CC BY-SA 4.0 (assumed conservatively until the page's own licence tag is checked on first fetch).",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 1 (page गो-दान/१), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
       "max_chars": 400000,
-      "kind": "wikitext",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
-      "notes": "Hindi slot, Devanagari. Verify the page title and its licence tag on first fetch; if the page carries a PD template the licence_id may be relaxed to PD-US with a note.",
+      "kind": "mediawiki-parse",
+      "sha256": "29b16b4e808d55fb8c94ea366f779ff3005432dabc4f3fad224102b75dba61a2",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:02Z",
+      "notes": "Chapter 1 of 36. गो-दान/१ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 11–18 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. The tag is written from=1१ (mixed ASCII/Devanagari digits) on the wiki; MediaWiki reads it as page 11 — checked on 2026-09-24: the first rendered anchor is पृष्ठ:गो-दान.djvu/११, labelled आरंभ (scan pages 1–10 are front matter). Exactly this kind of ambiguity is why this source relies on MediaWiki's rendering instead of re-implementing the tag.",
       "license_evidence": {
         "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
         "kind": "mediawiki-api",
         "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
         "scope": "site",
-        "note": "The `?action=raw` payload is bare wikitext and does not contain the CC BY-SA notice, so the wiki's own machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence. This is SITE-level evidence: it proves hi.wikisource.org publishes under CC BY-SA 4.0, not that this specific page carries that tag. The page-level tag still has to be reviewed by a human and recorded before the slot is trusted for redistribution."
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
       }
     },
     {
-      "id": "bn-wikisource-gitanjali-ccbysa",
-      "title": "গীতাঞ্জলি (Gitanjali) — Rabindranath Tagore",
-      "language": "bn",
-      "script": "Bengali",
-      "source_url": "https://bn.wikisource.org/wiki/%E0%A6%97%E0%A7%80%E0%A6%A4%E0%A6%BE%E0%A6%9E%E0%A7%8D%E0%A6%9C%E0%A6%B2%E0%A6%BF?action=raw",
+      "id": "hi-wikisource-godaan-ch02-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 2 of 36 (गो-दान/२)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8",
       "license_id": "CC-BY-SA-4.0",
       "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "attribution": "Bengali Wikisource contributors, গীতাঞ্জলি (Gitanjali) by Rabindranath Tagore, via bn.wikisource.org, licensed CC BY-SA 4.0 (assumed conservatively until the page's own licence tag is checked on first fetch).",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 2 (page गो-दान/२), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
       "max_chars": 400000,
-      "kind": "wikitext",
-      "sha256": null,
-      "verified": false,
-      "retrieved_at": null,
-      "notes": "Bengali slot. The author died in 1941 and the work is public domain in India, but the edition on Wikisource may carry its own tag; check it on first fetch and record what you find.",
+      "kind": "mediawiki-parse",
+      "sha256": "e9bf25e4b77752679116f0666e50b7ae8e64155baec2b380b7ebb0c308766531",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:04Z",
+      "notes": "Chapter 2 of 36. गो-दान/२ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 18–22 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch03-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 3 of 36 (गो-दान/३)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 3 (page गो-दान/३), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "c498f301885d87a80717501e2b2dc5b72055da9b719b8bcb7e03d2416e741b6a",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:05Z",
+      "notes": "Chapter 3 of 36. गो-दान/३ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 22–32 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch04-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 4 of 36 (गो-दान/४)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AA",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 4 (page गो-दान/४), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "8892b80981642b7d2b06ca1057a4071384917650a082e588efeecae13799d31d",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:06Z",
+      "notes": "Chapter 4 of 36. गो-दान/४ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 32–51 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. The tag is written from=३2 (mixed digits) on the wiki; MediaWiki reads it as page 32 (checked on 2026-09-24: the first rendered anchor is पृष्ठ:गो-दान.djvu/३२).",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch05-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 5 of 36 (गो-दान/५)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AB",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 5 (page गो-दान/५), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "5884f0dfb3f8275a2109bcc5979c16f2f90b8c97826f43e42b0766213661ffe9",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:08Z",
+      "notes": "Chapter 5 of 36. गो-दान/५ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 51–57 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch06-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 6 of 36 (गो-दान/६)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AC",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 6 (page गो-दान/६), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "697f7480f616d93075ac2a155720df7a83fb6a998ae3a768d51e31d0d97cf5f6",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:09Z",
+      "notes": "Chapter 6 of 36. गो-दान/६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 57–80 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch07-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 7 of 36 (गो-दान/७)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AD",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 7 (page गो-दान/७), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "1c9ebd637ca9bccefed8dd498a7508f06735aa1716f29cb16f7d1ea5e9c85641",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:11Z",
+      "notes": "Chapter 7 of 36. गो-दान/७ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 80–107 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch08-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 8 of 36 (गो-दान/८)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AE",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 8 (page गो-दान/८), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "4fdc0c7d340af62b362bcd57801278aa183c77d8c289da44f2da3c4d62287884",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:12Z",
+      "notes": "Chapter 8 of 36. गो-दान/८ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 107–113 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch09-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 9 of 36 (गो-दान/९)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%AF",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 9 (page गो-दान/९), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "692ee82f7114e23459c7277dd6a62aab32f3d10e3e5bbce62fe1ea5bbb8b8956",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:14Z",
+      "notes": "Chapter 9 of 36. गो-दान/९ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 113–121 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch10-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 10 of 36 (गो-दान/१०)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%A6",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 10 (page गो-दान/१०), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "7f6f26bd4ea5da9015c7641ec373c89993d70c52116799464708a19c8a95e0c8",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:15Z",
+      "notes": "Chapter 10 of 36. गो-दान/१० holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 121–128 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch11-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 11 of 36 (गो-दान/११)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%A7",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 11 (page गो-दान/११), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "ec440f3c1edf5e80b545a2efde8b0d3807fc24f9ad16ec4f6a1d6efa4b2a39ed",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:16Z",
+      "notes": "Chapter 11 of 36. गो-दान/११ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 128–135 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch12-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 12 of 36 (गो-दान/१२)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%A8",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 12 (page गो-दान/१२), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "0c1093508f90442dbd499f9a106f5639129bc03250a88324f6a04c7d82743fb9",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:17Z",
+      "notes": "Chapter 12 of 36. गो-दान/१२ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 135–142 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch13-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 13 of 36 (गो-दान/१३)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%A9",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 13 (page गो-दान/१३), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "d11ffcf76ae885161bbcffe95630851c5aa0cff5e843c8e1e4fdc42d6ab489a2",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:18Z",
+      "notes": "Chapter 13 of 36. गो-दान/१३ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 142–152 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch14-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 14 of 36 (गो-दान/१४)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AA",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 14 (page गो-दान/१४), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "dce8b25c77fa5bf6bb5172a41489b7f31df972d1f2934bb12eec7c5a0df324a2",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:19Z",
+      "notes": "Chapter 14 of 36. गो-दान/१४ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 152–159 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch15-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 15 of 36 (गो-दान/१५)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AB",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 15 (page गो-दान/१५), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "75c2506ef92ce7688886a6806f3b9fe45ac2be81f2b2c0e4379432fe732efd90",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:20Z",
+      "notes": "Chapter 15 of 36. गो-दान/१५ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 159–172 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch16-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 16 of 36 (गो-दान/१६)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AC",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 16 (page गो-दान/१६), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "db92ce286618ee63e4c0470305db8cc15fe738e2aa20f3ad77abb4e32bf1ec43",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:22Z",
+      "notes": "Chapter 16 of 36. गो-दान/१६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 172–181 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. Not to be confused with the legacy page गो-दान/ भाग 16, which renders a different scan (गोदान.pdf) and would duplicate this text; it is deliberately not declared.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch17-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 17 of 36 (गो-दान/१७)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AD",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 17 (page गो-दान/१७), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "dd26069b4d4137193d971df2bdbd8a7e5e492ceba284cdd7e5ddb119863e236b",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:23Z",
+      "notes": "Chapter 17 of 36. गो-दान/१७ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 181–191 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. Not to be confused with the legacy page गो-दान/ भाग 17 (different scan, गोदान.pdf, duplicate text); deliberately not declared.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch18-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 18 of 36 (गो-दान/१८)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AE",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 18 (page गो-दान/१८), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "248d832b428a5538c5dbe2c003fbdd0b20ebc78747760d9b9178c9f4acec38d1",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:24Z",
+      "notes": "Chapter 18 of 36. गो-दान/१८ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 191–202 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch19-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 19 of 36 (गो-दान/१९)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A7%E0%A5%AF",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 19 (page गो-दान/१९), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "a579aab3cbd5d8dcc813bb15638f3f781cb75a2ad6f33c79ce05d86c8a33ae86",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:25Z",
+      "notes": "Chapter 19 of 36. गो-दान/१९ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 202–206 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch20-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 20 of 36 (गो-दान/२०)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%A6",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 20 (page गो-दान/२०), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "fcdd1851801cbe128b32fc3c0da9c2f82466b72738db0f347aa35e646329ecd0",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:26Z",
+      "notes": "Chapter 20 of 36. गो-दान/२० holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 206–219 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch21-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 21 of 36 (गो-दान/२१)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%A7",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 21 (page गो-दान/२१), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "841e48839312f8ca3d1cf85422eb079ff8cb59cdfdc0c9c8bfd5ec87f67ccd26",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:28Z",
+      "notes": "Chapter 21 of 36. गो-दान/२१ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 219–231 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch22-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 22 of 36 (गो-दान/२२)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%A8",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 22 (page गो-दान/२२), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "d629a7f31f547d75044a22be2ca6bcc5c1f704ebfcda1a852fd921538ad21a92",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:29Z",
+      "notes": "Chapter 22 of 36. गो-दान/२२ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 231–246 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch23-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 23 of 36 (गो-दान/२३)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%A9",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 23 (page गो-दान/२३), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "ebc397046a08e013d0ea74b4d634ca1c5cb0a5fa8038ad309320fb05e8fceee9",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:30Z",
+      "notes": "Chapter 23 of 36. गो-दान/२३ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 246–256 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. The wiki tags this chapter 'छूटे स्कैन पृष्ठ' (missing scan pages): printed pages may be absent from the transcription. Read the text before pinning and record what you find.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch24-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 24 of 36 (गो-दान/२४)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AA",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 24 (page गो-दान/२४), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "467f09e2f0b2e446be52c80898016bbd9c9594d6df39058452f9eb4644b9d324",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:31Z",
+      "notes": "Chapter 24 of 36. गो-दान/२४ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 257–265 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level. The wiki tags this chapter 'छूटे स्कैन पृष्ठ' (missing scan pages): printed pages may be absent from the transcription. Read the text before pinning and record what you find.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch25-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 25 of 36 (गो-दान/२५)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AB",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 25 (page गो-दान/२५), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "d5c09517e7c6e3593cdf5c7794e62877cf5eb94a35d27e31838dd165d1580606",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:32Z",
+      "notes": "Chapter 25 of 36. गो-दान/२५ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 265–271 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch26-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 26 of 36 (गो-दान/२६)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AC",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 26 (page गो-दान/२६), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "6856378c200415c081e15dee114dcb1d63a6d4316a791662cbd3af846b7bf3a2",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:33Z",
+      "notes": "Chapter 26 of 36. गो-दान/२६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 271–276 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch27-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 27 of 36 (गो-दान/२७)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AD",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 27 (page गो-दान/२७), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "70f749b9dc25ed787d9022333912032aa47c8ff436ce64916a4234f76c974a6c",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:34Z",
+      "notes": "Chapter 27 of 36. गो-दान/२७ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 276–288 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch28-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 28 of 36 (गो-दान/२८)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AE",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 28 (page गो-दान/२८), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "ef935daa16bfc959db0d9ab7a0818766836e85bb1a73d04f0239239fecaafb1c",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:36Z",
+      "notes": "Chapter 28 of 36. गो-दान/२८ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 288–295 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch29-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 29 of 36 (गो-दान/२९)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A8%E0%A5%AF",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 29 (page गो-दान/२९), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "22cd23704490a5818ab29dfce7923c114df2dfd3c8c1e51ee4857342a92dd2e4",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:37Z",
+      "notes": "Chapter 29 of 36. गो-दान/२९ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 295–305 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch30-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 30 of 36 (गो-दान/३०)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%A6",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 30 (page गो-दान/३०), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "313511e1ed9d36ac05498ed590b6238eee65ad0685870482c83104df25f30d4c",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:38Z",
+      "notes": "Chapter 30 of 36. गो-दान/३० holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 305–316 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch31-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 31 of 36 (गो-दान/३१)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%A7",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 31 (page गो-दान/३१), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "08bff4930de92bbc507603ad0333d39423b621f026042177c99703406cf8f157",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:39Z",
+      "notes": "Chapter 31 of 36. गो-दान/३१ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 317–327 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch32-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 32 of 36 (गो-दान/३२)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%A8",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 32 (page गो-दान/३२), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "f9646750547c4e22fabbc5ca48634409c5221d3365fc99d0a1927aa6ac85e895",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:41Z",
+      "notes": "Chapter 32 of 36. गो-दान/३२ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 327–331 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch33-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 33 of 36 (गो-दान/३३)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%A9",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 33 (page गो-दान/३३), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "9ad29f4b912f26599f7e2c78f0243c6859e09e2be49d4ca561cf17be6f53a097",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:42Z",
+      "notes": "Chapter 33 of 36. गो-दान/३३ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 331–343 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch34-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 34 of 36 (गो-दान/३४)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%AA",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 34 (page गो-दान/३४), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "c517af4c135b38217657e7c00a84b1a35f58f157b46e552f7bf97f5f23c0144d",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:43Z",
+      "notes": "Chapter 34 of 36. गो-दान/३४ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 344–349 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch35-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 35 of 36 (गो-दान/३५)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%AB",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 35 (page गो-दान/३५), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "5c716c172579c9170537273748403003131e7b1940527497157ffbce400a4799",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:44Z",
+      "notes": "Chapter 35 of 36. गो-दान/३५ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 349–357 of गो-दान.djvu as declared on the wiki on 2026-09-24 (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "hi-wikisource-godaan-ch36-ccbysa",
+      "title": "गो-दान (Godaan) — Premchand — chapter 36 of 36 (गो-दान/३६)",
+      "language": "hi",
+      "script": "Devanagari",
+      "source_url": "https://hi.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text%7Crevid%7Ccategories&disablelimitreport=1&disableeditsection=1&page=%E0%A4%97%E0%A5%8B-%E0%A4%A6%E0%A4%BE%E0%A4%A8%2F%E0%A5%A9%E0%A5%AC",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hindi Wikisource contributors, गो-दान (Godaan, 1936) by Premchand, chapter 36 (page गो-दान/३६), transcribed from the scan गो-दान.djvu; via hi.wikisource.org, licensed CC BY-SA 4.0. The novel itself is public domain in India (the work page carries {{PD-India}}).",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "edc02cea02c90525668b0f67897a0ea2e9f4b23cf9446a820b2083ff6b9ce772",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:45Z",
+      "notes": "Chapter 36 of 36. गो-दान/३६ holds only a ProofreadPage tag (<pages index=\"गो-दान.djvu\" …/>), so ?action=raw never contains the text; this source asks MediaWiki to render the page (kind mediawiki-parse, runbook §3.1). Renders scan pages 357–363 of गो-दान.djvu: the tag on the wiki says to=३६९, but pages 364–369 contribute no text — checked on 2026-09-24, the render ends on पृष्ठ:गो-दान.djvu/३६३ with the novel's last line (…यही इनका गो-दान है / और पछाड़ खाकर गिर पड़ी।) and nothing after it, so no back matter enters the corpus (neighbouring chapters share their boundary page through fromsection/tosection, so no text is duplicated). On 2026-09-24 no page of this scan was below 'proofread'; the build re-checks every page's level.",
+      "license_evidence": {
+        "url": "https://hi.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "The action=parse payload carries no licence notice, so the wiki's machine-readable rights declaration (Meta siteinfo rightsinfo) is fetched as separate evidence — once per build, then reused (recorded as reused_within_run) for the other chapters. This is SITE-level evidence: it proves hi.wikisource.org publishes its transcriptions under CC BY-SA 4.0. The work page गो-दान carries {{PD-India}} (the novel itself is public domain in India); a human still reviews that page-level tag before the slot is trusted for redistribution."
+      }
+    },
+    {
+      "id": "bn-wikisource-gitanjali-1913-ccbysa",
+      "title": "গীতাঞ্জলি (Gitanjali, 1913 edition) — Rabindranath Tagore — poems 1–157",
+      "language": "bn",
+      "script": "Bengali",
+      "source_url": "https://bn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%97%E0%A7%80%E0%A6%A4%E0%A6%BE%E0%A6%9E%E0%A7%8D%E0%A6%9C%E0%A6%B2%E0%A6%BF%20%28%E0%A7%A7%E0%A7%AF%E0%A7%A7%E0%A7%A9%29&text=%3Cpages%20index%3D%22%E0%A6%97%E0%A7%80%E0%A6%A4%E0%A6%BE%E0%A6%9E%E0%A7%8D%E0%A6%9C%E0%A6%B2%E0%A6%BF%20-%20%E0%A6%B0%E0%A6%AC%E0%A7%80%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%8D%E0%A6%B0%E0%A6%A8%E0%A6%BE%E0%A6%A5%20%E0%A6%A0%E0%A6%BE%E0%A6%95%E0%A7%81%E0%A6%B0.djvu%22%20from%3D13%20to%3D190%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Bengali Wikisource contributors, গীতাঞ্জলি (Gitanjali, 1913 edition) by Rabindranath Tagore, poems 1–157, transcribed from the scan গীতাঞ্জলি - রবীন্দ্রনাথ ঠাকুর.djvu; via bn.wikisource.org, licensed CC BY-SA 4.0. Tagore died in 1941; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "333fd22ad5a440fb971b3cac51ac1e32c5fbb0f0e08f3c0806afefb5b278a137",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:46Z",
+      "notes": "All 157 poems in one render. The work page গীতাঞ্জলি (১৯১৩) lists the poems as subpages /১…/১৫৭, each transcluding one or two scan pages (poem ১ = scan pages 13–14, poem ১৫৭ = page 190). A single short poem is below the stub threshold, so this source renders <pages index=\"গীতাঞ্জলি - রবীন্দ্রনাথ ঠাকুর.djvu\" from=13 to=190 /> directly; text= is validated to contain exactly that one tag, so nothing but the wiki's transcription can enter. The cover, front matter and table of contents (scan pages 1–12) are excluded. Every scan page 13–190 was 'validated' (ProofreadPage level 4) on 2026-09-24; the build re-checks each page's level. The bare title গীতাঞ্জলি is a Wikidata infocard, not the work (the Stage A source pointed there and was refused as a SPARQL card).",
       "license_evidence": {
         "url": "https://bn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
         "kind": "mediawiki-api",
         "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
         "scope": "site",
-        "note": "Site-level evidence for bn.wikisource.org, fetched separately from the wikitext payload (which carries no licence notice). Page-level review of the edition's own licence tag is still required; see the source notes."
+        "note": "Site-level evidence for bn.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0; the underlying work is public domain in India (Tagore died in 1941). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "bn-wikisource-devdas-ccbysa",
+      "title": "দেবদাস (Devdas) — Sarat Chandra Chattopadhyay — chapters 1–16",
+      "language": "bn",
+      "script": "Bengali",
+      "source_url": "https://bn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%A6%E0%A7%87%E0%A6%AC%E0%A6%A6%E0%A6%BE%E0%A6%B8%20%28%E0%A6%B6%E0%A6%B0%E0%A7%8E%E0%A6%9A%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%8D%E0%A6%B0%20%E0%A6%9A%E0%A6%9F%E0%A7%8D%E0%A6%9F%E0%A7%8B%E0%A6%AA%E0%A6%BE%E0%A6%A7%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AF%E0%A6%BC%29&text=%3Cpages%20index%3D%22%E0%A6%A6%E0%A7%87%E0%A6%AC%E0%A6%A6%E0%A6%BE%E0%A6%B8%20-%20%E0%A6%B6%E0%A6%B0%E0%A7%8E%E0%A6%9A%E0%A6%A8%E0%A7%8D%E0%A6%A6%E0%A7%8D%E0%A6%B0%20%E0%A6%9A%E0%A6%9F%E0%A7%8D%E0%A6%9F%E0%A7%8B%E0%A6%AA%E0%A6%BE%E0%A6%A7%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%AF%E0%A6%BC.pdf%22%20from%3D5%20to%3D110%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Bengali Wikisource contributors, দেবদাস (Devdas) by Sarat Chandra Chattopadhyay, chapters 1–16, transcribed from the scan দেবদাস - শরৎচন্দ্র চট্টোপাধ্যায়.pdf; via bn.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in 1917 and Sarat Chandra died in 1938; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "14477848f49b5cdeb93ffbe8e909a53372c022bcd93ab638c86aad6e1aec9dfb",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:52Z",
+      "notes": "Second Bengali source (Gitanjali alone is 65,174 characters): prose by a different author. The whole novel in one render. The work page দেবদাস (শরৎচন্দ্র চট্টোপাধ্যায়) lists 16 chapter subpages (/প্রথম পরিচ্ছেদ … /ষোড়শ পরিচ্ছেদ) transcluding scan pages 5–110, split with <section> markers where two chapters share a page (chapter 1 = from=5 to=12 tosection=১, chapter 16 = from=100 fromsection=১৬ to=110); this source renders <pages index=\"দেবদাস - শরৎচন্দ্র চট্টোপাধ্যায়.pdf\" from=5 to=110 /> without section limits, so every section of every page appears once, in order. The cover and title pages (scan pages 1–3) and page 4 (a list of the author's other books) are excluded. Checked on 2026-09-24: the render starts with chapter এক and the novel's first line (একদিন বৈশাখের দ্বিপ্রহরে…) and ends with its last paragraph (…দেখিয়া সে মরিতে পারে।) followed by সমাপ্ত; no scan page 5–110 was below 'proofread' (8–108 proofread, level 3; 5–7 and 109–110 validated, level 4); the build re-checks each page's level. The scan is of a 1947 printing (category ১৯৪৭ খ্রিস্টাব্দে প্রকাশিত) and the work page carries {{PD-India}}. The bare title দেবদাস is a disambiguation page; the other scan it lists, দেবদাস - প্রচার পুস্তিকা (১৯৩৫).pdf, is a 1935 film booklet, not the novel.",
+      "license_evidence": {
+        "url": "https://bn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for bn.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0; the underlying work is public domain in India (Sarat Chandra Chattopadhyay died in 1938). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "gu-wikisource-saraswatichandra-1-ch01-08-ccbysa",
+      "title": "સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) — Govardhanram Tripathi — chapters 1–8",
+      "language": "gu",
+      "script": "Gujarati",
+      "source_url": "https://gu.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AA%B8%E0%AA%B0%E0%AA%B8%E0%AB%8D%E0%AA%B5%E0%AA%A4%E0%AB%80%E0%AA%9A%E0%AA%82%E0%AA%A6%E0%AB%8D%E0%AA%B0%20%E0%AA%AD%E0%AA%BE%E0%AA%97%20%E0%AB%A7&text=%3Cpages%20index%3D%22Saraswati%20Chandra%20Part%201.pdf%22%20from%3D21%20to%3D106%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Gujarati Wikisource contributors, સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) by Govardhanram Tripathi, chapters 1–8, transcribed from the scan Saraswati Chandra Part 1.pdf; via gu.wikisource.org, licensed CC BY-SA 4.0. Part 1 of the novel was first published in 1887 and Govardhanram Tripathi died in 1907; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "c3fe2b7aa706f199ef0de677c912ac1b4d392a0f95ff464b328d6d56fdfa066e",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:15:55Z",
+      "notes": "First of two Gujarati sources (together chapters 1-12 of part 1). Renders <pages index=\"Saraswati Chandra Part 1.pdf\" from=21 to=106 /> under the work page સરસ્વતીચંદ્ર ભાગ ૧, whose chapter subpages transclude exactly this range, split with sections where two chapters share a page: chapter 1 (સુવર્ણપુરનો અતિથિ) = from=21 to=25 tosection=25a, chapter 8 (અમાત્યને ઘેર) = from=99 fromsection=99b to=106. Scan page 106 ends chapter 8 without a section split, so the range ends on a chapter boundary; rendered without section limits, every section of every page appears once, in order. Scan pages 2-18 (front matter: prefaces and contents) and 20 (the invocation મંગલપુષ્પાંજલિ) are excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and 370 of its 373 pages at level 3 or 4 (the other three are not in either list); the six pages sampled (૨૧, ૩૦, ૫૦, ૭૦, ૯૦, ૧૦૬) are validated (level 4); prop=templates for each range lists every scan page as existing and no missing template (ઢાંચો:Rule, Rule/styles.css, Reflist). gu.wikisource's page anchor shows no proofreading level (only a percent-encoded title), so the build asks the wiki's API (prop=proofread) for each page's level and refuses the source if it cannot confirm it. Page titles use Gujarati digits (પૃષ્ઠ:Saraswati Chandra Part 1.pdf/૨૧). Licence review: the work page carries {{ઢાંચો:પ્રકાશન-ભારત}}, gu.wikisource's public-domain-in-India notice (Indian Copyright Act 1957: 60 years after the author's death); the scan's Commons file page gives the date 1887-01-01, the source Digital Library of India and {{PD-1923}}; Govardhanram Tripathi lived 1855-1907 (en.wikipedia). Footnotes are dropped by the cleaner, as for every rendered source.",
+      "license_evidence": {
+        "url": "https://gu.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for gu.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.gu, which contains the marker); the underlying work is public domain in India (Govardhanram Tripathi died in 1907). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "gu-wikisource-saraswatichandra-1-ch09-12-ccbysa",
+      "title": "સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) — Govardhanram Tripathi — chapters 9–12",
+      "language": "gu",
+      "script": "Gujarati",
+      "source_url": "https://gu.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AA%B8%E0%AA%B0%E0%AA%B8%E0%AB%8D%E0%AA%B5%E0%AA%A4%E0%AB%80%E0%AA%9A%E0%AA%82%E0%AA%A6%E0%AB%8D%E0%AA%B0%20%E0%AA%AD%E0%AA%BE%E0%AA%97%20%E0%AB%A7&text=%3Cpages%20index%3D%22Saraswati%20Chandra%20Part%201.pdf%22%20from%3D107%20to%3D188%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Gujarati Wikisource contributors, સરસ્વતીચંદ્ર ભાગ ૧ (Saraswatichandra, part 1) by Govardhanram Tripathi, chapters 9–12, transcribed from the scan Saraswati Chandra Part 1.pdf; via gu.wikisource.org, licensed CC BY-SA 4.0. Part 1 of the novel was first published in 1887 and Govardhanram Tripathi died in 1907; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "91e688351017a228c543da4be205128cb6d7c06d8e280b0d693b3ce0d1d0e3d1",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:00Z",
+      "notes": "Second Gujarati source: <pages index=\"Saraswati Chandra Part 1.pdf\" from=107 to=188 />. Chapter 9 (ઉન્મત્તપણાનું પરિણામ) starts at the top of scan page 107 (from=107); chapter 12 (રાજા, રાજદરબાર અને રાજકારભાર) ends at from=148 fromsection=148b to=188 tosection=188a, so the range's last page also holds the opening section (188b) of chapter 13 (રસ્તામાં), which is therefore included: no chapter of part 1 between pages 106 and 372 ends at the foot of a page. Estimated with the first source at about 240,000-270,000 characters (about 1,600 per page from the sampled page sizes); the report gives the real number. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and 370 of its 373 pages at level 3 or 4 (the other three are not in either list); the six pages sampled (૨૧, ૩૦, ૫૦, ૭૦, ૯૦, ૧૦૬) are validated (level 4); prop=templates for each range lists every scan page as existing and no missing template (ઢાંચો:Rule, Rule/styles.css, Reflist). gu.wikisource's page anchor shows no proofreading level (only a percent-encoded title), so the build asks the wiki's API (prop=proofread) for each page's level and refuses the source if it cannot confirm it. Page titles use Gujarati digits (પૃષ્ઠ:Saraswati Chandra Part 1.pdf/૨૧). Licence review: the work page carries {{ઢાંચો:પ્રકાશન-ભારત}}, gu.wikisource's public-domain-in-India notice (Indian Copyright Act 1957: 60 years after the author's death); the scan's Commons file page gives the date 1887-01-01, the source Digital Library of India and {{PD-1923}}; Govardhanram Tripathi lived 1855-1907 (en.wikipedia). Footnotes are dropped by the cleaner, as for every rendered source.",
+      "license_evidence": {
+        "url": "https://gu.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for gu.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.gu, which contains the marker); the underlying work is public domain in India (Govardhanram Tripathi died in 1907). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "ml-wikisource-ramarajabahadoor-ch01-13-ccbysa",
+      "title": "രാമരാജാബഹദൂർ (Ramarajabahadoor) — C. V. Raman Pillai — chapters 1–13",
+      "language": "ml",
+      "script": "Malayalam",
+      "source_url": "https://ml.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B4%B0%E0%B4%BE%E0%B4%AE%E0%B4%B0%E0%B4%BE%E0%B4%9C%E0%B4%BE%E0%B4%AC%E0%B4%B9%E0%B4%A6%E0%B5%82%E0%B5%BC&text=%3Cpages%20index%3D%22Ramarajabahadoor.djvu%22%20from%3D4%20to%3D150%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Malayalam Wikisource contributors, രാമരാജാബഹദൂർ (Ramarajabahadoor) by C. V. Raman Pillai, chapters 1–13, transcribed from the scan Ramarajabahadoor.djvu; via ml.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts in 1918 and 1919 and C. V. Raman Pillai died in 1922; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "beb122a5db7828b5947e1f07412a8ea91d6a321cab20c61d59e1f705c0c29bfb",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:05Z",
+      "notes": "First of two Malayalam sources (together chapters 1-18 of 36). Renders <pages index=\"Ramarajabahadoor.djvu\" from=4 to=150 /> under the work page രാമരാജാബഹദൂർ. Its chapter subpages transclude whole scan pages (no sections): chapter 1 = from=4 to=12 and chapter 14 = from=151 to=161, so chapters 1-13 are exactly pages 4-150. Scan page 1 (the dedication സമർപ്പണം) and 2-3 (the preface മുഖവുര) are excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and all 436 at level 3 or 4; the six pages sampled (4, 20, 60, 100, 140, 173) are proofread (level 3) or validated (4: page 4). Chapters 1-18 use only existing templates (ഫലകം:Header2, Hyphenated word start/end and their redirects Hws/Hwe); none is missing. ml.wikisource renders the older page anchor <span id=\"pr_page\">[ <a class=\"prp-pagequality-N\" ...>n</a> ]</span>: the cleaner reads each page's level from that class and drops the bracketed page number. Page titles use ASCII digits (താൾ:Ramarajabahadoor.djvu/4). Licence review: the work page has no licence template; the scan's file page on ml.wikisource (പ്രമാണം:Ramarajabahadoor.djvu, not on Commons) carries {{PD-India}} and calls it C. V. Raman Pillai's third historical novel (1918); he died on 1922-03-21 (Wikidata Q5006916).",
+      "license_evidence": {
+        "url": "https://ml.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ml.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ml, which contains the marker); the underlying work is public domain in India (C. V. Raman Pillai died in 1922). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "ml-wikisource-ramarajabahadoor-ch14-18-ccbysa",
+      "title": "രാമരാജാബഹദൂർ (Ramarajabahadoor) — C. V. Raman Pillai — chapters 14–18",
+      "language": "ml",
+      "script": "Malayalam",
+      "source_url": "https://ml.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B4%B0%E0%B4%BE%E0%B4%AE%E0%B4%B0%E0%B4%BE%E0%B4%9C%E0%B4%BE%E0%B4%AC%E0%B4%B9%E0%B4%A6%E0%B5%82%E0%B5%BC&text=%3Cpages%20index%3D%22Ramarajabahadoor.djvu%22%20from%3D151%20to%3D207%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Malayalam Wikisource contributors, രാമരാജാബഹദൂർ (Ramarajabahadoor) by C. V. Raman Pillai, chapters 14–18, transcribed from the scan Ramarajabahadoor.djvu; via ml.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts in 1918 and 1919 and C. V. Raman Pillai died in 1922; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "db88c28a02b99d6a483874ea267bc145c0b295fd21e4cc886596f0e4ee5dba11",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:09Z",
+      "notes": "Second Malayalam source: <pages index=\"Ramarajabahadoor.djvu\" from=151 to=207 /> = chapter 14 (from=151 to=161) through chapter 18 (from=194 to=207), whole pages. The novel is split in two because one render of all 433 story pages would be far larger than any render this corpus has used (the largest so far is Gitanjali's 178 pages). Estimated with the first source at about 230,000-265,000 characters (about 1,300 per page from the sampled page sizes, which vary widely); the report gives the real number. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2 and all 436 at level 3 or 4; the six pages sampled (4, 20, 60, 100, 140, 173) are proofread (level 3) or validated (4: page 4). Chapters 1-18 use only existing templates (ഫലകം:Header2, Hyphenated word start/end and their redirects Hws/Hwe); none is missing. ml.wikisource renders the older page anchor <span id=\"pr_page\">[ <a class=\"prp-pagequality-N\" ...>n</a> ]</span>: the cleaner reads each page's level from that class and drops the bracketed page number. Page titles use ASCII digits (താൾ:Ramarajabahadoor.djvu/4). Licence review: the work page has no licence template; the scan's file page on ml.wikisource (പ്രമാണം:Ramarajabahadoor.djvu, not on Commons) carries {{PD-India}} and calls it C. V. Raman Pillai's third historical novel (1918); he died on 1922-03-21 (Wikidata Q5006916).",
+      "license_evidence": {
+        "url": "https://ml.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ml.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ml, which contains the marker); the underlying work is public domain in India (C. V. Raman Pillai died in 1922). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "or-wikisource-chha-mana-atha-guntha-ccbysa",
+      "title": "ଛମାଣ ଆଠଗୁଣ୍ଠ (Chha Mana Atha Guntha) — Fakir Mohan Senapati — the whole novel",
+      "language": "or",
+      "script": "Odia",
+      "source_url": "https://or.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AC%9B%E0%AC%AE%E0%AC%BE%E0%AC%A3%20%E0%AC%86%E0%AC%A0%E0%AC%97%E0%AD%81%E0%AC%A3%E0%AD%8D%E0%AC%A0&text=%3Cpages%20index%3D%22Chha%20mana%20atha%20guntha.pdf%22%20from%3D4%20to%3D162%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Odia Wikisource contributors, ଛମାଣ ଆଠଗୁଣ୍ଠ (Chha Mana Atha Guntha) by Fakir Mohan Senapati, the whole novel, transcribed from the scan Chha mana atha guntha.pdf; via or.wikisource.org, licensed CC BY-SA 4.0. The scanned edition is dated 1903 and Fakir Mohan Senapati died in 1918; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "83850852f8f4e85dd38be7e4692a4775723a0bdc5e74c7dabf3711c8b2da9d70",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:12Z",
+      "notes": "The only Odia source. Renders <pages index=\"Chha mana atha guntha.pdf\" from=4 to=162 /> under the work page ଛମାଣ ଆଠଗୁଣ୍ଠ, whose 29 chapter subpages transclude exactly this range, whole pages: chapter 1 (ରାମଚନ୍ଦ୍ର ମଙ୍ଗରାଜ) = from=4 to=7, chapter 2 = from=8 to=11, chapter 28 (ଅପୂର୍ବ ମିଳନ) = from=157 to=159 and the closing chapter 29 (ଉପସଂହାର) = from=160 to=162, the scan's last page. Scan pages 1-3 (cover and front matter) are excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2; the six pages sampled (୪, ୧୦, ୪୦, ୮୦, ୧୨୦, ୧୬୨) are validated (level 4); the chapters use only existing templates (ଛାଞ୍ଚ:Larger, X-larger, Gap, Header, Center, C, Block center). or.wikisource's page anchor shows no proofreading level (as on gu), so the build asks the wiki's API for each page's level and refuses the source if it cannot confirm it. Page titles use Odia digits (ପୃଷ୍ଠା:Chha mana atha guntha.pdf/୪); the same numbers in ASCII digits (.../4) are redirects left over from a rename and are marked level 1, but the render transcludes the Odia-digit pages (checked: scan page 4 renders as .../୪ and opens with ପ୍ରଥମ ପରିଚ୍ଛେଦ, ରାମଚନ୍ଦ୍ର ମଙ୍ଗରାଜ). Licence review: the work page has no licence template; its Index page gives the year 1903; the scan's Commons file page credits the scan to Srujanika and NIT Rourkela and releases it under {{cc-zero}}; Fakir Mohan Senapati died on 1918-06-14 (Wikidata Q3635656). Estimated at about 190,000-215,000 characters (about 1,340 per page before running heads are removed): possibly just under the 200,000 target, in which case the slot is INSUFFICIENT with the real number and a second Odia work will be needed.",
+      "license_evidence": {
+        "url": "https://or.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for or.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.or, which contains the marker); the underlying work is public domain in India (Fakir Mohan Senapati died in 1918). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "as-wikisource-manomati-part1-ccbysa",
+      "title": "মনোমতী (Manomati) — Rajanikanta Bordoloi — part 1, chapters 1–19",
+      "language": "as",
+      "script": "Bengali-Assamese",
+      "source_url": "https://as.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%AE%E0%A6%A8%E0%A7%8B%E0%A6%AE%E0%A6%A4%E0%A7%80&text=%3Cpages%20index%3D%22Manomati.pdf%22%20from%3D5%20to%3D131%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Assamese Wikisource contributors, মনোমতী (Manomati) by Rajanikanta Bordoloi, part 1 (chapters 1–19), transcribed from the scan Manomati.pdf (6th edition, 1956); via as.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in 1900 and Rajanikanta Bordoloi died in 1940; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "9876b5c9940e0fd416b349cbdb5e8c6af77396cc18e0bc8067d3ab9e20fb4292",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:19Z",
+      "notes": "First of two Assamese sources (the novel's two parts). Renders <pages index=\"Manomati.pdf\" from=5 to=131 /> under the work page মনোমতী, whose chapter subpages transclude whole scan pages: part 1 chapter 1 = from=5 to=12, chapter 18 = from=114 to=116, chapter 19 = from=117 to=131; part 2 chapter 1 starts at from=133, so scan page 132 (between the parts) is excluded. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2; the six pages sampled (৫, ২০, ৬০, ১০০, ১৩১, ২০০) are validated (level 4). Part 1 chapters 1-15 use only existing templates (সাঁচ:Header, Center, Header/year, Gap, X-larger, Xxxx-larger, Block center, Blockcenter, Is number); the other chapters were not checked in advance, and any red link to a missing template is removed by the cleaner and listed in the inspection report. as.wikisource's page anchor carries data-page-name and data-page-quality, as on hi and bn. Page titles use Assamese digits (পৃষ্ঠা:Manomati.pdf/৫). Licence review: the work page carries {{PD-India}} and gives the year ১৯০০; the scan's Commons file page tags it {{PD-old-auto|1940}} and describes it as the 6th edition (চপলা সাহিত্য সদন, Shillong, 1956) from the Digital Library of India; Rajanikanta Bordoloi died on 1940-03-25 (Wikidata Q12015668). Because the scan is a posthumous edition, only the novel's chapters are used: the opening note আৰম্ভণ (pages 3-4), the closing সামৰণি (268-270), the notes টীকা (271-278) and the notice বিজ্ঞাপন (279-280) are excluded, since who wrote them is not established.",
+      "license_evidence": {
+        "url": "https://as.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for as.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.as, which contains the marker); the underlying work is public domain in India (Rajanikanta Bordoloi died in 1940). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "as-wikisource-manomati-part2-ccbysa",
+      "title": "মনোমতী (Manomati) — Rajanikanta Bordoloi — part 2, chapters 1–25",
+      "language": "as",
+      "script": "Bengali-Assamese",
+      "source_url": "https://as.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A6%AE%E0%A6%A8%E0%A7%8B%E0%A6%AE%E0%A6%A4%E0%A7%80&text=%3Cpages%20index%3D%22Manomati.pdf%22%20from%3D133%20to%3D267%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Assamese Wikisource contributors, মনোমতী (Manomati) by Rajanikanta Bordoloi, part 2 (chapters 1–25), transcribed from the scan Manomati.pdf (6th edition, 1956); via as.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in 1900 and Rajanikanta Bordoloi died in 1940; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "eb4b86b654019c7b0eac0a2e35c4926f611c22d2e9c4261db67a7d13ad90b763",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:23Z",
+      "notes": "Second Assamese source: <pages index=\"Manomati.pdf\" from=133 to=267 /> = part 2 chapter 1 (from=133 to=139) through chapter 25 (from=255 to=267), whole pages. Estimated with part 1 at about 220,000-255,000 characters (about 960 per page from the sampled page sizes); the report gives the real number. Checked on 2026-09-24: the wiki's search finds no page of this scan at level 1 or 2; the six pages sampled (৫, ২০, ৬০, ১০০, ১৩১, ২০০) are validated (level 4). Part 1 chapters 1-15 use only existing templates (সাঁচ:Header, Center, Header/year, Gap, X-larger, Xxxx-larger, Block center, Blockcenter, Is number); the other chapters were not checked in advance, and any red link to a missing template is removed by the cleaner and listed in the inspection report. as.wikisource's page anchor carries data-page-name and data-page-quality, as on hi and bn. Page titles use Assamese digits (পৃষ্ঠা:Manomati.pdf/৫). Licence review: the work page carries {{PD-India}} and gives the year ১৯০০; the scan's Commons file page tags it {{PD-old-auto|1940}} and describes it as the 6th edition (চপলা সাহিত্য সদন, Shillong, 1956) from the Digital Library of India; Rajanikanta Bordoloi died on 1940-03-25 (Wikidata Q12015668). Because the scan is a posthumous edition, only the novel's chapters are used: the opening note আৰম্ভণ (pages 3-4), the closing সামৰণি (268-270), the notes টীকা (271-278) and the notice বিজ্ঞাপন (279-280) are excluded, since who wrote them is not established.",
+      "license_evidence": {
+        "url": "https://as.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for as.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.as, which contains the marker); the underlying work is public domain in India (Rajanikanta Bordoloi died in 1940). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "pa-wikisource-satwant-kaur-p007-164-ccbysa",
+      "title": "ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) — Bhai Vir Singh — scan pages 7–164",
+      "language": "pa",
+      "script": "Gurmukhi",
+      "source_url": "https://pa.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0&text=%3Cpages%20index%3D%22%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0.pdf%22%20from%3D7%20to%3D164%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Punjabi Wikisource contributors, ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) by Bhai Vir Singh, scan pages 7–164, transcribed from the scan ਸਤਵੰਤ ਕੌਰ.pdf (1973 printing, Khalsa Samachar, Amritsar); via pa.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts, in 1900 and 1927, and Bhai Vir Singh died in 1957; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "0fa06c574b20507761310c947b75af6fa3164839ff7d75280aacf0d606e72bde",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:26Z",
+      "notes": "First of two Punjabi sources (together the whole novel). Renders <pages index=\"ਸਤਵੰਤ ਕੌਰ.pdf\" from=7 to=164 />. pa.wikisource has no work page for this scan (its index says Transclusion=no and the page ਸਤਵੰਤ ਕੌਰ does not exist), so the range is rendered straight from the index, under that title. The novel starts on scan page 7 with chapter 1 (੧. ਕਾਂਡ।, printed page 1); scan pages 1-4 are blank, 5 is the title page and 6 the imprint. The wiki's search finds ਕਾਂਡ (chapter) on 27 pages, from 7 to 323; pages 7, 10 and 140 were read and open chapters 1, 2 and 16, and page 165, where the second source starts, is the 18th of them. Page 148 quotes a Hindustani (Urdu) history written in Gurmukhi; it is the only such page the search finds, and it stays. Checked on 2026-09-25: all 344 scan pages exist; the wiki's search finds none at level 1 or 2 and 336 at level 4 (validated); the other 8 (1-4 and 341-344) are empty. The templates used by ten pages sampled across both ranges (7, 40, 87, 140, 148, 165, 205, 257, 295, 336) all exist. pa.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (ਪੰਨਾ:ਸਤਵੰਤ ਕੌਰ.pdf/7); the printed page numbers sit in each page's footer and are not rendered. Licence review: the scan is a local file whose description page reads ਲੇਖਕ - ਭਾਈ ਵੀਰ ਸਿੰਘ (1872–1957) and tags it {{PD-India}}. Its title page (scan page 5) dates this printing March 1973 (ਸੰ: ਗ: ਨਾ: ੫੦੪) and names Khalsa Samachar, Amritsar; its 'All rights reserved by Bhai Vir Singh Sahitya Sadan' line states the rights of that time, which have since expired. The novel appeared in two parts, in 1900 and 1927, in the author's lifetime, and Bhai Vir Singh died on 1957-06-10 (Wikidata Q3631340), so the text has been public domain in India since 2018 (life + 60 years). Only the novel is used; the publisher's own 1973 matter is excluded: the title page and imprint (scan pages 5-6) and the advertisements that follow the novel's closing -ਇਤਿ- on page 337 and fill pages 338-340.",
+      "license_evidence": {
+        "url": "https://pa.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for pa.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.pa, which contains the marker); the underlying work is public domain in India (Bhai Vir Singh died in 1957). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "pa-wikisource-satwant-kaur-p165-336-ccbysa",
+      "title": "ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) — Bhai Vir Singh — scan pages 165–336",
+      "language": "pa",
+      "script": "Gurmukhi",
+      "source_url": "https://pa.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0&text=%3Cpages%20index%3D%22%E0%A8%B8%E0%A8%A4%E0%A8%B5%E0%A9%B0%E0%A8%A4%20%E0%A8%95%E0%A9%8C%E0%A8%B0.pdf%22%20from%3D165%20to%3D336%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Punjabi Wikisource contributors, ਸਤਵੰਤ ਕੌਰ (Satwant Kaur) by Bhai Vir Singh, scan pages 165–336, transcribed from the scan ਸਤਵੰਤ ਕੌਰ.pdf (1973 printing, Khalsa Samachar, Amritsar); via pa.wikisource.org, licensed CC BY-SA 4.0. The novel was first published in two parts, in 1900 and 1927, and Bhai Vir Singh died in 1957; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "4d9384360088fdfa3cfc743aba77a1b165b71c7ee49496c5eeeec38bc3e90a36",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:31Z",
+      "notes": "Second of two Punjabi sources. Renders <pages index=\"ਸਤਵੰਤ ਕੌਰ.pdf\" from=165 to=336 /> (rendered from the index, as the first source is). It continues the first source at scan page 165 and ends on page 336: page 337 holds the novel's last paragraph, its closing -ਇਤਿ- and then the publisher's advertisement, and a range cannot take half a page, so that last paragraph is left out. Checked on 2026-09-25: all 344 scan pages exist; the wiki's search finds none at level 1 or 2 and 336 at level 4 (validated); the other 8 (1-4 and 341-344) are empty. The templates used by ten pages sampled across both ranges (7, 40, 87, 140, 148, 165, 205, 257, 295, 336) all exist. pa.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (ਪੰਨਾ:ਸਤਵੰਤ ਕੌਰ.pdf/7); the printed page numbers sit in each page's footer and are not rendered. Licence review: the scan is a local file whose description page reads ਲੇਖਕ - ਭਾਈ ਵੀਰ ਸਿੰਘ (1872–1957) and tags it {{PD-India}}. Its title page (scan page 5) dates this printing March 1973 (ਸੰ: ਗ: ਨਾ: ੫੦੪) and names Khalsa Samachar, Amritsar; its 'All rights reserved by Bhai Vir Singh Sahitya Sadan' line states the rights of that time, which have since expired. The novel appeared in two parts, in 1900 and 1927, in the author's lifetime, and Bhai Vir Singh died on 1957-06-10 (Wikidata Q3631340), so the text has been public domain in India since 2018 (life + 60 years). Only the novel is used; the publisher's own 1973 matter is excluded: the title page and imprint (scan pages 5-6) and the advertisements that follow the novel's closing -ਇਤਿ- on page 337 and fill pages 338-340.",
+      "license_evidence": {
+        "url": "https://pa.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for pa.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.pa, which contains the marker); the underlying work is public domain in India (Bhai Vir Singh died in 1957). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "kn-wikisource-ranganna-ch01-15-ccbysa",
+      "title": "ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) — M. R. Srinivasamurthy — chapters 1–15",
+      "language": "kn",
+      "script": "Kannada",
+      "source_url": "https://kn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81&text=%3Cpages%20index%3D%22%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81.pdf%22%20from%3D16%20to%3D178%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Kannada Wikisource contributors, ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) by M. R. Srinivasamurthy, chapters 1–15, transcribed from the scan ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf (Satyashodhana Prakatana Mandira, 1951); via kn.wikisource.org, licensed CC BY-SA 4.0. This edition was published in 1951 and M. R. Srinivasamurthy died in 1953; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "31ede1440a464a19ba798b0cc9fb22d2466cf54c93bdae4033e41b2f824d2cdb",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:34Z",
+      "notes": "First of two Kannada sources (together the whole book). Renders <pages index=\"ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf\" from=16 to=178 /> under the work page ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು, which transcludes the text as include=16-343 after its front matter (scan pages 6-15: title pages, and the contents on 14-15), all excluded here. The contents (scan pages 14-15) list 30 chapters with printed page numbers; printed page = scan page - 15 at both ends of the book (printed 1 = scan 16; chapter 30 opens at the top of scan page 342, printed 327), so chapter 16 (ತಿಪ್ಪೇನಹಳ್ಳಿಯ ಮೇಷ್ಟು, printed 164) begins on scan page 179, where the second source starts. Checked on 2026-09-25: all 349 scan pages exist; the wiki's search finds none at level 1, 2 or 3 and 339 at level 4 (validated); the other 10 are empty pages outside both ranges. The work page transcludes every page of both ranges, and its template list names no missing template. kn.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use Kannada digits (ಪುಟ:ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf/೧೬). The running header ({{rh}}: title and page number) sits in each page's header and is not rendered. Licence review: the work page carries no licence tag and gives the year 1951; the scan's Commons file page tags it {{PD-scan}} and describes it as the 1951 edition (ಸತ್ಯಶೋಧನಾ ಪ್ರಕಟಣಾ ಮಂದಿರ) from the Osmania University Digital Library (Internet Archive dli.osmania.4124). M. R. Srinivasamurthy died in 1953 — on 1953-11-16 by Wikidata (Q15716827), on 16-9-1953 by the wiki's author page; the year agrees — so a book he published in 1951 has been public domain in India since 2014 (life + 60 years).",
+      "license_evidence": {
+        "url": "https://kn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for kn.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.kn, which contains the marker); the underlying work is public domain in India (M. R. Srinivasamurthy died in 1953). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "kn-wikisource-ranganna-ch16-30-ccbysa",
+      "title": "ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) — M. R. Srinivasamurthy — chapters 16–30",
+      "language": "kn",
+      "script": "Kannada",
+      "source_url": "https://kn.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81&text=%3Cpages%20index%3D%22%E0%B2%B0%E0%B2%82%E0%B2%97%E0%B2%A3%E0%B3%8D%E0%B2%A3%E0%B2%A8%20%E0%B2%95%E0%B2%A8%E0%B2%B8%E0%B2%BF%E0%B2%A8%20%E0%B2%A6%E0%B2%BF%E0%B2%A8%E0%B2%97%E0%B2%B3%E0%B3%81.pdf%22%20from%3D179%20to%3D343%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Kannada Wikisource contributors, ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (Ranganna's Dream Days) by M. R. Srinivasamurthy, chapters 16–30, transcribed from the scan ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf (Satyashodhana Prakatana Mandira, 1951); via kn.wikisource.org, licensed CC BY-SA 4.0. This edition was published in 1951 and M. R. Srinivasamurthy died in 1953; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "1c18873756981becbf3c3a69adf56666ea66f6f17f638870e676cc20ea2578d5",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:39Z",
+      "notes": "Second of two Kannada sources. Renders <pages index=\"ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf\" from=179 to=343 /> under the work page ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು. The contents (scan pages 14-15) list 30 chapters with printed page numbers; printed page = scan page - 15 at both ends of the book (printed 1 = scan 16; chapter 30 opens at the top of scan page 342, printed 327), so chapter 16 (ತಿಪ್ಪೇನಹಳ್ಳಿಯ ಮೇಷ್ಟು, printed 164) begins on scan page 179, where the second source starts. Scan page 343 (printed 328) is the novel's last page and ends with a rule; pages 344-349 are outside the work page's include=16-343 and are excluded. Checked on 2026-09-25: all 349 scan pages exist; the wiki's search finds none at level 1, 2 or 3 and 339 at level 4 (validated); the other 10 are empty pages outside both ranges. The work page transcludes every page of both ranges, and its template list names no missing template. kn.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use Kannada digits (ಪುಟ:ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು.pdf/೧೬). The running header ({{rh}}: title and page number) sits in each page's header and is not rendered. Licence review: the work page carries no licence tag and gives the year 1951; the scan's Commons file page tags it {{PD-scan}} and describes it as the 1951 edition (ಸತ್ಯಶೋಧನಾ ಪ್ರಕಟಣಾ ಮಂದಿರ) from the Osmania University Digital Library (Internet Archive dli.osmania.4124). M. R. Srinivasamurthy died in 1953 — on 1953-11-16 by Wikidata (Q15716827), on 16-9-1953 by the wiki's author page; the year agrees — so a book he published in 1951 has been public domain in India since 2014 (life + 60 years).",
+      "license_evidence": {
+        "url": "https://kn.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for kn.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.kn, which contains the marker); the underlying work is public domain in India (M. R. Srinivasamurthy died in 1953). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa",
+      "title": "రాజశేఖర చరిత్రము (Rajasekhara Charitramu) — Kandukuri Veeresalingam — chapters 1–7",
+      "language": "te",
+      "script": "Telugu",
+      "source_url": "https://te.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B0%B0%E0%B0%BE%E0%B0%9C%E0%B0%B6%E0%B1%87%E0%B0%96%E0%B0%B0%20%E0%B0%9A%E0%B0%B0%E0%B0%BF%E0%B0%A4%E0%B1%8D%E0%B0%B0%E0%B0%AE%E0%B1%81%20%28%E0%B0%8E%E0%B0%AE%E0%B1%86%E0%B0%B8%E0%B1%8D%E0%B0%95%E0%B1%8B%29&text=%3Cpages%20index%3D%22Rajasekhara%20Charitramu%20-%20Kandukuri%20Veeresalingam.pdf%22%20from%3D15%20to%3D104%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Telugu Wikisource contributors, రాజశేఖర చరిత్రము (Rajasekhara Charitramu) by Kandukuri Veeresalingam, chapters 1–7, transcribed from the scan Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf (1987 reprint); via te.wikisource.org, licensed CC BY-SA 4.0. The novel was published in the nineteenth century and Kandukuri Veeresalingam died in 1919; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "31d455d7192f365db6b623c5221849bad9b5a55e1df3b4abfcb1c5333744fbd7",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:43Z",
+      "notes": "First of two Telugu sources (together the whole novel). Renders <pages index=\"Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf\" from=15 to=104 /> under the work page రాజశేఖర చరిత్రము (ఎమెస్కో), whose 15 chapter subpages transclude whole scan pages: chapter 1 (మొదటి ప్రకరణము) = from=15 to=25, chapter 8 (ఎనిమిదవ ప్రకరణము) = from=105 to=120, chapter 15 (పదునేనవ ప్రకరణము) = from=209 to=217. Chapter 8 starts on page 105 without a section, so this range ends on a chapter boundary. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1 or 2 and 216 of its 220 pages at level 4 (validated). The templates of chapters 1, 8 and 15 all exist. te.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (పుట:Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf/15). Licence review: the work page carries {{PD-old}} and the year 1987 (the reprint's); the scan's Commons file page tags it {{PD-India}} and names the author. Kandukuri Veeresalingam died on 1919-05-27 (Wikidata Q6361647), so the novel has been public domain in India since 1980 (life + 60 years). Scan pages 1-14 are the reprint's front matter, which the work page itself transcludes; whoever wrote it, it is excluded, and so are pages 218-220 after the last chapter.",
+      "license_evidence": {
+        "url": "https://te.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for te.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.te, which contains the marker); the underlying work is public domain in India (Kandukuri Veeresalingam died in 1919). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa",
+      "title": "రాజశేఖర చరిత్రము (Rajasekhara Charitramu) — Kandukuri Veeresalingam — chapters 8–15",
+      "language": "te",
+      "script": "Telugu",
+      "source_url": "https://te.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%B0%B0%E0%B0%BE%E0%B0%9C%E0%B0%B6%E0%B1%87%E0%B0%96%E0%B0%B0%20%E0%B0%9A%E0%B0%B0%E0%B0%BF%E0%B0%A4%E0%B1%8D%E0%B0%B0%E0%B0%AE%E0%B1%81%20%28%E0%B0%8E%E0%B0%AE%E0%B1%86%E0%B0%B8%E0%B1%8D%E0%B0%95%E0%B1%8B%29&text=%3Cpages%20index%3D%22Rajasekhara%20Charitramu%20-%20Kandukuri%20Veeresalingam.pdf%22%20from%3D105%20to%3D217%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Telugu Wikisource contributors, రాజశేఖర చరిత్రము (Rajasekhara Charitramu) by Kandukuri Veeresalingam, chapters 8–15, transcribed from the scan Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf (1987 reprint); via te.wikisource.org, licensed CC BY-SA 4.0. The novel was published in the nineteenth century and Kandukuri Veeresalingam died in 1919; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "e6bd442e01d58e8ca86b0888873f659eb9cfbb96fb1d68296c8045104792cb80",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:46Z",
+      "notes": "Second of two Telugu sources. Renders <pages index=\"Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf\" from=105 to=217 /> under the work page రాజశేఖర చరిత్రము (ఎమెస్కో), whose 15 chapter subpages transclude whole scan pages: chapter 1 (మొదటి ప్రకరణము) = from=15 to=25, chapter 8 (ఎనిమిదవ ప్రకరణము) = from=105 to=120, chapter 15 (పదునేనవ ప్రకరణము) = from=209 to=217. Page 217 ends the novel with a rule; it also begins with a stray U+FEFF, which the cleaner removes and counts. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1 or 2 and 216 of its 220 pages at level 4 (validated). The templates of chapters 1, 8 and 15 all exist. te.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (పుట:Rajasekhara Charitramu - Kandukuri Veeresalingam.pdf/15). Licence review: the work page carries {{PD-old}} and the year 1987 (the reprint's); the scan's Commons file page tags it {{PD-India}} and names the author. Kandukuri Veeresalingam died on 1919-05-27 (Wikidata Q6361647), so the novel has been public domain in India since 1980 (life + 60 years). Scan pages 1-14 are the reprint's front matter, which the work page itself transcludes; whoever wrote it, it is excluded, and so are pages 218-220 after the last chapter.",
+      "license_evidence": {
+        "url": "https://te.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for te.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.te, which contains the marker); the underlying work is public domain in India (Kandukuri Veeresalingam died in 1919). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "ta-wikisource-en-charithram-p022-101-ccbysa",
+      "title": "என் சரித்திரம் (En Charithram) — U. V. Swaminatha Iyer — scan pages 22–101",
+      "language": "ta",
+      "script": "Tamil",
+      "source_url": "https://ta.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D&text=%3Cpages%20index%3D%22%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D%2C%20%E0%AE%89%E0%AE%B5%E0%AF%87%E0%AE%9A%E0%AE%BE%2C%201990.pdf%22%20from%3D22%20to%3D101%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Tamil Wikisource contributors, என் சரித்திரம் (En Charithram) by U. V. Swaminatha Iyer, scan pages 22–101, transcribed from the scan என் சரித்திரம், உவேசா, 1990.pdf (U. V. Swaminatha Iyer Library, Chennai, 1990); via ta.wikisource.org, licensed CC BY-SA 4.0. U. V. Swaminatha Iyer died in 1942 and the autobiography was first published as a book in 1950; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "4a8b61e92567efed06f8895662a5aab5e22b693716de5824e168d7b24aa98d02",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:49Z",
+      "notes": "First of two Tamil sources: together, scan pages 22-189 hold chapters 1-27 of the autobiography in full (of more than 100) and the opening of chapter 28. Renders <pages index=\"என் சரித்திரம், உவேசா, 1990.pdf\" from=22 to=101 /> under the work page என் சரித்திரம். Its chapters begin mid-page, so each chapter subpage transcludes one section: chapter 1 (எங்கள் ஊர்) = from=22 to=29 section 1, chapter 14 = from=96 to=102 section 14, chapter 15 = from=102 to=109 section 15, chapter 27 = from=182 to=189 section 27, and chapter 28 begins on page 189. Rendered as whole pages without section limits, every section of every page appears once, in order. This source therefore ends inside chapter 14, and the second continues it from page 102. Scan page 22 opens the text: the title என் சரித்திரம், the author's name and அத்தியாயம் 1. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1, 2 or 4 and 803 of its 804 pages at level 3 (proofread, not yet validated; the gate accepts level 3). The templates of chapters 1, 14 and 27 all exist. The chapters end with {{Reflist}}; the renderer's cleaner drops footnote markers and footnote lists, so no footnote text reaches the corpus. ta.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (பக்கம்:என் சரித்திரம், உவேசா, 1990.pdf/22). Licence review: the work page carries {{PD-India/ta}}; the scan's Commons file page tags it {{PD-India}} and describes it as the U. V. Swaminatha Iyer Library's 1990 critical edition (செம்பதிப்பு) of the 1950 book, from the Tamil Nadu government's Tamil Digital Library (TVA_BOK_0024109); its 'permission' line (a publication in 1887) is wrong and is not relied on. U. V. Swaminatha Iyer died on 1942-04-28 (Wikidata Q7863546): counted from his death (life + 60 years) or, taking the 1950 book as the first publication, 60 years from 1950, the text is public domain in India either way. Scan pages 1-21 are excluded: title pages, the 1990 publisher's note (பதிப்பாளர் குறிப்பு), the preface (முகவுரை), a biographical summary (ஐயரவர்களின் வாழ்க்கை வரலாற்றுச் சுருக்கம்) and the contents (18-21), none of it established as the author's.",
+      "license_evidence": {
+        "url": "https://ta.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ta.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ta, which contains the marker); the underlying work is public domain in India (U. V. Swaminatha Iyer died in 1942). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "ta-wikisource-en-charithram-p102-189-ccbysa",
+      "title": "என் சரித்திரம் (En Charithram) — U. V. Swaminatha Iyer — scan pages 102–189",
+      "language": "ta",
+      "script": "Tamil",
+      "source_url": "https://ta.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D&text=%3Cpages%20index%3D%22%E0%AE%8E%E0%AE%A9%E0%AF%8D%20%E0%AE%9A%E0%AE%B0%E0%AE%BF%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%B0%E0%AE%AE%E0%AF%8D%2C%20%E0%AE%89%E0%AE%B5%E0%AF%87%E0%AE%9A%E0%AE%BE%2C%201990.pdf%22%20from%3D102%20to%3D189%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Tamil Wikisource contributors, என் சரித்திரம் (En Charithram) by U. V. Swaminatha Iyer, scan pages 102–189, transcribed from the scan என் சரித்திரம், உவேசா, 1990.pdf (U. V. Swaminatha Iyer Library, Chennai, 1990); via ta.wikisource.org, licensed CC BY-SA 4.0. U. V. Swaminatha Iyer died in 1942 and the autobiography was first published as a book in 1950; the work is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "50ef1de96f98473c5d81d243324d54fdfacec1746a34918456f3269466d14dea",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:53Z",
+      "notes": "Second of two Tamil sources. Renders <pages index=\"என் சரித்திரம், உவேசா, 1990.pdf\" from=102 to=189 /> under the work page என் சரித்திரம். Its chapters begin mid-page, so each chapter subpage transcludes one section: chapter 1 (எங்கள் ஊர்) = from=22 to=29 section 1, chapter 14 = from=96 to=102 section 14, chapter 15 = from=102 to=109 section 15, chapter 27 = from=182 to=189 section 27, and chapter 28 begins on page 189. Rendered as whole pages without section limits, every section of every page appears once, in order. This source therefore starts with the end of chapter 14 and ends with the opening lines of chapter 28 on page 189. Checked on 2026-09-25: the wiki's search finds no page of this scan at level 1, 2 or 4 and 803 of its 804 pages at level 3 (proofread, not yet validated; the gate accepts level 3). The templates of chapters 1, 14 and 27 all exist. The chapters end with {{Reflist}}; the renderer's cleaner drops footnote markers and footnote lists, so no footnote text reaches the corpus. ta.wikisource's page anchor carries data-page-name and data-page-quality, as on hi, bn and as; page titles use ASCII digits (பக்கம்:என் சரித்திரம், உவேசா, 1990.pdf/22). Licence review: the work page carries {{PD-India/ta}}; the scan's Commons file page tags it {{PD-India}} and describes it as the U. V. Swaminatha Iyer Library's 1990 critical edition (செம்பதிப்பு) of the 1950 book, from the Tamil Nadu government's Tamil Digital Library (TVA_BOK_0024109); its 'permission' line (a publication in 1887) is wrong and is not relied on. U. V. Swaminatha Iyer died on 1942-04-28 (Wikidata Q7863546): counted from his death (life + 60 years) or, taking the 1950 book as the first publication, 60 years from 1950, the text is public domain in India either way. Scan pages 1-21 are excluded: title pages, the 1990 publisher's note (பதிப்பாளர் குறிப்பு), the preface (முகவுரை), a biographical summary (ஐயரவர்களின் வாழ்க்கை வரலாற்றுச் சுருக்கம்) and the contents (18-21), none of it established as the author's.",
+      "license_evidence": {
+        "url": "https://ta.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ta.wikisource.org, fetched separately from the rendered payload (which carries no licence notice). It proves the wiki publishes its transcriptions under CC BY-SA 4.0 (its rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ta, which contains the marker); the underlying work is public domain in India (U. V. Swaminatha Iyer died in 1942). Page-level review of the edition's own licence tag is still required; see the source notes."
+      }
+    },
+    {
+      "id": "mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa",
+      "title": "स्फुट गोष्टी भाग तिसरा — Hari Narayan Apte — scan pages 13–124",
+      "language": "mr",
+      "script": "Devanagari",
+      "source_url": "https://mr.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=%E0%A4%B8%E0%A5%8D%E0%A4%AB%E0%A5%81%E0%A4%9F%20%E0%A4%97%E0%A5%8B%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A5%80%20%E0%A4%AD%E0%A4%BE%E0%A4%97%20%E0%A4%A4%E0%A4%BF%E0%A4%B8%E0%A4%B0%E0%A4%BE&text=%3Cpages%20index%3D%22%E0%A4%B8%E0%A5%8D%E0%A4%AB%E0%A5%81%E0%A4%9F%20%E0%A4%97%E0%A5%8B%E0%A4%B7%E0%A5%8D%E0%A4%9F%E0%A5%80%20%E0%A4%AD%E0%A4%BE%E0%A4%97%20%E0%A4%A4%E0%A4%BF%E0%A4%B8%E0%A4%B0%E0%A4%BE.pdf%22%20from%3D13%20to%3D124%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Marathi Wikisource contributors, स्फुट गोष्टी भाग तिसरा by Hari Narayan Apte, scan pages 13–124 from the 1928 Pune edition published by Anant Vinayak Patwardhan; transcription licensed CC BY-SA 4.0. The 1928 edition is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "e1e7dba1bfe55b7a04ef68750b11492b6a84af32d3175f04570613b89b679896",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:16:56Z",
+      "notes": "Renders <pages index=\"स्फुट गोष्टी भाग तिसरा.pdf\" from=13 to=124 /> under the work page स्फुट गोष्टी भाग तिसरा. The index identifies Hari Narayan Apte as author, publisher Anant Vinayak Patwardhan (Pune), and the scanned edition as 1928; the work page header independently identifies Apte and 1928. Apte died 1919-03-03 (Wikidata Q55687, P570), and the posthumous 1928 edition is beyond India's 60-year term. Commons File:स्फुट गोष्टी भाग तिसरा.pdf carries a Public domain tag. Physical pages 1-12 are excluded: title/front matter, contents at scan page 3, and the publisher's short author biography at scan page 5; the first story begins at page 13. The selected pages 13-124 are all level 3 (proofread) as of 2026-09-25; page 125 is level 0 (no text) and is excluded. mr page titles use Devanagari digits, e.g. पान:स्फुट गोष्टी भाग तिसरा.pdf/१३. EXP-022 confirms all 112 pages are level 3, the rendered anchors and template checks pass, and the inspection reports no flags.",
+      "license_evidence": {
+        "url": "https://mr.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for mr.wikisource.org: its live rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.mr, establishing CC BY-SA 4.0 for the wiki transcription. The scanned edition is separately tagged Public domain on Commons; the scanned 1928 edition is identified as a story collection by Apte in the Index and work-page metadata; its first-publication year is posthumous but more than 60 years before 2026, so the underlying edition is public domain in India."
+      }
+    },
+    {
+      "id": "ur-wikisource-ram-charcha-premchand-p7-170-ccbysa",
+      "title": "رام چرچا (Ram Charcha) — Munshi Premchand — scan pages 7–170",
+      "language": "ur",
+      "script": "Perso-Arabic",
+      "source_url": "https://ur.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand&text=%3Cpages%20index%3D%22Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand.pdf%22%20from%3D7%20to%3D170%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Urdu Wikisource contributors, رام چرچا (Ram Charcha) by Munshi Premchand, scan pages 7–170 of the 1929 Lahore edition; transcription licensed CC BY-SA 4.0. The original 1929 edition is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "fb22db9983ef7bb861a64ded75e6f7a43d7590bcc009fac4d4c01b5f35a56c53",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:17:05Z",
+      "notes": "Part part1 of a single sequential work. Renders <pages index=\"Ram Charcha in Urdu by Munshi Premchand.pdf\" from=7 to=170 />. Page-quality review on 2026-09-25: 133 pages at level 3 and 31 at level 4; no level 0–2 or unknown pages in this range. The index metadata leaves Author/Year blank, so attribution and date are taken from the scan's own physical title page 1: it names رام چرچا, منشی پریم چند جی بی۔اے, Lajpat Rai & Sons Book Sellers (Lahore), Gilani Press, and 1929. The Commons file page describes the same edition as dated 1929 and tags it Public domain. Premchand died 1936-10-08 (Wikidata Q174152, P570), so the work was published in his lifetime and is public domain by term in India. Physical pages 1-6 (title, preface and contents) are excluded from the corpus; page 7 begins the text (بال کانڈ, پیدائش). Page 308 is excluded because its scan-page quality is level 1 (not proofread); page 309 resumes the text. Pages 343/back matter are excluded. All included pages are level 3 or 4 as of 2026-09-25. Urdu page titles use ASCII digits, e.g. صفحہ:Ram Charcha in Urdu by Munshi Premchand.pdf/7. The Urdu Template namespace is سانچہ. EXP-022 confirms the rendered anchors and reports no remaining flags. It counts removal of the malformed page-46 xx-larger wrapper and the page-62 scan-inconsistent 1004, absent from the scan image, while preserving heading and prose; U+200E bidi formatting controls are also removed and counted.",
+      "license_evidence": {
+        "url": "https://ur.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ur.wikisource.org: its live rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ur, establishing CC BY-SA 4.0 for the wiki transcription. The scanned edition is separately tagged Public domain on Commons; the scan title page explicitly credits Premchand and dates the edition to 1929, during his lifetime; the Commons file page separately tags the scan Public domain."
+      }
+    },
+    {
+      "id": "ur-wikisource-ram-charcha-premchand-p171-307-ccbysa",
+      "title": "رام چرچا (Ram Charcha) — Munshi Premchand — scan pages 171–307",
+      "language": "ur",
+      "script": "Perso-Arabic",
+      "source_url": "https://ur.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand&text=%3Cpages%20index%3D%22Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand.pdf%22%20from%3D171%20to%3D307%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Urdu Wikisource contributors, رام چرچا (Ram Charcha) by Munshi Premchand, scan pages 171–307 of the 1929 Lahore edition; transcription licensed CC BY-SA 4.0. The original 1929 edition is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "36cd31410d2b60da7f09b85e5d080f02b0037f5538606398a403053771080b18",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:17:10Z",
+      "notes": "Part part2 of a single sequential work. Renders <pages index=\"Ram Charcha in Urdu by Munshi Premchand.pdf\" from=171 to=307 />. Page-quality review on 2026-09-25: 132 pages at level 3 and 5 at level 4; no level 0–2 or unknown pages in this range. The index metadata leaves Author/Year blank, so attribution and date are taken from the scan's own physical title page 1: it names رام چرچا, منشی پریم چند جی بی۔اے, Lajpat Rai & Sons Book Sellers (Lahore), Gilani Press, and 1929. The Commons file page describes the same edition as dated 1929 and tags it Public domain. Premchand died 1936-10-08 (Wikidata Q174152, P570), so the work was published in his lifetime and is public domain by term in India. Physical pages 1-6 (title, preface and contents) are excluded from the corpus; page 7 begins the text (بال کانڈ, پیدائش). Page 308 is excluded because its scan-page quality is level 1 (not proofread); page 309 resumes the text. Pages 343/back matter are excluded. All included pages are level 3 or 4 as of 2026-09-25. Urdu page titles use ASCII digits, e.g. صفحہ:Ram Charcha in Urdu by Munshi Premchand.pdf/7. The Urdu Template namespace is سانچہ. EXP-022 confirms the rendered anchors and reports no remaining flags. The lone unmatched [[ on scan page 248 is removed while retaining the surrounding Urdu sentence; the U+200E bidi formatting control is removed and counted.",
+      "license_evidence": {
+        "url": "https://ur.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ur.wikisource.org: its live rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ur, establishing CC BY-SA 4.0 for the wiki transcription. The scanned edition is separately tagged Public domain on Commons; the scan title page explicitly credits Premchand and dates the edition to 1929, during his lifetime; the Commons file page separately tags the scan Public domain."
+      }
+    },
+    {
+      "id": "ur-wikisource-ram-charcha-premchand-p309-342-ccbysa",
+      "title": "رام چرچا (Ram Charcha) — Munshi Premchand — scan pages 309–342",
+      "language": "ur",
+      "script": "Perso-Arabic",
+      "source_url": "https://ur.wikisource.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&disablelimitreport=1&disableeditsection=1&contentmodel=wikitext&title=Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand&text=%3Cpages%20index%3D%22Ram%20Charcha%20in%20Urdu%20by%20Munshi%20Premchand.pdf%22%20from%3D309%20to%3D342%20%2F%3E",
+      "license_id": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Urdu Wikisource contributors, رام چرچا (Ram Charcha) by Munshi Premchand, scan pages 309–342 of the 1929 Lahore edition; transcription licensed CC BY-SA 4.0. The original 1929 edition is public domain in India.",
+      "max_chars": 400000,
+      "kind": "mediawiki-parse",
+      "sha256": "4835213b51c2c7507876d3459460dba8928752cf029e86bfa57650498fbc56c5",
+      "verified": true,
+      "retrieved_at": "2026-09-25T19:17:13Z",
+      "notes": "Part part3 of a single sequential work. Renders <pages index=\"Ram Charcha in Urdu by Munshi Premchand.pdf\" from=309 to=342 />. Page-quality review on 2026-09-25: 33 pages at level 3 and 1 at level 4; no level 0–2 or unknown pages in this range. The index metadata leaves Author/Year blank, so attribution and date are taken from the scan's own physical title page 1: it names رام چرچا, منشی پریم چند جی بی۔اے, Lajpat Rai & Sons Book Sellers (Lahore), Gilani Press, and 1929. The Commons file page describes the same edition as dated 1929 and tags it Public domain. Premchand died 1936-10-08 (Wikidata Q174152, P570), so the work was published in his lifetime and is public domain by term in India. Physical pages 1-6 (title, preface and contents) are excluded from the corpus; page 7 begins the text (بال کانڈ, پیدائش). Page 308 is excluded because its scan-page quality is level 1 (not proofread); page 309 resumes the text. Pages 343/back matter are excluded. All included pages are level 3 or 4 as of 2026-09-25. Urdu page titles use ASCII digits, e.g. صفحہ:Ram Charcha in Urdu by Munshi Premchand.pdf/7. The Urdu Template namespace is سانچہ. EXP-022 confirms the rendered anchors and reports no flags.",
+      "license_evidence": {
+        "url": "https://ur.wikisource.org/w/api.php?action=query&meta=siteinfo&siprop=rightsinfo&format=json",
+        "kind": "mediawiki-api",
+        "marker": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "scope": "site",
+        "note": "Site-level evidence for ur.wikisource.org: its live rightsinfo URL is https://creativecommons.org/licenses/by-sa/4.0/deed.ur, establishing CC BY-SA 4.0 for the wiki transcription. The scanned edition is separately tagged Public domain on Commons; the scan title page explicitly credits Premchand and dates the edition to 1929, during his lifetime; the Commons file page separately tags the scan Public domain."
       }
     }
   ],
-  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets."
+  "notes": "Every source keeps sha256=null and verified=false until it has actually been fetched and its licence has been proven by a recorded mechanism (a marker in the payload, or a declared licence-evidence endpoint whose result is stored verbatim). Nothing here is asserted from memory; a hash is never treated as proof of licensing. A language slot is only counted as EVALUATED when it has verified sources meeting the targets. 2026-09-24 (P004B): the first live fetch showed that neither Wikisource root declared in Stage A was the work: hi गोदान?action=raw is a localized #REDIRECT to गो-दान, and bn গীতাঞ্জলি is a Wikidata/SPARQL infocard. Both works are ProofreadPage scanned-book transcriptions whose chapter pages contain only a <pages/> tag, so ?action=raw can never return their text. They are now declared as mediawiki-parse sources rendered by api.php?action=parse: the 36 Godaan chapters (गो-दान/१…/३६, scan गो-दान.djvu; the legacy pages गो-दान/ भाग 16 and भाग 17 render a different scan, गोदान.pdf, duplicate this text and are deliberately not declared) and one Gitanjali source rendering scan pages 13–190 (poems 1–157). The replaced ids hi-wikisource-godan-ccbysa and bn-wikisource-gitanjali-ccbysa were never verified or pinned. 2026-09-24 (P004B, after EXP-009): added en-gutenberg-sadhana-pd (Tagore, Sadhana, Gutenberg ebook 6842) and bn-wikisource-devdas-ccbysa (Sarat Chandra Chattopadhyay, দেবদাস, scan pages 5–110) so that the en and bn slots can reach the 200,000-character target; neither has been fetched, verified or pinned yet. 2026-09-24 (P004B, EXP-010): all 40 sources verified; en, hi and bn EVALUATED; the 38 sources fetched before were byte-identical (37 as in EXP-009, Alice as in EXP-008). The inspection flagged literal markup in Godaan chapters 3, 4, 6, 7 and 9: 20 mistyped {{gap}} templates on 19 scan pages (पृष्ठ:गो-दान.djvu/२२, २५, ३५, ३६, ४०, ४१ (twice, incl. <gap>), ४३, ४४, ४५, ४६, ६१, ६३, ६४, ६७, ७०, ८३, ९०, ९५, ११६), located with the wiki's source search; the mediawiki-parse cleaner now removes that residue, so those five chapters' hashes change on the next fetch. One leftover piece of wiki markup ({{, }}, [[ or ]]) in Gitanjali was not yet located. 2026-09-24 (P004B, EXP-011): exactly Godaan chapters 3, 4, 6, 7 and 9 changed, the other 35 sources were byte-identical. The inspection's where-to-look section then located 8 red links to misspelt templates that do not exist (साँचा:GaP on पृष्ठ:गो-दान.djvu/२८; साँचा:GP twice on /२२५; साँचा:Gpa on /२२७ and /२२८; साँचा:GAP three times on /२६४ — chapters 3, 21, 24) and Gitanjali's stray '}}' after the date of poem 118 on পাতা:গীতাঞ্জলি - রবীন্দ্রনাথ ঠাকুর.djvu/১৪৮. The cleaner now removes both; the wikis' template lists (generator=templates for the 36 chapters, action=parse&prop=templates for Gitanjali and Devdas) show no other missing template. A stray Latin 'l' typed on पृष्ठ:गो-दान.djvu/८९ is a transcription typo and is kept. Nothing pinned. 2026-09-24 (P004B, EXP-012): all 40 sources verified. Exactly Godaan chapters 3, 21 and 24 and Gitanjali changed (chapter 3 lost exactly the 9 characters of 'साँचा:GaP', Gitanjali the 2 of '}}'); the other 36 were byte-identical to EXP-011. The inspection flagged nothing, and its repair counts match every located residue (20 mistyped {{gap}}, 8 links to missing templates, 1 stray '}}'). Nothing pinned; pinning follows (EXP-013). 2026-09-24 (P004B, EXP-013): pinned. The operator's --pin run (retrieved 2026-09-24T17:04-17:05Z) verified all 40 sources and wrote sha256, verified and retrieved_at for each; nothing else in this file changed. Every hash begins with the prefix EXP-012's inspection reported, and Alice's equals the hash of EXP-008/010/011. The pinned file was pushed from the operator's machine and carried onto this branch with git, never retyped. Re-verification (EXP-014): exit code 0, as reported by the operator, so no pinned source came back changed. Every later fetch compares against these pins. 2026-09-24 (P004B, first group of new languages): declared four more slots, each from a scanned book that is public domain in India — Gujarati: Saraswatichandra part 1, chapters 1-12 (Govardhanram Tripathi, died 1907; two range sources); Malayalam: Ramarajabahadoor, chapters 1-18 (C. V. Raman Pillai, died 1922; two range sources); Odia: Chha Mana Atha Guntha, the whole novel (Fakir Mohan Senapati, died 1918); Assamese: Manomati, parts 1 and 2 (Rajanikanta Bordoloi, died 1940). Before declaring, each was checked on its wiki for proofreading level, chapter boundaries, missing templates and the licence tags of the work and its scan (details in each source's notes). None is fetched or pinned yet. Three of these wikis render page anchors that do not show the proofreading level the way hi and bn do, which exposed a gap: a render without visible levels used to pass the proofreading gate unchecked. The build now asks the wiki's API for any level the render hides and refuses the source if it cannot be confirmed (runbook §3.1). 2026-09-24 (P004B, EXP-015): the operator's fetch verified all 47 sources and exited 0; every hash prefix of the 40 pinned sources equals its pin. The seven new sources: gu 152,483 + 145,145 = 297,628 characters; ml 288,952 + 110,216 = 399,168; or 203,451; as 114,802 + 126,223 = 241,025, all above the 200,000 target. Scan pages: gu 168 and or 159, all validated (their levels confirmed through the wiki's API, since those renders hide them); ml 144 + 57 proofread and 3 validated (read from the render); as 262 validated. Hash prefixes: gu c3fe2b7aa706, 91e688351017; ml beb122a5db78, db88c28a02b9; or 6a0339ff3ea5; as 9876b5c9940e, eb4b86b65401. The inspection flagged two things. or's scan page ୧୩୩ closes a verse block with <poem/> instead of </poem>, so MediaWiki printed the opening <poem> as text; the cleaner now removes such literal tags, which changes the Odia text by exactly 7 characters (the tag and one space). And ml has a 4-digit number ('1033', a Malayalam-era year in the text), which is genuine. Information only: Sanskrit verse in Devanagari inside the Gujarati novel, '--o--' chapter ornaments in the Odia text, the author's English gloss '(Non-intervention policy)' in Manomati. Manomati part 1 ends its sentences with U+09F7 (typed as the danda), part 2 with U+0964; the document splitter now also splits at U+09F7 and cuts an over-long sentence between words, never mid-word (document boundaries only: no source text or hash changes). The new sources are not pinned yet: the next fetch (EXP-016) must first show the fixed Odia text. 2026-09-25 (P004B, EXP-016): the operator's fetch verified all 47 sources and exited 0. The 40 pinned sources came back unchanged (every hash prefix equals its pin), and so did six of the seven new ones (every prefix equals EXP-015's). Only the Odia source changed, exactly as expected: 7 characters shorter (203,451 -> 203,444; hash prefix 6a0339ff3ea5 -> 83850852f8f4), its repairs line reads 'literal <poem> tag -> removed (1)', and it is no longer flagged. The only flag left is ml's genuine '1033'. The new document splitting (at U+09F7, and between words) moved document boundaries only (identical documents in as: 44 -> 46); no hash changed. Slot totals: gu 297,628, ml 399,168, or 203,444, as 241,025 characters. The seven new sources are pinned by the next run (EXP-017, --pin); their hashes are expected to begin with the EXP-016 prefixes: gu c3fe2b7aa706, 91e688351017; ml beb122a5db78, db88c28a02b9; or 83850852f8f4; as 9876b5c9940e, eb4b86b65401. 2026-09-25 (P004B, EXP-017): the operator's --pin run exited 0 and wrote the hashes of the seven new sources (retrieved 2026-09-24T18:59:41Z to 19:00:14Z). Each begins with the prefix EXP-016's inspection reported (gu c3fe2b7aa706, 91e688351017; ml beb122a5db78, db88c28a02b9; or 83850852f8f4; as 9876b5c9940e, eb4b86b65401). The 40 sources pinned before came back identical: their hashes are unchanged and only their retrieved_at moved, to this run's time. Nothing else in this file changed. The pinned file was pushed from the operator's machine (commit 283eb6f) and carried onto this branch with git, never retyped. All 47 declared sources are now pinned. Declared on 2026-09-25, after EXP-017, for the second group of new languages: eight range sources from four public-domain works on CC BY-SA 4.0 wikis, all unverified and without a hash until a run fetches them — pa ਸਤਵੰਤ ਕੌਰ (Bhai Vir Singh, died 1957), scan pages 7-164 and 165-336; kn ರಂಗಣ್ಣನ ಕನಸಿನ ದಿನಗಳು (M. R. Srinivasamurthy, died 1953), chapters 1-15 (scan pages 16-178) and 16-30 (179-343); te రాజశేఖర చరిత్రము (Kandukuri Veeresalingam, died 1919), chapters 1-7 (15-104) and 8-15 (105-217); ta என் சரித்திரம் (U. V. Swaminatha Iyer, died 1942), scan pages 22-101 and 102-189. Each source's notes record the checks and the licence review. The Template namespaces of the four wikis are in TEMPLATE_NAMESPACE. 2026-09-26 (P004B, EXP-021): live fetch verified all 59 sources and left the 55 existing pins unchanged; mr reached 1,667 documents / 256,165 corpus characters and ur 1,378 / 208,644. The first inspection flagged Urdu transcription residues, so none of the four new sources was pinned. 2026-09-26 (P004B, EXP-022): tested, narrowly scoped Urdu repairs removed the malformed heading wrapper, unmatched link delimiter, scan-inconsistent page-62 number and bidi marks without discarding prose. All 59 sources verified, the earlier 55 pins were unchanged, and all four new sources had no inspection flags. Coverage: mr 1,667 / 256,165; ur 1,378 / 208,621. EXP-023 is the fresh lock run; new fingerprints remain unset until that fetch is reviewed. 2026-09-26 (P004B, EXP-023): fresh --fetch --pin exit 0; all 59 sources verified and pinned. The four new fingerprints match EXP-022: mr e1e7dba1bfe5; ur fb22db9983ef, 36cd31410d2b and 4835213b51c2. The 55 earlier fingerprints are unchanged; the lock diff changed only sha256/verified/retrieved_at for the four new sources and retrieved_at for the 55 previous sources. Thirteen of 14 language slots are EVALUATED; hi-en remains NOT_EVALUATED because no lawful attributable source was identified. P004B is complete; no text was substituted or padded."
 }
