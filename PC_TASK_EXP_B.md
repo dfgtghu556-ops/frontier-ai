@@ -36,11 +36,9 @@
      each with `execution.status == "success"` and `results.best_bpb` present.
    - **d.** Cross-check: the six bpb values printed in `report.txt` exactly match the six `results.best_bpb` values in the `experiment.json` files.
 7. **Report to the founder** (this is your final output):
-   - the full table from `report.txt`
-   - the `DECISION` line
-   - the six per-cell bpb values with their record paths
-   - a `PASS`/`FAIL` line for each check 6a–6d
-   - then STOP and wait for the founder to wake up.
+   - First, write the report to a single easy-to-open file: copy `out\exp_b\EXP-029\runs\report.txt` to `out\exp_b\EXP-029\NIGHT_REPORT.txt`, then append to that same file a blank line and your four `6a`–`6d` PASS/FAIL lines (plus the six per-cell bpb values with their record paths). Writing files under `out\` is allowed — it is experiment output, not the repo.
+   - Then also print the same content in the terminal so the founder can read it.
+   - Then STOP and wait for the founder to wake up.
 
 ## Hard rules
 
