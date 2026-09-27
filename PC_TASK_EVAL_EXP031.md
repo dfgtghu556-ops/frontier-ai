@@ -19,6 +19,19 @@ the suite file plus the small result files. Expected time: roughly 30–45 minut
 
 ## Steps (in order — if any step fails, STOP and report; do not improvise fixes)
 
+0. **Preserve and set aside one known local change (added 2026-09-27 after the first attempt
+   stopped at step 1 on `M P004B-tokenizer-corpus-summary.html`).** That file is unrelated to
+   this task and no commit has changed it since `d5c4400`; the change exists only on this PC.
+   Keep a copy of it and its exact diff, then restore the committed version:
+   - `New-Item -ItemType Directory -Force out\eval\EXP-031\local-change-backup`
+   - `Copy-Item P004B-tokenizer-corpus-summary.html out\eval\EXP-031\local-change-backup\P004B-tokenizer-corpus-summary.local.html`
+   - `cmd /d /c "git diff --stat -- P004B-tokenizer-corpus-summary.html > out\eval\EXP-031\local-change-backup\diff-stat.txt 2>&1"`
+   - `cmd /d /c "git diff -- P004B-tokenizer-corpus-summary.html > out\eval\EXP-031\local-change-backup\full.diff 2>&1"`
+   - `cmd /d /c "git diff --ignore-all-space --ignore-cr-at-eol --stat -- P004B-tokenizer-corpus-summary.html > out\eval\EXP-031\local-change-backup\diff-stat-ignoring-whitespace.txt 2>&1"`
+   - Check that the copied `.local.html` file exists and is not empty. Only then run
+     `git checkout -- P004B-tokenizer-corpus-summary.html`.
+   - Do this ONLY for that one file. If `git status --short` then shows anything else, STOP
+     and report.
 1. **Check the code:** `Test-Path scripts\eval_report.py`, `Test-Path scripts\build_eval_suite.py`,
    `Test-Path scripts\publish_eval_results.py` must all print `True`. `git status --short` must print
    nothing. Confirm all 6 `...\best\model.pt` files exist. Otherwise STOP and report.
@@ -50,14 +63,15 @@ the suite file plus the small result files. Expected time: roughly 30–45 minut
      and STOP and report.
    - `git commit -m "EXP-031: protected suite frontier-heldout-v1 + harness v1 results for the 6 EXP-B models"`
    - `git push origin arena/01a0dc16-frontier-ai` (auth error → STOP and report; never force-push).
-7. **Report** — write to `out\eval\EXP-031\EVAL_SUMMARY.txt` and print: the step-2 line, the
+7. **Report** — write to `out\eval\EXP-031\EVAL_SUMMARY.txt` and print: the contents of the two
+   step-0 `diff-stat*.txt` files, then the step-2 line, the
    `OVERALL` line and `data identity` line of each of the 6 reports, the three `scores sha256`
    values of step 4 (original, rerun, EXP-028 artifact) with MATCH/MISMATCH, the full
    `compare.txt`, the commit hash and push result, and PASS/FAIL lines for steps 2–6. Then STOP.
 
 ## Hard rules
 
-- Do NOT edit any repository file by hand; do NOT change script arguments beyond those above.
+- Do NOT edit any repository file by hand (the step-0 restore of that one file is the only exception); do NOT change script arguments beyond those above.
 - Do NOT delete or modify anything under `out\experiments\EXP-028\` or `out\exp_b\EXP-029\`.
 - Commit only `evals/suites/frontier-heldout-v1/SUITE.json` and `evals/results/EXP-031/**`.
 - Push only to `arena/01a0dc16-frontier-ai`; never force-push; never create branches.
