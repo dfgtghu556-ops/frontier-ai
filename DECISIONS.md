@@ -1304,6 +1304,40 @@ LM comparison contradicts EXP-029.
 
 ---
 
+## D-041 — Frontier Tokenizer v1 is frozen at `tokenizers/frontier-tokenizer-v1` and loaded only through the verifying loader
+**Date:** 2026-09-27 · **Status:** accepted (founder approved the freeze plan 2026-09-27; EXP-030 complete)
+
+**Decision:** the D-040 tokenizer is frozen as **`frontier-tokenizer-v1`**: artifact
+`tokenizers/frontier-tokenizer-v1/tokenizer/bpe_python.json` (sha256 `303db552…`,
+dir_sha256 `b39afa08…`) with its identity record `FREEZE.json` (commit `fc7e8d8`). All
+downstream code loads it via `frontier_ai.tokenization.frozen.load_frontier_tokenizer()`,
+which refuses any copy whose files, raw-byte hashes, structure or golden-sample encodings
+differ from the record. Git stores `tokenizers/**` byte-exactly (`.gitattributes -text`).
+
+**Rationale:** before EXP-030 the selected tokenizer existed only on one PC under a
+git-ignored directory — a single point of failure, and no way for a consumer to prove it
+holds the tokenizer that won EXP-B. The freeze proves identity against EXP-029's own
+record (fingerprint + exact token counts on the same corpus), losslessness on all 34,011
+documents, and cross-platform determinism (Windows-recorded golden ids reproduce on Linux).
+
+**Change policy (mirrors D-035 for the corpus):** v1 is never edited in place. Any change
+— retraining, another vocabulary size, added special tokens, a different pre-tokenizer,
+or switching the canonical artifact to the `bpe_hf` implementation — requires founder
+approval, a new experiment, and produces `frontier-tokenizer-v2` with its own freeze
+record. `scripts/freeze_tokenizer.py` refuses to overwrite an existing freeze.
+
+**Consequences accepted:** (a) the canonical artifact is the `bpe_python` format (the
+`bpe_hf` equivalence proven in EXP-028 remains an engineering option for speed, adopted
+only through the change policy); (b) v1 has **no special tokens** — document-boundary /
+padding / chat tokens will be needed by later stages and must arrive as v2 (appended ids
+≥ 32768 keep every existing id unchanged); (c) a 1.27 MB JSON file is committed to git
+(acceptable; the `-text` rule applies only under `tokenizers/`).
+
+**Revisit when:** a stage needs special tokens, a faster encoder is required at training
+scale, or the corpus changes (then a new tokenizer experiment, not an edit).
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

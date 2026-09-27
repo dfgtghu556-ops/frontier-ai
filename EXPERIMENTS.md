@@ -798,7 +798,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-027 | FrontierCorpus v1 frozen-corpus pilot | complete | 2026-09-26 | build/check exit 0; 34,684 input docs → 34,011 post-stages; train 30,584 / held_out 3,427; 4 train + 1 held-out shards |
 | EXP-028 | **Production tokenizer sweep (EXP-A)** (MASTER_CONTEXT §37 step 5) | complete (PC run 2026-09-26) | 2026-09-26 | 20/20 cells gate PASS (15 grid + 5 supplement); mark_aware-32768 winner at 2.3054 held-out chars/token (+45 % over the 1.5971 baseline); hf-mark_aware ≡ py-mark_aware at every cell (cross-implementation validation); verified by scripts/summarize_sweep.py |
 | EXP-029 | **Tokenizer-vs-tokenizer small-model comparison (EXP-B)** (MASTER_CONTEXT §37 step 6) | complete 2026-09-27 — winner `mark_aware-32768` (mean bpb 1.4463 vs 1.5779); founder approved → **D-040** (Frontier Tokenizer v1) | 2026-09-26 | mark_aware-32768 vs mark_aware-16384 × 3 seeds, fixed small model (configs/exp_b.json), held-out bits-per-byte; pre-registered decision rule (lower mean bpb wins; tie -> smaller vocab); selection becomes D-040 (Frontier Tokenizer v1) after review |
-| EXP-030 | **Freeze Frontier Tokenizer v1** (D-040 follow-up; MASTER_CONTEXT §37 step 7) | in progress — harness delivered (sandbox), PC freeze pending | 2026-09-27 | copy the EXP-028 `py-mark_aware-32768` artifact into tracked `tokenizers/frontier-tokenizer-v1/` behind 4 gates (EXP-029 fingerprint, structure, exact EXP-029 token counts, losslessness) + golden samples for cross-platform determinism; hash-verified loader `load_frontier_tokenizer()` |
+| EXP-030 | **Freeze Frontier Tokenizer v1** (D-040 follow-up; MASTER_CONTEXT §37 step 7) | complete 2026-09-27 — frozen at `fc7e8d8`, gates A–D PASS on the PC, Linux reproduces hashes + golden ids → **D-041** | 2026-09-27 | copy the EXP-028 `py-mark_aware-32768` artifact into tracked `tokenizers/frontier-tokenizer-v1/` behind 4 gates (EXP-029 fingerprint, structure, exact EXP-029 token counts, losslessness) + golden samples for cross-platform determinism; hash-verified loader `load_frontier_tokenizer()` |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1584,3 +1584,26 @@ real-v1 test until the PC commit lands; the smoke-corpus fetch test). ruff clean
 becomes active — Linux must reproduce the byte hashes and the PC-recorded golden ids
 (cross-platform determinism). Then EXP-030 closes and **D-041** (tokenizer v1 frozen;
 change policy) is recorded.
+
+**Results (2026-09-27, completed — supersedes "PC freeze pending" above):** the PC agent
+ran `PC_TASK_TOKENIZER_FREEZE.md`; commit **`fc7e8d8`** adds exactly 2 files
+(`tokenizers/frontier-tokenizer-v1/FREEZE.json`, `tokenizer/bpe_python.json`).
+* Gates on the PC (Windows 10, Python 3.13.15), from `FREEZE.json`:
+  **A** directory fingerprint `b39afa08fa86b0d1…` == EXP-029 record — PASS;
+  **B** vocab 32,768 / 32,512 merges / `mark_aware` / no special tokens — PASS;
+  **C** train 1,608,987 == 1,608,987 and held-out 184,233 == 184,233 tokens on corpus
+  `6c43d12695f2ffaa…` (same as EXP-029) — PASS; **D** 34,011 documents round-trip
+  losslessly — PASS (encode + decode 41.8 s).
+* Artifact: `bpe_python.json` 1,273,642 bytes, sha256
+  `303db552912d4efa507196693ff2b039affc06aa06e8f22844ca3fec24584253`; dir_sha256
+  `b39afa08fa86b0d1ccf7b7e1b59df305b5678bdd59061c6fae01245061321144`; lineage EXP-028
+  `py-mark_aware-32768` seed 1337, trained on 3,809,046 chars of the FrontierCorpus v1
+  train side.
+* Byte-exact storage confirmed: `git ls-files --eol` → `i/crlf w/crlf attr/-text` for
+  the artifact (Windows line endings preserved, as designed).
+* **Cross-platform determinism (sandbox, Linux x86_64):** `sha256sum` of the checked-out
+  file equals the PC value; `load_frontier_tokenizer()` accepts it (file set, byte hash,
+  dir fingerprint, structure, all 15 golden samples); every golden sample's Linux token
+  ids equal the ids recorded on Windows and round-trip exactly. The previously skipped
+  `test_frontier_tokenizer_v1_is_frozen_and_verifies` now runs and passes.
+* **Status:** complete → **D-041** (Frontier Tokenizer v1 frozen; change policy).

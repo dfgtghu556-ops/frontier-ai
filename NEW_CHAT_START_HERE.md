@@ -314,6 +314,15 @@ comes next. They also update the table in §3.
   durable hashed location, then step 8 — the evaluation harness. Plan first; no code
   before founder approval.
 
+* **2026-09-27, Arena agent (EXP-030 COMPLETE → D-041, commits `d103987`, `fc7e8d8`):**
+  Frontier Tokenizer v1 frozen at `tokenizers/frontier-tokenizer-v1/` (PC gates A–D
+  PASS: EXP-029 fingerprint, structure, exact token counts 1,608,987 / 184,233,
+  34,011 docs lossless). Linux reproduces the raw-byte hash and all Windows-recorded
+  golden ids. **Always load it with `load_frontier_tokenizer()`**; `tokenizers/**` is
+  stored byte-exactly (`.gitattributes`). PC handoffs now go through `PC_TASK_*.md`
+  files — put the `git pull` in the chat message itself, not only inside the file.
+  **Next (§37 step 8):** plan the evaluation harness; no code before founder approval.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```
