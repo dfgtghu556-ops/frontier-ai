@@ -222,6 +222,55 @@ def test_run_exp_b_matrix_and_determinism(tmp_path):
     )
 
 
+def test_run_exp_b_matrix_recorded_mode(tmp_path):
+    """Regression: the night script runs WITHOUT --no-record.
+
+    While the outer record is active, train.py cells would run in nested mode
+    and skip their own per-cell experiment.json, which every cell check then
+    reports as a failure. The matrix must run with no active outer experiment;
+    the outer aggregate record is written after it completes.
+    """
+    fake = _make_fake_frozen_corpus(tmp_path / "fake", n_hi=30, n_en=12)
+    _build_frontier(fake, tmp_path / "frontier")
+    artifacts = _train_two_tokenizers(tmp_path / "frontier", tmp_path)
+
+    data_dir = tmp_path / "expb_data"
+    proc = _run_script(
+        "prepare_exp_b_data.py",
+        ["--exp-id", "EXP-099", "--frontier-dir", str(tmp_path / "frontier"),
+         "--manifest", str(fake["manifest"]), "--freeze", str(fake["freeze"]),
+         "--corpus-dir", str(fake["corpus_dir"]),
+         "--tokens", ",".join(f"{n}={a}" for n, a in artifacts),
+         "--out", str(data_dir), "--no-record"],
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+
+    cfg = _tiny_config(tmp_path)
+    proc = _run_script(
+        "run_exp_b.py",
+        ["--exp-id", "EXP-099", "--config", str(cfg), "--data-dir", str(data_dir),
+         "--seeds", "1337,1338", "--max-steps", "20"],
+    )  # NOTE: no --no-record — the recorded (night-script) path
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    report = (data_dir / "runs" / "report.txt").read_text(encoding="utf-8")
+    assert "FAIL" not in report
+
+    # every cell self-recorded its own experiment.json (nested mode skipped it)
+    for name, _ in artifacts:
+        for seed in (1337, 1338):
+            record = data_dir / "runs" / name / f"seed-{seed}" / "experiment.json"
+            data = json.loads(record.read_text(encoding="utf-8"))
+            assert data["execution"]["status"] == "success"
+            assert data["results"]["best_bpb"] is not None
+
+    # the outer aggregate record exists and carries the decision
+    outer = json.loads((data_dir / "runs" / "experiment.json").read_text(encoding="utf-8"))
+    assert outer["execution"]["status"] == "success"
+    assert outer["results"]["failed_cells"] == 0
+    assert outer["results"]["winner"] in {n for n, _ in artifacts}
+    assert "DECISION" in report
+
+
 def test_run_exp_b_refuses_missing_data(tmp_path):
     proc = _run_script(
         "run_exp_b.py",

@@ -221,6 +221,7 @@ def main() -> int:
 
     # ------------------------------------------------------------ the matrix --
     def run_matrix() -> dict:
+        t0 = time.monotonic()
         rows: list[dict] = []
         failed = 0
         for i, tok in enumerate(tokenizers):
@@ -283,6 +284,7 @@ def main() -> int:
         return {
             "config": args.config,
             "seeds": seeds,
+            "matrix_wall_seconds": round(time.monotonic() - t0, 1),
             "rows": [
                 {"name": r["name"], "vocab_size": r["vocab_size"],
                  "bpb_per_seed": r["values"],
@@ -299,8 +301,14 @@ def main() -> int:
             "failed_cells": failed,
         }
 
+    # The cells must run with NO active outer experiment: while the outer
+    # record is active, train.py runs in nested mode and skips its own
+    # per-cell experiment.json, which every cell check then reports as a
+    # failure. Run the matrix first; write the outer aggregate record after,
+    # carrying the matrix results (no subprocesses inside the record body).
+    result = run_matrix()
+
     if args.no_record:
-        result = run_matrix()
         return 1 if result["failed_cells"] else 0
 
     def build_spec() -> ExperimentSpec:
@@ -322,8 +330,8 @@ def main() -> int:
             notes=args.notes,
         )
 
-    recorded = run_self_recorded(build_spec, run_matrix)
-    return 0 if not recorded.failed and (recorded.results or {}).get("failed_cells", 0) == 0 else 1
+    recorded = run_self_recorded(build_spec, lambda: result)
+    return 0 if not recorded.failed and result["failed_cells"] == 0 else 1
 
 
 if __name__ == "__main__":
