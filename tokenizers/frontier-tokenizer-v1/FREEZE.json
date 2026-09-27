@@ -1,0 +1,445 @@
+{
+  "schema": "frontier-tokenizer-freeze-v1",
+  "tokenizer_id": "frontier-tokenizer",
+  "tokenizer_version": "v1",
+  "status": "frozen",
+  "frozen_at": "2026-09-27T10:11:02Z",
+  "frozen_by": "EXP-030 (scripts/freeze_tokenizer.py)",
+  "decision": "D-040",
+  "artifact": {
+    "dir": "tokenizers/frontier-tokenizer-v1/tokenizer",
+    "impl": "bpe_python",
+    "impl_version": "frontier-bpe-python-1",
+    "files": {
+      "bpe_python.json": "303db552912d4efa507196693ff2b039affc06aa06e8f22844ca3fec24584253"
+    },
+    "dir_sha256": "b39afa08fa86b0d1ccf7b7e1b59df305b5678bdd59061c6fae01245061321144",
+    "size_bytes": 1273642,
+    "vocab_size": 32768,
+    "merges": 32512,
+    "pretoken": "mark_aware",
+    "special_tokens": [],
+    "note": "hashes are over raw bytes (the file may carry CRLF line endings from Windows); git stores this directory byte-exactly via .gitattributes"
+  },
+  "lineage": {
+    "source_artifact": "out/experiments/EXP-028/py-mark_aware-32768/seed-0000001337/tokenizer",
+    "sweep_experiment": "EXP-028",
+    "sweep_cell": "py-mark_aware-32768",
+    "seed": 1337,
+    "trained_chars": 3809046,
+    "training_corpus": {
+      "id": "frontier-corpus-v1",
+      "side": "train",
+      "content_sha256": "6c43d12695f2ffaab6be2bae632c7dc4638b171de92c7fe5bbb138547bb47d50"
+    },
+    "selected_by": "EXP-029 (EXP-B small-model comparison)",
+    "exp029_name": "mark_aware-32768"
+  },
+  "gates": {
+    "A_identity": {
+      "what": "artifact dir fingerprint == EXP-029 recorded artifact_sha256",
+      "expected": "b39afa08fa86b0d1ccf7b7e1b59df305b5678bdd59061c6fae01245061321144",
+      "observed": "b39afa08fa86b0d1ccf7b7e1b59df305b5678bdd59061c6fae01245061321144",
+      "pass": true
+    },
+    "B_structure": {
+      "expected": {
+        "vocab_size": 32768,
+        "merges": 32512,
+        "pretoken": "mark_aware",
+        "special_tokens": []
+      },
+      "problems": [],
+      "pass": true
+    },
+    "C_token_counts": {
+      "corpus_content_sha256": "6c43d12695f2ffaab6be2bae632c7dc4638b171de92c7fe5bbb138547bb47d50",
+      "same_corpus_as_exp029": true,
+      "train": {
+        "expected": 1608987,
+        "observed": 1608987
+      },
+      "held_out": {
+        "expected": 184233,
+        "observed": 184233
+      },
+      "pass": true
+    },
+    "D_lossless": {
+      "documents": 34011,
+      "failing_doc_ids_sample": [],
+      "pass": true
+    },
+    "encode_seconds": 41.8
+  },
+  "golden_samples": [
+    {
+      "id": "en",
+      "text": "The quick brown fox jumps over the lazy dog, 42 times!",
+      "ids": [
+        1616,
+        32,
+        2800,
+        15386,
+        32,
+        6758,
+        2433,
+        32,
+        3086,
+        120,
+        32,
+        24301,
+        31626,
+        32,
+        5517,
+        32,
+        470,
+        32,
+        22674,
+        122,
+        121,
+        32,
+        2411,
+        103,
+        44,
+        32,
+        52,
+        50,
+        32,
+        25392,
+        33
+      ]
+    },
+    {
+      "id": "hi",
+      "text": "भारत एक विशाल देश है और यहाँ अनेक भाषाएँ बोली जाती हैं।",
+      "ids": [
+        8206,
+        284,
+        32,
+        803,
+        32,
+        20425,
+        32,
+        5115,
+        32,
+        468,
+        32,
+        575,
+        32,
+        2557,
+        32,
+        15743,
+        32,
+        7587,
+        13154,
+        32,
+        2797,
+        32,
+        2441,
+        32,
+        924,
+        303
+      ]
+    },
+    {
+      "id": "bn",
+      "text": "আমি বাংলায় কথা বলতে ভালোবাসি।",
+      "ids": [
+        2045,
+        32,
+        1319,
+        130,
+        9887,
+        32,
+        1593,
+        32,
+        12255,
+        32,
+        21964,
+        4763,
+        299,
+        303
+      ]
+    },
+    {
+      "id": "mr",
+      "text": "महाराष्ट्रातील लोक मराठी भाषा बोलतात.",
+      "ids": [
+        7771,
+        15033,
+        572,
+        27486,
+        32,
+        4321,
+        32,
+        2063,
+        3723,
+        32,
+        7587,
+        269,
+        32,
+        3208,
+        8320,
+        46
+      ]
+    },
+    {
+      "id": "gu",
+      "text": "ગુજરાતી ભાષા ખૂબ સુંદર છે.",
+      "ids": [
+        6044,
+        530,
+        27809,
+        32,
+        24787,
+        293,
+        32,
+        791,
+        1683,
+        576,
+        32,
+        13549,
+        32,
+        1141,
+        46
+      ]
+    },
+    {
+      "id": "ta",
+      "text": "தமிழ் ஒரு பழமையான மொழி ஆகும்.",
+      "ids": [
+        9053,
+        32,
+        2230,
+        32,
+        3587,
+        7070,
+        1360,
+        32,
+        423,
+        6613,
+        325,
+        32,
+        17637,
+        621,
+        46
+      ]
+    },
+    {
+      "id": "te",
+      "text": "తెలుగు భాష చాలా మధురమైనది.",
+      "ids": [
+        7601,
+        5668,
+        32,
+        1491,
+        21432,
+        32,
+        15928,
+        350,
+        32,
+        370,
+        1862,
+        1641,
+        8499,
+        1742,
+        46
+      ]
+    },
+    {
+      "id": "kn",
+      "text": "ಕನ್ನಡ ಒಂದು ಸುಂದರ ಭಾಷೆ.",
+      "ids": [
+        31398,
+        32,
+        2297,
+        32,
+        2334,
+        1054,
+        324,
+        32,
+        9969,
+        329,
+        46
+      ]
+    },
+    {
+      "id": "ml",
+      "text": "മലയാളം കേരളത്തിലെ ഭാഷയാണ്.",
+      "ids": [
+        14723,
+        486,
+        2445,
+        531,
+        32,
+        18643,
+        4006,
+        32,
+        9948,
+        15263,
+        46
+      ]
+    },
+    {
+      "id": "pa",
+      "text": "ਪੰਜਾਬੀ ਇੱਕ ਮਿੱਠੀ ਬੋਲੀ ਹੈ।",
+      "ids": [
+        20910,
+        32,
+        645,
+        2287,
+        32,
+        21966,
+        32,
+        11980,
+        32,
+        675,
+        303
+      ]
+    },
+    {
+      "id": "or",
+      "text": "ଓଡ଼ିଆ ଏକ ପୁରୁଣା ଭାଷା ଅଟେ।",
+      "ids": [
+        18650,
+        1271,
+        32,
+        5492,
+        32,
+        18710,
+        32,
+        29632,
+        313,
+        32,
+        12998,
+        303
+      ]
+    },
+    {
+      "id": "as",
+      "text": "অসমীয়া ভাষা অসমৰ মানুহে কয়।",
+      "ids": [
+        9657,
+        32,
+        32406,
+        280,
+        32,
+        31256,
+        32,
+        8136,
+        32,
+        19068,
+        303
+      ]
+    },
+    {
+      "id": "ur",
+      "text": "اردو ایک خوبصورت زبان ہے۔",
+      "ids": [
+        1302,
+        2908,
+        32,
+        2266,
+        32,
+        17951,
+        32,
+        15441,
+        32,
+        1169,
+        557
+      ]
+    },
+    {
+      "id": "mixed",
+      "text": "Kal meeting 10:30 AM ko hai — मैं ready हूँ! ✓ ٹھیک ہے 2026",
+      "ids": [
+        75,
+        778,
+        32,
+        17604,
+        710,
+        32,
+        49,
+        48,
+        58,
+        51,
+        48,
+        32,
+        65,
+        77,
+        32,
+        107,
+        111,
+        32,
+        1623,
+        105,
+        32,
+        719,
+        32,
+        949,
+        32,
+        15651,
+        32,
+        1348,
+        33,
+        32,
+        226,
+        156,
+        147,
+        32,
+        11911,
+        369,
+        32,
+        1169,
+        32,
+        50,
+        48,
+        50,
+        54
+      ]
+    },
+    {
+      "id": "edge",
+      "text": "क़िला ज़रूर; ক্ষ; க்‍ஷ; a‌b\tline\nnext  double  space",
+      "ids": [
+        2994,
+        306,
+        676,
+        32,
+        7205,
+        59,
+        32,
+        1439,
+        59,
+        32,
+        3028,
+        4151,
+        3619,
+        59,
+        32,
+        97,
+        1108,
+        98,
+        9,
+        31620,
+        10,
+        11891,
+        32,
+        32,
+        100,
+        583,
+        6253,
+        32,
+        32,
+        27752
+      ]
+    }
+  ],
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Windows-10-10.0.17763-SP0"
+  },
+  "change_policy": "Frontier Tokenizer v1 is never edited in place. Any change (retraining, a different vocabulary, added special tokens, a different pre-tokenizer or implementation artifact) requires the founder's approval, is recorded as a new experiment, and produces frontier-tokenizer-v2 with its own freeze record (D-041).",
+  "downstream_use": "Load only via frontier_ai.tokenization.frozen.load_frontier_tokenizer(), which refuses a tokenizer whose bytes, structure or golden-sample encodings differ from this record. Cite 'frontier-tokenizer-v1' plus artifact.dir_sha256."
+}
