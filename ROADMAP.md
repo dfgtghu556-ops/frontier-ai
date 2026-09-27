@@ -353,6 +353,11 @@ First use: EXP-031 (re-scoring the EXP-B models). Per-domain results are not ava
 source. **Downstream benchmarks, Indic task suites and human evaluation remain future work**
 (§37 step 15) — they are not meaningful for few-million-parameter models.
 
+**Update (2026-09-27, later):** EXP-031 completed and D-042 was recorded. Harness v1 scored the 6
+EXP-B models exactly (every held-out token; reproducible bit for bit; 0 contamination) and
+confirmed D-040 in all 13 languages. The step 8 exit criteria are met for intrinsic
+evaluation. Step 9 waits for founder approval.
+
 **Goal:** know whether a model is actually better, across capabilities and languages.
 
 - Intrinsic: held-out perplexity per domain, per language, and per script.

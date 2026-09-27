@@ -1677,3 +1677,64 @@ only the suite file plus the small result files (`evals/results/EXP-031/`, via
 `scripts/publish_eval_results.py`).
 
 **Results:** pending the PC run.
+
+**Results (2026-09-27, completed; supersedes "PC run pending" above).** The PC agent ran
+`PC_TASK_EVAL_EXP031.md` (attempt 1 stopped at step 1 on an unrelated local edit to
+`P004B-tokenizer-corpus-summary.html`, which was preserved to `out\eval\EXP-031\local-change-backup\`
+and then restored; attempt 2 passed steps 0–4, then `eval_compare.py` crashed while *printing*
+U+2212 on the Windows cp1252 console after its files were written, fixed in `ffbd4e6` with a
+regression test; the resume ran steps 5–7). Commit **`0fa5b22`** adds exactly 25 files:
+`evals/suites/frontier-heldout-v1/SUITE.json` and `evals/results/EXP-031/**` (report.json,
+report.txt, experiment.json for each of the 6 models, 2 reproducibility reports, compare.json and
+compare.txt). No `per_document.jsonl` is committed. Scoring ran at commit `d0fa01b`; the only
+untracked item was `evals/`. Environment: Windows 10, Python 3.13.15, torch 2.14.0+cpu, 2 threads.
+* **Suite:** `frontier-heldout-v1`, 3,427 docs, 13 languages, 1,048,975 bytes, 424,727 chars
+  (document text only; the manifest's 1,052,401 / 428,153 also counts the 3,426 newlines joining
+  the documents in the single held-out shard, so the two figures agree exactly). Fingerprint
+  `a488b2aa41f9e861fa279a67e1fb6d98a610b4e8eebe554b9cfad262fc628a2f`, bound to corpus
+  `6c43d12695f2ffaa…` (equals the manifest). It verifies on Linux through `load_suite`.
+* **Coverage and identity:** every report has data identity **PASS**, i.e. the re-encoded stream
+  equals the checkpoint's own validation split: 32768 → 184,233 tokens (184,232 scored), 16384 →
+  201,215 tokens (201,214 scored). All 6 reports have the same suite fingerprint; the 32768 reports
+  have `matches_frozen_v1: true`; all checkpoints are at step 150.
+* **Exact held-out bits-per-byte** (document 0 context-only; 3,426 documents; 95% document
+  bootstrap CI):
+
+  | model | exact bpb [95% CI] | bits/char | bits/token | EXP-029 sampled estimate | exact − estimate |
+  |---|---|---|---|---|---|
+  | mark_aware-32768 seed 1337 | 1.4619 [1.4454, 1.4792] | 3.6106 | 8.3238 | 1.4674 | −0.0055 |
+  | mark_aware-32768 seed 1338 | 1.4406 [1.4234, 1.4586] | 3.5580 | 8.2024 | 1.4410 | −0.0004 |
+  | mark_aware-32768 seed 1339 | 1.4400 [1.4230, 1.4579] | 3.5565 | 8.1990 | 1.4305 | +0.0095 |
+  | mark_aware-16384 seed 1337 | 1.5834 [1.5654, 1.6022] | 3.9107 | 8.2547 | 1.5903 | −0.0069 |
+  | mark_aware-16384 seed 1338 | 1.5760 [1.5576, 1.5944] | 3.8924 | 8.2161 | 1.5728 | +0.0032 |
+  | mark_aware-16384 seed 1339 | 1.5760 [1.5582, 1.5938] | 3.8923 | 8.2157 | 1.5707 | +0.0053 |
+
+  Group means (3 seeds): **32768: 1.4475 ± 0.0125**, where the estimate was 1.4463 ± 0.0190;
+  **16384: 1.5785 ± 0.0043**, where the estimate was 1.5779 ± 0.0108.
+* **Paired comparison** (`compare.txt`): delta (16384 − 32768) = **+0.1310 bpb, 95% CI
+  [+0.1280, +0.1339]**. The 16384 tokenizer is 9.05% worse, and the interval excludes 0. Every
+  32768 seed (worst 1.4619) beats every 16384 seed (best 1.5760). **All 13 languages** favour
+  32768 and every interval excludes 0. The smallest gap is hi (+0.0976) and the largest is en
+  (+0.2979; English is a small, high-bpb slice at 3.38 vs 3.68).
+* **Contamination** (evaluated docs vs the 30,584 train-side docs): 0 exact duplicates; 0 of
+  1,545 eligible documents share a 13-word n-gram with training. 1,881 documents are too short
+  to test at n = 13, which is a limitation of the n-gram check; the exact-hash check covers them.
+* **Reproducibility:** rerunning 32768 seed 1337, and scoring it with the original EXP-028 artifact
+  instead of the frozen copy, both give `scores_sha256`
+  `7634729954028b33db50c827595222b8bbf5ac4e39d547666a1cc4966ee79f46`, identical to the original
+  (bit-identical per-document scores; the frozen v1 is scoring-equivalent to the artifact that won EXP-B).
+* **Sandbox verification:** full suite **515 passed, 1 skipped**; ruff clean. The numbers above
+  were read by script from the committed JSON files.
+
+**Conclusions:**
+1. The exact, full held-out evaluation **confirms D-040**, now with a paired confidence interval
+   and per-language evidence: `mark_aware-32768` is better overall and in every language.
+2. The EXP-029 sampled estimates were unbiased on average (group means within +0.0012 / +0.0006)
+   but noisy per model (up to ±0.0095). They also overstated the seed-to-seed spread (0.0190 vs
+   0.0125; 0.0108 vs 0.0043). This is why comparisons from now on use the harness.
+3. Caveats (unchanged from D-040): tiny CPU models (150 steps). The 32k model's larger embedding
+   table is part of the comparison (5.26 M vs 3.16 M parameters). The evidence is on the pilot
+   corpus only; per-domain results are not available (no labels). Absolute numbers are specific
+   to this protocol (non-overlapping 128-token windows); comparisons are valid only within the
+   same harness version, suite and protocol, which `eval_compare.py` enforces.
+* **Status:** complete → **D-042**.

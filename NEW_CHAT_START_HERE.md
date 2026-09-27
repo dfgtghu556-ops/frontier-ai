@@ -333,6 +333,18 @@ comes next. They also update the table in §3.
   **Next:** record EXP-031 results + D-042, report the step 8 exit criteria, then STOP
   for founder approval before step 9.
 
+* **2026-09-27, Arena agent (EXP-031 COMPLETE → D-042; step 8 exit criteria met, commits
+  `6e5df7b`, `ffbd4e6`, PC `0fa5b22`):** harness v1 scored all 6 EXP-B models on the
+  protected suite `frontier-heldout-v1` (every held-out token; data identity PASS ×6;
+  reruns and the EXP-028 artifact reproduce `scores_sha256` exactly; 0 contamination).
+  The exact paired result confirms D-040: 32768 at 1.4475 vs 16384 at 1.5785 bpb, delta +0.1310
+  [+0.1280, +0.1339], better in all 13 languages. **Rules now:** compare models only
+  through `eval_report.py` / `eval_compare.py`; never train on `frontier-heldout-v1` (check
+  with `find_exact_overlap`). Lessons: Windows consoles are cp1252, so every eval script now calls
+  `make_console_safe()`; this sandbox keeps resetting its branch pointer and deleting `.venv`,
+  so recover with `git fetch` + `git reset --mixed FETCH_HEAD` + `git checkout -- <paths>`.
+  **Next:** STOP. Step 9 (architecture ablations) needs explicit founder approval of a plan.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

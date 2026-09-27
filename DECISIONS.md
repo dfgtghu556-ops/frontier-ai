@@ -1338,6 +1338,51 @@ scale, or the corpus changes (then a new tokenizer experiment, not an edit).
 
 ---
 
+## D-042 — Evaluation harness v1 and the protected suite `frontier-heldout-v1` are the standard for intrinsic evaluation
+**Date:** 2026-09-27 · **Status:** accepted (founder approved the eval harness plan 2026-09-27; EXP-031 complete)
+
+**Decision:**
+1. **Harness v1.0.0** (`src/frontier_ai/evaluation/`, `scripts/eval_report.py`,
+   `scripts/eval_compare.py`) is the standard way to measure language-modelling quality of
+   any checkpoint in this repository. Every token of the suite except the first is scored
+   exactly once, and results are reported as bits-per-byte (primary), bits-per-char and
+   bits-per-token, overall and per language / script / source, with bootstrap confidence
+   intervals, data-identity and contamination checks, and full provenance.
+2. **`frontier-heldout-v1`** (`evals/suites/frontier-heldout-v1/SUITE.json`, fingerprint
+   `a488b2aa…`) is **protected evaluation data**. Its documents must never be trained on.
+   Every future training-data builder must check its documents against the suite with
+   `frontier_ai.evaluation.suite.find_exact_overlap` before use. The suite is never edited
+   or replaced; a changed suite gets a new id (`frontier-heldout-v2`) and a new experiment.
+3. **Every model comparison in this repository cites harness reports.** Numbers from
+   different harness versions, suites or protocols are not compared (`eval_compare.py`
+   refuses). Training-time loss/bpb figures remain monitoring signals, not evidence.
+4. **Versioning:** any change that can alter a score (protocol, statistics, suite, tokenizer
+   handling) bumps `HARNESS_VERSION` and is recorded in EXPERIMENTS.md. Changes that
+   cannot alter a score (e.g. console printing, `ffbd4e6`) keep the version.
+
+**Evidence (EXP-031):** all 6 EXP-B models scored with data identity PASS; reruns and the
+original EXP-028 artifact reproduce `scores_sha256` bit for bit; 0 exact and 0 13-gram
+train/eval overlaps. The exact paired comparison **confirms D-040**:
+`mark_aware-32768` 1.4475 ± 0.0125 vs `mark_aware-16384` 1.5785 ± 0.0043 bpb, delta
++0.1310 [+0.1280, +0.1339], and it is better in all 13 languages.
+
+**Consequences accepted:** (a) intrinsic metrics only. Downstream benchmarks, Indic task
+suites and human evaluation (MASTER_CONTEXT §19) are §37 step 15 and are not built here.
+(b) No per-domain results until the corpus carries domain labels. (c) No code-mixed
+evaluation until a lawful Hinglish source exists. (d) Absolute numbers depend on the
+protocol (non-overlapping `block_size` windows, no sliding stride); a stride option would
+be a new harness version. (e) CPU fp32 scores are bit-reproducible for the same thread
+count (recorded). (f) The suite is pilot-scale (3,427 documents; small languages have
+100–250 documents) and is the held-out side of the same pilot corpus the models trained on
+(same sources and genre), so it measures in-distribution generalisation, not broad
+capability.
+
+**Revisit when:** a substantially larger corpus exists (new suite, `frontier-heldout-v2`),
+models become large enough for downstream benchmarks (step 15), or domain labels / a
+code-mixed source become available.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 
