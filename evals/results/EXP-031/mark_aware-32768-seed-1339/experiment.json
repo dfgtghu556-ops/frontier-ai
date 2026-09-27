@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0",
+  "record_type": "frontier-ai.experiment",
+  "experiment": {
+    "id": "EXP-031",
+    "name": "Evaluation report (harness v1.0.0): mark_aware-32768-seed-1339",
+    "tags": [
+      "evaluation",
+      "harness-v1",
+      "frontier-heldout-v1"
+    ],
+    "notes": "",
+    "status": "success",
+    "output_dir": "out\\eval\\EXP-031\\mark_aware-32768-seed-1339"
+  },
+  "code": {
+    "git": {
+      "available": true,
+      "commit": "d0fa01bcb04122305d645c4f2b1f5b2908c53de8",
+      "branch": "arena/01a0dc16-frontier-ai",
+      "dirty": true,
+      "dirty_files": [
+        "evals/"
+      ],
+      "commit_subject": "PC_TASK_EVAL_EXP031: step 0 preserves (backup + diff) and restores the unrelated local change to P004B-tokenizer-corpus-summary.html",
+      "remote": "https://github.com/dfgtghu556-ops/frontier-ai.git",
+      "reason": "",
+      "reproducible_from_commit": false
+    },
+    "repository": "frontier-ai"
+  },
+  "data": {
+    "status": "ok",
+    "inputs": [
+      "corpora\\frontier\\v1\\manifest.json",
+      "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json"
+    ],
+    "digest": {
+      "algorithm": "sha256",
+      "digest": "b13860a161d86f78e2ae1fa08f5c4aff8117984c2459f615ba9b1d800d0648da",
+      "file_count": 2,
+      "total_bytes": 888331,
+      "files": [
+        {
+          "path": "corpora/frontier/v1/manifest.json",
+          "bytes": 61898,
+          "sha256": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f"
+        },
+        {
+          "path": "evals/suites/frontier-heldout-v1/SUITE.json",
+          "bytes": 826433,
+          "sha256": "043c1b7ee2a52e2889e645969a44cf19eb5b3c1c84d645b66249a8628eb6e572"
+        }
+      ],
+      "skipped": [],
+      "root": "E:\\frontier-ai"
+    }
+  },
+  "configuration": {
+    "spec": {
+      "experiment_id": "EXP-031",
+      "seed": 0,
+      "name": "Evaluation report (harness v1.0.0): mark_aware-32768-seed-1339",
+      "output_dir": "out/eval/EXP-031/mark_aware-32768-seed-1339",
+      "params": {
+        "ckpt": "out\\exp_b\\EXP-029\\runs\\mark_aware-32768\\seed-1339\\best",
+        "tokenizer": "frozen",
+        "suite": "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json",
+        "batch_size": 8,
+        "device": "cpu",
+        "bootstrap": 1000
+      },
+      "data_paths": [
+        "corpora\\frontier\\v1\\manifest.json",
+        "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json"
+      ],
+      "config_path": "",
+      "component": {},
+      "command": [
+        "scripts\\eval_report.py",
+        "--ckpt",
+        "out\\exp_b\\EXP-029\\runs\\mark_aware-32768\\seed-1339\\best",
+        "--tokenizer",
+        "frozen"
+      ],
+      "tags": [
+        "evaluation",
+        "harness-v1",
+        "frontier-heldout-v1"
+      ],
+      "notes": "",
+      "deterministic_mode": false,
+      "schema_version": "1.0"
+    },
+    "overrides": []
+  },
+  "randomness": {
+    "master_seed": 0,
+    "deterministic_mode_requested": false,
+    "seeded_rngs": [
+      "python.random",
+      "numpy.random",
+      "torch",
+      "torch.cuda"
+    ],
+    "derived_seeds": {
+      "data": 1388866306,
+      "model": 2303058159,
+      "sampling": 1015152222
+    },
+    "derivation": "sha256('<master>|<component>') mod 2**32",
+    "limitations": [
+      "CUDA/cuDNN kernels may be nondeterministic even when deterministic mode is requested; torch.use_deterministic_algorithms(True, warn_only=True) can still warn or fall back.",
+      "CPU results depend on the thread configuration: multi-threaded reductions can change floating-point summation order.",
+      "Library versions (torch, numpy, tokenizers) can change results for the same seed; the record stores the environment for this reason.",
+      "Only Python random, NumPy and Torch RNGs are seeded. Subprocesses, third-party samplers and OS-level nondeterminism are not covered."
+    ]
+  },
+  "environment": {
+    "python": {
+      "version": "3.13.15",
+      "implementation": "CPython"
+    },
+    "platform": {
+      "system": "Windows",
+      "release": "10",
+      "machine": "AMD64"
+    },
+    "packages": {
+      "torch": "2.14.0+cpu",
+      "numpy": "2.5.3",
+      "tokenizers": "0.23.2",
+      "frontier-ai": "0.1.0"
+    },
+    "torch": {
+      "available": true,
+      "version": "2.14.0+cpu",
+      "cuda_available": false,
+      "cuda_version": null,
+      "device_count": 0,
+      "num_threads": 2
+    },
+    "excluded_by_policy": [
+      "hostname",
+      "username",
+      "environment variables",
+      "full pip freeze output"
+    ]
+  },
+  "execution": {
+    "started_at": "2026-09-27T13:30:41Z",
+    "finished_at": "2026-09-27T13:32:02Z",
+    "duration_seconds": 81.209,
+    "cwd": "E:\\frontier-ai",
+    "pid": 9896,
+    "status": "success",
+    "command": [
+      "scripts\\eval_report.py",
+      "--ckpt",
+      "out\\exp_b\\EXP-029\\runs\\mark_aware-32768\\seed-1339\\best",
+      "--tokenizer",
+      "frozen"
+    ],
+    "error": null
+  },
+  "results": {
+    "bits_per_byte": 1.4400282197517862,
+    "bits_per_byte_ci95": [
+      1.4229533867051918,
+      1.457903089985432
+    ],
+    "bits_per_char": 3.556511724996113,
+    "per_language_bpb": {
+      "as": 1.4410772738580737,
+      "bn": 1.4403031320477155,
+      "en": 3.3641511444685865,
+      "gu": 1.4765641191941912,
+      "hi": 1.2446416512694365,
+      "kn": 1.236438384457051,
+      "ml": 1.180223976958118,
+      "mr": 1.3382994969586914,
+      "or": 1.605716410292393,
+      "pa": 1.529968348818572,
+      "ta": 1.1197572398691311,
+      "te": 1.3784568888049462,
+      "ur": 2.239837522655165
+    },
+    "data_identity": "PASS",
+    "scores_sha256": "32af87c49f63f72fab062b90d46d5e4d9223bd641f909e61b156baecc34151b4",
+    "suite_fingerprint": "a488b2aa41f9e861fa279a67e1fb6d98a610b4e8eebe554b9cfad262fc628a2f",
+    "tokenizer_dir_sha256": "b39afa08fa86b0d1ccf7b7e1b59df305b5678bdd59061c6fae01245061321144",
+    "model_sha256": "386d9794a92700c71b1e805840e56c5ee92d2a5606cc1ab57752fb82453416e9"
+  }
+}

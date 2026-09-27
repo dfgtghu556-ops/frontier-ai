@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0",
+  "record_type": "frontier-ai.experiment",
+  "experiment": {
+    "id": "EXP-031",
+    "name": "Evaluation report (harness v1.0.0): mark_aware-16384-seed-1338",
+    "tags": [
+      "evaluation",
+      "harness-v1",
+      "frontier-heldout-v1"
+    ],
+    "notes": "",
+    "status": "success",
+    "output_dir": "out\\eval\\EXP-031\\mark_aware-16384-seed-1338"
+  },
+  "code": {
+    "git": {
+      "available": true,
+      "commit": "d0fa01bcb04122305d645c4f2b1f5b2908c53de8",
+      "branch": "arena/01a0dc16-frontier-ai",
+      "dirty": true,
+      "dirty_files": [
+        "evals/"
+      ],
+      "commit_subject": "PC_TASK_EVAL_EXP031: step 0 preserves (backup + diff) and restores the unrelated local change to P004B-tokenizer-corpus-summary.html",
+      "remote": "https://github.com/dfgtghu556-ops/frontier-ai.git",
+      "reason": "",
+      "reproducible_from_commit": false
+    },
+    "repository": "frontier-ai"
+  },
+  "data": {
+    "status": "ok",
+    "inputs": [
+      "corpora\\frontier\\v1\\manifest.json",
+      "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json"
+    ],
+    "digest": {
+      "algorithm": "sha256",
+      "digest": "b13860a161d86f78e2ae1fa08f5c4aff8117984c2459f615ba9b1d800d0648da",
+      "file_count": 2,
+      "total_bytes": 888331,
+      "files": [
+        {
+          "path": "corpora/frontier/v1/manifest.json",
+          "bytes": 61898,
+          "sha256": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f"
+        },
+        {
+          "path": "evals/suites/frontier-heldout-v1/SUITE.json",
+          "bytes": 826433,
+          "sha256": "043c1b7ee2a52e2889e645969a44cf19eb5b3c1c84d645b66249a8628eb6e572"
+        }
+      ],
+      "skipped": [],
+      "root": "E:\\frontier-ai"
+    }
+  },
+  "configuration": {
+    "spec": {
+      "experiment_id": "EXP-031",
+      "seed": 0,
+      "name": "Evaluation report (harness v1.0.0): mark_aware-16384-seed-1338",
+      "output_dir": "out/eval/EXP-031/mark_aware-16384-seed-1338",
+      "params": {
+        "ckpt": "out\\exp_b\\EXP-029\\runs\\mark_aware-16384\\seed-1338\\best",
+        "tokenizer": "out\\experiments\\EXP-028\\py-mark_aware-16384\\seed-0000001337\\tokenizer",
+        "suite": "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json",
+        "batch_size": 8,
+        "device": "cpu",
+        "bootstrap": 1000
+      },
+      "data_paths": [
+        "corpora\\frontier\\v1\\manifest.json",
+        "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json"
+      ],
+      "config_path": "",
+      "component": {},
+      "command": [
+        "scripts\\eval_report.py",
+        "--ckpt",
+        "out\\exp_b\\EXP-029\\runs\\mark_aware-16384\\seed-1338\\best",
+        "--tokenizer",
+        "out\\experiments\\EXP-028\\py-mark_aware-16384\\seed-0000001337\\tokenizer"
+      ],
+      "tags": [
+        "evaluation",
+        "harness-v1",
+        "frontier-heldout-v1"
+      ],
+      "notes": "",
+      "deterministic_mode": false,
+      "schema_version": "1.0"
+    },
+    "overrides": []
+  },
+  "randomness": {
+    "master_seed": 0,
+    "deterministic_mode_requested": false,
+    "seeded_rngs": [
+      "python.random",
+      "numpy.random",
+      "torch",
+      "torch.cuda"
+    ],
+    "derived_seeds": {
+      "data": 1388866306,
+      "model": 2303058159,
+      "sampling": 1015152222
+    },
+    "derivation": "sha256('<master>|<component>') mod 2**32",
+    "limitations": [
+      "CUDA/cuDNN kernels may be nondeterministic even when deterministic mode is requested; torch.use_deterministic_algorithms(True, warn_only=True) can still warn or fall back.",
+      "CPU results depend on the thread configuration: multi-threaded reductions can change floating-point summation order.",
+      "Library versions (torch, numpy, tokenizers) can change results for the same seed; the record stores the environment for this reason.",
+      "Only Python random, NumPy and Torch RNGs are seeded. Subprocesses, third-party samplers and OS-level nondeterminism are not covered."
+    ]
+  },
+  "environment": {
+    "python": {
+      "version": "3.13.15",
+      "implementation": "CPython"
+    },
+    "platform": {
+      "system": "Windows",
+      "release": "10",
+      "machine": "AMD64"
+    },
+    "packages": {
+      "torch": "2.14.0+cpu",
+      "numpy": "2.5.3",
+      "tokenizers": "0.23.2",
+      "frontier-ai": "0.1.0"
+    },
+    "torch": {
+      "available": true,
+      "version": "2.14.0+cpu",
+      "cuda_available": false,
+      "cuda_version": null,
+      "device_count": 0,
+      "num_threads": 2
+    },
+    "excluded_by_policy": [
+      "hostname",
+      "username",
+      "environment variables",
+      "full pip freeze output"
+    ]
+  },
+  "execution": {
+    "started_at": "2026-09-27T13:33:11Z",
+    "finished_at": "2026-09-27T13:34:10Z",
+    "duration_seconds": 58.995,
+    "cwd": "E:\\frontier-ai",
+    "pid": 12124,
+    "status": "success",
+    "command": [
+      "scripts\\eval_report.py",
+      "--ckpt",
+      "out\\exp_b\\EXP-029\\runs\\mark_aware-16384\\seed-1338\\best",
+      "--tokenizer",
+      "out\\experiments\\EXP-028\\py-mark_aware-16384\\seed-0000001337\\tokenizer"
+    ],
+    "error": null
+  },
+  "results": {
+    "bits_per_byte": 1.5760339583351999,
+    "bits_per_byte_ci95": [
+      1.5575677742151082,
+      1.594368340913019
+    ],
+    "bits_per_char": 3.892412089519554,
+    "per_language_bpb": {
+      "as": 1.5676736670613394,
+      "bn": 1.5937071969709242,
+      "en": 3.6828146915482076,
+      "gu": 1.634956702591937,
+      "hi": 1.3423397252268028,
+      "kn": 1.3825224522792812,
+      "ml": 1.3024003023975275,
+      "mr": 1.4376221874613122,
+      "or": 1.7850815198121621,
+      "pa": 1.6329606726438974,
+      "ta": 1.2668902481225721,
+      "te": 1.5272161635257855,
+      "ur": 2.417675796238147
+    },
+    "data_identity": "PASS",
+    "scores_sha256": "3198e0f279c7bcb59336772b64c3711622334307f732ced99c0e2c38b52f5267",
+    "suite_fingerprint": "a488b2aa41f9e861fa279a67e1fb6d98a610b4e8eebe554b9cfad262fc628a2f",
+    "tokenizer_dir_sha256": "cdbf58732b2565ea6c10f207f4ba1eefc0d60ee585f9a635c3d45ef7978e1987",
+    "model_sha256": "0b7dee7c85056c5e8cce3c1255b714e23d92fc1fb6c3426ebe29b6f822cd2347"
+  }
+}
