@@ -4,7 +4,8 @@
     python scripts/publish_eval_results.py --exp-id EXP-031
 
 Copies, for every report directory under ``out/eval/<exp-id>/`` (recursively), the files
-``report.json``, ``report.txt``, ``compare.json``, ``compare.txt`` and ``experiment.json``
+``report.json``, ``report.txt``, ``compare.json``, ``compare.txt``, ``experiment.json``,
+``summary.json`` and ``SUMMARY.txt``
 into ``evals/results/<exp-id>/`` with the same relative layout, normalised to LF line
 endings. ``per_document.jsonl`` (large, regenerable by re-running the report) stays in
 ``out/``. Refuses to overwrite a different existing file (exit 2): published results are
@@ -17,7 +18,8 @@ import argparse
 import sys
 from pathlib import Path
 
-PUBLISHED = ("report.json", "report.txt", "compare.json", "compare.txt", "experiment.json")
+PUBLISHED = ("report.json", "report.txt", "compare.json", "compare.txt", "experiment.json",
+             "summary.json", "SUMMARY.txt")
 
 
 def main() -> int:

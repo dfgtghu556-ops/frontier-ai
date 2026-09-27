@@ -61,6 +61,15 @@
     step 8, runs on CPU and does not need a GPU.
   - Steps 9–24 remain not started until the founder explicitly approves each.
 
+- **Update (2026-09-27, later):** step 8 is complete and was approved by the founder (EXP-031, D-042).
+  **Step 9 (architecture ablations) is now the current step** (EXP-032, CPU screening on
+  the frozen tokenizer; results provisional until step 11). Steps 10–24 are not started.
+- **North star (founder, 2026-09-27):** build, from scratch, a model family that can
+  compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
+  India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and
+  progress is reported honestly. Today's models are small CPU research models, far from
+  that goal, and the roadmap above is the evidence-driven path toward it.
+
 - **Previous status (2026-09-26, superseded by the block above):**
   - Stages 0 and 1 are complete (Projects 001 and 003).
   - Stage 2 has its framework (Project 002) and a real, licensed research corpus

@@ -1,0 +1,66 @@
+{
+  "schema": "frontier-arch-ablation-v1",
+  "exp_id": "EXP-032",
+  "title": "Step 9 architecture screening v1 (MASTER_CONTEXT §37 step 9; founder approved 2026-09-27)",
+  "purpose": "Screen one-at-a-time architecture changes to the fixed small model on the frozen Frontier Tokenizer v1, graded by evaluation harness v1 (D-042), to choose a PROVISIONAL architecture baseline for GPU bring-up. Toy scale (transformer body ~1.05M of 5.26M parameters): results are screening evidence only and must be re-validated in the GPU scaling experiments (step 11).",
+  "pre_registered": "2026-09-27, before any EXP-032 result existed. Changing any field below after results exist requires a new experiment id.",
+  "base_config": "configs/exp_b.json",
+  "data": "out/exp_b/EXP-029/mark_aware-32768.bin",
+  "tokenizer": "frozen",
+  "max_steps": 150,
+  "seeds": [1337, 1338, 1339],
+  "checkpoint": "last",
+  "checkpoint_note": "The FINAL checkpoint is graded (fixed step budget). The trainer's 'best' checkpoint is chosen with the held-out split, which is the evaluation suite, so grading it would let the test data select the model.",
+  "baseline": {
+    "name": "baseline",
+    "description": "the EXP-B model unchanged: learned positions, SwiGLU (ffn_mult 4), RMSNorm, 4 query / 4 key-value heads, tied embeddings, lr 3e-3",
+    "overrides": {},
+    "reuse_runs_dir": "out/exp_b/EXP-029/runs/mark_aware-32768",
+    "reuse_note": "EXP-029's mark_aware-32768 cells are this exact baseline (same config, data, steps and seeds). They are reused only if their last/ checkpoint exists and their saved config matches; otherwise the baseline is trained fresh."
+  },
+  "variants": [
+    {
+      "name": "rope",
+      "overrides": {"model.pos": "rope"},
+      "question": "Rotary positions instead of a learned position table. The learned table cannot extend beyond block_size, so longer context later needs RoPE or similar.",
+      "rule": "superiority"
+    },
+    {
+      "name": "gelu",
+      "overrides": {"model.ffn": "gelu", "model.ffn_mult": 6.0},
+      "question": "GELU feed-forward instead of SwiGLU. ffn_mult 6.0 makes the body parameter count exactly equal (1,049,728).",
+      "rule": "superiority"
+    },
+    {
+      "name": "layernorm",
+      "overrides": {"model.norm": "layernorm"},
+      "question": "LayerNorm instead of RMSNorm (+1,152 parameters).",
+      "rule": "superiority"
+    },
+    {
+      "name": "gqa2",
+      "overrides": {"model.n_kv_head": 2},
+      "question": "Grouped-query attention with 2 key-value heads (halves the inference KV cache; -65,536 parameters).",
+      "rule": "non_inferiority",
+      "margin_bpb": 0.010
+    }
+  ],
+  "lr_check": {
+    "seed": 1337,
+    "values": [0.0015, 0.006],
+    "question": "Is lr 3e-3 near-optimal for the baseline at this budget? Every comparison above uses 3e-3."
+  },
+  "repro_check": {
+    "seed": 1337,
+    "question": "Does retraining the baseline reproduce identical weights (tensor-by-tensor)?"
+  },
+  "decision_rules": {
+    "superiority": "delta = variant - baseline in bits-per-byte from eval_compare (paired document bootstrap, 95%). BETTER if the CI upper bound < 0 AND every variant seed beats every baseline seed. WORSE if the CI lower bound > 0 AND every baseline seed beats every variant seed. Otherwise NO DETECTABLE DIFFERENCE AT THIS SCALE.",
+    "non_inferiority": "ACCEPTABLE if the CI upper bound of delta <= margin_bpb; NOT SHOWN otherwise. The superiority verdict is also reported.",
+    "lr_check": "LR-CONFOUNDED if an alternative learning rate improves the seed-1337 baseline by more than the baseline's across-seed standard deviation. Then the night-2 confirmation (separate approval) re-tests at the better learning rate.",
+    "repro_check": "IDENTICAL if every weight tensor of the retrained model equals the reference run's exactly; otherwise DIFFERENT (reported with the largest absolute difference).",
+    "adoption": "Only BETTER (or ACCEPTABLE for efficiency changes) results are candidates for the provisional architecture decision (D-043). NO DETECTABLE DIFFERENCE keeps the current default unless there is a stated prior or efficiency reason, recorded as such."
+  },
+  "eval_args": ["--no-contamination"],
+  "eval_args_note": "Contamination depends only on the suite and training data, which are identical to EXP-031 (0 exact / 0 13-gram overlaps); it is not re-computed per model."
+}

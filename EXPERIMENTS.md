@@ -1738,3 +1738,72 @@ untracked item was `evals/`. Environment: Windows 10, Python 3.13.15, torch 2.14
    to this protocol (non-overlapping 128-token windows); comparisons are valid only within the
    same harness version, suite and protocol, which `eval_compare.py` enforces.
 * **Status:** complete → **D-042**.
+
+### EXP-032 — Step 9 architecture screening v1 (MASTER_CONTEXT §37 step 9)
+**Date:** 2026-09-27 · **Status:** in progress: runner built and tested (sandbox); PC night run pending
+(founder: "I approve step 9 plan", 2026-09-27)
+
+**Purpose (why this serves the mission):** before any GPU money is spent (steps 10–12), choose a
+*provisional* architecture for the first GPU bring-up from measured evidence on our own data
+and tokenizer, instead of copying a popular design. Each change is tested one at a time on
+the fixed EXP-B model and graded by harness v1 (D-042).
+
+**Honest scale caveat (pre-stated):** the model has 5,260,416 parameters, of which 4,210,688
+(80%) are the tied 32,768 × 128 embedding plus the 128-position table. The transformer
+body, which the ablations change, is 1,049,728 parameters. Many transformer modifications
+fail to transfer across implementations and scales (Narang et al., 2021; see the step 9
+plan), so every result here is **screening evidence**, to be re-validated in the GPU
+scaling experiments (step 11).
+
+**Pre-registered spec:** `configs/ablations/EXP-032.json` (committed before any result).
+It fixes: base `configs/exp_b.json`; data `out/exp_b/EXP-029/mark_aware-32768.bin`;
+frozen tokenizer v1; 150 steps; seeds 1337/1338/1339; lr 3e-3. The **final** checkpoint
+(`last/`) is graded, because the trainer's `best/` is selected on the held-out split, which is the
+evaluation suite. For EXP-029 this made no difference, since every graded `best/` was step 150.
+
+| group | change | body params | purpose |
+|---|---|---|---|
+| baseline | none (EXP-029 `mark_aware-32768` cells, reused only if their saved config verifies) | 1,049,728 | reference |
+| rope | `model.pos=rope` | 1,049,728 (no position table) | positions that extend past `block_size` |
+| gelu | `model.ffn=gelu`, `ffn_mult=6.0` | 1,049,728 (exact match) | confirm SwiGLU |
+| layernorm | `model.norm=layernorm` | 1,050,880 | confirm RMSNorm |
+| gqa2 | `model.n_kv_head=2` | 984,192 | halve the inference KV cache |
+| lr-0.0015, lr-0.006 | learning rate, seed 1337 | 1,049,728 | is 3e-3 near-optimal? |
+| repro-baseline | retrain baseline seed 1337 | 1,049,728 | identical weights? |
+
+**Decision rules (pre-registered):**
+- **Superiority:** a variant is BETTER only if the paired 95% CI of (variant − baseline) is
+  below 0 **and** every variant seed beats every baseline seed. WORSE is the mirror image.
+  Otherwise the verdict is NO DETECTABLE DIFFERENCE AT THIS SCALE.
+- **GQA (efficiency change):** ACCEPTABLE if the CI upper bound is ≤ 0.010 bpb.
+- **Learning rate:** LR-CONFOUNDED if an alternative LR improves the seed-1337 baseline by more
+  than the baseline's seed standard deviation.
+- **Reproducibility:** IDENTICAL if all weight tensors match exactly.
+- **Adoption:** only BETTER/ACCEPTABLE results become candidates for **D-043** (provisional
+  architecture for GPU bring-up), after founder review.
+
+**Implementation:** `scripts/run_arch_ablation.py` validates the spec, checks the baseline's
+saved config before reusing it, then trains each cell as its own self-recording `train.py`
+run, grades each `last/` immediately with `eval_report.py`, and compares with `eval_compare.py`.
+It applies the rules and writes `SUMMARY.txt`/`summary.json` plus an outer record. It is
+restartable (finished cells are skipped and matching reports are not regraded).
+`scripts/run_arch_ablation_night.ps1` is the unattended wrapper (logs to file, one automatic
+retry). `publish_eval_results.py` now also publishes `summary.json`/`SUMMARY.txt`. No model
+or trainer code changed: the trainer, `gpt.py`, `config.py` and `configs/exp_b.json` are
+unchanged since EXP-029 (`b4f864d`), and the trainer has saved `last/` since `e467eb0`.
+The reused baseline is therefore expected to reproduce EXP-031's per-model scores, and the
+repro cell to reproduce its weights.
+
+**Verification (sandbox):** `tests/test_arch_ablation.py`, 13 tests. The real EXP-032 spec
+validates and plans 18 cells; GELU at `ffn_mult` 6.0 has exactly the baseline's 5,260,416
+parameters; bad specs are rejected (rule, reserved name, unknown override, duplicate,
+`best` checkpoint, missing margin, lr seed). Rule and weight-comparison unit tests pass.
+End to end on the fake corpus with tiny models: every cell is trained and graded;
+delta = the difference of group means; half the KV cache for MQA; retraining reproduces
+weights **IDENTICAL**; the final checkpoint is graded; a restart retrains/regrades nothing; a
+second experiment reuses the verified baseline; a mismatched budget is refused for reuse.
+
+**PC run:** `PC_TASK_ARCH_EXP032.md`, about 5.5–6.5 h overnight (15 models to train if the
+baseline is reused, plus 18 gradings).
+
+**Results:** pending.

@@ -345,6 +345,19 @@ comes next. They also update the table in §3.
   so recover with `git fetch` + `git reset --mixed FETCH_HEAD` + `git checkout -- <paths>`.
   **Next:** STOP. Step 9 (architecture ablations) needs explicit founder approval of a plan.
 
+* **2026-09-27, Arena agent (step 8 APPROVED by the founder; step 9 IN PROGRESS: EXP-032):**
+  **North star (founder, 2026-09-27):** every step must move towards a model built from
+  scratch that can compete with the leading systems (e.g. ChatGPT, Claude) and becomes the
+  best model in India (MASTER_CONTEXT §1). Each report should say how the step serves that
+  goal and state honestly how far we still are. The founder approved the step 9 plan. Built
+  `scripts/run_arch_ablation.py` + `run_arch_ablation_night.ps1` + the pre-registered spec
+  `configs/ablations/EXP-032.json` (rope / gelu / layernorm / gqa2 vs baseline, lr check,
+  repro check; the FINAL checkpoint is graded because `best/` is selected on the suite).
+  13 new tests. The founder's roadmap attachment has not reached the sandbox twice
+  (`/home/user/uploads` absent); ask him to paste its text instead.
+  **Next:** the PC night run via `PC_TASK_ARCH_EXP032.md`, then EXP-032 results and a
+  proposed D-043. STOP for review.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```
