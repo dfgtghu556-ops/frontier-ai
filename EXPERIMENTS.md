@@ -797,7 +797,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-026 | P004B: live freshness re-fetch of frozen `indic-tokenizer/v2` | complete | 2026-09-26 | build exit 0; inspection: 59/59 sources verified and pinned, no flagged rows or REFUSED lines |
 | EXP-027 | FrontierCorpus v1 frozen-corpus pilot | complete | 2026-09-26 | build/check exit 0; 34,684 input docs → 34,011 post-stages; train 30,584 / held_out 3,427; 4 train + 1 held-out shards |
 | EXP-028 | **Production tokenizer sweep (EXP-A)** (MASTER_CONTEXT §37 step 5) | complete (PC run 2026-09-26) | 2026-09-26 | 20/20 cells gate PASS (15 grid + 5 supplement); mark_aware-32768 winner at 2.3054 held-out chars/token (+45 % over the 1.5971 baseline); hf-mark_aware ≡ py-mark_aware at every cell (cross-implementation validation); verified by scripts/summarize_sweep.py |
-| EXP-029 | **Tokenizer-vs-tokenizer small-model comparison (EXP-B)** (MASTER_CONTEXT §37 step 6) | in progress — approved 2026-09-26, harness delivered, PC run pending | 2026-09-26 | mark_aware-32768 vs mark_aware-16384 × 3 seeds, fixed small model (configs/exp_b.json), held-out bits-per-byte; pre-registered decision rule (lower mean bpb wins; tie -> smaller vocab); selection becomes D-040 (Frontier Tokenizer v1) after review |
+| EXP-029 | **Tokenizer-vs-tokenizer small-model comparison (EXP-B)** (MASTER_CONTEXT §37 step 6) | complete 2026-09-27 — winner `mark_aware-32768` (mean bpb 1.4463 vs 1.5779); selection pending founder review → D-040 | 2026-09-26 | mark_aware-32768 vs mark_aware-16384 × 3 seeds, fixed small model (configs/exp_b.json), held-out bits-per-byte; pre-registered decision rule (lower mean bpb wins; tie -> smaller vocab); selection becomes D-040 (Frontier Tokenizer v1) after review |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1497,3 +1497,43 @@ refactored sweep runner still passes all its e2e gates.
   eff_batch 8192); both tokenizers receive the identical budget, so the comparison
   stays symmetric.
 - **Matrix results:** pending.
+- **Matrix results (2026-09-27, completed — supersedes "pending" above):** run on the
+  founder's PC, unattended, by the local agent following `PC_TASK_EXP_B.md` at the
+  revised budget of 150 steps/cell (runner `scripts/run_exp_b_night.ps1` @ `c91ce6e`).
+  Report `out/exp_b/EXP-029/runs/report.txt` (generated 2026-09-27T08:19:33Z):
+
+  | Tokenizer | seed 1337 | seed 1338 | seed 1339 | mean bpb | std | tokens seen |
+  |---|---|---|---|---|---|---|
+  | `mark_aware-32768` | 1.4674 | 1.4410 | 1.4305 | **1.4463** | 0.0190 | 3,686,400 |
+  | `mark_aware-16384` | 1.5903 | 1.5728 | 1.5707 | 1.5779 | 0.0108 | 3,686,400 |
+
+  **DECISION (pre-registered rule, applied mechanically by the script):
+  `mark_aware-32768`** — lower mean held-out bits-per-byte. Gap 0.1316 bpb vs the tie
+  threshold (std_A + std_B)/2 = 0.0149 → the gap is ~8.8× the seed-noise band, so rule 2
+  (tie → smaller vocab) does not apply. Every 32768 seed beats every 16384 seed (worst
+  32768 cell 1.4674 < best 16384 cell 1.5707); 16384 is 9.1 % worse on mean bpb.
+- **Verification (PC agent, from the files, not the log):** 6a night.log ends with
+  `NIGHT RUN matrix COMPLETE`, exit code 0 — PASS; 6b report.txt has no FAIL and has
+  the DECISION line — PASS; 6c all six per-cell records
+  (`out/exp_b/EXP-029/runs/mark_aware-{32768,16384}/seed-{1337,1338,1339}/experiment.json`)
+  have `execution.status == "success"` and `results.best_bpb` — PASS; 6d the six
+  report values equal the six record values — PASS. Sandbox cross-check: mean, std, gap
+  and tie threshold recomputed independently from the six values — identical.
+- **Determinism evidence:** cell `mark_aware-32768` / seed 1337 produced best_bpb
+  1.4674 in three separate processes (two aborted night attempts and the completed
+  run) — identical to 4 decimals.
+- **Scope notes (read with the decision; they do not change it):**
+  1. *Undertrained budget.* 150 steps ≈ 0.76 passes over the train side; the 300-step
+     smoke reached 1.2747, so curves were still falling. The result answers "which
+     tokenizer is better at this equal budget", as pre-registered.
+  2. *Equal steps = equal tokens, not equal bytes.* At 1,228,800 tokens per cell the
+     32768 model saw ≈ 7.15 MB of text vs ≈ 6.49 MB for 16384 (5.82 vs 5.29 train
+     bytes/token). Seeing more text per unit of compute is precisely the advantage a
+     denser tokenizer offers, so this is part of what is measured, not a leak.
+  3. *Embedding share at toy scale.* With tied embeddings at n_embd 128, the 32768
+     model has 5,260,416 parameters vs ≈ 3,163,264 for 16384 (the non-embedding part,
+     1,066,112, is identical). The pre-registered question explicitly included "is the
+     larger embedding table worth it at the LM level" — at this scale, yes. At
+     production width the embedding share is far smaller, which shrinks this cost.
+- **Status:** complete. The selection becomes **D-040 — Frontier Tokenizer v1** only
+  after founder review of this table (rule 3).
