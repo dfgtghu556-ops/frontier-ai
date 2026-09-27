@@ -37,6 +37,29 @@ New-Item -ItemType Directory -Force "out\exp_b\EXP-029" | Out-Null
 
 function Add-Log($text) { $text | Out-File $log -Append -Encoding utf8 }
 
+# Run the matrix and tee every output line to the console + night.log.
+# WHY cmd /c "... 2>&1": Windows PowerShell 5.1 turns every stderr line of a
+# native program into a NativeCommandError, and under $ErrorActionPreference
+# "Stop" the FIRST such line kills the whole pipeline. train.py prints its normal
+# success line "[record] ... | fingerprint ..." on stderr, so the first finished
+# cell aborted the night run (observed on the PC 2026-09-27). Letting cmd.exe
+# merge stderr into stdout at the OS level means PowerShell only ever sees plain
+# stdout text. "Continue" is a second safety net for the duration of the call.
+function Invoke-Matrix {
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & cmd.exe /d /c ".venv\Scripts\python.exe -u scripts\run_exp_b.py --seeds 1337,1338,1339 --max-steps 150 2>&1" |
+            ForEach-Object { $line = "$_"; $line | Out-File $log -Append -Encoding utf8; Write-Host $line }
+        $rc = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $prev
+    }
+    # Only the exit code leaves this function (console echo uses Write-Host so
+    # the output lines do not leak into the return value).
+    return $rc
+}
+
 # --- 1) refuse to stack a second matrix on top of a running one -------------
 $running = Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
     Where-Object { $_.CommandLine -like "*run_exp_b.py*" }
@@ -50,9 +73,7 @@ if ($running) {
 
 # --- 2) the matrix (pre-registered cells + revised 150-step budget) ----------
 "=== EXP-B night run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" | Add-Log
-& .venv\Scripts\python.exe -u scripts\run_exp_b.py --seeds 1337,1338,1339 --max-steps 150 2>&1 |
-    ForEach-Object { $_ | Out-File $log -Append -Encoding utf8; $_ }
-$code = $LASTEXITCODE
+$code = Invoke-Matrix
 "=== matrix finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | exit code: $code ===" | Add-Log
 
 if ($code -ne 0) {
@@ -68,9 +89,7 @@ if ($code -ne 0) {
 if ($Verify) {
     Copy-Item -Recurse -Force $runsDir "out\exp_b\EXP-029\runs_pass1"
     "=== verification pass 2 started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" | Add-Log
-    & .venv\Scripts\python.exe -u scripts\run_exp_b.py --seeds 1337,1338,1339 --max-steps 150 2>&1 |
-        ForEach-Object { $_ | Out-File $log -Append -Encoding utf8; $_ }
-    $code2 = $LASTEXITCODE
+    $code2 = Invoke-Matrix
     "=== verification pass 2 finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | exit code: $code2 ===" | Add-Log
     if ($code2 -ne 0) {
         "VERIFICATION FAILED at the second run (exit $code2)." | Add-Log

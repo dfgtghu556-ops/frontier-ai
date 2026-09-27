@@ -17,9 +17,9 @@
 
 ## Steps (in order — if a step fails, stop and report what failed; do not improvise fixes)
 
-1. **Check the code is current:** `git fetch origin` then `git log --oneline -1`. If the local tip is not `ce1b96f` or ahead of it, run `git pull --ff-only origin arena/01a0dc16-frontier-ai`.
-2. **Stop any stale matrix run:**
-   `Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -like '*run_exp_b.py*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force; "stopped PID $($_.ProcessId)" }`
+1. **Get the latest code (always):** `git pull --ff-only origin arena/01a0dc16-frontier-ai`, then confirm the fix is present: `Select-String -Path scripts\run_exp_b_night.ps1 -Pattern "Invoke-Matrix"` must print at least one line. If it prints nothing, STOP and report (the PowerShell fix is missing).
+2. **Stop any stale matrix run — including orphaned cell processes** (a crashed runner can leave a `train.py` cell running on its own):
+   `Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -like '*run_exp_b.py*' -or ($_.CommandLine -like '*train.py*' -and $_.CommandLine -like '*EXP-029*') } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force; "stopped PID $($_.ProcessId)" }`
    (Printing nothing is fine — it just means nothing was running.)
 3. **Keep the PC awake for the night:** `powercfg /change standby-timeout-ac 0`
 4. **Skip check:** if `out\exp_b\EXP-029\runs\report.txt` already exists AND all six cell records from step 6 already exist AND the report contains no `FAIL`, skip to step 6 (a finished run must not be re-run).
@@ -27,6 +27,10 @@
    - Takes **~2 hours**. It logs everything to `out\exp_b\EXP-029\night.log`.
    - Quiet stretches of ~20 minutes between cells are NORMAL (each cell trains silently, then prints its log at once) — not a hang.
    - If your tooling cannot block for 2 h, launch it in a background terminal and poll `night.log` every 5 minutes until the completion marker appears.
+   - **History (why the script changed in `run_exp_b_night.ps1` after `8feb98f`):** the first attempt died right after cell 1 (bpb 1.4674) with a PowerShell `NativeCommandError` on the normal `[record] ... | fingerprint ...` line. That line is printed on stderr, and Windows PowerShell 5.1 treats any stderr line as fatal under `$ErrorActionPreference = "Stop"`. The script now lets `cmd.exe` merge stderr into stdout, so this can no longer happen. Make sure step 1 pulled the fix (the script must contain `Invoke-Matrix`).
+   - **Fallback — only if the night script itself fails again with a PowerShell error (not a Python error):** run the same pre-registered matrix without PowerShell stream handling, from the repo root:
+     `cmd /d /c ".venv\Scripts\python.exe -u scripts\run_exp_b.py --seeds 1337,1338,1339 --max-steps 150 > out\exp_b\EXP-029\night_direct.log 2>&1"`
+     then check `echo $LASTEXITCODE` (must be 0) and use `night_direct.log` in place of `night.log` for check 6a (it has no `NIGHT RUN` marker; instead it must end with the report and an `[exp-b] report:` line). This fallback counts as the single allowed retry.
 6. **Verify from the files** (do not trust the log alone):
    - **a.** `night.log` ends with `NIGHT RUN matrix COMPLETE` (or `NIGHT RUN COMPLETE`) and the exit-code line says `0`.
    - **b.** `out\exp_b\EXP-029\runs\report.txt` contains **no** `FAIL` and has a `DECISION` line.
