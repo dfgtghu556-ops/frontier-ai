@@ -45,7 +45,7 @@ from frontier_ai.config import ExperimentConfig  # noqa: E402
 from frontier_ai.corpus import verify_and_derive_frontier  # noqa: E402
 from frontier_ai.data.dataset import TokenDataset  # noqa: E402
 from frontier_ai.engine import checkpoint as ckpt  # noqa: E402
-from frontier_ai.evaluation import HARNESS_VERSION  # noqa: E402
+from frontier_ai.evaluation import HARNESS_VERSION, make_console_safe  # noqa: E402
 from frontier_ai.evaluation.contamination import contamination_report  # noqa: E402
 from frontier_ai.evaluation.scoring import PROTOCOL, doc_bits, encode_stream, token_nats  # noqa: E402
 from frontier_ai.evaluation.stats import group_summary  # noqa: E402
@@ -340,6 +340,7 @@ def render(r: dict) -> str:
 
 
 def main() -> int:
+    make_console_safe()
     args = build_parser().parse_args()
     args.label = args.label or _default_label(Path(args.ckpt))
     args.out = args.out or f"out/eval/{args.exp_id}/{args.label}"

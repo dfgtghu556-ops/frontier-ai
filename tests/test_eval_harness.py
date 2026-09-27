@@ -311,3 +311,23 @@ def test_publish_eval_results_copies_small_files_only(tmp_path):
     (src / "cell-a" / "report.txt").write_text("changed", encoding="utf-8")
     proc = _run_script("publish_eval_results.py", args)
     assert proc.returncode == 2 and "REFUSED" in proc.stderr
+
+
+def test_scripts_survive_a_windows_cp1252_console(env, tmp_path):
+    """EXP-031 regression: eval_compare crashed printing U+2212 on a cp1252 console/pipe."""
+    import os
+    ra = tmp_path / "a"
+    assert _report(env, env.c1, ra).returncode == 0
+    cp1252 = {**os.environ, "PYTHONIOENCODING": "cp1252"}  # strict errors, like a Windows pipe
+    runs = {
+        "eval_compare.py": ["--a", str(ra), "--b", str(ra), "--out", str(tmp_path / "cmp")],
+        "eval_report.py": ["--ckpt", str(env.c1), "--tokenizer", str(env.small_art), "--suite", str(env.suite),
+                           *env.corpus_args, "--out", str(tmp_path / "r"), "--bootstrap", "50", "--no-record"],
+        "build_eval_suite.py": ["--out", str(env.suite), *env.corpus_args],
+        "publish_eval_results.py": ["--exp-id", "EXP-095", "--src", str(ra), "--dest", str(tmp_path / "pub")],
+    }
+    for script, args in runs.items():
+        for extra in ([], ["--help"]):
+            proc = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / script), *args, *extra],
+                                  capture_output=True, timeout=900, env=cp1252)
+            assert proc.returncode == 0, (script, extra, proc.stderr.decode("cp1252", "replace")[-800:])

@@ -21,6 +21,11 @@ PUBLISHED = ("report.json", "report.txt", "compare.json", "compare.txt", "experi
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):  # never crash on a legacy console code page
+        try:
+            stream.reconfigure(errors="replace")
+        except (AttributeError, ValueError):
+            pass
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--exp-id", required=True)
     p.add_argument("--src", default=None, help="default out/eval/<exp-id>")

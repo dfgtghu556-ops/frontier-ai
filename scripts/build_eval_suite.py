@@ -22,6 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from frontier_ai.corpus import verify_and_derive_frontier  # noqa: E402
+from frontier_ai.evaluation import make_console_safe  # noqa: E402
 from frontier_ai.evaluation.suite import (  # noqa: E402
     FRONTIER_HELDOUT_V1,
     SUITES_ROOT,
@@ -32,6 +33,7 @@ from frontier_ai.evaluation.suite import (  # noqa: E402
 
 
 def main() -> int:
+    make_console_safe()
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--out", default=str(SUITES_ROOT / FRONTIER_HELDOUT_V1 / "SUITE.json"))
     p.add_argument("--frontier-dir", default="corpora/frontier/v1")

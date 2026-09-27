@@ -52,7 +52,7 @@ def paired_delta(
     seed: int = 0,
     alpha: float = 0.05,
 ) -> dict[str, Any]:
-    """(B − A) in bits per unit, with a paired document-bootstrap CI. Negative = B better."""
+    """(B - A) in bits per unit, with a paired document-bootstrap CI. Negative = B better."""
     diff = bits_b - bits_a
     point = ratio(diff, denom)
     lo, hi = bootstrap_ratio_ci(diff, denom, n_boot=n_boot, seed=seed, alpha=alpha)

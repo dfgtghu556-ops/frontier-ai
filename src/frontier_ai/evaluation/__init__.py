@@ -13,3 +13,19 @@ the current few-million-parameter research models.
 """
 
 HARNESS_VERSION = "1.0.0"
+
+
+def make_console_safe() -> None:
+    """Never crash on printing: replace characters the console encoding cannot show.
+
+    Windows consoles and pipes default to a legacy code page (e.g. cp1252); printing a
+    character outside it raises ``UnicodeEncodeError`` *after* the work is done. Files are
+    always written as UTF-8 and are unaffected. (EXP-031: U+2212 crashed eval_compare.)
+    """
+    import sys
+
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except (AttributeError, ValueError):
+            pass

@@ -11,7 +11,7 @@ compare reports made with different harness versions, suites or scoring protocol
 For overall and each language it reports:
   * per group: mean and sample std of bits-per-byte across the group's reports (seed
     variation), and the individual values;
-  * the difference B − A of the group means with a **paired document-bootstrap** 95%
+  * the difference B - A of the group means with a **paired document-bootstrap** 95%
     interval (per-document bits averaged over each group's reports; documents resampled
     jointly), and a verdict (interval excludes 0 or not).
 
@@ -30,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import numpy as np  # noqa: E402
 
+from frontier_ai.evaluation import make_console_safe  # noqa: E402
 from frontier_ai.evaluation.stats import paired_delta  # noqa: E402
 
 
@@ -67,6 +68,7 @@ def _matrix(docs_list: list[list[dict]]) -> tuple[list[dict], np.ndarray]:
 
 
 def main() -> int:
+    make_console_safe()
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--a", nargs="+", required=True, help="report dirs of group A")
     p.add_argument("--b", nargs="+", required=True, help="report dirs of group B")
@@ -125,7 +127,7 @@ def main() -> int:
               f"{'delta':>8}  {'95% CI':20} verdict")
     lines = [f"COMPARISON (harness v{result['harness_version']}) — "
              f"A = {args.label_a} ({len(args.a)} reports), B = {args.label_b} ({len(args.b)} reports)",
-             "delta = B − A in bits-per-byte (negative = B better); "
+             "delta = B - A in bits-per-byte (negative = B better); "
              "95% paired document-bootstrap interval",
              "", header]
     for name, sec in [("OVERALL", result["overall"]), *result["per_language"].items()]:

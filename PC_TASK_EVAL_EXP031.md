@@ -17,6 +17,20 @@ the suite file plus the small result files. Expected time: roughly 30–45 minut
 - Run every Python command through `cmd /d /c "... 2>&1"` (Windows PowerShell 5.1 otherwise
   turns normal stderr log lines into errors), then check `echo $LASTEXITCODE`.
 
+## Resuming after the step-5 console crash (added 2026-09-27)
+
+The second attempt passed steps 0–4, then `eval_compare.py` crashed while *printing* (a
+Windows cp1252 console cannot show the U+2212 minus sign). Its files were already written.
+The fix changes printing only; scoring and the harness version (1.0.0) are unchanged, so
+the step 0–4 outputs under `out\eval\EXP-031\` stay valid. To resume:
+- after the `git pull`, `git status --short` must print nothing (otherwise STOP and report);
+- do NOT rerun steps 0–4; start at **step 5** and run steps 5, 6 and 7 as written;
+- for the step-7 summary, take the step 0–4 values from the files already on disk:
+  `out\eval\EXP-031\local-change-backup\diff-stat*.txt`, each `out\eval\EXP-031\<cell>\report.txt`,
+  and the two `out\eval\EXP-031\repro\*\report.txt`. For step 2, rerun the suite builder
+  (`cmd /d /c ".venv\Scripts\python.exe -u scripts\build_eval_suite.py 2>&1"`); it changes nothing and
+  prints `[suite] ... already up to date (fingerprint ...)`. Report that line.
+
 ## Steps (in order — if any step fails, STOP and report; do not improvise fixes)
 
 0. **Preserve and set aside one known local change (added 2026-09-27 after the first attempt
