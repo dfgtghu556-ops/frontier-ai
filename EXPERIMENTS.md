@@ -798,6 +798,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-027 | FrontierCorpus v1 frozen-corpus pilot | complete | 2026-09-26 | build/check exit 0; 34,684 input docs → 34,011 post-stages; train 30,584 / held_out 3,427; 4 train + 1 held-out shards |
 | EXP-028 | **Production tokenizer sweep (EXP-A)** (MASTER_CONTEXT §37 step 5) | complete (PC run 2026-09-26) | 2026-09-26 | 20/20 cells gate PASS (15 grid + 5 supplement); mark_aware-32768 winner at 2.3054 held-out chars/token (+45 % over the 1.5971 baseline); hf-mark_aware ≡ py-mark_aware at every cell (cross-implementation validation); verified by scripts/summarize_sweep.py |
 | EXP-029 | **Tokenizer-vs-tokenizer small-model comparison (EXP-B)** (MASTER_CONTEXT §37 step 6) | complete 2026-09-27 — winner `mark_aware-32768` (mean bpb 1.4463 vs 1.5779); founder approved → **D-040** (Frontier Tokenizer v1) | 2026-09-26 | mark_aware-32768 vs mark_aware-16384 × 3 seeds, fixed small model (configs/exp_b.json), held-out bits-per-byte; pre-registered decision rule (lower mean bpb wins; tie -> smaller vocab); selection becomes D-040 (Frontier Tokenizer v1) after review |
+| EXP-030 | **Freeze Frontier Tokenizer v1** (D-040 follow-up; MASTER_CONTEXT §37 step 7) | in progress — harness delivered (sandbox), PC freeze pending | 2026-09-27 | copy the EXP-028 `py-mark_aware-32768` artifact into tracked `tokenizers/frontier-tokenizer-v1/` behind 4 gates (EXP-029 fingerprint, structure, exact EXP-029 token counts, losslessness) + golden samples for cross-platform determinism; hash-verified loader `load_frontier_tokenizer()` |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1539,3 +1540,47 @@ refactored sweep runner still passes all its e2e gates.
   after founder review of this table (rule 3).
 - **Selection (2026-09-27):** founder reviewed the table and approved →
   **D-040 — Frontier Tokenizer v1 = `mark_aware-32768`** (DECISIONS.md).
+
+### EXP-030 — Freeze Frontier Tokenizer v1 (D-040 follow-up)
+**Date:** 2026-09-27 · **Status:** in progress — harness delivered (sandbox); PC freeze pending
+(founder: "approve freeze plan", including a one-folder commit + push by the PC agent)
+
+**Purpose:** the D-040 tokenizer existed only on the founder's PC, under git-ignored
+`out/`. EXP-030 moves it into a tracked, hash-verified location and proves the copy is
+the exact artifact that won EXP-B, so every downstream consumer (evaluation harness,
+training) loads one provable object instead of a loose path.
+
+**Design (no experimental variable — an identity-preserving copy behind gates):**
+* `scripts/freeze_tokenizer.py` — gates on the SOURCE artifact before anything is written:
+  **A identity** — directory fingerprint == the `artifact_sha256` EXP-029 recorded in
+  `out/exp_b/EXP-029/manifest.json` (same algorithm, test-locked);
+  **B structure** — vocab 32,768, 32,512 merges, `mark_aware`, no special tokens;
+  **C counts** — re-encoding the frozen FrontierCorpus v1 (identity re-gated as in
+  EXP-A/B) reproduces EXP-029's train 1,608,987 / held-out 184,233 tokens on the same
+  corpus fingerprint; **D lossless** — every document round-trips exactly.
+  Only if A–D pass: byte-exact copy to `tokenizers/frontier-tokenizer-v1/tokenizer/` +
+  `FREEZE.json` (hashes, lineage, gate results, 15 golden samples with their token ids,
+  change policy), then re-verification of the copy through the downstream loader.
+  Never overwrites an existing freeze (exit 2).
+* `src/frontier_ai/tokenization/frozen.py` — `load_frontier_tokenizer()` refuses a
+  tokenizer whose file set, byte hashes, directory fingerprint, structure or golden-sample
+  encodings differ from `FREEZE.json`.
+* `.gitattributes` — `tokenizers/** -text`: `save_json` writes CRLF on Windows and Git
+  for Windows would convert it to LF on commit, silently breaking every raw-byte hash on
+  Linux. Git now stores the folder byte-for-byte.
+* PC handoff: `PC_TASK_TOKENIZER_FREEZE.md` (run, verify, commit + push exactly the 2
+  frozen files, write `out/tokenizer_freeze/EXP-030/FREEZE_REPORT.txt`).
+
+**Verification (sandbox):** `tests/test_freeze_tokenizer.py` — e2e freeze on the fake
+frozen corpus with a CRLF (Windows-style) artifact: 4 gates PASS, frozen bytes ==
+source bytes == EXP-029-style fingerprint, token counts equal, golden samples reproduce
+and round-trip; tampered artifact → gate A FAIL, nothing written; wrong expected vocab →
+gate B FAIL; existing freeze never overwritten; loader catches CRLF→LF conversion, a
+stray file and altered golden ids; recorded (default) mode writes a successful
+experiment record. Full suite: 502 collected, all pass except 2 expected skips (the
+real-v1 test until the PC commit lands; the smoke-corpus fetch test). ruff clean.
+
+**After the PC commit:** the skipped test `test_frontier_tokenizer_v1_is_frozen_and_verifies`
+becomes active — Linux must reproduce the byte hashes and the PC-recorded golden ids
+(cross-platform determinism). Then EXP-030 closes and **D-041** (tokenizer v1 frozen;
+change policy) is recorded.

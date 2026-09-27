@@ -1,0 +1,6 @@
+# Frozen production tokenizers are hash-verified over their RAW bytes
+# (tokenizers/<id>/FREEZE.json, D-041). The artifact written on Windows carries
+# CRLF line endings; without this rule Git for Windows (core.autocrlf=true)
+# would convert them to LF on commit and every sha256 check would fail on
+# Linux. "-text" = store and check out byte-for-byte, never convert.
+tokenizers/** -text
