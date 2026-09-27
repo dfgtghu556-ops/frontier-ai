@@ -15,7 +15,53 @@
   a skeptical reader would accept, it is not finished.
 - **This roadmap is a proposal.** The user approves what becomes the next project. An agent
   must not start a stage on its own.
-- **Status (2026-09-26):**
+- **Status (2026-09-27) — synchronized with NEW_CHAT_START_HERE.md, EXPERIMENTS.md and
+  DECISIONS.md.** Progress is tracked against the founder's 24-step sequence
+  ([MASTER_CONTEXT.md](MASTER_CONTEXT.md) §37); the stages below are this document's own
+  dependency grouping, mapped where the correspondence is clear.
+
+  | §37 step | Status | ROADMAP stage | Evidence |
+  |---|---|---|---|
+  | 1. Sync documentation with the repository | ✅ complete | — | NEW_CHAT_START_HERE.md §8 |
+  | 2. Freeze and verify the acquired corpus | ✅ complete | Stage 3 | EXP-025/026, D-035 (`indic-tokenizer/v2`) |
+  | 3. Build the FoundationCorpus pipeline | ✅ complete | Stage 3 | D-036, D-037 |
+  | 4. Produce FrontierCorpus v1 | ✅ complete **at pilot scale** | Stage 3 | EXP-027 |
+  | 5. Production tokenizer sweep | ✅ complete | Stage 2 | EXP-028, D-038, D-039 |
+  | 6. Tokenizer-vs-tokenizer small-model experiments | ✅ complete | Stage 2 | EXP-029 |
+  | 7. Select Frontier Tokenizer v1 | ✅ complete (selected + frozen) | Stage 2 | D-040, EXP-030, D-041 |
+  | **8. Build the evaluation harness** | **🔶 current task** | Stage 6 (intrinsic part) | harness v1, EXP-031 |
+  | 9. Architecture ablations | not started | — (MASTER_CONTEXT §20; ablation discipline of Stage 12) | — |
+  | 10. Actual GPU training bring-up | not started | Stage 4 | — |
+  | 11. Scaling experiments | not started | Stage 4 | — |
+  | 12. First serious Frontier base model | not started | Stages 4/13 prerequisites | — |
+  | 13. Validate distributed training | not started | Stage 5 | — |
+  | 14. Scale pretraining on evidence | not started | Stages 3–5 | — |
+  | 15. Evaluate extensively | not started | Stage 6 (downstream + human) | — |
+  | 16. SFT · 17. Preference optimization | not started | Stage 7 | — |
+  | 18. Reasoning | not started | Stage 8 | — |
+  | 19. Safety | not started | Stage 9 | — |
+  | 20. Inference optimization | not started | — (MASTER_CONTEXT §29) | — |
+  | 21. Multimodal | not started | Stage 11 | — |
+  | 22. Tools/agents | not started | Stage 10 | — |
+  | 23. Specialist ecosystem | not started | — (MASTER_CONTEXT §32) | — |
+  | 24. Frontier research / larger models | not started | Stage 13 | — |
+
+  What the completed steps do and do not establish:
+  - **FrontierCorpus v1 is a completed *pilot* corpus** (~4.2 million characters, a few
+    MB; EXP-027). It is sufficient for controlled tokenizer and evaluation research. It is
+    **not** a claim of sufficient scale for foundation-model pretraining; building a
+    substantially larger licensed corpus remains future work (Stage 3 at scale).
+  - **Frontier Tokenizer v1 is selected and frozen** (D-040, D-041). It was trained and
+    evaluated on the pilot corpus; D-041 allows a future **Frontier Tokenizer v2** once a
+    substantially larger real training corpus exists, subject to founder approval and a
+    new experiment.
+  - **No serious foundation model has been trained yet**, and **no GPU training has been
+    performed yet**; every model so far is a small CPU research model.
+  - **GPU access becomes necessary at step 10** (real model training). The current work,
+    step 8, runs on CPU and does not need a GPU.
+  - Steps 9–24 remain not started until the founder explicitly approves each.
+
+- **Previous status (2026-09-26, superseded by the block above):**
   - Stages 0 and 1 are complete (Projects 001 and 003).
   - Stage 2 has its framework (Project 002) and a real, licensed research corpus
     (Project 004, 13 of 14 language slots). The tokenizer *decision* is open.
@@ -151,7 +197,19 @@ verification **EXP-007**). Every item of Stage 1 is therefore delivered.
 - Wiring the existing `scripts/train.py` and `scripts/tokenizer_*.py` entry points to write
   experiment records themselves (today the CLI wraps them from outside).
 
-## Stage 2 — Tokenizer 🔶 FRAMEWORK BUILT, RESEARCH CORPUS ACQUIRED, DECISION PENDING (Projects 002, 004)
+## Stage 2 — Tokenizer ✅ COMPLETE — Frontier Tokenizer v1 selected and frozen (D-040, D-041)
+
+**Update (2026-09-27):** closed by §37 steps 5–7. EXP-028 swept 20 configurations on the
+frozen pilot corpus (all losslessness gates PASS; mark-aware pre-tokenization densest,
+partially answering Q-9 and Q-10 for this corpus); EXP-029 compared the top two on identical small models
+(held-out bits-per-byte, 3 seeds; `mark_aware-32768` 1.4463 vs `mark_aware-16384` 1.5779);
+D-040 selected **`mark_aware-32768`**; EXP-030/D-041 froze it at `tokenizers/frontier-tokenizer-v1/` behind a
+hash-verifying loader. Still open (recorded, not blocking): BPE vs Unigram (Q-1/Q-12),
+special tokens (needed by later stages → v2), and retraining on a substantially larger
+corpus (→ v2, founder approval). The historical text below is kept as written.
+
+*Previous heading: "Stage 2 — Tokenizer 🔶 FRAMEWORK BUILT, RESEARCH CORPUS ACQUIRED,
+DECISION PENDING (Projects 002, 004)".*
 
 **Goal:** a tokenizer trained on our own data, with coverage for Indian languages,
 *chosen on measurements*.
@@ -205,7 +263,18 @@ selected.**
 **Risk:** deciding from a 179-example fixture. The framework is explicitly designed to make
 that mistake visible — every report carries the fixture caveat.
 
-## Stage 3 — Real data pipeline ⏭ NEXT (FrontierCorpus v1)
+## Stage 3 — Real data pipeline ✅ PILOT COMPLETE (FrontierCorpus v1) — scale-up not started
+
+**Update (2026-09-27):** §37 steps 2–4 are complete: the acquired corpus is frozen and
+verified (`indic-tokenizer/v2`, D-035), the staged pipeline is built (D-036, D-037), and
+**FrontierCorpus v1** was produced and verified (EXP-027: train 30,584 / held-out 3,427
+documents, ~4.2 M characters). This is a **pilot-scale** corpus: it proves the pipeline
+end to end and supports controlled research, but it is **not** a pretraining corpus of
+sufficient scale. The exit criterion below is met for the pilot; producing a
+substantially larger licensed corpus is future work and a prerequisite for serious
+pretraining (§37 steps 12 and 14). The historical text below is kept as written.
+
+*Previous heading: "Stage 3 — Real data pipeline ⏭ NEXT (FrontierCorpus v1)".*
 
 **Goal:** a defensible, versioned pipeline from licensed/public sources to training shards.
 
@@ -233,6 +302,10 @@ held out.
 underestimate. Legal review is part of the work, not paperwork after it.
 
 ## Stage 4 — Scaling ladder on real GPUs
+
+**Status (2026-09-27): not started.** This is where **GPU access becomes necessary**
+(§37 step 10). No GPU training has been performed yet; nothing earlier in the sequence,
+including the step 8 evaluation harness, requires a GPU.
 
 **Goal:** establish that our training stack scales on accelerators, and learn the shape of
 the scaling curve **for our setup**.
@@ -267,7 +340,18 @@ a different world size works.
 **Risk:** silent correctness bugs (data overlap, wrong loss reduction) that look like
 "training is fine" until results are bad. Test for equivalence explicitly.
 
-## Stage 6 — Evaluation
+## Stage 6 — Evaluation 🔶 IN PROGRESS — intrinsic harness v1 (§37 step 8)
+
+**Update (2026-09-27):** §37 step 8 builds the *intrinsic* part of this stage for the
+current small research models: `scripts/eval_report.py` (one command → versioned report
+for any checkpoint; every held-out token scored once; bits-per-byte / per-character
+overall, per language, per script and per source with bootstrap confidence intervals;
+data-identity and contamination checks; full provenance), `scripts/eval_compare.py`
+(paired comparisons), and the protected suite `frontier-heldout-v1` (fingerprints only).
+First use: EXP-031 (re-scoring the EXP-B models). Per-domain results are not available
+(the pilot corpus has no domain labels); code-mixed evaluation waits for a lawful Hinglish
+source. **Downstream benchmarks, Indic task suites and human evaluation remain future work**
+(§37 step 15) — they are not meaningful for few-million-parameter models.
 
 **Goal:** know whether a model is actually better, across capabilities and languages.
 

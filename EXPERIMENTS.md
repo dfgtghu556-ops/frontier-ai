@@ -1607,3 +1607,73 @@ ran `PC_TASK_TOKENIZER_FREEZE.md`; commit **`fc7e8d8`** adds exactly 2 files
   ids equal the ids recorded on Windows and round-trip exactly. The previously skipped
   `test_frontier_tokenizer_v1_is_frozen_and_verifies` now runs and passes.
 * **Status:** complete → **D-041** (Frontier Tokenizer v1 frozen; change policy).
+
+### EXP-031 — Evaluation harness v1: full held-out re-evaluation of the EXP-B models (MASTER_CONTEXT §37 step 8)
+**Date:** 2026-09-27 · **Status:** in progress — harness built and tested (sandbox); PC run pending
+(founder: "Approve eval harness plan + roadmap sync", 2026-09-27)
+
+**Purpose:** EXP-029's bits-per-byte figures were *training-time sampled estimates*
+(51,200 of the ~184k held-out tokens). Step 8 needs a harness that scores **every**
+held-out token under identical, recorded conditions, so model comparisons (the D-040
+tokenizer evidence first; architecture ablations later, with approval) rest on exact,
+reproducible numbers. This experiment builds harness v1 and applies it to the 6 EXP-029
+checkpoints. There is no new training and no new model.
+
+**Design (harness v1.0.0, `src/frontier_ai/evaluation/`):**
+* **Protected suite `frontier-heldout-v1`** (`scripts/build_eval_suite.py` →
+  `evals/suites/frontier-heldout-v1/SUITE.json`): the FrontierCorpus v1 held-out side
+  (3,427 docs, 13 languages) as **fingerprints only** (doc id, language, source, sha256,
+  sizes; no text), in derived order, bound to the corpus `content_sha256`, with a
+  self-checking suite fingerprint. It is built once and never replaced (exit 2).
+  `find_exact_overlap(texts, suite)` guards future training data against the suite.
+* **Scoring (`scripts/eval_report.py`):** documents are encoded individually and
+  concatenated in suite order, exactly like the EXP-B validation stream. Non-overlapping
+  windows of the model's `block_size` score every token except stream token 0 exactly
+  once, in fp32 on CPU. Per-token bits are attributed to documents; document 0 is
+  context-only and excluded from all statistics. Stream (not document-isolated) scoring
+  is deliberate: isolated scoring gives each document a context-free first token whose
+  cost depends on vocabulary size and would bias a tokenizer comparison.
+* **Metrics:** bits-per-byte (primary; tokenizer-independent), bits-per-character and
+  bits-per-token, overall, per language, per script and per source, with seeded
+  document-level bootstrap 95% intervals (1,000 resamples, seed 0; not computed for
+  per-source). Domain: not available (no domain labels in the pilot corpus).
+* **Checks:** suite fingerprint and corpus binding (exit 2); tokenizer vocab == checkpoint
+  vocab (exit 2); **data identity**, meaning the re-encoded stream is compared to the
+  checkpoint's own dataset validation split → PASS / FAIL (exit 1) / NOT CHECKED;
+  **contamination**: exact-hash and 13-word n-gram overlap of the evaluated documents
+  against the FrontierCorpus v1 train side.
+* **Provenance and reproducibility:** `report.json` (schema `frontier-eval-report-v1`)
+  records model/config sha256, step, parameters, tokenizer dir fingerprint and
+  frozen-v1 match, suite fingerprint, corpus fingerprint, protocol and thread count, and
+  the training-time estimate for contrast. `scores_sha256` hashes the per-document
+  scores, and a re-run must reproduce it bit for bit. Also written: `report.txt` (human),
+  `per_document.jsonl`, and a self-recorded experiment record.
+* **Comparison (`scripts/eval_compare.py`):** refuses to compare reports across harness
+  versions, suites, protocols or document sets. It reports per-group mean ± std across
+  seeds, and a paired document bootstrap on per-document bits (averaged within each
+  group); delta = B − A with a verdict, overall and per language.
+* **Limitations (v1):** no sliding-window/stride option (every token gets up to one
+  block of context; the same for all compared models, so comparisons are fair while
+  absolute numbers are protocol-specific); CPU fp32 results are reproducible for the
+  same thread count; no downstream benchmarks or human evaluation (§37 step 15).
+
+**Verification (sandbox):** `tests/test_eval_harness.py`, 13 tests on the fake frozen
+corpus with tiny seeded models: per-token scoring equals an independent computation
+through the model's own loss; per-document bits sum to that total; data identity PASS;
+scored tokens = stream − 1; languages add up to overall; CI brackets the point; two runs
+give byte-identical `per_document.jsonl` and equal `scores_sha256`; wrong-vocab tokenizer
+→ exit 2; altered suite → exit 2; mismatched dataset → data identity FAIL (exit 1);
+suite builder is idempotent and refuses replacement; compare delta = difference of the
+group scores, and a self-comparison gives 0; contamination detects planted exact and
+13-gram overlaps; recorded mode writes a successful record; the publisher copies only
+the small files. Full suite: **514 passed, 1 skipped** (the smoke-corpus fetch test);
+ruff clean.
+
+**PC run (`PC_TASK_EVAL_EXP031.md`):** build the suite; score the 3 `mark_aware-32768`
+checkpoints (`--tokenizer frozen`) and the 3 `mark_aware-16384` checkpoints (EXP-028
+artifact); re-run one checkpoint, and also score it with the original EXP-028 32768
+artifact, where both must reproduce `scores_sha256`; compare 32768 vs 16384; commit
+only the suite file plus the small result files (`evals/results/EXP-031/`, via
+`scripts/publish_eval_results.py`).
+
+**Results:** pending the PC run.

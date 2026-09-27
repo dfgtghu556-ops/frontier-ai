@@ -323,6 +323,16 @@ comes next. They also update the table in §3.
   files — put the `git pull` in the chat message itself, not only inside the file.
   **Next (§37 step 8):** plan the evaluation harness; no code before founder approval.
 
+* **2026-09-27, Arena agent (§37 step 8 IN PROGRESS — evaluation harness v1 + ROADMAP
+  sync; EXP-031):** founder approved the plan. Harness v1 built and tested in the sandbox
+  (`scripts/eval_report.py`, `eval_compare.py`, `build_eval_suite.py`,
+  `publish_eval_results.py`; `src/frontier_ai/evaluation/`; 13 tests; full suite 514
+  passed / 1 skipped). ROADMAP.md now carries a dated 24-step status block (steps 1–7
+  done, step 8 current, 9–24 not started; FrontierCorpus v1 = pilot; tokenizer v1 frozen,
+  v2 possible; GPU needed from step 10). PC run pending via `PC_TASK_EVAL_EXP031.md`.
+  **Next:** record EXP-031 results + D-042, report the step 8 exit criteria, then STOP
+  for founder approval before step 9.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```
