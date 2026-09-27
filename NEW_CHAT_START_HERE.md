@@ -300,6 +300,20 @@ comes next. They also update the table in §3.
   recovered via fetch + `git reset --mixed FETCH_HEAD` (tree intact; re-committed as
   `c11ba8f`).
 
+* **2026-09-27, Arena agent (EXP-029 / EXP-B COMPLETE → D-040, commits `ce1b96f`,
+  `c91ce6e`, `454bd28`):** two runner bugs were found on the PC and fixed (recorded-mode
+  cells ran nested and skipped their records → `ce1b96f` + regression test; Windows
+  PowerShell 5.1 treated the stderr `[record] … fingerprint` line as a fatal
+  `NativeCommandError` → `c91ce6e`, cmd.exe merges stderr). The PC's local agent then
+  ran the matrix unattended from `PC_TASK_EXP_B.md` (the file-based handoff that
+  replaces copy-paste). Result at 150 steps/cell, 3 seeds: **mark_aware-32768 mean
+  held-out bpb 1.4463 vs mark_aware-16384 1.5779** (gap 8.8× the tie band; every
+  32768 seed beats every 16384 seed); 4/4 file-level checks PASS. Founder approved →
+  **D-040: Frontier Tokenizer v1 = mark_aware-32768** (MASTER_CONTEXT §37 step 7 done).
+  **Next (§37):** freeze the selected tokenizer artifact (PC-only, git-ignored) into a
+  durable hashed location, then step 8 — the evaluation harness. Plan first; no code
+  before founder approval.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

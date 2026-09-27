@@ -1253,6 +1253,57 @@ redundant.
 
 ---
 
+## D-040 — Frontier Tokenizer v1 is mark-aware BPE with a 32,768-token vocabulary
+**Date:** 2026-09-27 · **Status:** accepted (founder approval 2026-09-27 after review of the EXP-029 table; MASTER_CONTEXT §37 step 7)
+
+**Decision:** **Frontier Tokenizer v1 = `mark_aware-32768`** — byte-level BPE with the
+mark-aware pre-tokenizer (combining marks stay attached to their base characters;
+`bpe_python.pretokenize`, D-039 for the HF equivalent), vocabulary 32,768, trained on
+the train side of the frozen FrontierCorpus v1 (EXP-028 cell
+`py-mark_aware-32768`, seed 1337). Canonical artifact (PC, git-ignored under `out/`):
+`out/experiments/EXP-028/py-mark_aware-32768/seed-0000001337/tokenizer/bpe_python.json`.
+Its content hash has **not** been verified from the sandbox (NOT VERIFIED here); the
+EXP-029 prepared-data manifest in `out/exp_b/EXP-029/` records the artifact fingerprint
+used by the experiment.
+
+**Evidence:**
+* **EXP-028 (model-free, 20 cells, all losslessness gates PASS):** mark_aware-32768 is
+  the densest configuration — 2.3054 held-out chars/token, +45 % over the
+  GPT-2-style / ByteLevel baselines (≈ 1.59); it wins 11 of 13 languages (baselines win
+  `en` and unvocalized `ur`). `hf-mark_aware` ≡ `py-mark_aware` at every vocab and
+  language.
+* **EXP-029 / EXP-B (small-model LM comparison, pre-registered rule):** identical
+  model, data, 150-step budget and seeds; held-out bits-per-byte, mean over 3 seeds:
+  mark_aware-32768 **1.4463** (std 0.0190) vs mark_aware-16384 1.5779 (std 0.0108).
+  Gap 0.1316 ≈ 8.8× the tie band (0.0149), so the tie → smaller-vocab rule does not
+  apply; every 32768 seed beats every 16384 seed. All four file-level verification
+  checks passed on the PC.
+
+**Alternatives rejected:** `mark_aware-16384` (9.1 % worse held-out bpb at equal
+compute; the smaller embedding table did not compensate); GPT-2-style regex and plain
+ByteLevel pre-tokenization (EXP-028: ~31 % fewer chars/token on this corpus, lose on
+the Indic scripts). Vocabularies above 32,768 were outside the approved EXP-A grid and
+were not tested.
+
+**Consequences accepted:**
+* The 32k embedding table is a large share of parameters at toy scale (5.26 M vs
+  ≈ 3.16 M total at n_embd 128); at production width this share is small.
+* The EXP-B verdict is at an undertrained budget (0.76 epochs); it answers "which is
+  better at equal compute", as pre-registered, not the asymptotic question.
+* Partially answers Q-9 (pre-tokenization → mark-aware) and Q-10 (vocab size → 32,768
+  for v1) for this corpus; Q-1/Q-12 (BPE vs Unigram) and Q-11 (normalization; NFC per
+  D-036 at the corpus level) remain as recorded.
+* The **implementation** (`bpe_python` vs `bpe_hf`, proven equivalent) is an
+  engineering choice made separately, not part of this decision.
+* The artifact currently exists only on the founder's PC (git-ignored); it must be
+  frozen into a durable, hashed location before downstream work depends on it.
+
+**Revisit when:** the corpus changes (a FrontierCorpus v2 or a new frozen tokenizer
+corpus), a vocabulary > 32,768 or a Unigram model is evaluated, or a longer-budget
+LM comparison contradicts EXP-029.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

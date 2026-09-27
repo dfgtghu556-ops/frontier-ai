@@ -797,7 +797,7 @@ directories are git-ignored; the runs are regenerable with the commands above.
 | EXP-026 | P004B: live freshness re-fetch of frozen `indic-tokenizer/v2` | complete | 2026-09-26 | build exit 0; inspection: 59/59 sources verified and pinned, no flagged rows or REFUSED lines |
 | EXP-027 | FrontierCorpus v1 frozen-corpus pilot | complete | 2026-09-26 | build/check exit 0; 34,684 input docs → 34,011 post-stages; train 30,584 / held_out 3,427; 4 train + 1 held-out shards |
 | EXP-028 | **Production tokenizer sweep (EXP-A)** (MASTER_CONTEXT §37 step 5) | complete (PC run 2026-09-26) | 2026-09-26 | 20/20 cells gate PASS (15 grid + 5 supplement); mark_aware-32768 winner at 2.3054 held-out chars/token (+45 % over the 1.5971 baseline); hf-mark_aware ≡ py-mark_aware at every cell (cross-implementation validation); verified by scripts/summarize_sweep.py |
-| EXP-029 | **Tokenizer-vs-tokenizer small-model comparison (EXP-B)** (MASTER_CONTEXT §37 step 6) | complete 2026-09-27 — winner `mark_aware-32768` (mean bpb 1.4463 vs 1.5779); selection pending founder review → D-040 | 2026-09-26 | mark_aware-32768 vs mark_aware-16384 × 3 seeds, fixed small model (configs/exp_b.json), held-out bits-per-byte; pre-registered decision rule (lower mean bpb wins; tie -> smaller vocab); selection becomes D-040 (Frontier Tokenizer v1) after review |
+| EXP-029 | **Tokenizer-vs-tokenizer small-model comparison (EXP-B)** (MASTER_CONTEXT §37 step 6) | complete 2026-09-27 — winner `mark_aware-32768` (mean bpb 1.4463 vs 1.5779); founder approved → **D-040** (Frontier Tokenizer v1) | 2026-09-26 | mark_aware-32768 vs mark_aware-16384 × 3 seeds, fixed small model (configs/exp_b.json), held-out bits-per-byte; pre-registered decision rule (lower mean bpb wins; tie -> smaller vocab); selection becomes D-040 (Frontier Tokenizer v1) after review |
 
 *(Add one row per experiment as they are run. Do not add rows for planned experiments —
 those belong in [ROADMAP.md](ROADMAP.md).)*
@@ -1537,3 +1537,5 @@ refactored sweep runner still passes all its e2e gates.
      production width the embedding share is far smaller, which shrinks this cost.
 - **Status:** complete. The selection becomes **D-040 — Frontier Tokenizer v1** only
   after founder review of this table (rule 3).
+- **Selection (2026-09-27):** founder reviewed the table and approved →
+  **D-040 — Frontier Tokenizer v1 = `mark_aware-32768`** (DECISIONS.md).
