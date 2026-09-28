@@ -400,6 +400,28 @@ comes next. They also update the table in §3.
   approval, record D-043, update ROADMAP (step 9 complete), then propose the step 10 GPU
   bring-up plan with costs. STOP until approved.
 
+* **2026-09-28, Arena agent (GPU collaborator onboarding):** the founder's GPU (an RTX card,
+  model NOT VERIFIED) is on a **friend's computer**, and the friend will join the GitHub
+  repository. The founder asked to update GitHub for him. Added:
+  - `GPU_COLLABORATOR_START_HERE.md`: project status, working rules, Windows setup with CUDA
+    PyTorch, the readiness report, and what happens next (including the git-ignored data he
+    will receive with recorded hashes).
+  - `scripts/gpu_env_report.py`: a read-only report on machine, PyTorch and GPU facts, plus
+    seconds-long GPU smoke checks. It writes `out/gpu_env/REPORT.txt` and exits 0 / 1 / 2 for
+    ready / not ready / error.
+  - 3 tests.
+  - Targeted README updates (status table, collaborator pointer, stale facts fixed) and a
+    ROADMAP 2026-09-28 update.
+
+  Notes:
+  - The repository is **public**.
+  - The agent's GitHub token cannot add collaborators, so the founder invites the friend
+    himself.
+  - D-043 is still pending founder review.
+
+  **Next:** the friend's `REPORT.txt`, then a step-10 plan written for that GPU (founder
+  approval), then a data zip plus a hash-verification command.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

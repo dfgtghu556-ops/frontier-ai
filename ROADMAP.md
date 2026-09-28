@@ -64,6 +64,22 @@
 - **Update (2026-09-27, later):** step 8 is complete and was approved by the founder (EXP-031, D-042).
   **Step 9 (architecture ablations) is now the current step** (EXP-032, CPU screening on
   the frozen tokenizer; results provisional until step 11). Steps 10–24 are not started.
+- **Update (2026-09-28):** step 9 has finished its experiments:
+  - EXP-032 screening and the EXP-033 confirmation at two learning rates were run.
+  - By the pre-registered rules, no architecture change is adopted at toy scale.
+  - **D-043 is proposed**: keep the EXP-B baseline architecture for GPU bring-up, and make
+    RoPE + GQA-2 the first candidate for the step-11 GPU-scale ablation. It is pending
+    founder review.
+
+  **Step 10 (GPU training bring-up) is next** and needs the founder's approval of its plan.
+  A GPU machine is becoming available through a collaborator (a friend of the founder, with
+  an NVIDIA RTX card; the exact model is NOT VERIFIED yet). The onboarding guide is
+  [GPU_COLLABORATOR_START_HERE.md](GPU_COLLABORATOR_START_HERE.md), and the read-only
+  readiness check is `scripts/gpu_env_report.py`. Real frontier-scale training will still
+  need rented data-centre GPUs later.
+
+  The current training data (about 1.8M tokens) is small, so growing the corpus remains on
+  the critical path.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

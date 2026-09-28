@@ -26,6 +26,27 @@ Verbatim from `out/cpu-smoke/train.jsonl` (experiment **EXP-001**, see
 
 ---
 
+## Project status (2026-09-28)
+
+**Mission:** build, from scratch, a model family that can one day compete with the leading AI
+systems and become the best model in India (English + Indian languages). Progress is measured
+and recorded honestly; see [ROADMAP.md](ROADMAP.md) for the 24-step plan.
+
+| Roadmap step (MASTER_CONTEXT §37) | Status | Record |
+|---|---|---|
+| Licensed 13-language research corpus, frozen | done | D-035, EXP-025 |
+| FrontierCorpus v1 pipeline (pilot build) | done | D-036, D-037, EXP-027 |
+| Production tokenizer: **Frontier Tokenizer v1** (mark-aware BPE, 32,768 tokens), frozen | done | D-040, D-041, EXP-028–030 |
+| Evaluation harness v1 + protected held-out suite `frontier-heldout-v1` | done | D-042, EXP-031 |
+| Step 9 — architecture ablations (CPU screening) | done | EXP-032, EXP-033; D-043 proposed |
+| **Step 10 — first GPU training (bring-up)** | **next**, awaiting founder approval | — |
+
+Every model so far is a small CPU research model (~5M parameters); **no GPU training has
+been performed yet**. **Joining as the GPU collaborator?** Start with
+[GPU_COLLABORATOR_START_HERE.md](GPU_COLLABORATOR_START_HERE.md).
+
+---
+
 ## Project documentation
 
 Read these first if you are joining the project (human or AI agent):
@@ -35,13 +56,16 @@ Read these first if you are joining the project (human or AI agent):
 | [MASTER_CONTEXT.md](MASTER_CONTEXT.md) | the founder's mission, working rules, 24-step roadmap and required answer format |
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
 | [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
-| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-034) and open questions |
+| [GPU_COLLABORATOR_START_HERE.md](GPU_COLLABORATOR_START_HERE.md) | setting up a GPU machine for the project, working rules, readiness report |
+| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-042; D-043 proposed) and open questions |
 | [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log |
 | [docs/tokenization.md](docs/tokenization.md) | tokenizer research: why it matters, metrics, Indic/Unicode notes, workflow |
 | [docs/tokenizer_corpus_stage_a.md](docs/tokenizer_corpus_stage_a.md) | Project 004 Stage A: the tokenizer research corpus (manifest, licensing, split, leakage) |
 | [docs/tokenizer_corpus_stage_b_acquisition.md](docs/tokenizer_corpus_stage_b_acquisition.md) | Project 004 Stage B: how the real corpus was acquired and verified |
 | [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md) | how a new AI chat catches up with the latest branch |
 | [docs/experiments.md](docs/experiments.md) | Project 003: experiment records, seeding and documented limits, git/data/env provenance, the runner |
+| [docs/frontier_corpus_v1.md](docs/frontier_corpus_v1.md) | FrontierCorpus v1: the reproducible, versioned training-data pipeline |
+| [evals/](evals/) | evaluation harness v1 suite definition and published results (`evals/results/EXP-0xx/`) |
 
 The rest of this README is the technical quickstart.
 
@@ -124,9 +148,11 @@ python scripts/tokenizer_compare.py --corpus data/tokenizer/indic-v1 \
     --out out/tokenizer/compare.json
 ```
 
-See [docs/tokenization.md](docs/tokenization.md). **No production tokenizer has been
-selected** — Project 002 built the framework for that decision and recorded the first
-measurements as EXP-002.
+See [docs/tokenization.md](docs/tokenization.md). Project 002 built the framework and
+recorded the first measurements as EXP-002. *Update (2026-09-27):* the production tokenizer
+is now selected and frozen — **Frontier Tokenizer v1**, mark-aware BPE with 32,768 tokens
+(D-040, D-041), in `tokenizers/frontier-tokenizer-v1/` and loaded only through the
+hash-verifying loader.
 
 ## Experiment provenance (Project 003)
 
@@ -252,7 +278,10 @@ src/frontier_ai/
         checkpoint.py   save / load / resume
     tokenization/    pluggable tokenizers, Indic probe corpus, evaluator, comparator
     utils/          device+dtype resolution, seeding, JSONL logging
-tests/              89 unit + end-to-end tests (CPU, ~15 s)
+    corpus/          FrontierCorpus v1 pipeline (normalize, langid, quality, dedup, shards)
+    evaluation/      evaluation harness v1 (exact held-out bits-per-byte, CIs, provenance)
+    experiments/     experiment records, sweeps, self-recording runs
+tests/              unit + end-to-end tests (CPU)
 ```
 
 ## Model
@@ -307,7 +336,10 @@ automatically; set `train.precision=fp16` if you are on older (pre-Ampere) hardw
 
 > Note: this repository was developed on a CPU-only sandbox, so the GPU numbers above
 > are sizing guidance, not benchmarks. The code paths are device-agnostic and the
-> CPU path is exercised end-to-end by CI.
+> CPU path is exercised end-to-end by CI. **As of 2026-09-28 no GPU run has been performed**
+> (that is roadmap step 10). To check a GPU machine, run
+> `python scripts/gpu_env_report.py` (read-only readiness report; see
+> [GPU_COLLABORATOR_START_HERE.md](GPU_COLLABORATOR_START_HERE.md)).
 
 ## Using your own data
 
@@ -334,7 +366,7 @@ mkdir -p .github/workflows && cp docs/ci.yml.example .github/workflows/ci.yml
 ## Tests
 
 ```bash
-pytest -q        # 220 tests, ~65 s on CPU (1 skipped: needs a fetched corpus)
+pytest -q        # 550+ tests, ~7 min on a 2-core CPU (1 skipped: needs a fetched corpus)
 ruff check .     # lint
 make test lint
 ```
@@ -350,6 +382,9 @@ found while building this: logged loss must be a *mean* over accumulation steps,
 repeated `--set` flags must accumulate.
 
 ## Roadmap
+
+The authoritative plan and status is [ROADMAP.md](ROADMAP.md) (see "Project status" above).
+The engineering to-do list below is from the original stack build and is kept for history.
 
 - [ ] Finish ROADMAP Stage 1: larger sweep orchestration (Q-8), bits-per-byte loss
       reporting, real licensed smoke-test corpora (seed and configuration sweeps are done)
