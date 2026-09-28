@@ -1,0 +1,18 @@
+COMPARISON (harness v1.0.0) — A = rope-gqa2-lr-0.006 (3 reports), B = rope-gqa2-gelu-lr-0.006 (3 reports)
+delta = B - A in bits-per-byte (negative = B better); 95% paired document-bootstrap interval
+
+            docs        A mean ± std        B mean ± std     delta  95% CI               verdict
+OVERALL     3426     1.3806 ± 0.0076     1.3687 ± 0.0365   -0.0120  [-0.0127, -0.0113]  B better (interval excludes 0)
+as           235     1.3906 ± 0.0030     1.3812 ± 0.0326   -0.0094  [-0.0116, -0.0074]  B better (interval excludes 0)
+bn           408     1.3991 ± 0.0084     1.3868 ± 0.0402   -0.0123  [-0.0145, -0.0105]  B better (interval excludes 0)
+en           574     3.1829 ± 0.0043     3.1349 ± 0.0596   -0.0480  [-0.0518, -0.0440]  B better (interval excludes 0)
+gu           190     1.4277 ± 0.0119     1.4135 ± 0.0415   -0.0142  [-0.0156, -0.0128]  B better (interval excludes 0)
+hi           551     1.1857 ± 0.0047     1.1888 ± 0.0315   +0.0031  [+0.0022, +0.0038]  A better (interval excludes 0)
+kn           269     1.2030 ± 0.0135     1.1909 ± 0.0320   -0.0121  [-0.0134, -0.0109]  B better (interval excludes 0)
+ml           226     1.1232 ± 0.0224     1.1019 ± 0.0282   -0.0213  [-0.0225, -0.0203]  B better (interval excludes 0)
+mr           158     1.3061 ± 0.0111     1.2850 ± 0.0294   -0.0211  [-0.0230, -0.0192]  B better (interval excludes 0)
+or           176     1.5709 ± 0.0130     1.5569 ± 0.0505   -0.0141  [-0.0163, -0.0119]  B better (interval excludes 0)
+pa           249     1.4469 ± 0.0115     1.4404 ± 0.0468   -0.0066  [-0.0080, -0.0051]  B better (interval excludes 0)
+ta           103     1.0855 ± 0.0231     1.0744 ± 0.0401   -0.0111  [-0.0127, -0.0095]  B better (interval excludes 0)
+te           148     1.3274 ± 0.0316     1.3049 ± 0.0303   -0.0225  [-0.0242, -0.0209]  B better (interval excludes 0)
+ur           139     2.0948 ± 0.0259     2.0937 ± 0.0754   -0.0011  [-0.0033, +0.0013]  no clear difference (interval includes 0)

@@ -1,0 +1,206 @@
+{
+  "schema_version": "1.0",
+  "record_type": "frontier-ai.experiment",
+  "experiment": {
+    "id": "EXP-033",
+    "name": "Evaluation report (harness v1.0.0): rope-gqa2-lr-0.006-seed-1337",
+    "tags": [
+      "evaluation",
+      "harness-v1",
+      "frontier-heldout-v1"
+    ],
+    "notes": "",
+    "status": "success",
+    "output_dir": "E:\\frontier-ai\\out\\arch\\EXP-033\\eval\\rope-gqa2-lr-0.006-seed-1337"
+  },
+  "code": {
+    "git": {
+      "available": true,
+      "commit": "0eaf971e9fba6a7254377527c68e792f1ed6f34d",
+      "branch": "arena/01a0dc16-frontier-ai",
+      "dirty": false,
+      "dirty_files": [],
+      "commit_subject": "EXP-033 (approved): pre-registered v2 spec (2 LRs x 3 arms x 3 seeds), runner v2 (multi-LR arms, comparisons, DIVERGED status, single-cell reuse), agent-free one-command PC script, 21 tests",
+      "remote": "https://github.com/dfgtghu556-ops/frontier-ai.git",
+      "reason": "",
+      "reproducible_from_commit": true
+    },
+    "repository": "frontier-ai"
+  },
+  "data": {
+    "status": "ok",
+    "inputs": [
+      "corpora\\frontier\\v1\\manifest.json",
+      "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json"
+    ],
+    "digest": {
+      "algorithm": "sha256",
+      "digest": "b13860a161d86f78e2ae1fa08f5c4aff8117984c2459f615ba9b1d800d0648da",
+      "file_count": 2,
+      "total_bytes": 888331,
+      "files": [
+        {
+          "path": "corpora/frontier/v1/manifest.json",
+          "bytes": 61898,
+          "sha256": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f"
+        },
+        {
+          "path": "evals/suites/frontier-heldout-v1/SUITE.json",
+          "bytes": 826433,
+          "sha256": "043c1b7ee2a52e2889e645969a44cf19eb5b3c1c84d645b66249a8628eb6e572"
+        }
+      ],
+      "skipped": [],
+      "root": "E:\\frontier-ai"
+    }
+  },
+  "configuration": {
+    "spec": {
+      "experiment_id": "EXP-033",
+      "seed": 0,
+      "name": "Evaluation report (harness v1.0.0): rope-gqa2-lr-0.006-seed-1337",
+      "output_dir": "E:\\frontier-ai\\out\\arch\\EXP-033\\eval\\rope-gqa2-lr-0.006-seed-1337",
+      "params": {
+        "ckpt": "E:\\frontier-ai\\out\\arch\\EXP-033\\runs\\rope-gqa2-lr-0.006\\seed-1337\\last",
+        "tokenizer": "frozen",
+        "suite": "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json",
+        "batch_size": 8,
+        "device": "cpu",
+        "bootstrap": 1000
+      },
+      "data_paths": [
+        "corpora\\frontier\\v1\\manifest.json",
+        "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json"
+      ],
+      "config_path": "",
+      "component": {},
+      "command": [
+        "E:\\frontier-ai\\scripts\\eval_report.py",
+        "--ckpt",
+        "E:\\frontier-ai\\out\\arch\\EXP-033\\runs\\rope-gqa2-lr-0.006\\seed-1337\\last",
+        "--tokenizer",
+        "frozen",
+        "--out",
+        "E:\\frontier-ai\\out\\arch\\EXP-033\\eval\\rope-gqa2-lr-0.006-seed-1337",
+        "--label",
+        "rope-gqa2-lr-0.006-seed-1337",
+        "--exp-id",
+        "EXP-033",
+        "--no-contamination"
+      ],
+      "tags": [
+        "evaluation",
+        "harness-v1",
+        "frontier-heldout-v1"
+      ],
+      "notes": "",
+      "deterministic_mode": false,
+      "schema_version": "1.0"
+    },
+    "overrides": []
+  },
+  "randomness": {
+    "master_seed": 0,
+    "deterministic_mode_requested": false,
+    "seeded_rngs": [
+      "python.random",
+      "numpy.random",
+      "torch",
+      "torch.cuda"
+    ],
+    "derived_seeds": {
+      "data": 1388866306,
+      "model": 2303058159,
+      "sampling": 1015152222
+    },
+    "derivation": "sha256('<master>|<component>') mod 2**32",
+    "limitations": [
+      "CUDA/cuDNN kernels may be nondeterministic even when deterministic mode is requested; torch.use_deterministic_algorithms(True, warn_only=True) can still warn or fall back.",
+      "CPU results depend on the thread configuration: multi-threaded reductions can change floating-point summation order.",
+      "Library versions (torch, numpy, tokenizers) can change results for the same seed; the record stores the environment for this reason.",
+      "Only Python random, NumPy and Torch RNGs are seeded. Subprocesses, third-party samplers and OS-level nondeterminism are not covered."
+    ]
+  },
+  "environment": {
+    "python": {
+      "version": "3.13.15",
+      "implementation": "CPython"
+    },
+    "platform": {
+      "system": "Windows",
+      "release": "10",
+      "machine": "AMD64"
+    },
+    "packages": {
+      "torch": "2.14.0+cpu",
+      "numpy": "2.5.3",
+      "tokenizers": "0.23.2",
+      "frontier-ai": "0.1.0"
+    },
+    "torch": {
+      "available": true,
+      "version": "2.14.0+cpu",
+      "cuda_available": false,
+      "cuda_version": null,
+      "device_count": 0,
+      "num_threads": 2
+    },
+    "excluded_by_policy": [
+      "hostname",
+      "username",
+      "environment variables",
+      "full pip freeze output"
+    ]
+  },
+  "execution": {
+    "started_at": "2026-09-28T07:58:44Z",
+    "finished_at": "2026-09-28T07:59:55Z",
+    "duration_seconds": 70.822,
+    "cwd": "E:\\frontier-ai",
+    "pid": 8912,
+    "status": "success",
+    "command": [
+      "E:\\frontier-ai\\scripts\\eval_report.py",
+      "--ckpt",
+      "E:\\frontier-ai\\out\\arch\\EXP-033\\runs\\rope-gqa2-lr-0.006\\seed-1337\\last",
+      "--tokenizer",
+      "frozen",
+      "--out",
+      "E:\\frontier-ai\\out\\arch\\EXP-033\\eval\\rope-gqa2-lr-0.006-seed-1337",
+      "--label",
+      "rope-gqa2-lr-0.006-seed-1337",
+      "--exp-id",
+      "EXP-033",
+      "--no-contamination"
+    ],
+    "error": null
+  },
+  "results": {
+    "bits_per_byte": 1.3850529781382803,
+    "bits_per_byte_ci95": [
+      1.3693914564800238,
+      1.4015138821856727
+    ],
+    "bits_per_char": 3.4207365445509486,
+    "per_language_bpb": {
+      "as": 1.3872604581616663,
+      "bn": 1.4045959775260421,
+      "en": 3.178368676651842,
+      "gu": 1.4179476441519954,
+      "hi": 1.187947929751573,
+      "kn": 1.190515994383652,
+      "ml": 1.1423723583574765,
+      "mr": 1.3170494257150482,
+      "or": 1.568945652968691,
+      "pa": 1.4600744743457683,
+      "ta": 1.093224810900284,
+      "te": 1.3606288245099056,
+      "ur": 2.0734731262737385
+    },
+    "data_identity": "PASS",
+    "scores_sha256": "eb868653582ed87b3ab617c71b0d2882bc38756f6f05fd1eea1f844438d8fe29",
+    "suite_fingerprint": "a488b2aa41f9e861fa279a67e1fb6d98a610b4e8eebe554b9cfad262fc628a2f",
+    "tokenizer_dir_sha256": "b39afa08fa86b0d1ccf7b7e1b59df305b5678bdd59061c6fae01245061321144",
+    "model_sha256": "06002f820ec5c5f0eec399c3f0fe05880a9bf6085333e652e86e79313918d7cd"
+  }
+}

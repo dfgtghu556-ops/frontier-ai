@@ -1,0 +1,314 @@
+{
+  "exp_id": "EXP-033",
+  "schema": "frontier-arch-ablation-v2",
+  "spec_sha256": "7f9e7af7901bdab9d8df3ba826193562c933e9bcd119921f70c00d3e126ac733",
+  "max_steps": 150,
+  "seeds": [
+    1337,
+    1338,
+    1339
+  ],
+  "lrs": [
+    0.006,
+    0.01
+  ],
+  "rows": [
+    {
+      "group": "baseline-lr-0.006",
+      "arm": "baseline",
+      "lr": 0.006,
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.4048707173951263,
+        1.5049557738652857,
+        1.3779246985470535
+      ],
+      "status": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "mean": 1.4292503966024885,
+      "std": 0.06693280281608573,
+      "reused_from": "E:/frontier-ai/out/arch/EXP-032/runs/lr-0.006/seed-1337/last",
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "kv_cache_values_per_token": 1024,
+      "seconds_per_step": 7.446
+    },
+    {
+      "group": "rope-gqa2-lr-0.006",
+      "arm": "rope-gqa2",
+      "lr": 0.006,
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.3850529781382803,
+        1.3849681039703705,
+        1.3718596422842362
+      ],
+      "status": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "mean": 1.3806269081309623,
+      "std": 0.007592793539039027,
+      "reused_from": null,
+      "n_params": 5178496,
+      "body_params": 984192,
+      "kv_cache_values_per_token": 512,
+      "seconds_per_step": 7.226
+    },
+    {
+      "group": "rope-gqa2-gelu-lr-0.006",
+      "arm": "rope-gqa2-gelu",
+      "lr": 0.006,
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.362066930586678,
+        1.407999232380464,
+        1.335907864191887
+      ],
+      "status": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "mean": 1.3686580090530096,
+      "std": 0.03649483632429733,
+      "reused_from": null,
+      "n_params": 5178496,
+      "body_params": 984192,
+      "kv_cache_values_per_token": 512,
+      "seconds_per_step": 7.038
+    },
+    {
+      "group": "baseline-lr-0.01",
+      "arm": "baseline",
+      "lr": 0.01,
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.4565703010766515,
+        1.4007815197445228,
+        1.426908912866721
+      ],
+      "status": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "mean": 1.4280869112292984,
+      "std": 0.027913039797515693,
+      "reused_from": null,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "kv_cache_values_per_token": 1024,
+      "seconds_per_step": 7.138
+    },
+    {
+      "group": "rope-gqa2-lr-0.01",
+      "arm": "rope-gqa2",
+      "lr": 0.01,
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.396049638845834,
+        1.3442039502942604,
+        1.346564590646389
+      ],
+      "status": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "mean": 1.3622727265954946,
+      "std": 0.029275467657979098,
+      "reused_from": null,
+      "n_params": 5178496,
+      "body_params": 984192,
+      "kv_cache_values_per_token": 512,
+      "seconds_per_step": 7.198
+    },
+    {
+      "group": "rope-gqa2-gelu-lr-0.01",
+      "arm": "rope-gqa2-gelu",
+      "lr": 0.01,
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.3795478134334729,
+        1.3936288247872284,
+        1.3678533384091913
+      ],
+      "status": [
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "mean": 1.3803433255432975,
+      "std": 0.01290614404629639,
+      "reused_from": null,
+      "n_params": 5178496,
+      "body_params": 984192,
+      "kv_cache_values_per_token": 512,
+      "seconds_per_step": 7.105
+    }
+  ],
+  "comparisons": {
+    "candidate-vs-baseline": {
+      "a": "baseline",
+      "b": "rope-gqa2",
+      "rule": "superiority",
+      "per_lr": {
+        "0.006": {
+          "verdict": "NO DETECTABLE DIFFERENCE AT THIS SCALE",
+          "basis": "paired CI + seed separation",
+          "delta_bpb": -0.0486234884715261,
+          "ci95": [
+            -0.04967139321210921,
+            -0.04759982308196161
+          ],
+          "languages_better": [
+            "as",
+            "bn",
+            "en",
+            "gu",
+            "hi",
+            "kn",
+            "ml",
+            "mr",
+            "or",
+            "pa",
+            "ta",
+            "te",
+            "ur"
+          ],
+          "languages_worse": []
+        },
+        "0.01": {
+          "verdict": "BETTER",
+          "basis": "paired CI + seed separation",
+          "delta_bpb": -0.06581418463380372,
+          "ci95": [
+            -0.06757787464318411,
+            -0.0640678508896765
+          ],
+          "languages_better": [
+            "as",
+            "bn",
+            "en",
+            "gu",
+            "hi",
+            "kn",
+            "ml",
+            "mr",
+            "or",
+            "pa",
+            "ta",
+            "te",
+            "ur"
+          ],
+          "languages_worse": []
+        }
+      },
+      "decision": "NOT ADOPTED",
+      "decision_basis": "not BETTER at every stable learning rate"
+    },
+    "gelu-vs-swiglu": {
+      "a": "rope-gqa2",
+      "b": "rope-gqa2-gelu",
+      "rule": "superiority",
+      "per_lr": {
+        "0.006": {
+          "verdict": "NO DETECTABLE DIFFERENCE AT THIS SCALE",
+          "basis": "paired CI + seed separation",
+          "delta_bpb": -0.011968899077952714,
+          "ci95": [
+            -0.012651057078857818,
+            -0.011294512767880373
+          ],
+          "languages_better": [
+            "as",
+            "bn",
+            "en",
+            "gu",
+            "kn",
+            "ml",
+            "mr",
+            "or",
+            "pa",
+            "ta",
+            "te"
+          ],
+          "languages_worse": [
+            "hi"
+          ]
+        },
+        "0.01": {
+          "verdict": "NO DETECTABLE DIFFERENCE AT THIS SCALE",
+          "basis": "paired CI + seed separation",
+          "delta_bpb": 0.018070598947802777,
+          "ci95": [
+            0.016833772256488536,
+            0.019166253215934386
+          ],
+          "languages_better": [
+            "mr"
+          ],
+          "languages_worse": [
+            "as",
+            "bn",
+            "en",
+            "gu",
+            "hi",
+            "kn",
+            "ml",
+            "or",
+            "pa",
+            "ta",
+            "ur"
+          ]
+        }
+      },
+      "decision": "NOT ADOPTED",
+      "decision_basis": "not BETTER at every stable learning rate"
+    }
+  },
+  "lr_trend": {
+    "baseline": {
+      "0.006": 1.4292503966024885,
+      "0.01": 1.4280869112292984
+    },
+    "rope-gqa2": {
+      "0.006": 1.3806269081309623,
+      "0.01": 1.3622727265954946
+    },
+    "rope-gqa2-gelu": {
+      "0.006": 1.3686580090530096,
+      "0.01": 1.3803433255432975
+    }
+  },
+  "failures": []
+}

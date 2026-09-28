@@ -1,0 +1,31 @@
+ARCHITECTURE ABLATION EXP-033 — 150 steps, seeds [1337, 1338, 1339], learning rates [0.006, 0.01], final checkpoints graded by harness v1 (bits-per-byte, lower = better)
+spec sha256 7f9e7af7901bdab9… (pre-registered rules)
+
+group                        mean      std  per seed                     params       body  kv/tok
+baseline-lr-0.006          1.4293   0.0669  1.4049 1.5050 1.3779      5,260,416  1,049,728    1024 (1 seed reused)
+rope-gqa2-lr-0.006         1.3806   0.0076  1.3851 1.3850 1.3719      5,178,496    984,192     512
+rope-gqa2-gelu-lr-0.006    1.3687   0.0365  1.3621 1.4080 1.3359      5,178,496    984,192     512
+baseline-lr-0.01           1.4281   0.0279  1.4566 1.4008 1.4269      5,260,416  1,049,728    1024
+rope-gqa2-lr-0.01          1.3623   0.0293  1.3960 1.3442 1.3466      5,178,496    984,192     512
+rope-gqa2-gelu-lr-0.01     1.3803   0.0129  1.3795 1.3936 1.3679      5,178,496    984,192     512
+
+COMPARISONS (delta = b - a; negative = b better; paired 95% CI). Rule: ADOPT only if BETTER at every learning rate.
+  candidate-vs-baseline  (rope-gqa2 vs baseline)
+    lr 0.006    delta -0.0486 [-0.0497, -0.0476]  => NO DETECTABLE DIFFERENCE AT THIS SCALE (paired CI + seed separation)
+                languages better: as, bn, en, gu, hi, kn, ml, mr, or, pa, ta, te, ur | worse: none
+    lr 0.01     delta -0.0658 [-0.0676, -0.0641]  => BETTER (paired CI + seed separation)
+                languages better: as, bn, en, gu, hi, kn, ml, mr, or, pa, ta, te, ur | worse: none
+    DECISION: NOT ADOPTED — not BETTER at every stable learning rate
+  gelu-vs-swiglu  (rope-gqa2-gelu vs rope-gqa2)
+    lr 0.006    delta -0.0120 [-0.0127, -0.0113]  => NO DETECTABLE DIFFERENCE AT THIS SCALE (paired CI + seed separation)
+                languages better: as, bn, en, gu, kn, ml, mr, or, pa, ta, te | worse: hi
+    lr 0.01     delta +0.0181 [+0.0168, +0.0192]  => NO DETECTABLE DIFFERENCE AT THIS SCALE (paired CI + seed separation)
+                languages better: mr | worse: as, bn, en, gu, hi, kn, ml, or, pa, ta, ur
+    DECISION: NOT ADOPTED — not BETTER at every stable learning rate
+
+LEARNING-RATE TREND (mean bpb per arm; descriptive only, no learning rate is selected):
+  baseline             lr 0.006: 1.4293   lr 0.01: 1.4281
+  rope-gqa2            lr 0.006: 1.3806   lr 0.01: 1.3623
+  rope-gqa2-gelu       lr 0.006: 1.3687   lr 0.01: 1.3803
+
+Toy scale: screening evidence only; a provisional decision needs founder review.

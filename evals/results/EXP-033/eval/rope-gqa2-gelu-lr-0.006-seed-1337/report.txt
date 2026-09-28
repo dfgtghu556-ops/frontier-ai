@@ -1,0 +1,41 @@
+EVALUATION REPORT — harness v1.0.0 — rope-gqa2-gelu-lr-0.006-seed-1337
+checkpoint : E:/frontier-ai/out/arch/EXP-033/runs/rope-gqa2-gelu-lr-0.006/seed-1337/last (step 150, 5,178,496 params, model sha256 5d3187ba102c95a8…)
+tokenizer  : frontier-tokenizer-v1 (vocab 32768, dir sha256 b39afa08fa86b0d1…, frozen v1: True)
+suite      : frontier-heldout-v1 (3,427 docs, fingerprint a488b2aa41f9e861…)
+data identity: PASS — re-encoded stream 184,233 tokens vs dataset val split 184,233 tokens — identical
+coverage   : 184,232 of 184,233 tokens scored (every token except the first of the stream; 1 context-only document)
+
+OVERALL bits-per-byte 1.3621  95% CI [1.3466, 1.3782]  | bits-per-char 3.3640 | bits-per-token 7.7552
+(training-time sampled estimate: best_bpb 1.3686)
+
+language  script              docs     bytes      bpb  95% CI             bits/char
+as        Bengali-Assamese     235    57,434   1.3678  [1.3241, 1.4092]      3.6617
+bn        Bengali-Assamese     408    51,369   1.3722  [1.3458, 1.4005]      3.6455
+en        Latin                574    34,082   3.1383  [3.0904, 3.1881]      3.2047
+gu        Gujarati             190    77,151   1.3945  [1.3694, 1.4228]      3.6473
+hi        Devanagari           551   189,687   1.1775  [1.1674, 1.1877]      3.0097
+kn        Kannada              269   102,639   1.1784  [1.1554, 1.2029]      3.1715
+ml        Malayalam            226   127,950   1.1133  [1.0916, 1.1346]      3.1177
+mr        Devanagari           158    73,311   1.2655  [1.2434, 1.2876]      3.3784
+or        Odia                 176    47,021   1.5490  [1.5124, 1.5907]      4.0867
+pa        Gurmukhi             249   101,508   1.4351  [1.4120, 1.4593]      3.6438
+ta        Tamil                103    67,395   1.0866  [1.0552, 1.1183]      3.0041
+te        Telugu               148    70,397   1.3162  [1.2800, 1.3520]      3.6156
+ur        Perso-Arabic         139    48,994   2.0658  [2.0287, 2.1068]      3.6475
+
+script              docs     bytes      bpb  95% CI
+Bengali-Assamese     643   108,803   1.3698  [1.3425, 1.3960]
+Devanagari           709   262,998   1.2021  [1.1915, 1.2127]
+Gujarati             190    77,151   1.3945  [1.3694, 1.4228]
+Gurmukhi             249   101,508   1.4351  [1.4120, 1.4593]
+Kannada              269   102,639   1.1784  [1.1554, 1.2029]
+Latin                574    34,082   3.1383  [3.0904, 3.1881]
+Malayalam            226   127,950   1.1133  [1.0916, 1.1346]
+Odia                 176    47,021   1.5490  [1.5124, 1.5907]
+Perso-Arabic         139    48,994   2.0658  [2.0287, 2.1068]
+Tamil                103    67,395   1.0866  [1.0552, 1.1183]
+Telugu               148    70,397   1.3162  [1.2800, 1.3520]
+
+contamination: NOT CHECKED — skipped (--no-contamination)
+domain: not available: FrontierCorpus v1 carries no domain labels — all sources are Wikisource/Gutenberg literature; per-source results are reported instead
+scores sha256: 5628773b66e7fa0ae8b0e27d26e243f1a459ecb38828b40480af7cf50e0a5abd
