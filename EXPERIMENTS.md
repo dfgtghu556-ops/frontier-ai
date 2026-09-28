@@ -1921,3 +1921,83 @@ tests (spec, validation, the per-LR and adoption rules, a v2 end-to-end run with
 divergence, restart and reuse, and static safety checks of the PowerShell script). PowerShell
 itself could not be run in the sandbox (downloads blocked). The script therefore uses only
 constructs that already worked on the PC (EXP-029/EXP-032) and is ASCII-only.
+
+**Results (2026-09-28, completed; supersedes "PC night run pending" above).** The founder ran
+`scripts/run_night_unattended.ps1` with one typed line and no chat agent. It worked on its
+first run: every check passed, and it published, committed and pushed on its own. The outer
+record succeeded at commit `0eaf971` (clean tree). Commit **`5d7a0c7`** adds exactly 82 files
+under `evals/results/EXP-033/`, with no `per_document.jsonl`. Numbers below were read by script
+from the committed JSON.
+* **Integrity:**
+  - The EXP-032 cell `lr-0.006/seed-1337` was **reused** after config verification. Its
+    EXP-033 re-grade has the same `model_sha256` and the same bpb (1.4049) as its EXP-032
+    report.
+  - All 17 trained cells succeeded at `0eaf971` (clean), with 1,047–1,950 s of training each
+    (5.34 h in total; the whole run took 5 h 46 min).
+  - All 18 reports have data identity PASS, the frozen v1 tokenizer and step 150.
+  - No DIVERGED cells, no failures.
+* **Results** (final checkpoints, 150 steps, exact held-out bpb, lower = better):
+
+  | arm | lr 6e-3: seeds 1337 / 1338 / 1339 | mean ± std | lr 1e-2: seeds 1337 / 1338 / 1339 | mean ± std |
+  |---|---|---|---|---|
+  | baseline | 1.4049 / 1.5050 / 1.3779 | 1.4293 ± 0.0669 | 1.4566 / 1.4008 / 1.4269 | 1.4281 ± 0.0279 |
+  | rope-gqa2 | 1.3851 / 1.3850 / 1.3719 | 1.3806 ± 0.0076 | 1.3960 / 1.3442 / 1.3466 | 1.3623 ± 0.0293 |
+  | rope-gqa2-gelu | 1.3621 / 1.4080 / 1.3359 | 1.3687 ± 0.0365 | 1.3795 / 1.3936 / 1.3679 | 1.3803 ± 0.0129 |
+
+  | comparison | lr 6e-3: delta [95% CI] → verdict | lr 1e-2: delta [95% CI] → verdict | decision |
+  |---|---|---|---|
+  | candidate-vs-baseline (rope-gqa2 − baseline) | −0.0486 [−0.0497, −0.0476] → NO DETECTABLE DIFFERENCE (13/13 languages better on CI; seeds overlap: baseline seed 1339, 1.3779, beats candidate seeds 1337 and 1338, 1.3851 and 1.3850) | −0.0658 [−0.0676, −0.0641] → **BETTER** (13/13 languages) | **NOT ADOPTED** |
+  | gelu-vs-swiglu (rope-gqa2-gelu − rope-gqa2) | −0.0120 [−0.0127, −0.0113] → NO DETECTABLE DIFFERENCE (11 languages better, hi worse) | **+0.0181** [+0.0168, +0.0192] → NO DETECTABLE DIFFERENCE (11 languages worse, mr better) | **NOT ADOPTED** |
+
+  The learning-rate trend (descriptive only) for mean bpb from lr 6e-3 to lr 1e-2:
+  - baseline: 1.4293 → 1.4281, flat;
+  - rope-gqa2: 1.3806 → 1.3623;
+  - rope-gqa2-gelu: 1.3687 → 1.3803.
+* **Interpretation (what the evidence does and does not support):**
+  1. **By the pre-registered rule, nothing is adopted.** Under the pre-registered D-043
+     mapping, the provisional architecture therefore stays the EXP-B baseline: learned
+     positions, 4 KV heads, SwiGLU (ffn_mult 4), RMSNorm, tied embeddings. This is not
+     overridden after seeing the results; that is the point of pre-registration.
+  2. **RoPE (+GQA-2) is still the leading candidate, but it did not clear the bar.** Its mean
+     bpb was lower than the baseline's in every comparison so far:
+     - EXP-032 at lr 3e-3: RoPE alone −0.077, GQA-2 alone −0.020;
+     - EXP-033 at lr 6e-3 and 1e-2: RoPE + GQA-2 −0.049 and −0.066.
+
+     It was better in all 13 languages each time. At lr 6e-3 the rule failed only because one
+     baseline seed (1339) was unusually good. That is supportive evidence, **not proof at this
+     scale**, so RoPE + GQA-2 is the first architecture question to re-test at GPU scale
+     (step 11).
+  3. **The EXP-032 GELU result did not replicate.** The GELU − SwiGLU difference changed sign
+     between learning rates (−0.012 and +0.018). That is consistent with EXP-032's GELU "win"
+     being a learning-rate artefact, as suspected. SwiGLU stays, in line with the literature
+     (Narang et al., 2021).
+  4. **Seed noise decides everything at this scale.**
+     - Seed standard deviations are 0.008–0.067 bpb, while the paired document CIs are about
+       ±0.001 wide.
+     - With 3 seeds, a single outlier seed can block a verdict.
+     - The baseline at lr 6e-3 had the largest spread (seed 1338: 1.5050); the candidate the
+       smallest (0.0076). That *hints* at better training stability with RoPE, but this was
+       not pre-registered and is not claimed.
+     - Lesson for step 11: use longer runs and/or more seeds before architecture claims.
+  5. **The learning rate is still not tuned.** The optimum at this toy scale lies around
+     6e-3–1e-2 and differs by architecture. That does not transfer to GPU scale, where the
+     step-10/11 runs must sweep the learning rate again.
+* **Step 9 exit summary (MASTER_CONTEXT §37 step 9, "Run architecture ablations"):**
+  - Two pre-registered ablation experiments ran on the founder's CPU laptop: EXP-032
+    screening and EXP-033 confirmation.
+    - 32 models were trained; 4 earlier ones were reused after verification.
+    - All were graded by harness v1 (D-042) on the protected suite.
+    - Every run is deterministic and reproducible (EXP-032 repro IDENTICAL).
+  - Built infrastructure that step 11 reuses:
+    - the spec schemas v1 and v2;
+    - the restartable runner with verified reuse and a DIVERGED status;
+    - the agent-free unattended PC runner.
+  - Outcome: **no architecture change is supported strongly enough at toy scale.** The
+    proposed D-043 keeps the EXP-B baseline as the provisional architecture for GPU
+    bring-up (step 10). RoPE + GQA-2 is recorded as the first candidate for the GPU-scale
+    ablation (step 11). GELU and LayerNorm are dropped.
+  - Limits: toy scale (a transformer body of about 1M parameters; embeddings are 80% of all
+    parameters), 150 steps, 3 seeds, in-distribution suite. Step 9 cannot say anything
+    about large-model architecture. It only says what did *not* earn a change here.
+* **Status:** complete. **D-043 is proposed, pending founder review.** It is recorded in
+  DECISIONS.md after approval, as with D-040.

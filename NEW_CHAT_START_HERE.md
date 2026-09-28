@@ -384,6 +384,22 @@ comes next. They also update the table in §3.
   the EXP-033 results, propose D-043 and the step 9 exit report, then STOP for approval
   before step 10.
 
+* **2026-09-28, Arena agent (EXP-033 COMPLETE; PC commit `5d7a0c7`):** the founder ran the
+  agent-free script with one typed line. It passed every check and pushed exactly 82 result
+  files on its own (5 h 46 min). The reused EXP-032 cell re-grades identically, and there were
+  no divergences or failures. Findings:
+  - RoPE + GQA-2 vs baseline: −0.049 at lr 6e-3 (NO DETECTABLE DIFFERENCE, because one
+    baseline seed overlaps) and −0.066 at lr 1e-2 (BETTER) ⇒ **NOT ADOPTED** by the
+    pre-registered both-LR rule.
+  - GELU vs SwiGLU: the sign flips (−0.012 / +0.018) ⇒ NOT ADOPTED. The EXP-032 GELU win did
+    not replicate.
+
+  The step 9 exit summary is in EXPERIMENTS (EXP-033 Results). **Proposed D-043:** keep the
+  EXP-B baseline as the provisional architecture for GPU bring-up. RoPE + GQA-2 is the first
+  candidate for the step 11 GPU-scale ablation. **Next:** founder reviews D-043; after
+  approval, record D-043, update ROADMAP (step 9 complete), then propose the step 10 GPU
+  bring-up plan with costs. STOP until approved.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```
