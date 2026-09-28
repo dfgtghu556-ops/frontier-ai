@@ -1,0 +1,18 @@
+COMPARISON (harness v1.0.0) — A = baseline (3 reports), B = layernorm (3 reports)
+delta = B - A in bits-per-byte (negative = B better); 95% paired document-bootstrap interval
+
+            docs        A mean ± std        B mean ± std     delta  95% CI               verdict
+OVERALL     3426     1.4475 ± 0.0125     1.4729 ± 0.0160   +0.0254  [+0.0248, +0.0260]  A better (interval excludes 0)
+as           235     1.4406 ± 0.0076     1.4590 ± 0.0083   +0.0184  [+0.0170, +0.0201]  A better (interval excludes 0)
+bn           408     1.4471 ± 0.0126     1.4629 ± 0.0118   +0.0159  [+0.0144, +0.0172]  A better (interval excludes 0)
+en           574     3.3804 ± 0.0224     3.4125 ± 0.0192   +0.0321  [+0.0292, +0.0349]  A better (interval excludes 0)
+gu           190     1.4847 ± 0.0087     1.5029 ± 0.0188   +0.0182  [+0.0170, +0.0193]  A better (interval excludes 0)
+hi           551     1.2503 ± 0.0055     1.2860 ± 0.0081   +0.0356  [+0.0347, +0.0364]  A better (interval excludes 0)
+kn           269     1.2427 ± 0.0087     1.2616 ± 0.0172   +0.0189  [+0.0178, +0.0201]  A better (interval excludes 0)
+ml           226     1.1906 ± 0.0268     1.2208 ± 0.0280   +0.0303  [+0.0293, +0.0312]  A better (interval excludes 0)
+mr           158     1.3379 ± 0.0179     1.3461 ± 0.0121   +0.0083  [+0.0069, +0.0096]  A better (interval excludes 0)
+or           176     1.6183 ± 0.0164     1.6429 ± 0.0218   +0.0246  [+0.0230, +0.0264]  A better (interval excludes 0)
+pa           249     1.5355 ± 0.0104     1.5567 ± 0.0116   +0.0211  [+0.0199, +0.0225]  A better (interval excludes 0)
+ta           103     1.1420 ± 0.0242     1.1665 ± 0.0377   +0.0245  [+0.0232, +0.0258]  A better (interval excludes 0)
+te           148     1.3870 ± 0.0227     1.4170 ± 0.0224   +0.0300  [+0.0287, +0.0313]  A better (interval excludes 0)
+ur           139     2.2417 ± 0.0110     2.2835 ± 0.0182   +0.0419  [+0.0396, +0.0442]  A better (interval excludes 0)

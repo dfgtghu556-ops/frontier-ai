@@ -1,0 +1,1257 @@
+{
+  "schema": "frontier-eval-report-v1",
+  "harness_version": "1.0.0",
+  "created_at": "2026-09-27T19:02:47Z",
+  "label": "gelu-seed-1337",
+  "checkpoint": {
+    "dir": "E:/frontier-ai/out/arch/EXP-032/runs/gelu/seed-1337/last",
+    "model_sha256": "601498bb2f45c9980f7335cfb8a9ea230743f4f46a07ea7d26f576efd2c6dd88",
+    "config_sha256": "ffb3a1afd9d5665972018e2567113611fd200be4f5ddfab518df869035a36792",
+    "step": 150,
+    "n_params": 5260416,
+    "vocab_size": 32768,
+    "block_size": 128,
+    "training_estimate": {
+      "record": "E:/frontier-ai/out/arch/EXP-032/runs/gelu/seed-1337/experiment.json",
+      "best_bpb": 1.396071,
+      "best_val": 5.509732818603515,
+      "note": "training-time estimate from eval_iters sampled batches"
+    }
+  },
+  "tokenizer": {
+    "spec": "frozen",
+    "id": "frontier-tokenizer-v1",
+    "dir_sha256": "b39afa08fa86b0d1ccf7b7e1b59df305b5678bdd59061c6fae01245061321144",
+    "vocab_size": 32768,
+    "matches_frozen_v1": true
+  },
+  "suite": {
+    "id": "frontier-heldout-v1",
+    "path": "E:/frontier-ai/evals/suites/frontier-heldout-v1/SUITE.json",
+    "fingerprint": "a488b2aa41f9e861fa279a67e1fb6d98a610b4e8eebe554b9cfad262fc628a2f",
+    "documents": 3427,
+    "corpus_content_sha256": "6c43d12695f2ffaab6be2bae632c7dc4638b171de92c7fe5bbb138547bb47d50"
+  },
+  "data_identity": {
+    "status": "PASS",
+    "path": "out/exp_b/EXP-029/mark_aware-32768.bin",
+    "detail": "re-encoded stream 184,233 tokens vs dataset val split 184,233 tokens — identical"
+  },
+  "protocol": {
+    "description": "stream: suite documents encoded individually and concatenated in suite order (no separator); consecutive non-overlapping windows of block_size; every token except the first of the stream scored once and credited to its document; the first document is context-only and excluded from statistics",
+    "block_size": 128,
+    "batch_size": 8,
+    "device": "cpu",
+    "precision": "fp32",
+    "torch_threads": 2,
+    "bootstrap": {
+      "resamples": 1000,
+      "seed": 0,
+      "interval": "95% percentile"
+    }
+  },
+  "coverage": {
+    "stream_tokens": 184233,
+    "scored_tokens": 184232,
+    "context_only_documents": 1,
+    "context_only_doc_id": "as-wikisource-manomati-part1-ccbysa-000002"
+  },
+  "results": {
+    "overall": {
+      "documents": 3426,
+      "bytes": 1048938,
+      "chars": 424714,
+      "tokens": 184229,
+      "bits": 1457182.4910279098,
+      "bits_per_byte": 1.3891979230687703,
+      "bits_per_byte_ci95": [
+        1.373052165577966,
+        1.406314282394738
+      ],
+      "bits_per_char": 3.4309735281340146,
+      "bits_per_token": 7.909626014514055
+    },
+    "per_language": {
+      "as": {
+        "documents": 235,
+        "bytes": 57434,
+        "chars": 21454,
+        "tokens": 9284,
+        "bits": 79834.57734464787,
+        "bits_per_byte": 1.3900229366690091,
+        "bits_per_byte_ci95": [
+          1.3472055625495283,
+          1.4315734301199554
+        ],
+        "bits_per_char": 3.7211977880417577,
+        "bits_per_token": 8.599157404636781
+      },
+      "bn": {
+        "documents": 408,
+        "bytes": 51369,
+        "chars": 19335,
+        "tokens": 8454,
+        "bits": 72198.2091087884,
+        "bits_per_byte": 1.4054820827500711,
+        "bits_per_byte_ci95": [
+          1.380021761756021,
+          1.4337490233648327
+        ],
+        "bits_per_char": 3.7340682238835483,
+        "bits_per_token": 8.540124096142465
+      },
+      "en": {
+        "documents": 574,
+        "bytes": 34082,
+        "chars": 33376,
+        "tokens": 14739,
+        "bits": 110490.91638770778,
+        "bits_per_byte": 3.2419141009244696,
+        "bits_per_byte_ci95": [
+          3.1946850122884523,
+          3.29093052718487
+        ],
+        "bits_per_char": 3.310490064348867,
+        "bits_per_token": 7.496500195922911
+      },
+      "gu": {
+        "documents": 190,
+        "bytes": 77151,
+        "chars": 29497,
+        "tokens": 13498,
+        "bits": 109493.53394224595,
+        "bits_per_byte": 1.41921081959075,
+        "bits_per_byte_ci95": [
+          1.3950314411102895,
+          1.4463982275533878
+        ],
+        "bits_per_char": 3.7120227122163594,
+        "bits_per_token": 8.111833897040002
+      },
+      "hi": {
+        "documents": 551,
+        "bytes": 189687,
+        "chars": 74215,
+        "tokens": 36102,
+        "bits": 226271.22010488584,
+        "bits_per_byte": 1.192866248635309,
+        "bits_per_byte_ci95": [
+          1.1824441143950877,
+          1.2031664395681803
+        ],
+        "bits_per_char": 3.048861013338083,
+        "bits_per_token": 6.267553601043871
+      },
+      "kn": {
+        "documents": 269,
+        "bytes": 102639,
+        "chars": 38135,
+        "tokens": 14073,
+        "bits": 122409.88082656436,
+        "bits_per_byte": 1.1926254233436058,
+        "bits_per_byte_ci95": [
+          1.1702373662406336,
+          1.2169243690660383
+        ],
+        "bits_per_char": 3.209909029148141,
+        "bits_per_token": 8.698207974601319
+      },
+      "ml": {
+        "documents": 226,
+        "bytes": 127950,
+        "chars": 45688,
+        "tokens": 15197,
+        "bits": 145106.28526947892,
+        "bits_per_byte": 1.1340858559552867,
+        "bits_per_byte_ci95": [
+          1.112114961641323,
+          1.1562715293488546
+        ],
+        "bits_per_char": 3.1760262053379207,
+        "bits_per_token": 9.54835067904711
+      },
+      "mr": {
+        "documents": 158,
+        "bytes": 73311,
+        "chars": 27461,
+        "tokens": 11144,
+        "bits": 95755.17626620826,
+        "bits_per_byte": 1.3061501857321312,
+        "bits_per_byte_ci95": [
+          1.284320939670466,
+          1.3273098851488785
+        ],
+        "bits_per_char": 3.486951540956566,
+        "bits_per_token": 8.592531969329528
+      },
+      "or": {
+        "documents": 176,
+        "bytes": 47021,
+        "chars": 17823,
+        "tokens": 8266,
+        "bits": 74300.10954918573,
+        "bits_per_byte": 1.5801473713699352,
+        "bits_per_byte_ci95": [
+          1.5438588721478284,
+          1.6211130950119272
+        ],
+        "bits_per_char": 4.168776836064957,
+        "bits_per_token": 8.988641368156996
+      },
+      "pa": {
+        "documents": 249,
+        "bytes": 101508,
+        "chars": 39978,
+        "tokens": 20675,
+        "bits": 148417.69934162096,
+        "bits_per_byte": 1.4621281016434267,
+        "bits_per_byte_ci95": [
+          1.439458424731095,
+          1.4851812582039112
+        ],
+        "bits_per_char": 3.712484349932987,
+        "bits_per_token": 7.178606981456879
+      },
+      "ta": {
+        "documents": 103,
+        "bytes": 67395,
+        "chars": 24377,
+        "tokens": 8183,
+        "bits": 73598.40475325193,
+        "bits_per_byte": 1.092045474489976,
+        "bits_per_byte_ci95": [
+          1.060538430564,
+          1.123412716717805
+        ],
+        "bits_per_char": 3.0191740063687873,
+        "bits_per_token": 8.994061438745195
+      },
+      "te": {
+        "documents": 148,
+        "bytes": 70397,
+        "chars": 25627,
+        "tokens": 9847,
+        "bits": 95392.0231800351,
+        "bits_per_byte": 1.3550580732138457,
+        "bits_per_byte_ci95": [
+          1.317295972629266,
+          1.3925774016619485
+        ],
+        "bits_per_char": 3.7223250158050143,
+        "bits_per_token": 9.687419841579679
+      },
+      "ur": {
+        "documents": 139,
+        "bytes": 48994,
+        "chars": 27748,
+        "tokens": 14767,
+        "bits": 103914.45495328869,
+        "bits_per_byte": 2.120962872051449,
+        "bits_per_byte_ci95": [
+          2.0848145557339235,
+          2.1603002633595367
+        ],
+        "bits_per_char": 3.744934948583274,
+        "bits_per_token": 7.036937424885806
+      }
+    },
+    "per_script": {
+      "Bengali-Assamese": {
+        "documents": 643,
+        "bytes": 108803,
+        "chars": 40789,
+        "tokens": 17738,
+        "bits": 152032.7864534363,
+        "bits_per_byte": 1.397321640519437,
+        "bits_per_byte_ci95": [
+          1.3698825784215927,
+          1.423653446916542
+        ],
+        "bits_per_char": 3.7272986945852145,
+        "bits_per_token": 8.571021899505936
+      },
+      "Devanagari": {
+        "documents": 709,
+        "bytes": 262998,
+        "chars": 101676,
+        "tokens": 47246,
+        "bits": 322026.39637109416,
+        "bits_per_byte": 1.224444278553807,
+        "bits_per_byte_ci95": [
+          1.212986789774066,
+          1.23600991129481
+        ],
+        "bits_per_char": 3.1671819934998835,
+        "bits_per_token": 6.815950479852139
+      },
+      "Gujarati": {
+        "documents": 190,
+        "bytes": 77151,
+        "chars": 29497,
+        "tokens": 13498,
+        "bits": 109493.53394224595,
+        "bits_per_byte": 1.41921081959075,
+        "bits_per_byte_ci95": [
+          1.3950314411102895,
+          1.4463982275533878
+        ],
+        "bits_per_char": 3.7120227122163594,
+        "bits_per_token": 8.111833897040002
+      },
+      "Gurmukhi": {
+        "documents": 249,
+        "bytes": 101508,
+        "chars": 39978,
+        "tokens": 20675,
+        "bits": 148417.69934162096,
+        "bits_per_byte": 1.4621281016434267,
+        "bits_per_byte_ci95": [
+          1.439458424731095,
+          1.4851812582039112
+        ],
+        "bits_per_char": 3.712484349932987,
+        "bits_per_token": 7.178606981456879
+      },
+      "Kannada": {
+        "documents": 269,
+        "bytes": 102639,
+        "chars": 38135,
+        "tokens": 14073,
+        "bits": 122409.88082656436,
+        "bits_per_byte": 1.1926254233436058,
+        "bits_per_byte_ci95": [
+          1.1702373662406336,
+          1.2169243690660383
+        ],
+        "bits_per_char": 3.209909029148141,
+        "bits_per_token": 8.698207974601319
+      },
+      "Latin": {
+        "documents": 574,
+        "bytes": 34082,
+        "chars": 33376,
+        "tokens": 14739,
+        "bits": 110490.91638770778,
+        "bits_per_byte": 3.2419141009244696,
+        "bits_per_byte_ci95": [
+          3.1946850122884523,
+          3.29093052718487
+        ],
+        "bits_per_char": 3.310490064348867,
+        "bits_per_token": 7.496500195922911
+      },
+      "Malayalam": {
+        "documents": 226,
+        "bytes": 127950,
+        "chars": 45688,
+        "tokens": 15197,
+        "bits": 145106.28526947892,
+        "bits_per_byte": 1.1340858559552867,
+        "bits_per_byte_ci95": [
+          1.112114961641323,
+          1.1562715293488546
+        ],
+        "bits_per_char": 3.1760262053379207,
+        "bits_per_token": 9.54835067904711
+      },
+      "Odia": {
+        "documents": 176,
+        "bytes": 47021,
+        "chars": 17823,
+        "tokens": 8266,
+        "bits": 74300.10954918573,
+        "bits_per_byte": 1.5801473713699352,
+        "bits_per_byte_ci95": [
+          1.5438588721478284,
+          1.6211130950119272
+        ],
+        "bits_per_char": 4.168776836064957,
+        "bits_per_token": 8.988641368156996
+      },
+      "Perso-Arabic": {
+        "documents": 139,
+        "bytes": 48994,
+        "chars": 27748,
+        "tokens": 14767,
+        "bits": 103914.45495328869,
+        "bits_per_byte": 2.120962872051449,
+        "bits_per_byte_ci95": [
+          2.0848145557339235,
+          2.1603002633595367
+        ],
+        "bits_per_char": 3.744934948583274,
+        "bits_per_token": 7.036937424885806
+      },
+      "Tamil": {
+        "documents": 103,
+        "bytes": 67395,
+        "chars": 24377,
+        "tokens": 8183,
+        "bits": 73598.40475325193,
+        "bits_per_byte": 1.092045474489976,
+        "bits_per_byte_ci95": [
+          1.060538430564,
+          1.123412716717805
+        ],
+        "bits_per_char": 3.0191740063687873,
+        "bits_per_token": 8.994061438745195
+      },
+      "Telugu": {
+        "documents": 148,
+        "bytes": 70397,
+        "chars": 25627,
+        "tokens": 9847,
+        "bits": 95392.0231800351,
+        "bits_per_byte": 1.3550580732138457,
+        "bits_per_byte_ci95": [
+          1.317295972629266,
+          1.3925774016619485
+        ],
+        "bits_per_char": 3.7223250158050143,
+        "bits_per_token": 9.687419841579679
+      }
+    },
+    "per_source": {
+      "as-wikisource-manomati-part1-ccbysa": {
+        "documents": 106,
+        "bytes": 30795,
+        "chars": 11531,
+        "tokens": 5070,
+        "bits": 43280.27168557292,
+        "bits_per_byte": 1.4054317806648131,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.7533840677801513,
+        "bits_per_token": 8.53654273877178
+      },
+      "as-wikisource-manomati-part2-ccbysa": {
+        "documents": 129,
+        "bytes": 26639,
+        "chars": 9923,
+        "tokens": 4214,
+        "bits": 36554.30565907496,
+        "bits_per_byte": 1.37221013022542,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.683795793517582,
+        "bits_per_token": 8.674491138840759
+      },
+      "bn-wikisource-devdas-ccbysa": {
+        "documents": 132,
+        "bytes": 36015,
+        "chars": 13609,
+        "tokens": 5836,
+        "bits": 47604.36905242615,
+        "bits_per_byte": 1.3217928377738761,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.49800639668059,
+        "bits_per_token": 8.1570200569613
+      },
+      "bn-wikisource-gitanjali-1913-ccbysa": {
+        "documents": 276,
+        "bytes": 15354,
+        "chars": 5726,
+        "tokens": 2618,
+        "bits": 24593.840056362256,
+        "bits_per_byte": 1.6017871601121698,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 4.2951170199724515,
+        "bits_per_token": 9.394132947426378
+      },
+      "en-gutenberg-alice-pd": {
+        "documents": 227,
+        "bytes": 13623,
+        "chars": 12943,
+        "tokens": 5925,
+        "bits": 44468.31871951402,
+        "bits_per_byte": 3.26420896421596,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.4357041427423334,
+        "bits_per_token": 7.505201471647936
+      },
+      "en-gutenberg-sadhana-pd": {
+        "documents": 347,
+        "bytes": 20459,
+        "chars": 20433,
+        "tokens": 8814,
+        "bits": 66022.59766819378,
+        "bits_per_byte": 3.2270686577151264,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.231174945832417,
+        "bits_per_token": 7.490650972111842
+      },
+      "gu-wikisource-saraswatichandra-1-ch01-08-ccbysa": {
+        "documents": 95,
+        "bytes": 46414,
+        "chars": 17708,
+        "tokens": 8070,
+        "bits": 65626.92538232559,
+        "bits_per_byte": 1.4139467699902095,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.706060841558933,
+        "bits_per_token": 8.132208845393505
+      },
+      "gu-wikisource-saraswatichandra-1-ch09-12-ccbysa": {
+        "documents": 95,
+        "bytes": 30737,
+        "chars": 11789,
+        "tokens": 5428,
+        "bits": 43866.60855992038,
+        "bits_per_byte": 1.4271597280125055,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.720977908212773,
+        "bits_per_token": 8.081541739115766
+      },
+      "hi-wikisource-godaan-ch01-ccbysa": {
+        "documents": 12,
+        "bytes": 3647,
+        "chars": 1435,
+        "tokens": 726,
+        "bits": 4450.132538747957,
+        "bits_per_byte": 1.2202173125165774,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.101137657664082,
+        "bits_per_token": 6.129659144280933
+      },
+      "hi-wikisource-godaan-ch02-ccbysa": {
+        "documents": 4,
+        "bytes": 500,
+        "chars": 192,
+        "tokens": 87,
+        "bits": 521.6112265259144,
+        "bits_per_byte": 1.0432224530518288,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.716725138155804,
+        "bits_per_token": 5.995531339378326
+      },
+      "hi-wikisource-godaan-ch03-ccbysa": {
+        "documents": 13,
+        "bytes": 6775,
+        "chars": 2661,
+        "tokens": 1311,
+        "bits": 8263.862440328045,
+        "bits_per_byte": 1.219758293775357,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.105547703994004,
+        "bits_per_token": 6.303480122294466
+      },
+      "hi-wikisource-godaan-ch04-ccbysa": {
+        "documents": 40,
+        "bytes": 14355,
+        "chars": 5611,
+        "tokens": 2781,
+        "bits": 17700.950745663482,
+        "bits_per_byte": 1.233086084685718,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.1546873544222924,
+        "bits_per_token": 6.364958916096182
+      },
+      "hi-wikisource-godaan-ch05-ccbysa": {
+        "documents": 15,
+        "bytes": 3585,
+        "chars": 1405,
+        "tokens": 689,
+        "bits": 4323.214503008617,
+        "bits_per_byte": 1.2059175740609809,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.0770209985826456,
+        "bits_per_token": 6.2746219201866715
+      },
+      "hi-wikisource-godaan-ch06-ccbysa": {
+        "documents": 42,
+        "bytes": 18973,
+        "chars": 7381,
+        "tokens": 3505,
+        "bits": 22759.650450048928,
+        "bits_per_byte": 1.1995810072233664,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.083545651002429,
+        "bits_per_token": 6.493480870199409
+      },
+      "hi-wikisource-godaan-ch07-ccbysa": {
+        "documents": 48,
+        "bytes": 11225,
+        "chars": 4395,
+        "tokens": 2134,
+        "bits": 13671.437617474297,
+        "bits_per_byte": 1.2179454447638571,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.110679776444664,
+        "bits_per_token": 6.4064843568295675
+      },
+      "hi-wikisource-godaan-ch08-ccbysa": {
+        "documents": 7,
+        "bytes": 7188,
+        "chars": 2834,
+        "tokens": 1432,
+        "bits": 8477.757245502653,
+        "bits_per_byte": 1.1794320041044315,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.9914457464723547,
+        "bits_per_token": 5.920221540155484
+      },
+      "hi-wikisource-godaan-ch09-ccbysa": {
+        "documents": 6,
+        "bytes": 1782,
+        "chars": 690,
+        "tokens": 319,
+        "bits": 2030.6592249033718,
+        "bits_per_byte": 1.13953940791435,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.94298438391793,
+        "bits_per_token": 6.365702899383611
+      },
+      "hi-wikisource-godaan-ch10-ccbysa": {
+        "documents": 19,
+        "bytes": 8397,
+        "chars": 3289,
+        "tokens": 1642,
+        "bits": 10190.435479043332,
+        "bits_per_byte": 1.2135805024465085,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.0983385463798516,
+        "bits_per_token": 6.206111741195695
+      },
+      "hi-wikisource-godaan-ch11-ccbysa": {
+        "documents": 7,
+        "bytes": 4488,
+        "chars": 1750,
+        "tokens": 845,
+        "bits": 5433.876478202782,
+        "bits_per_byte": 1.2107567910434007,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.1050722732587324,
+        "bits_per_token": 6.430623051127553
+      },
+      "hi-wikisource-godaan-ch12-ccbysa": {
+        "documents": 14,
+        "bytes": 3579,
+        "chars": 1403,
+        "tokens": 688,
+        "bits": 4340.149961083644,
+        "bits_per_byte": 1.2126711263156311,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.093478233131606,
+        "bits_per_token": 6.308357501575063
+      },
+      "hi-wikisource-godaan-ch13-ccbysa": {
+        "documents": 16,
+        "bytes": 4313,
+        "chars": 1675,
+        "tokens": 800,
+        "bits": 5052.265124192465,
+        "bits_per_byte": 1.1714039239954708,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.0162776860850538,
+        "bits_per_token": 6.315331405240581
+      },
+      "hi-wikisource-godaan-ch14-ccbysa": {
+        "documents": 7,
+        "bytes": 2048,
+        "chars": 812,
+        "tokens": 404,
+        "bits": 2383.081828734594,
+        "bits_per_byte": 1.1636141741868136,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.9348298383430964,
+        "bits_per_token": 5.898717397857906
+      },
+      "hi-wikisource-godaan-ch15-ccbysa": {
+        "documents": 21,
+        "bytes": 6817,
+        "chars": 2639,
+        "tokens": 1243,
+        "bits": 7775.015183763378,
+        "bits_per_byte": 1.1405332527157663,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.9461974929001054,
+        "bits_per_token": 6.255040373100063
+      },
+      "hi-wikisource-godaan-ch16-ccbysa": {
+        "documents": 11,
+        "bytes": 6696,
+        "chars": 2604,
+        "tokens": 1243,
+        "bits": 7765.268108710021,
+        "bits_per_byte": 1.1596875909065145,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.98205380518818,
+        "bits_per_token": 6.247198800249413
+      },
+      "hi-wikisource-godaan-ch17-ccbysa": {
+        "documents": 19,
+        "bytes": 8283,
+        "chars": 3255,
+        "tokens": 1590,
+        "bits": 9737.981571590377,
+        "bits_per_byte": 1.175658767546828,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.9916994075546475,
+        "bits_per_token": 6.124516711692061
+      },
+      "hi-wikisource-godaan-ch18-ccbysa": {
+        "documents": 23,
+        "bytes": 8151,
+        "chars": 3171,
+        "tokens": 1490,
+        "bits": 9504.145146484338,
+        "bits_per_byte": 1.1660097100336568,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.9972075517137613,
+        "bits_per_token": 6.378620903680764
+      },
+      "hi-wikisource-godaan-ch19-ccbysa": {
+        "documents": 2,
+        "bytes": 288,
+        "chars": 112,
+        "tokens": 52,
+        "bits": 309.24764346207485,
+        "bits_per_byte": 1.073776539798871,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.7611396737685254,
+        "bits_per_token": 5.9470700665783625
+      },
+      "hi-wikisource-godaan-ch20-ccbysa": {
+        "documents": 13,
+        "bytes": 6173,
+        "chars": 2415,
+        "tokens": 1169,
+        "bits": 7549.579884618587,
+        "bits_per_byte": 1.2230001433044853,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.1261200350387526,
+        "bits_per_token": 6.45815216819383
+      },
+      "hi-wikisource-godaan-ch21-ccbysa": {
+        "documents": 18,
+        "bytes": 4218,
+        "chars": 1654,
+        "tokens": 792,
+        "bits": 4977.595955574996,
+        "bits_per_byte": 1.1800843896574196,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.0094292355350643,
+        "bits_per_token": 6.284843378251257
+      },
+      "hi-wikisource-godaan-ch22-ccbysa": {
+        "documents": 21,
+        "bytes": 6348,
+        "chars": 2474,
+        "tokens": 1184,
+        "bits": 7195.534934249472,
+        "bits_per_byte": 1.1335121194469868,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.9084619782738366,
+        "bits_per_token": 6.077309910683676
+      },
+      "hi-wikisource-godaan-ch23-ccbysa": {
+        "documents": 13,
+        "bytes": 4570,
+        "chars": 1780,
+        "tokens": 856,
+        "bits": 5459.203563819988,
+        "bits_per_byte": 1.1945740839868682,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.066968294280892,
+        "bits_per_token": 6.377574256799051
+      },
+      "hi-wikisource-godaan-ch24-ccbysa": {
+        "documents": 13,
+        "bytes": 5557,
+        "chars": 2189,
+        "tokens": 1091,
+        "bits": 6732.275862235319,
+        "bits_per_byte": 1.2114946665890443,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.0755029064574324,
+        "bits_per_token": 6.170738645495252
+      },
+      "hi-wikisource-godaan-ch25-ccbysa": {
+        "documents": 6,
+        "bytes": 1003,
+        "chars": 391,
+        "tokens": 178,
+        "bits": 1162.2605179549716,
+        "bits_per_byte": 1.1587841654585957,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.972533294002485,
+        "bits_per_token": 6.529553471657144
+      },
+      "hi-wikisource-godaan-ch26-ccbysa": {
+        "documents": 10,
+        "bytes": 1732,
+        "chars": 682,
+        "tokens": 335,
+        "bits": 2154.997795417825,
+        "bits_per_byte": 1.244225055091123,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.1598208143956374,
+        "bits_per_token": 6.432829240053208
+      },
+      "hi-wikisource-godaan-ch27-ccbysa": {
+        "documents": 10,
+        "bytes": 3214,
+        "chars": 1260,
+        "tokens": 615,
+        "bits": 3937.3709028201615,
+        "bits_per_byte": 1.2250687314312887,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.124897541920763,
+        "bits_per_token": 6.402229110276686
+      },
+      "hi-wikisource-godaan-ch28-ccbysa": {
+        "documents": 11,
+        "bytes": 4223,
+        "chars": 1653,
+        "tokens": 795,
+        "bits": 5002.299865560945,
+        "bits_per_byte": 1.1845370271278581,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.0261947160078315,
+        "bits_per_token": 6.292201088755906
+      },
+      "hi-wikisource-godaan-ch29-ccbysa": {
+        "documents": 14,
+        "bytes": 4161,
+        "chars": 1645,
+        "tokens": 817,
+        "bits": 4939.708406326845,
+        "bits_per_byte": 1.1871445340847981,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.002862253086228,
+        "bits_per_token": 6.046154720106297
+      },
+      "hi-wikisource-godaan-ch30-ccbysa": {
+        "documents": 18,
+        "bytes": 5251,
+        "chars": 2061,
+        "tokens": 1016,
+        "bits": 6292.863826703161,
+        "bits_per_byte": 1.1984124598558676,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.0533060779733923,
+        "bits_per_token": 6.193763608959804
+      },
+      "hi-wikisource-godaan-ch31-ccbysa": {
+        "documents": 19,
+        "bytes": 5719,
+        "chars": 2229,
+        "tokens": 1065,
+        "bits": 6687.55686150147,
+        "bits_per_byte": 1.1693577306349834,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.0002498257072543,
+        "bits_per_token": 6.279396114085888
+      },
+      "hi-wikisource-godaan-ch32-ccbysa": {
+        "documents": 8,
+        "bytes": 2049,
+        "chars": 797,
+        "tokens": 383,
+        "bits": 2490.23989402645,
+        "bits_per_byte": 1.215344018558541,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.1245168055538897,
+        "bits_per_token": 6.501931838189165
+      },
+      "hi-wikisource-godaan-ch33-ccbysa": {
+        "documents": 15,
+        "bytes": 3881,
+        "chars": 1527,
+        "tokens": 756,
+        "bits": 4587.305577813243,
+        "bits_per_byte": 1.1819906152572128,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.004129389530611,
+        "bits_per_token": 6.067864520916988
+      },
+      "hi-wikisource-godaan-ch34-ccbysa": {
+        "documents": 5,
+        "bytes": 1224,
+        "chars": 484,
+        "tokens": 247,
+        "bits": 1544.7064577000742,
+        "bits_per_byte": 1.262015079820322,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.19154226797536,
+        "bits_per_token": 6.253872298380867
+      },
+      "hi-wikisource-godaan-ch35-ccbysa": {
+        "documents": 17,
+        "bytes": 5256,
+        "chars": 2062,
+        "tokens": 1004,
+        "bits": 6067.453703958891,
+        "bits_per_byte": 1.1543861689419503,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.9425090707851074,
+        "bits_per_token": 6.043280581632362
+      },
+      "hi-wikisource-godaan-ch36-ccbysa": {
+        "documents": 14,
+        "bytes": 4018,
+        "chars": 1598,
+        "tokens": 818,
+        "bits": 4799.523577133171,
+        "bits_per_byte": 1.1945056189978025,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.0034565564037363,
+        "bits_per_token": 5.867388236104121
+      },
+      "kn-wikisource-ranganna-ch01-15-ccbysa": {
+        "documents": 125,
+        "bytes": 53111,
+        "chars": 19785,
+        "tokens": 7382,
+        "bits": 64057.88798335353,
+        "bits_per_byte": 1.2061133848610182,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.237699670626916,
+        "bits_per_token": 8.677578973632286
+      },
+      "kn-wikisource-ranganna-ch16-30-ccbysa": {
+        "documents": 144,
+        "bytes": 49528,
+        "chars": 18350,
+        "tokens": 6691,
+        "bits": 58351.99284321083,
+        "bits_per_byte": 1.178161703343782,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.179945114071435,
+        "bits_per_token": 8.720967395488092
+      },
+      "ml-wikisource-ramarajabahadoor-ch01-13-ccbysa": {
+        "documents": 168,
+        "bytes": 94564,
+        "chars": 33808,
+        "tokens": 11365,
+        "bits": 108488.38589241146,
+        "bits_per_byte": 1.1472482751619164,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.2089560427239547,
+        "bits_per_token": 9.545832458637172
+      },
+      "ml-wikisource-ramarajabahadoor-ch14-18-ccbysa": {
+        "documents": 58,
+        "bytes": 33386,
+        "chars": 11880,
+        "tokens": 3832,
+        "bits": 36617.89937706745,
+        "bits_per_byte": 1.0968040309431333,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.082314762379415,
+        "bits_per_token": 9.555819252888165
+      },
+      "mr-wikisource-sphut-goshti-part3-apte-p013-124-ccbysa": {
+        "documents": 158,
+        "bytes": 73311,
+        "chars": 27461,
+        "tokens": 11144,
+        "bits": 95755.17626620826,
+        "bits_per_byte": 1.3061501857321312,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.486951540956566,
+        "bits_per_token": 8.592531969329528
+      },
+      "or-wikisource-chha-mana-atha-guntha-ccbysa": {
+        "documents": 176,
+        "bytes": 47021,
+        "chars": 17823,
+        "tokens": 8266,
+        "bits": 74300.10954918573,
+        "bits_per_byte": 1.5801473713699352,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 4.168776836064957,
+        "bits_per_token": 8.988641368156996
+      },
+      "pa-wikisource-satwant-kaur-p007-164-ccbysa": {
+        "documents": 128,
+        "bytes": 49086,
+        "chars": 19304,
+        "tokens": 9891,
+        "bits": 71101.52074817265,
+        "bits_per_byte": 1.4485091624530957,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.6832532505269713,
+        "bits_per_token": 7.1885067989255536
+      },
+      "pa-wikisource-satwant-kaur-p165-336-ccbysa": {
+        "documents": 121,
+        "bytes": 52422,
+        "chars": 20674,
+        "tokens": 10784,
+        "bits": 77316.17859344832,
+        "bits_per_byte": 1.4748803668965,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.7397783976709063,
+        "bits_per_token": 7.16952694672184
+      },
+      "ta-wikisource-en-charithram-p022-101-ccbysa": {
+        "documents": 41,
+        "bytes": 29660,
+        "chars": 10744,
+        "tokens": 3692,
+        "bits": 33324.713009123196,
+        "bits_per_byte": 1.1235574177047605,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.101704487074013,
+        "bits_per_token": 9.02619528957833
+      },
+      "ta-wikisource-en-charithram-p102-189-ccbysa": {
+        "documents": 62,
+        "bytes": 37735,
+        "chars": 13633,
+        "tokens": 4491,
+        "bits": 40273.69174412875,
+        "bits_per_byte": 1.0672768449484233,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 2.9541327473137793,
+        "bits_per_token": 8.967644565604264
+      },
+      "te-wikisource-rajasekhara-charitramu-ch01-07-ccbysa": {
+        "documents": 66,
+        "bytes": 29472,
+        "chars": 10730,
+        "tokens": 4262,
+        "bits": 41832.72162828066,
+        "bits_per_byte": 1.4194055927076772,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.8986693036608258,
+        "bits_per_token": 9.815279593683872
+      },
+      "te-wikisource-rajasekhara-charitramu-ch08-15-ccbysa": {
+        "documents": 82,
+        "bytes": 40925,
+        "chars": 14897,
+        "tokens": 5585,
+        "bits": 53559.30155175445,
+        "bits_per_byte": 1.3087184252108601,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.5953078842555177,
+        "bits_per_token": 9.58984808446812
+      },
+      "ur-wikisource-ram-charcha-premchand-p171-307-ccbysa": {
+        "documents": 72,
+        "bytes": 24898,
+        "chars": 14109,
+        "tokens": 7493,
+        "bits": 52462.59834802552,
+        "bits_per_byte": 2.1071009056159338,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.71837822298005,
+        "bits_per_token": 7.001547891101765
+      },
+      "ur-wikisource-ram-charcha-premchand-p309-342-ccbysa": {
+        "documents": 18,
+        "bytes": 4377,
+        "chars": 2480,
+        "tokens": 1298,
+        "bits": 8991.327898063824,
+        "bits_per_byte": 2.054221589687874,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.625535442767671,
+        "bits_per_token": 6.927063095580758
+      },
+      "ur-wikisource-ram-charcha-premchand-p7-170-ccbysa": {
+        "documents": 49,
+        "bytes": 19719,
+        "chars": 11159,
+        "tokens": 5976,
+        "bits": 42460.52870719933,
+        "bits_per_byte": 2.1532800196358504,
+        "bits_per_byte_ci95": [
+          NaN,
+          NaN
+        ],
+        "bits_per_char": 3.8050478275113657,
+        "bits_per_token": 7.105175486479138
+      }
+    },
+    "domain": "not available: FrontierCorpus v1 carries no domain labels — all sources are Wikisource/Gutenberg literature; per-source results are reported instead"
+  },
+  "contamination": {
+    "status": "NOT CHECKED",
+    "detail": "skipped (--no-contamination)"
+  },
+  "reproducibility": {
+    "scores_sha256": "01e933c391fd96e972030b580fc9ab80e6e286513a5d8f99c780f74533fccc9b",
+    "score_seconds": 81.0
+  },
+  "environment": {
+    "python": "3.13.15",
+    "torch": "2.14.0+cpu",
+    "platform": "Windows-10-10.0.17763-SP0"
+  }
+}

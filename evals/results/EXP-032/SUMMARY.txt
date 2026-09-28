@@ -1,0 +1,29 @@
+ARCHITECTURE ABLATION EXP-032 — 150 steps, seeds [1337, 1338, 1339], final checkpoints graded by harness v1 (bits-per-byte, lower = better)
+spec sha256 2a7048f290ff2221… (pre-registered rules)
+
+group                mean      std  per seed                     params       body  kv/tok  s/step
+baseline           1.4475   0.0125  1.4619 1.4406 1.4400      5,260,416  1,049,728    1024       — (reused)
+rope               1.3705   0.0390  1.4119 1.3650 1.3345      5,244,032  1,049,728    1024   11.31
+gelu               1.4137   0.0215  1.3892 1.4221 1.4297      5,260,416  1,049,728    1024   10.62
+layernorm          1.4729   0.0160  1.4798 1.4844 1.4547      5,261,568  1,050,880    1024    9.22
+gqa2               1.4271   0.0437  1.3884 1.4744 1.4185      5,194,880    984,192     512    9.61
+lr-0.0015          1.4916        —  1.4916                    5,260,416  1,049,728    1024   82.64
+lr-0.006           1.4049        —  1.4049                    5,260,416  1,049,728    1024    7.45
+repro-baseline     1.4619        —  1.4619                    5,260,416  1,049,728    1024    7.09
+
+VERDICTS (delta = variant - baseline; negative = variant better; paired 95% CI)
+  rope         delta -0.0770 [-0.0787, -0.0753]  => BETTER
+               languages better: as, bn, en, gu, hi, kn, ml, mr, or, pa, ta, te, ur | worse: none
+  gelu         delta -0.0339 [-0.0346, -0.0332]  => BETTER
+               languages better: as, bn, en, gu, hi, kn, ml, mr, or, pa, ta, te, ur | worse: none
+  layernorm    delta +0.0254 [+0.0248, +0.0260]  => NO DETECTABLE DIFFERENCE AT THIS SCALE
+               languages better: none | worse: as, bn, en, gu, hi, kn, ml, mr, or, pa, ta, te, ur
+  gqa2         delta -0.0204 [-0.0210, -0.0197]  => ACCEPTABLE (margin 0.01; superiority: NO DETECTABLE DIFFERENCE AT THIS SCALE)
+               languages better: as, bn, en, gu, hi, kn, ml, mr, or, pa, ta, te, ur | worse: none
+
+LEARNING-RATE CHECK (seed-1337 baseline at lr 0.003: 1.4619; threshold = baseline seed std 0.0125)
+  lr-0.0015: 1.4916 (-0.0296), lr-0.006: 1.4049 (+0.0571)  => LR-CONFOUNDED
+
+REPRODUCIBILITY CHECK (retrained baseline vs reference weights): IDENTICAL 0 of 36 tensors differ, max |diff| 0
+
+Toy scale (see spec purpose): screening evidence only; a provisional decision needs founder review.

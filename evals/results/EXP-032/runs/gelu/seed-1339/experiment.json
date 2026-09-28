@@ -1,0 +1,255 @@
+{
+  "schema_version": "1.0",
+  "record_type": "frontier-ai.experiment",
+  "experiment": {
+    "id": "EXP-03209",
+    "name": "train exp_b",
+    "tags": [
+      "project-001",
+      "train"
+    ],
+    "notes": "",
+    "status": "success",
+    "output_dir": "E:\\frontier-ai\\out\\arch\\EXP-032\\runs\\gelu\\seed-1339"
+  },
+  "code": {
+    "git": {
+      "available": true,
+      "commit": "788b751a2513450a969ae1f2108ce1963f827bff",
+      "branch": "arena/01a0dc16-frontier-ai",
+      "dirty": false,
+      "dirty_files": [],
+      "commit_subject": "Step 9: pre-registered architecture ablation EXP-032 (spec, runner, night wrapper, PC task, 13 tests); ROADMAP step 9 current + founder north star",
+      "remote": "https://github.com/dfgtghu556-ops/frontier-ai.git",
+      "reason": "",
+      "reproducible_from_commit": true
+    },
+    "repository": "frontier-ai"
+  },
+  "data": {
+    "status": "ok",
+    "inputs": [
+      "out/exp_b/EXP-029/mark_aware-32768.bin"
+    ],
+    "digest": {
+      "algorithm": "sha256",
+      "digest": "fb43d4cd47517f588401c65e396266ed1ba7fb4caa5d641dddc72822ac1ca652",
+      "file_count": 1,
+      "total_bytes": 3586440,
+      "files": [
+        {
+          "path": "mark_aware-32768.bin",
+          "bytes": 3586440,
+          "sha256": "fb43d4cd47517f588401c65e396266ed1ba7fb4caa5d641dddc72822ac1ca652"
+        }
+      ],
+      "skipped": [],
+      "root": "E:\\frontier-ai\\out\\exp_b\\EXP-029"
+    }
+  },
+  "configuration": {
+    "spec": {
+      "experiment_id": "EXP-03209",
+      "seed": 1339,
+      "name": "train exp_b",
+      "output_dir": "E:\\frontier-ai\\out\\arch\\EXP-032\\runs\\gelu\\seed-1339",
+      "params": {
+        "config": "E:\\frontier-ai\\configs\\exp_b.json",
+        "overrides": [
+          "model.ffn=gelu",
+          "model.ffn_mult=6.0",
+          "data.path=out/exp_b/EXP-029/mark_aware-32768.bin",
+          "data.seed=1339",
+          "train.seed=1339",
+          "train.out_dir=E:\\frontier-ai\\out\\arch\\EXP-032\\runs\\gelu\\seed-1339",
+          "train.max_steps=150"
+        ],
+        "max_steps": null,
+        "device": null
+      },
+      "data_paths": [
+        "out/exp_b/EXP-029/mark_aware-32768.bin"
+      ],
+      "config_path": "E:\\frontier-ai\\configs\\exp_b.json",
+      "component": {},
+      "command": [
+        "E:\\frontier-ai\\scripts\\train.py",
+        "--config",
+        "E:\\frontier-ai\\configs\\exp_b.json",
+        "--set",
+        "model.ffn=gelu",
+        "--set",
+        "model.ffn_mult=6.0",
+        "--set",
+        "data.path=out/exp_b/EXP-029/mark_aware-32768.bin",
+        "--set",
+        "data.seed=1339",
+        "--set",
+        "train.seed=1339",
+        "--set",
+        "train.out_dir=E:\\frontier-ai\\out\\arch\\EXP-032\\runs\\gelu\\seed-1339",
+        "--set",
+        "train.max_steps=150",
+        "--exp-id",
+        "EXP-03209"
+      ],
+      "tags": [
+        "project-001",
+        "train"
+      ],
+      "notes": "",
+      "deterministic_mode": true,
+      "schema_version": "1.0"
+    },
+    "overrides": [],
+    "config_file": {
+      "path": "E:\\frontier-ai\\configs\\exp_b.json",
+      "content": {
+        "_comment": "EXP-B fixed model for the tokenizer-vs-tokenizer comparison (D-038 hand-off). Deliberately small: the goal is to compare tokenizers under identical conditions on CPU, not to build a strong model. Every cell (every tokenizer, every seed) must use this exact model; only data.path, data.seed, train.seed, train.out_dir and train.max_steps vary per run. The step budget default (1000) may be revised ONCE, after the PC timing smoke, and the same budget must be used for all cells.",
+        "model": {
+          "n_layer": 4,
+          "n_head": 4,
+          "n_embd": 128,
+          "block_size": 128,
+          "dropout": 0.0,
+          "norm": "rmsnorm",
+          "ffn": "swiglu",
+          "pos": "learned",
+          "tie_embeddings": true
+        },
+        "data": {
+          "path": "data/synthetic.bin",
+          "tokenizer": "",
+          "level": "bpe",
+          "batch_size": 16,
+          "num_workers": 0,
+          "seed": 1337
+        },
+        "optim": {
+          "lr": 0.003,
+          "min_lr_ratio": 0.1,
+          "weight_decay": 0.1,
+          "betas": [
+            0.9,
+            0.95
+          ],
+          "grad_clip": 1.0,
+          "warmup_steps": 50,
+          "schedule": "cosine"
+        },
+        "train": {
+          "out_dir": "out/exp_b/EXP-029",
+          "max_steps": 1000,
+          "accum_steps": 4,
+          "eval_interval": 100,
+          "eval_iters": 25,
+          "log_interval": 50,
+          "save_interval": 0,
+          "save_best": true,
+          "device": "auto",
+          "precision": "fp32",
+          "seed": 1337,
+          "deterministic": true,
+          "num_threads": 0
+        },
+        "gen": {
+          "max_new_tokens": 100,
+          "temperature": 0.8,
+          "top_k": 20,
+          "top_p": 1.0
+        }
+      }
+    }
+  },
+  "randomness": {
+    "master_seed": 1339,
+    "deterministic_mode_requested": true,
+    "seeded_rngs": [
+      "python.random",
+      "numpy.random",
+      "torch",
+      "torch.cuda"
+    ],
+    "derived_seeds": {
+      "data": 1383285874,
+      "model": 2810005734,
+      "sampling": 3259392773
+    },
+    "derivation": "sha256('<master>|<component>') mod 2**32",
+    "limitations": [
+      "CUDA/cuDNN kernels may be nondeterministic even when deterministic mode is requested; torch.use_deterministic_algorithms(True, warn_only=True) can still warn or fall back.",
+      "CPU results depend on the thread configuration: multi-threaded reductions can change floating-point summation order.",
+      "Library versions (torch, numpy, tokenizers) can change results for the same seed; the record stores the environment for this reason.",
+      "Only Python random, NumPy and Torch RNGs are seeded. Subprocesses, third-party samplers and OS-level nondeterminism are not covered."
+    ]
+  },
+  "environment": {
+    "python": {
+      "version": "3.13.15",
+      "implementation": "CPython"
+    },
+    "platform": {
+      "system": "Windows",
+      "release": "10",
+      "machine": "AMD64"
+    },
+    "packages": {
+      "torch": "2.14.0+cpu",
+      "numpy": "2.5.3",
+      "tokenizers": "0.23.2",
+      "frontier-ai": "0.1.0"
+    },
+    "torch": {
+      "available": true,
+      "version": "2.14.0+cpu",
+      "cuda_available": false,
+      "cuda_version": null,
+      "device_count": 0,
+      "num_threads": 4
+    },
+    "excluded_by_policy": [
+      "hostname",
+      "username",
+      "environment variables",
+      "full pip freeze output"
+    ]
+  },
+  "execution": {
+    "started_at": "2026-09-27T19:27:48Z",
+    "finished_at": "2026-09-27T19:50:47Z",
+    "duration_seconds": 1378.862,
+    "cwd": "E:\\frontier-ai",
+    "pid": 8048,
+    "status": "success",
+    "command": [
+      "E:\\frontier-ai\\scripts\\train.py",
+      "--config",
+      "E:\\frontier-ai\\configs\\exp_b.json",
+      "--set",
+      "model.ffn=gelu",
+      "--set",
+      "model.ffn_mult=6.0",
+      "--set",
+      "data.path=out/exp_b/EXP-029/mark_aware-32768.bin",
+      "--set",
+      "data.seed=1339",
+      "--set",
+      "train.seed=1339",
+      "--set",
+      "train.out_dir=E:\\frontier-ai\\out\\arch\\EXP-032\\runs\\gelu\\seed-1339",
+      "--set",
+      "train.max_steps=150",
+      "--exp-id",
+      "EXP-03209"
+    ],
+    "error": null
+  },
+  "results": {
+    "best_val": 5.605789566040039,
+    "best_bpb": 1.42041,
+    "steps": 150,
+    "n_params": 5260416,
+    "tokens_seen": 1228800,
+    "device": "device=cpu amp=off"
+  }
+}

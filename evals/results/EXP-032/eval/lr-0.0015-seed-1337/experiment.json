@@ -1,0 +1,206 @@
+{
+  "schema_version": "1.0",
+  "record_type": "frontier-ai.experiment",
+  "experiment": {
+    "id": "EXP-032",
+    "name": "Evaluation report (harness v1.0.0): lr-0.0015-seed-1337",
+    "tags": [
+      "evaluation",
+      "harness-v1",
+      "frontier-heldout-v1"
+    ],
+    "notes": "",
+    "status": "success",
+    "output_dir": "E:\\frontier-ai\\out\\arch\\EXP-032\\eval\\lr-0.0015-seed-1337"
+  },
+  "code": {
+    "git": {
+      "available": true,
+      "commit": "788b751a2513450a969ae1f2108ce1963f827bff",
+      "branch": "arena/01a0dc16-frontier-ai",
+      "dirty": false,
+      "dirty_files": [],
+      "commit_subject": "Step 9: pre-registered architecture ablation EXP-032 (spec, runner, night wrapper, PC task, 13 tests); ROADMAP step 9 current + founder north star",
+      "remote": "https://github.com/dfgtghu556-ops/frontier-ai.git",
+      "reason": "",
+      "reproducible_from_commit": true
+    },
+    "repository": "frontier-ai"
+  },
+  "data": {
+    "status": "ok",
+    "inputs": [
+      "corpora\\frontier\\v1\\manifest.json",
+      "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json"
+    ],
+    "digest": {
+      "algorithm": "sha256",
+      "digest": "b13860a161d86f78e2ae1fa08f5c4aff8117984c2459f615ba9b1d800d0648da",
+      "file_count": 2,
+      "total_bytes": 888331,
+      "files": [
+        {
+          "path": "corpora/frontier/v1/manifest.json",
+          "bytes": 61898,
+          "sha256": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f"
+        },
+        {
+          "path": "evals/suites/frontier-heldout-v1/SUITE.json",
+          "bytes": 826433,
+          "sha256": "043c1b7ee2a52e2889e645969a44cf19eb5b3c1c84d645b66249a8628eb6e572"
+        }
+      ],
+      "skipped": [],
+      "root": "E:\\frontier-ai"
+    }
+  },
+  "configuration": {
+    "spec": {
+      "experiment_id": "EXP-032",
+      "seed": 0,
+      "name": "Evaluation report (harness v1.0.0): lr-0.0015-seed-1337",
+      "output_dir": "E:\\frontier-ai\\out\\arch\\EXP-032\\eval\\lr-0.0015-seed-1337",
+      "params": {
+        "ckpt": "E:\\frontier-ai\\out\\arch\\EXP-032\\runs\\lr-0.0015\\seed-1337\\last",
+        "tokenizer": "frozen",
+        "suite": "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json",
+        "batch_size": 8,
+        "device": "cpu",
+        "bootstrap": 1000
+      },
+      "data_paths": [
+        "corpora\\frontier\\v1\\manifest.json",
+        "E:\\frontier-ai\\evals\\suites\\frontier-heldout-v1\\SUITE.json"
+      ],
+      "config_path": "",
+      "component": {},
+      "command": [
+        "E:\\frontier-ai\\scripts\\eval_report.py",
+        "--ckpt",
+        "E:\\frontier-ai\\out\\arch\\EXP-032\\runs\\lr-0.0015\\seed-1337\\last",
+        "--tokenizer",
+        "frozen",
+        "--out",
+        "E:\\frontier-ai\\out\\arch\\EXP-032\\eval\\lr-0.0015-seed-1337",
+        "--label",
+        "lr-0.0015-seed-1337",
+        "--exp-id",
+        "EXP-032",
+        "--no-contamination"
+      ],
+      "tags": [
+        "evaluation",
+        "harness-v1",
+        "frontier-heldout-v1"
+      ],
+      "notes": "",
+      "deterministic_mode": false,
+      "schema_version": "1.0"
+    },
+    "overrides": []
+  },
+  "randomness": {
+    "master_seed": 0,
+    "deterministic_mode_requested": false,
+    "seeded_rngs": [
+      "python.random",
+      "numpy.random",
+      "torch",
+      "torch.cuda"
+    ],
+    "derived_seeds": {
+      "data": 1388866306,
+      "model": 2303058159,
+      "sampling": 1015152222
+    },
+    "derivation": "sha256('<master>|<component>') mod 2**32",
+    "limitations": [
+      "CUDA/cuDNN kernels may be nondeterministic even when deterministic mode is requested; torch.use_deterministic_algorithms(True, warn_only=True) can still warn or fall back.",
+      "CPU results depend on the thread configuration: multi-threaded reductions can change floating-point summation order.",
+      "Library versions (torch, numpy, tokenizers) can change results for the same seed; the record stores the environment for this reason.",
+      "Only Python random, NumPy and Torch RNGs are seeded. Subprocesses, third-party samplers and OS-level nondeterminism are not covered."
+    ]
+  },
+  "environment": {
+    "python": {
+      "version": "3.13.15",
+      "implementation": "CPython"
+    },
+    "platform": {
+      "system": "Windows",
+      "release": "10",
+      "machine": "AMD64"
+    },
+    "packages": {
+      "torch": "2.14.0+cpu",
+      "numpy": "2.5.3",
+      "tokenizers": "0.23.2",
+      "frontier-ai": "0.1.0"
+    },
+    "torch": {
+      "available": true,
+      "version": "2.14.0+cpu",
+      "cuda_available": false,
+      "cuda_version": null,
+      "device_count": 0,
+      "num_threads": 2
+    },
+    "excluded_by_policy": [
+      "hostname",
+      "username",
+      "environment variables",
+      "full pip freeze output"
+    ]
+  },
+  "execution": {
+    "started_at": "2026-09-28T01:33:34Z",
+    "finished_at": "2026-09-28T01:35:08Z",
+    "duration_seconds": 93.367,
+    "cwd": "E:\\frontier-ai",
+    "pid": 1560,
+    "status": "success",
+    "command": [
+      "E:\\frontier-ai\\scripts\\eval_report.py",
+      "--ckpt",
+      "E:\\frontier-ai\\out\\arch\\EXP-032\\runs\\lr-0.0015\\seed-1337\\last",
+      "--tokenizer",
+      "frozen",
+      "--out",
+      "E:\\frontier-ai\\out\\arch\\EXP-032\\eval\\lr-0.0015-seed-1337",
+      "--label",
+      "lr-0.0015-seed-1337",
+      "--exp-id",
+      "EXP-032",
+      "--no-contamination"
+    ],
+    "error": null
+  },
+  "results": {
+    "bits_per_byte": 1.4915765222974582,
+    "bits_per_byte_ci95": [
+      1.4747441961009065,
+      1.5092634963021525
+    ],
+    "bits_per_char": 3.683823217849308,
+    "per_language_bpb": {
+      "as": 1.4682644089692323,
+      "bn": 1.4750935491528783,
+      "en": 3.4093343372136533,
+      "gu": 1.5088811599926955,
+      "hi": 1.3130455868596251,
+      "kn": 1.271749129129729,
+      "ml": 1.2538006264647885,
+      "mr": 1.3623048798049737,
+      "or": 1.660682346085227,
+      "pa": 1.575613496336441,
+      "ta": 1.185214037780995,
+      "te": 1.448921150635525,
+      "ur": 2.2873068192246735
+    },
+    "data_identity": "PASS",
+    "scores_sha256": "53ff514b540886bc9630db856fc979ccad2101231a4e5f5603039c006e4897b6",
+    "suite_fingerprint": "a488b2aa41f9e861fa279a67e1fb6d98a610b4e8eebe554b9cfad262fc628a2f",
+    "tokenizer_dir_sha256": "b39afa08fa86b0d1ccf7b7e1b59df305b5678bdd59061c6fae01245061321144",
+    "model_sha256": "570a96be99c89002f803c60ebcf0fd54c7236d2a2cdfae59155c38ea6d540f23"
+  }
+}

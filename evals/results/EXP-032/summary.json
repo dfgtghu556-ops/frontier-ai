@@ -1,0 +1,297 @@
+{
+  "exp_id": "EXP-032",
+  "spec_sha256": "2a7048f290ff2221d4cd91d94586c1436fc5def9ac5bfd1c8074a52cd029dd28",
+  "max_steps": 150,
+  "seeds": [
+    1337,
+    1338,
+    1339
+  ],
+  "rows": [
+    {
+      "group": "baseline",
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.4619429841955736,
+        1.440626911929674,
+        1.4400282197517862
+      ],
+      "mean": 1.4475327052923446,
+      "std": 0.012483257252520308,
+      "reused_from": "E:/frontier-ai/out/exp_b/EXP-029/runs/mark_aware-32768/seed-1337/last",
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "kv_cache_values_per_token": 1024,
+      "seconds_per_step": null
+    },
+    {
+      "group": "rope",
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.4119471181357406,
+        1.365041589191023,
+        1.3344766495544877
+      ],
+      "mean": 1.3704884522937504,
+      "std": 0.039021399434087584,
+      "reused_from": null,
+      "n_params": 5244032,
+      "body_params": 1049728,
+      "kv_cache_values_per_token": 1024,
+      "seconds_per_step": 11.306
+    },
+    {
+      "group": "gelu",
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.3891979230687703,
+        1.4220846144877324,
+        1.4297241265872098
+      ],
+      "mean": 1.4136688880479042,
+      "std": 0.021533964603319383,
+      "reused_from": null,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "kv_cache_values_per_token": 1024,
+      "seconds_per_step": 10.62
+    },
+    {
+      "group": "layernorm",
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.4797635277531913,
+        1.4843782766093137,
+        1.454675033181026
+      ],
+      "mean": 1.4729389458478437,
+      "std": 0.01598442542530465,
+      "reused_from": null,
+      "n_params": 5261568,
+      "body_params": 1050880,
+      "kv_cache_values_per_token": 1024,
+      "seconds_per_step": 9.216
+    },
+    {
+      "group": "gqa2",
+      "seeds": [
+        1337,
+        1338,
+        1339
+      ],
+      "bpb": [
+        1.3883865133022009,
+        1.4744364663830534,
+        1.4185454977487382
+      ],
+      "mean": 1.4271228258113309,
+      "std": 0.0436614993309235,
+      "reused_from": null,
+      "n_params": 5194880,
+      "body_params": 984192,
+      "kv_cache_values_per_token": 512,
+      "seconds_per_step": 9.605
+    },
+    {
+      "group": "lr-0.0015",
+      "seeds": [
+        1337
+      ],
+      "bpb": [
+        1.4915765222974582
+      ],
+      "mean": 1.4915765222974582,
+      "std": null,
+      "reused_from": null,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "kv_cache_values_per_token": 1024,
+      "seconds_per_step": 82.636
+    },
+    {
+      "group": "lr-0.006",
+      "seeds": [
+        1337
+      ],
+      "bpb": [
+        1.4048707173951263
+      ],
+      "mean": 1.4048707173951263,
+      "std": null,
+      "reused_from": null,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "kv_cache_values_per_token": 1024,
+      "seconds_per_step": 7.446
+    },
+    {
+      "group": "repro-baseline",
+      "seeds": [
+        1337
+      ],
+      "bpb": [
+        1.4619429841955736
+      ],
+      "mean": 1.4619429841955736,
+      "std": null,
+      "reused_from": null,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "kv_cache_values_per_token": 1024,
+      "seconds_per_step": 7.087
+    }
+  ],
+  "variants": {
+    "rope": {
+      "rule": "superiority",
+      "delta_bpb": -0.07704425299859408,
+      "ci95": [
+        -0.07869393529164624,
+        -0.07532226465520109
+      ],
+      "superiority": "BETTER",
+      "languages_better": [
+        "as",
+        "bn",
+        "en",
+        "gu",
+        "hi",
+        "kn",
+        "ml",
+        "mr",
+        "or",
+        "pa",
+        "ta",
+        "te",
+        "ur"
+      ],
+      "languages_worse": [],
+      "verdict": "BETTER"
+    },
+    "gelu": {
+      "rule": "superiority",
+      "delta_bpb": -0.033863817244440306,
+      "ci95": [
+        -0.03456223652859431,
+        -0.033195563064910824
+      ],
+      "superiority": "BETTER",
+      "languages_better": [
+        "as",
+        "bn",
+        "en",
+        "gu",
+        "hi",
+        "kn",
+        "ml",
+        "mr",
+        "or",
+        "pa",
+        "ta",
+        "te",
+        "ur"
+      ],
+      "languages_worse": [],
+      "verdict": "BETTER"
+    },
+    "layernorm": {
+      "rule": "superiority",
+      "delta_bpb": 0.02540624055549923,
+      "ci95": [
+        0.024829767278839603,
+        0.025998849296568618
+      ],
+      "superiority": "NO DETECTABLE DIFFERENCE AT THIS SCALE",
+      "languages_better": [],
+      "languages_worse": [
+        "as",
+        "bn",
+        "en",
+        "gu",
+        "hi",
+        "kn",
+        "ml",
+        "mr",
+        "or",
+        "pa",
+        "ta",
+        "te",
+        "ur"
+      ],
+      "verdict": "NO DETECTABLE DIFFERENCE AT THIS SCALE"
+    },
+    "gqa2": {
+      "rule": "non_inferiority",
+      "delta_bpb": -0.020409879481013794,
+      "ci95": [
+        -0.02103935392958422,
+        -0.01974052076089085
+      ],
+      "superiority": "NO DETECTABLE DIFFERENCE AT THIS SCALE",
+      "languages_better": [
+        "as",
+        "bn",
+        "en",
+        "gu",
+        "hi",
+        "kn",
+        "ml",
+        "mr",
+        "or",
+        "pa",
+        "ta",
+        "te",
+        "ur"
+      ],
+      "languages_worse": [],
+      "margin_bpb": 0.01,
+      "verdict": "ACCEPTABLE"
+    }
+  },
+  "lr_check": {
+    "seed": 1337,
+    "reference_lr": 0.003,
+    "reference_bpb": 1.4619429841955736,
+    "baseline_seed_std": 0.012483257252520308,
+    "alternatives": {
+      "lr-0.0015": {
+        "bpb": 1.4915765222974582,
+        "improvement": -0.029633538101884627
+      },
+      "lr-0.006": {
+        "bpb": 1.4048707173951263,
+        "improvement": 0.0570722668004473
+      }
+    },
+    "verdict": "LR-CONFOUNDED",
+    "better_lrs": [
+      "lr-0.006"
+    ]
+  },
+  "repro_check": {
+    "reference": "E:/frontier-ai/out/exp_b/EXP-029/runs/mark_aware-32768/seed-1337/last",
+    "status": "IDENTICAL",
+    "tensors": 36,
+    "unequal_tensors": 0,
+    "max_abs_diff": 0.0,
+    "bpb_reference": 1.4619429841955736,
+    "bpb_retrained": 1.4619429841955736
+  },
+  "failures": []
+}
