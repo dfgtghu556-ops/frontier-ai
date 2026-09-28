@@ -198,3 +198,14 @@ def test_missing_data_is_an_input_error(env, tmp_path):
     spec = dict(env.spec, data=str(tmp_path / "nope.bin"))
     proc = _ablate(_write_spec(tmp_path / "s.json", spec), tmp_path / "o", "--dry-run")
     assert proc.returncode == 2 and "data file not found" in proc.stderr
+
+
+def test_spec_fingerprint_ignores_windows_line_endings(tmp_path):
+    raw = (REPO_ROOT / "configs" / "ablations" / "EXP-032.json").read_bytes().replace(b"\r\n", b"\n")
+    lf, crlf = tmp_path / "lf.json", tmp_path / "crlf.json"
+    lf.write_bytes(raw)
+    crlf.write_bytes(raw.replace(b"\n", b"\r\n"))
+    assert ra.spec_sha256(lf) == ra.spec_sha256(crlf)
+    # EXP-032: the PC recorded the CRLF raw-byte hash of the committed spec
+    import hashlib
+    assert hashlib.sha256(crlf.read_bytes()).hexdigest().startswith("2a7048f290ff2221")

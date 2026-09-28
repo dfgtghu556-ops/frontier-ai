@@ -358,6 +358,16 @@ comes next. They also update the table in §3.
   **Next:** the PC night run via `PC_TASK_ARCH_EXP032.md`, then EXP-032 results and a
   proposed D-043. STOP for review.
 
+* **2026-09-28, Arena agent (EXP-032 COMPLETE; PC commit `4027c98`):** step 9 screening ran
+  overnight on the founder's i3-4030U (2 cores; ~7–11 s/step; no GPU needed). The baseline was
+  reused from EXP-029 and reproduces EXP-031 exactly; the repro retrain has IDENTICAL weights.
+  At lr 3e-3: **RoPE BETTER (−0.077 bpb, −5.3%)**, GELU BETTER (−0.034; contradicts the
+  literature, so suspect), LayerNorm no detectable difference, **GQA-2 ACCEPTABLE** (half the
+  KV cache). But the **learning-rate check is LR-CONFOUNDED** (lr 6e-3 improves the baseline by
+  0.057), so nothing is adopted yet and D-043 is deferred. Spec hashes are now LF-normalised
+  (CRLF checkout on Windows changed the raw hash). **Next:** propose EXP-033 (confirmation at
+  better learning rates); STOP for founder approval.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

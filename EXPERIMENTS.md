@@ -1807,3 +1807,60 @@ second experiment reuses the verified baseline; a mismatched budget is refused f
 baseline is reused, plus 18 gradings).
 
 **Results:** pending.
+
+**Results (2026-09-28, completed; supersedes "PC night run pending" above).** The PC ran
+`PC_TASK_ARCH_EXP032.md` unattended. The outer record succeeded at commit `788b751` (clean
+tree). Commit **`4027c98`** adds exactly 80 files under `evals/results/EXP-032/`, with no
+`per_document.jsonl`. Numbers below were read by script from the committed JSON.
+* **Integrity:** all 3 baseline seeds were **reused** from EXP-029 after config verification,
+  and their harness scores equal EXP-031 bit for bit (`scores_sha256` × 3). The retrained
+  baseline (repro cell) has weights **IDENTICAL** to EXP-029 seed 1337 (36/36 tensors,
+  max |diff| 0; bpb 1.4619 = 1.4619). All 18 reports have data identity PASS, the frozen v1
+  tokenizer, and step 150. No failed cells.
+* **Results** (final checkpoints, 150 steps, lr 3e-3, exact held-out bpb; delta = variant −
+  baseline with paired 95% CI):
+
+  | group | seeds 1337 / 1338 / 1339 | mean ± std | delta [95% CI] | pre-registered verdict |
+  |---|---|---|---|---|
+  | baseline | 1.4619 / 1.4406 / 1.4400 | 1.4475 ± 0.0125 | — | — |
+  | rope | 1.4119 / 1.3650 / 1.3345 | 1.3705 ± 0.0390 | −0.0770 [−0.0787, −0.0753] (−5.3%) | **BETTER** (13/13 languages better) |
+  | gelu (ffn_mult 6) | 1.3892 / 1.4221 / 1.4297 | 1.4137 ± 0.0215 | −0.0339 [−0.0346, −0.0332] (−2.3%) | **BETTER** (13/13 languages better) |
+  | layernorm | 1.4798 / 1.4844 / 1.4547 | 1.4729 ± 0.0160 | +0.0254 [+0.0248, +0.0260] (+1.8%) | NO DETECTABLE DIFFERENCE (seeds overlap; 13/13 languages worse on CI) |
+  | gqa2 | 1.3884 / 1.4744 / 1.4185 | 1.4271 ± 0.0437 | −0.0204 [−0.0210, −0.0197] (−1.4%) | **ACCEPTABLE** (margin 0.010; superiority: seeds overlap) |
+
+  Learning-rate check (seed 1337, baseline): lr 1.5e-3 → 1.4916; **3e-3 → 1.4619**; **6e-3 →
+  1.4049** (−0.0571, 4.6× the baseline seed std) ⇒ **LR-CONFOUNDED** under the pre-registered rule.
+* **Interpretation (what the evidence does and does not support):**
+  1. **The baseline learning rate is too low for this 150-step budget.** Doubling it gains
+     about as much (−0.057 on seed 1337) as RoPE does (−0.077) and more than GELU (−0.034). In an
+     under-tuned, short run, changes that simply make the model learn faster can look
+     better. By the pre-registered rule, the BETTER verdicts hold **at lr 3e-3 only**, and the
+     comparison must be repeated at a better learning rate before adoption.
+  2. **RoPE** is the strongest result (every seed, every language). It agrees with prior
+     large-scale evidence that relative position methods beat learned absolute positions
+     (Narang et al., 2021, appendix), and it is needed for context beyond `block_size`. It is
+     the leading candidate.
+  3. **GELU beating SwiGLU contradicts the larger-scale literature**, where GLU variants
+     (SwiGLU) improve over plain activations (Narang et al., 2021). It is treated as
+     **suspect until re-tested** at a tuned learning rate. It is not adopted.
+  4. **LayerNorm vs RMSNorm:** no detectable difference by the rule (it tends worse). The
+     default RMSNorm stays (cheaper, not worse).
+  5. **GQA (2 KV heads)** halves the inference KV cache (1,024 → 512 values per token) with no
+     measurable quality cost. It is an efficiency candidate.
+  6. **Seed variation dominates the uncertainty.** The paired document CIs are about ±0.001
+     wide, but seed standard deviations are 0.012–0.044. The document bootstrap does not see
+     training randomness, which is why the seed-separation criterion was pre-registered.
+     Future ablations need that criterion, and more seeds where affordable.
+  7. **Timing is not usable for efficiency conclusions.** Per-step times were confounded by
+     run order, heat and a ~3 h pause of the PC after the lr-0.0015 cell (its training took
+     18 min according to its record; the runner's wall clock includes the pause). Results are
+     unaffected (deterministic; repro IDENTICAL).
+* **Tooling fix:** the PC recorded spec sha `2a7048f2…` while the repo file hashes to
+  `f8c13dad…`. The difference is Git for Windows' CRLF checkout (the CRLF version of the
+  committed file hashes exactly to `2a7048f2…`), so the spec was unchanged.
+  `run_arch_ablation.py` now fingerprints the spec over LF-normalised bytes, with a
+  regression test.
+* **Status:** complete. **D-043 is deferred**: under the pre-registered adoption rule no
+  architecture change is adopted while the comparison is LR-confounded. The next step is a
+  confirmation experiment at better learning rates (proposed as EXP-033; needs founder
+  approval).

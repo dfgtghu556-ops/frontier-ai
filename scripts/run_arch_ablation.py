@@ -193,6 +193,12 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def spec_sha256(path: Path) -> str:
+    """Spec fingerprint over LF-normalised bytes: Git for Windows checks text files out with CRLF,
+    which changed the raw-byte hash of the same spec (EXP-032: PC 2a7048f2… vs repo f8c13dad…)."""
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
 def cell_trained(spec: dict, cell: dict) -> bool:
     ckpt, rec = cell["ckpt"], cell["run_dir"] / "experiment.json"
     if not (ckpt / "model.pt").is_file() or not rec.is_file():
@@ -449,7 +455,7 @@ def main() -> int:
     except SpecError as exc:
         print(f"[ablation] SPEC ERROR: {exc}", file=sys.stderr)
         return 2
-    spec["_sha256"] = _sha256(spec_path)
+    spec["_sha256"] = spec_sha256(spec_path)
     out_root = _resolve(args.out or f"out/arch/{spec['exp_id']}")
     if not _resolve(spec["data"]).is_file():
         print(f"[ablation] INPUT ERROR: data file not found: {spec['data']}", file=sys.stderr)
