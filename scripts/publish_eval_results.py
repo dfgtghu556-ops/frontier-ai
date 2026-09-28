@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 PUBLISHED = ("report.json", "report.txt", "compare.json", "compare.txt", "experiment.json",
-             "summary.json", "SUMMARY.txt")
+             "summary.json", "SUMMARY.txt", "DIVERGED.json")
 
 
 def main() -> int:

@@ -368,6 +368,22 @@ comes next. They also update the table in §3.
   (CRLF checkout on Windows changed the raw hash). **Next:** propose EXP-033 (confirmation at
   better learning rates); STOP for founder approval.
 
+* **2026-09-28, Arena agent (EXP-033 approved; infrastructure built):** the founder approved
+  EXP-033 ("I approve EXP-033") and said his PC agent (Copilot) is about to reach its usage
+  limit. What was built:
+  - `configs/ablations/EXP-033.json`: schema v2, pre-registered. It tests baseline vs
+    rope-gqa2 vs rope-gqa2-gelu at lr 6e-3 and 1e-2, over 3 seeds. A change is adopted only if
+    it is BETTER at both learning rates. A DIVERGED seed counts as the worst score.
+  - `run_arch_ablation.py` v2 support; the v1 path is unchanged.
+  - **`scripts/run_night_unattended.ps1`**: a one-command PC runner that needs no agent. It
+    checks, runs a preflight, runs the ablation with one retry, publishes, makes a scoped
+    commit and push, and writes `NIGHT_REPORT.txt`, which it opens in Notepad.
+  - `PC_TASK_ARCH_EXP033.md` and 21 tests.
+
+  The founder types one line in the VS Code terminal (see the task file). **Next:** analyse
+  the EXP-033 results, propose D-043 and the step 9 exit report, then STOP for approval
+  before step 10.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

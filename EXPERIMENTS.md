@@ -1864,3 +1864,60 @@ tree). Commit **`4027c98`** adds exactly 80 files under `evals/results/EXP-032/`
   architecture change is adopted while the comparison is LR-confounded. The next step is a
   confirmation experiment at better learning rates (proposed as EXP-033; needs founder
   approval).
+
+### EXP-033 — Step 9 architecture confirmation at two higher learning rates (MASTER_CONTEXT §37 step 9)
+**Date:** 2026-09-28 · **Status:** in progress: spec, runner v2 and one-command PC script built
+and tested (sandbox); PC night run pending (founder: "I approve EXP-033", 2026-09-28)
+
+**Purpose (why this serves the mission):** EXP-032 was LR-CONFOUNDED (lr 6e-3 improved the
+seed-1337 baseline by 0.0571 bpb, more than the seed spread), so its verdicts at lr 3e-3 may
+reflect the learning rate rather than the architecture. EXP-033 re-tests the EXP-032 candidates
+as one combined architecture at **two** higher learning rates and adopts a change only if it
+wins at **both**, so the evaluation suite never selects a learning rate. The outcome is
+**D-043**, a *provisional* architecture for the first GPU bring-up (step 10). The EXP-032
+scale caveat applies unchanged: screening evidence only, to be re-validated at GPU scale
+(step 11).
+
+**Pre-registered spec:** `configs/ablations/EXP-033.json` (schema `frontier-arch-ablation-v2`,
+committed before any result; LF-normalised sha256 `7f9e7af7901bdab9…`). Same base config, data,
+frozen tokenizer, 150 steps, seeds 1337/1338/1339 and final-checkpoint grading as EXP-032.
+
+| arm | change vs EXP-B | body params | KV values / token |
+|---|---|---|---|
+| baseline | none | 1,049,728 | 1,024 |
+| rope-gqa2 | `model.pos=rope`, `model.n_kv_head=2` (SwiGLU, RMSNorm kept) | 984,192 | 512 |
+| rope-gqa2-gelu | rope-gqa2 + `model.ffn=gelu`, `ffn_mult=6.0` | 984,192 (exact match) | 512 |
+
+Each arm × lr ∈ {6e-3, 1e-2} × 3 seeds = 18 cells. The EXP-032 cell `lr-0.006/seed-1337` is
+exactly `baseline` at lr 6e-3, seed 1337, and is reused only if its saved config verifies
+(it is re-graded under EXP-033). So 17 cells are trained, about 7.5–8.5 h on the PC (CPU only).
+
+**Comparisons and decision rules (pre-registered):**
+- `candidate-vs-baseline` (rope-gqa2 vs baseline) and `gelu-vs-swiglu` (rope-gqa2-gelu vs
+  rope-gqa2).
+- **Per learning rate:** the EXP-032 superiority rule. BETTER needs the paired 95% CI of
+  (b − a) below 0 **and** every b seed beating every a seed; WORSE is the mirror image;
+  otherwise NO DETECTABLE DIFFERENCE AT THIS SCALE.
+- **Divergence:** a cell whose training stops on a non-finite loss is DIVERGED. It is recorded
+  as a result (never retrained, not a failure) and counts as the worst possible score. If only
+  one arm of a comparison has diverged seeds at a learning rate, that arm loses there. If both
+  arms do, that learning rate is UNSTABLE and gives no verdict.
+- **Adoption:** ADOPT only if BETTER at every learning rate that is not UNSTABLE, with at least
+  one stable learning rate; fewer than all is stated as weaker evidence. Otherwise NOT ADOPTED.
+- **D-043 mapping:** candidate ADOPT → RoPE + GQA-2; otherwise keep learned positions and 4 KV
+  heads (GQA may be revisited purely for inference efficiency). gelu-vs-swiglu ADOPT → GELU;
+  otherwise SwiGLU stays (literature prior). RMSNorm stays (EXP-032). The learning-rate trend is
+  descriptive only. The step-10 GPU runs must sweep the learning rate again at their own scale.
+
+**Implementation:** `scripts/run_arch_ablation.py` now also accepts schema v2 (arms × learning
+rates × seeds, pairwise comparisons, single-cell reuse, DIVERGED status). The v1 path used for
+EXP-032 is unchanged. `scripts/publish_eval_results.py` also publishes `DIVERGED.json`.
+
+The founder's PC agent (GitHub Copilot) was about to reach its usage limit, so the PC steps
+(checks, preflight, run with one retry, publish, scoped commit of `evals/results/EXP-033/` only,
+push, report) are in **one script, `scripts/run_night_unattended.ps1`**. It needs no agent: the
+founder types one line in a terminal. `PC_TASK_ARCH_EXP033.md` documents it. There are 21 new
+tests (spec, validation, the per-LR and adoption rules, a v2 end-to-end run with a forced
+divergence, restart and reuse, and static safety checks of the PowerShell script). PowerShell
+itself could not be run in the sandbox (downloads blocked). The script therefore uses only
+constructs that already worked on the PC (EXP-029/EXP-032) and is ASCII-only.

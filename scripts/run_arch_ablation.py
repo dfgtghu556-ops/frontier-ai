@@ -24,7 +24,13 @@ reports whose checkpoint hash matches are not regraded. Outputs go to
 ``out/arch/<exp-id>/`` (git-ignored); ``scripts/publish_eval_results.py`` copies the small
 files to ``evals/results/<exp-id>/``.
 
-Exit codes: 0 = every planned cell trained, graded and compared; 1 = some cell failed
+Schema ``frontier-arch-ablation-v2`` (EXP-033+) replaces baseline/variants with ``arms`` × ``lrs``
+× seeds and pairwise ``comparisons`` that must be BETTER at every learning rate (so the suite
+never selects a learning rate); single cells may be reused from earlier runs (``reuse``), and a
+cell whose training stops on a non-finite loss is recorded as DIVERGED (a result that counts
+as the worst score, never retrained) instead of failing the night.
+
+Exit codes: 0 = every planned cell trained (or DIVERGED), graded and compared; 1 = some cell failed
 (the summary is still written); 2 = bad spec or input.
 """
 
@@ -33,6 +39,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import statistics
 import subprocess
@@ -50,6 +57,10 @@ from frontier_ai.evaluation import make_console_safe  # noqa: E402
 SPEC_SCHEMA = "frontier-arch-ablation-v1"
 RULES = ("superiority", "non_inferiority")
 RESERVED = {"baseline", "repro-baseline"}
+# v2 (EXP-033+): arms x learning rates x seeds, graded by pre-registered pairwise comparisons that
+# must hold at EVERY learning rate, so no learning rate is chosen with the evaluation suite.
+SPEC_SCHEMA_V2 = "frontier-arch-ablation-v2"
+NAME_RE = r"[a-z0-9][a-z0-9_.-]*"
 
 
 class SpecError(Exception):
@@ -67,8 +78,11 @@ def load_spec(path: Path) -> dict:
         spec = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise SpecError(f"cannot read spec {path}: {exc}") from None
+    if spec.get("schema") == SPEC_SCHEMA_V2:
+        return _load_spec_v2(spec)
     if spec.get("schema") != SPEC_SCHEMA:
-        raise SpecError(f"spec schema must be {SPEC_SCHEMA!r}, got {spec.get('schema')!r}")
+        raise SpecError(f"spec schema must be {SPEC_SCHEMA!r} or {SPEC_SCHEMA_V2!r}, "
+                        f"got {spec.get('schema')!r}")
     if not re.fullmatch(r"EXP-\d{3,}", str(spec.get("exp_id", ""))):
         raise SpecError("spec exp_id must look like EXP-032")
     for key in ("base_config", "data", "tokenizer", "max_steps", "seeds", "baseline", "variants"):
@@ -132,6 +146,88 @@ def plan_cells(spec: dict, out_root: Path) -> list[dict]:
         add(f"lr-{lr:g}", lr_check["seed"], base_ov + [f"optim.lr={lr}"], "lr_check")
     if spec.get("repro_check"):
         add("repro-baseline", spec["repro_check"]["seed"], base_ov, "repro_check")
+    return cells
+
+
+def _validate_common(spec: dict, keys: tuple[str, ...]) -> None:
+    if not re.fullmatch(r"EXP-\d{3,}", str(spec.get("exp_id", ""))):
+        raise SpecError("spec exp_id must look like EXP-032")
+    for key in keys:
+        if key not in spec:
+            raise SpecError(f"spec is missing {key!r}")
+    if spec.get("checkpoint", "last") != "last":
+        raise SpecError("only checkpoint 'last' is supported "
+                        "(the 'best' checkpoint is selected on the suite)")
+    seeds = spec["seeds"]
+    if not seeds or len(set(seeds)) != len(seeds) or not all(isinstance(s, int) for s in seeds):
+        raise SpecError("spec seeds must be a non-empty list of distinct integers")
+
+
+def _load_spec_v2(spec: dict) -> dict:
+    _validate_common(spec, ("base_config", "data", "tokenizer", "max_steps", "seeds", "lrs", "arms",
+                            "comparisons"))
+    lrs = spec["lrs"]
+    if (not isinstance(lrs, list) or not lrs or len(set(lrs)) != len(lrs)
+            or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and x > 0 for x in lrs)):
+        raise SpecError("spec lrs must be a non-empty list of distinct positive numbers")
+    base = ExperimentConfig.load(_resolve(spec["base_config"]))
+    arms = set()
+    for arm in spec["arms"]:
+        name = arm.get("name", "")
+        if not re.fullmatch(NAME_RE, name) or name in RESERVED - {"baseline"} or name.startswith("lr-"):
+            raise SpecError(f"bad or reserved arm name {name!r}")
+        if name in arms:
+            raise SpecError(f"duplicate arm name {name!r}")
+        arms.add(name)
+        ov = arm.get("overrides", {})
+        if not isinstance(ov, dict) or "optim.lr" in ov:
+            raise SpecError(f"arm {name}: overrides must be an object and must not set optim.lr "
+                            "(the learning rates come from 'lrs')")
+        try:
+            base.with_overrides(_overrides(ov))
+        except (ValueError, TypeError) as exc:
+            raise SpecError(f"arm {name}: invalid override: {exc}") from None
+    if not arms:
+        raise SpecError("spec needs at least one arm")
+    names = set()
+    for comp in spec["comparisons"]:
+        name = comp.get("name", "")
+        if not re.fullmatch(NAME_RE, name) or name in names:
+            raise SpecError(f"bad or duplicate comparison name {name!r}")
+        names.add(name)
+        if comp.get("a") not in arms or comp.get("b") not in arms or comp["a"] == comp["b"]:
+            raise SpecError(f"comparison {name}: 'a' and 'b' must be two different arms")
+        if comp.get("rule") != "superiority":
+            raise SpecError(f"comparison {name}: v2 supports only rule 'superiority'")
+    if not names:
+        raise SpecError("spec needs at least one comparison")
+    for r in spec.get("reuse", []):
+        if r.get("arm") not in arms or r.get("lr") not in lrs or r.get("seed") not in spec["seeds"] \
+                or not r.get("run_dir"):
+            raise SpecError(f"bad reuse entry {r!r} (arm, lr and seed must be in the spec; run_dir required)")
+    return spec
+
+
+def cell_group(arm: str, lr: float) -> str:
+    return f"{arm}-lr-{lr:g}"
+
+
+def plan_cells_v2(spec: dict, out_root: Path) -> list[dict]:
+    """Learning rate by learning rate (so a partial night still gives complete comparisons at the
+    first learning rate), then arm, then seed. Cell ids are stable (they do not depend on reuse)."""
+    cells: list[dict] = []
+    for lr in spec["lrs"]:
+        for arm in spec["arms"]:
+            group = cell_group(arm["name"], lr)
+            for seed in spec["seeds"]:
+                run_dir = out_root / "runs" / group / f"seed-{seed}"
+                cells.append({
+                    "id": f"{spec['exp_id']}{len(cells) + 1:02d}", "group": group, "arm": arm["name"],
+                    "lr": lr, "seed": seed, "role": "arm",
+                    "overrides": _overrides(arm.get("overrides", {})) + [f"optim.lr={lr}"],
+                    "run_dir": run_dir, "ckpt": run_dir / "last",
+                    "eval_dir": out_root / "eval" / f"{group}-seed-{seed}", "reused_from": None,
+                })
     return cells
 
 
@@ -211,24 +307,47 @@ def cell_trained(spec: dict, cell: dict) -> bool:
     return ok and meta.get("step") == spec["max_steps"]
 
 
+_LAST_OUTPUT = {"text": ""}
+DIVERGED_RE = re.compile(r"non-finite loss at step (\d+)")
+
+
 def _run(cmd: list[str]) -> tuple[int, float]:
     t0 = time.monotonic()
     proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     sys.stdout.write(proc.stdout)
     sys.stdout.write(proc.stderr)
     sys.stdout.flush()
+    _LAST_OUTPUT["text"] = proc.stdout + "\n" + proc.stderr
     return proc.returncode, time.monotonic() - t0
+
+
+def cell_diverged(cell: dict) -> bool:
+    """The trainer stopped this cell on a non-finite loss (recorded in DIVERGED.json). Deterministic
+    training would diverge again, so such a cell is never retrained; it is a result, not a failure."""
+    return (cell["run_dir"] / "DIVERGED.json").is_file()
 
 
 def train_cell(spec: dict, cell: dict) -> bool:
     if cell_trained(spec, cell):
         print(f"[ablation] {cell['group']} seed {cell['seed']}: already trained, skipping", flush=True)
         return True
+    if cell_diverged(cell):
+        print(f"[ablation] {cell['group']} seed {cell['seed']}: DIVERGED earlier, not retrained", flush=True)
+        return False
     print(f"[ablation] TRAIN {cell['group']} seed {cell['seed']} ({cell['id']}) ...", flush=True)
     set_args = [a for ov in cell_overrides(spec, cell) for a in ("--set", ov)]
     code, wall = _run([sys.executable, str(REPO_ROOT / "scripts" / "train.py"),
                        "--config", str(_resolve(spec["base_config"])), *set_args, "--exp-id", cell["id"]])
     if code != 0 or not cell_trained(spec, cell):
+        m = DIVERGED_RE.search(_LAST_OUTPUT["text"])
+        if code != 0 and m:
+            cell["run_dir"].mkdir(parents=True, exist_ok=True)
+            (cell["run_dir"] / "DIVERGED.json").write_text(json.dumps(
+                {"cell": cell["id"], "group": cell["group"], "seed": cell["seed"], "step": int(m.group(1)),
+                 "message": m.group(0), "wall_seconds": round(wall, 1)}, indent=2) + "\n", encoding="utf-8")
+            print(f"[ablation] DIVERGED {cell['group']} seed {cell['seed']} at step {m.group(1)} "
+                  "(non-finite loss) - recorded as a result, counted as the worst score", flush=True)
+            return False
         print(f"[ablation] FAILED training {cell['group']} seed {cell['seed']} (exit {code})", flush=True)
         return False
     (cell["run_dir"] / "ablation_cell.json").write_text(
@@ -436,6 +555,141 @@ def render(s: dict) -> str:
     return "\n".join(lines)
 
 
+# ---------------------------------------------------------------------- v2 analysis --
+
+def compare_groups(a_cells: list[dict], b_cells: list[dict], label_a: str, label_b: str, out: Path) -> bool:
+    a = [str(c["eval_dir"]) for c in a_cells]
+    b = [str(c["eval_dir"]) for c in b_cells]
+    code, _ = _run([sys.executable, str(REPO_ROOT / "scripts" / "eval_compare.py"), "--a", *a, "--b", *b,
+                    "--label-a", label_a, "--label-b", label_b, "--out", str(out)])
+    return code == 0
+
+
+def cell_status(cell: dict) -> tuple[str, float | None]:
+    """('ok', bpb) | ('DIVERGED', None) for a training blow-up or a non-finite grade | ('MISSING', None)."""
+    if cell_diverged(cell):
+        return "DIVERGED", None
+    v = _bpb(cell)
+    if v is None:
+        return "MISSING", None
+    return ("ok", v) if math.isfinite(v) else ("DIVERGED", None)
+
+
+def decide_at_lr(a_status: list[str], b_status: list[str], a_vals: list[float], b_vals: list[float],
+                 ci: list[float] | None) -> tuple[str, str]:
+    """Pre-registered per-learning-rate verdict for 'b vs a' -> (verdict, basis).
+
+    Divergence is the worst possible outcome: if only one arm has diverged seeds, that arm loses at
+    this learning rate. If both arms have diverged seeds the learning rate is UNSTABLE (no verdict).
+    Otherwise the EXP-032 superiority rule applies (paired CI + every seed beats every seed)."""
+    if "MISSING" in a_status or "MISSING" in b_status:
+        return "INCOMPLETE", "missing grades"
+    a_div, b_div = a_status.count("DIVERGED"), b_status.count("DIVERGED")
+    if a_div and b_div:
+        return "UNSTABLE", f"both arms diverged ({a_div} and {b_div} seeds)"
+    if b_div:
+        return "WORSE", f"{b_div} seed(s) of the candidate arm diverged"
+    if a_div:
+        return "BETTER", f"{a_div} seed(s) of the reference arm diverged, none of the candidate"
+    if ci is None:
+        return "INCOMPLETE", "comparison missing"
+    return superiority(ci, a_vals, b_vals), "paired CI + seed separation"
+
+
+def adoption(per_lr: dict[str, dict], n_lrs: int) -> tuple[str, str]:
+    verdicts = [v["verdict"] for v in per_lr.values()]
+    if "INCOMPLETE" in verdicts or len(verdicts) != n_lrs:
+        return "INCOMPLETE", "not every learning rate has a verdict"
+    stable = [v for v in verdicts if v != "UNSTABLE"]
+    if not stable:
+        return "NOT ADOPTED", "unstable at every learning rate"
+    if all(v == "BETTER" for v in stable):
+        if len(stable) < n_lrs:
+            return "ADOPT", (f"BETTER at {len(stable)} of {n_lrs} learning rates, "
+                             "the rest UNSTABLE (weaker evidence)")
+        return "ADOPT", "BETTER at every learning rate"
+    return "NOT ADOPTED", "not BETTER at every stable learning rate"
+
+
+def summarize_v2(spec: dict, cells: list[dict], out_root: Path, failures: list[str]) -> dict:
+    by: dict[str, list[dict]] = {}
+    for c in cells:
+        by.setdefault(c["group"], []).append(c)
+    rows = []
+    for group, gcells in by.items():
+        st = [cell_status(c) for c in gcells]
+        done = [v for s_, v in st if s_ == "ok"]
+        first = next((c for c in gcells if (c["ckpt"] / "config.json").is_file()), None)
+        rows.append({"group": group, "arm": gcells[0]["arm"], "lr": gcells[0]["lr"],
+                     "seeds": [c["seed"] for c in gcells], "bpb": [v for _, v in st],
+                     "status": [s_ for s_, _ in st],
+                     "mean": statistics.mean(done) if len(done) == len(gcells) else None,
+                     "std": statistics.stdev(done) if len(done) == len(gcells) > 1 else None,
+                     "reused_from": next((c["reused_from"] for c in gcells if c["reused_from"]), None),
+                     **(_arch_facts(first) if first else {})})
+    comps = {}
+    for comp in spec["comparisons"]:
+        per_lr = {}
+        for lr in spec["lrs"]:
+            a, b = by[cell_group(comp["a"], lr)], by[cell_group(comp["b"], lr)]
+            sa, sb = [cell_status(c) for c in a], [cell_status(c) for c in b]
+            cj_path = out_root / "compare" / f"{comp['name']}-lr-{lr:g}" / "compare.json"
+            ci = delta = None
+            langs: dict = {}
+            if cj_path.is_file() and all(x == "ok" for x, _ in sa + sb):
+                cj = json.loads(cj_path.read_text(encoding="utf-8"))
+                delta, ci = cj["overall"]["delta_b_minus_a"], cj["overall"]["ci95"]
+                langs = cj.get("per_language", {})
+            verdict, basis = decide_at_lr([x for x, _ in sa], [x for x, _ in sb],
+                                          [v for _, v in sa], [v for _, v in sb], ci)
+            per_lr[f"{lr:g}"] = {"verdict": verdict, "basis": basis, "delta_bpb": delta, "ci95": ci,
+                                 "languages_better": sorted(k for k, x in langs.items() if x["ci95"][1] < 0),
+                                 "languages_worse": sorted(k for k, x in langs.items() if x["ci95"][0] > 0)}
+        decision, why = adoption(per_lr, len(spec["lrs"]))
+        comps[comp["name"]] = {"a": comp["a"], "b": comp["b"], "rule": comp["rule"], "per_lr": per_lr,
+                               "decision": decision, "decision_basis": why}
+    means = {r["group"]: r["mean"] for r in rows}
+    lr_trend = {arm["name"]: {f"{lr:g}": means[cell_group(arm["name"], lr)] for lr in spec["lrs"]}
+                for arm in spec["arms"]}
+    return {"exp_id": spec["exp_id"], "schema": SPEC_SCHEMA_V2, "spec_sha256": spec["_sha256"],
+            "max_steps": spec["max_steps"], "seeds": spec["seeds"], "lrs": spec["lrs"], "rows": rows,
+            "comparisons": comps, "lr_trend": lr_trend, "failures": failures}
+
+
+def render_v2(s: dict) -> str:
+    f = lambda x: "—" if x is None else f"{x:.4f}"  # noqa: E731
+    lines = [f"ARCHITECTURE ABLATION {s['exp_id']} — {s['max_steps']} steps, seeds {s['seeds']}, "
+             f"learning rates {s['lrs']}, final checkpoints graded by harness v1 "
+             "(bits-per-byte, lower = better)",
+             f"spec sha256 {s['spec_sha256'][:16]}… (pre-registered rules)", "",
+             f"{'group':24}{'mean':>9}{'std':>9}  per seed{'':16}{'params':>11}{'body':>11}{'kv/tok':>8}"]
+    for r in s["rows"]:
+        seeds = " ".join("DIVERGED" if st == "DIVERGED" else f(v) for v, st in zip(r["bpb"], r["status"]))
+        lines.append(f"{r['group']:24}{f(r['mean']):>9}{f(r['std']):>9}  {seeds:24}"
+                     f"{r.get('n_params') or 0:>11,}{r.get('body_params') or 0:>11,}"
+                     f"{r.get('kv_cache_values_per_token') or 0:>8}"
+                     + (" (1 seed reused)" if r["reused_from"] else ""))
+    lines += ["", "COMPARISONS (delta = b - a; negative = b better; paired 95% CI). "
+                  "Rule: ADOPT only if BETTER at every learning rate."]
+    for name, c in s["comparisons"].items():
+        lines.append(f"  {name}  ({c['b']} vs {c['a']})")
+        for lr, v in c["per_lr"].items():
+            d = (f"delta {v['delta_bpb']:+.4f} [{v['ci95'][0]:+.4f}, {v['ci95'][1]:+.4f}]  "
+                 if v["ci95"] else "")
+            lines.append(f"    lr {lr:8} {d}=> {v['verdict']} ({v['basis']})")
+            if v["ci95"]:
+                lines.append(f"    {'':11} languages better: {', '.join(v['languages_better']) or 'none'} | "
+                             f"worse: {', '.join(v['languages_worse']) or 'none'}")
+        lines.append(f"    DECISION: {c['decision']} — {c['decision_basis']}")
+    lines += ["", "LEARNING-RATE TREND (mean bpb per arm; descriptive only, no learning rate is selected):"]
+    for arm, t in s["lr_trend"].items():
+        lines.append(f"  {arm:20} " + "   ".join(f"lr {lr}: {f(v)}" for lr, v in t.items()))
+    if s["failures"]:
+        lines += ["", "FAILED CELLS: " + ", ".join(s["failures"])]
+    lines += ["", "Toy scale: screening evidence only; a provisional decision needs founder review."]
+    return "\n".join(lines)
+
+
 # ---------------------------------------------------------------------------- main --
 
 def main() -> int:
@@ -460,35 +714,66 @@ def main() -> int:
     if not _resolve(spec["data"]).is_file():
         print(f"[ablation] INPUT ERROR: data file not found: {spec['data']}", file=sys.stderr)
         return 2
-    cells = plan_cells(spec, out_root)
+    v2 = spec["schema"] == SPEC_SCHEMA_V2
+    cells = plan_cells_v2(spec, out_root) if v2 else plan_cells(spec, out_root)
 
-    reuse_dir = spec["baseline"].get("reuse_runs_dir")
-    for c in cells:
-        if c["group"] == "baseline" and reuse_dir:
-            cand = _resolve(reuse_dir) / f"seed-{c['seed']}" / "last"
-            problems = check_reuse(spec, c, cand)
-            if problems:
-                more = f" and {len(problems) - 1} more" if len(problems) > 1 else ""
-                print(f"[ablation] baseline seed {c['seed']}: NOT reused ({problems[0]}{more}) -> will train",
-                      flush=True)
-            else:
-                c["reused_from"], c["ckpt"], c["run_dir"] = _norm_path(cand), cand, cand.parent
-                print(f"[ablation] baseline seed {c['seed']}: reusing {_norm_path(cand)} (config verified)",
-                      flush=True)
+    if v2:
+        key = {(c["arm"], c["lr"], c["seed"]): c for c in cells}
+        reuse = [(r, key[(r["arm"], r["lr"], r["seed"])], _resolve(r["run_dir"]) / "last")
+                 for r in spec.get("reuse", [])]
+    else:
+        reuse_dir = spec["baseline"].get("reuse_runs_dir")
+        reuse = [(None, c, _resolve(reuse_dir) / f"seed-{c['seed']}" / "last")
+                 for c in cells if c["group"] == "baseline" and reuse_dir]
+    for _, c, cand in reuse:
+        problems = check_reuse(spec, c, cand)
+        if problems:
+            more = f" and {len(problems) - 1} more" if len(problems) > 1 else ""
+            print(f"[ablation] {c['group']} seed {c['seed']}: NOT reused ({problems[0]}{more}) -> will train",
+                  flush=True)
+        else:
+            c["reused_from"], c["ckpt"], c["run_dir"] = _norm_path(cand), cand, cand.parent
+            print(f"[ablation] {c['group']} seed {c['seed']}: reusing {_norm_path(cand)} (config verified)",
+                  flush=True)
 
-    to_train = [c for c in cells if not c["reused_from"] and not cell_trained(spec, c)]
+    to_train = [c for c in cells
+                if not c["reused_from"] and not cell_trained(spec, c) and not cell_diverged(c)]
     print(f"[ablation] {spec['exp_id']}: {len(cells)} cells, {len(to_train)} to train "
           f"(~{len(to_train) * spec['max_steps'] * args.sec_per_step / 3600:.1f} h at "
           f"{args.sec_per_step} s/step, plus a few minutes of grading per model)", flush=True)
     for c in cells:
-        state = "reused" if c["reused_from"] else ("trained" if cell_trained(spec, c) else "to train")
+        state = "reused" if c["reused_from"] else ("trained" if cell_trained(spec, c) else
+                                                   "diverged" if cell_diverged(c) else "to train")
         change = " ".join(c["overrides"]) or "(baseline)"
         print(f"  {c['id']}  {c['group']:16} seed {c['seed']}  [{state}]  {change}")
     if args.dry_run:
         return 0
 
     failures: list[str] = []
-    if not args.summary_only:
+    if v2 and not args.summary_only:
+        for c in cells:
+            if c["reused_from"] is None and not train_cell(spec, c):
+                if not cell_diverged(c):
+                    failures.append(f"{c['group']}-seed-{c['seed']}")
+                continue
+            if not grade_cell(spec, c):
+                failures.append(f"{c['group']}-seed-{c['seed']}")
+        for comp in spec["comparisons"]:
+            for lr in spec["lrs"]:
+                a = [c for c in cells if c["group"] == cell_group(comp["a"], lr)]
+                b = [c for c in cells if c["group"] == cell_group(comp["b"], lr)]
+                st = [cell_status(c)[0] for c in a + b]
+                if "MISSING" in st:
+                    print(f"[ablation] compare {comp['name']} lr {lr:g}: incomplete reports, skipped",
+                          flush=True)
+                    failures.append(f"compare-{comp['name']}-lr-{lr:g}")
+                elif "DIVERGED" in st:
+                    print(f"[ablation] compare {comp['name']} lr {lr:g}: a seed diverged, decided by the "
+                          "divergence rule (no CI)", flush=True)
+                elif not compare_groups(a, b, cell_group(comp["a"], lr), cell_group(comp["b"], lr),
+                                        out_root / "compare" / f"{comp['name']}-lr-{lr:g}"):
+                    failures.append(f"compare-{comp['name']}-lr-{lr:g}")
+    elif not args.summary_only:
         for c in cells:
             ok = (c["reused_from"] is not None or train_cell(spec, c)) and grade_cell(spec, c)
             if not ok:
@@ -496,8 +781,8 @@ def main() -> int:
         for v in spec["variants"]:
             if not compare_variant(spec, cells, v["name"], out_root):
                 failures.append(f"compare-{v['name']}")
-    summary = summarize(spec, cells, out_root, failures)
-    text = render(summary)
+    summary = (summarize_v2 if v2 else summarize)(spec, cells, out_root, failures)
+    text = (render_v2 if v2 else render)(summary)
     out_root.mkdir(parents=True, exist_ok=True)
     (out_root / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     (out_root / "SUMMARY.txt").write_text(text + "\n", encoding="utf-8")
@@ -513,11 +798,15 @@ def main() -> int:
                 name=f"Architecture ablation {spec['exp_id']}", output_dir=str(out_root),
                 params={"spec": _norm_path(args.spec), "spec_sha256": spec["_sha256"],
                         "max_steps": spec["max_steps"], "seeds": spec["seeds"],
-                        "variants": [v["name"] for v in spec["variants"]]},
+                        **({"lrs": spec["lrs"], "arms": [a["name"] for a in spec["arms"]],
+                            "comparisons": [c["name"] for c in spec["comparisons"]]} if v2 else
+                           {"variants": [v["name"] for v in spec["variants"]]})},
                 data_paths=[str(spec_path), str(_resolve(spec["data"]))], command=list(sys.argv),
                 tags=["architecture", "ablation", "step-9"], notes=spec.get("title", ""))
 
         recorded = run_self_recorded(build_spec, lambda: {
+            "comparisons": {k: v["decision"] for k, v in summary["comparisons"].items()},
+            "failures": failures} if v2 else {
             "variants": {k: v.get("verdict") for k, v in summary["variants"].items()},
             "lr_check": (summary["lr_check"] or {}).get("verdict"),
             "repro_check": (summary["repro_check"] or {}).get("status"), "failures": failures})

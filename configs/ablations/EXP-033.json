@@ -1,0 +1,66 @@
+{
+  "schema": "frontier-arch-ablation-v2",
+  "exp_id": "EXP-033",
+  "title": "Step 9 architecture confirmation at two higher learning rates (MASTER_CONTEXT §37 step 9; founder approved 2026-09-28 \"I approve EXP-033\")",
+  "purpose": "EXP-032 was LR-CONFOUNDED: lr 6e-3 improved the seed-1337 baseline by 0.0571 bpb, more than the baseline's seed spread, so its verdicts (all measured at lr 3e-3) may reflect the learning rate rather than the architecture. EXP-033 re-tests the EXP-032 candidates as a combined architecture at TWO higher learning rates and adopts a change only if it wins at BOTH, so the evaluation suite never selects a learning rate. The outcome is D-043, a PROVISIONAL architecture for GPU bring-up (step 10). Toy scale (transformer body ~1M of ~5.2M parameters): screening evidence only; it must be re-validated in the GPU scaling experiments (step 11).",
+  "pre_registered": "2026-09-28, before any EXP-033 result existed. Changing any field below after results exist requires a new experiment id.",
+  "base_config": "configs/exp_b.json",
+  "data": "out/exp_b/EXP-029/mark_aware-32768.bin",
+  "tokenizer": "frozen",
+  "max_steps": 150,
+  "seeds": [1337, 1338, 1339],
+  "checkpoint": "last",
+  "checkpoint_note": "The FINAL checkpoint is graded (fixed step budget), as in EXP-032; the trainer's 'best' checkpoint is chosen with the evaluation suite.",
+  "lrs": [0.006, 0.01],
+  "lrs_note": "6e-3 was the best learning rate in the EXP-032 check (seed 1337 only); 1e-2 tests whether the optimum lies higher. Nothing is chosen between them: every rule below must hold at both.",
+  "arms": [
+    {
+      "name": "baseline",
+      "description": "the EXP-B model unchanged: learned positions, SwiGLU (ffn_mult 4), RMSNorm, 4 query / 4 key-value heads, tied embeddings",
+      "overrides": {}
+    },
+    {
+      "name": "rope-gqa2",
+      "description": "the candidate: rotary positions (EXP-032 BETTER) + grouped-query attention with 2 key-value heads (EXP-032 ACCEPTABLE; halves the inference KV cache). SwiGLU and RMSNorm kept (LayerNorm showed no detectable difference in EXP-032).",
+      "overrides": {"model.pos": "rope", "model.n_kv_head": 2}
+    },
+    {
+      "name": "rope-gqa2-gelu",
+      "description": "the candidate with a GELU feed-forward (ffn_mult 6.0 keeps the feed-forward parameter count equal to SwiGLU's). EXP-032 found GELU better, which contradicts the literature (Narang et al. 2021; Shazeer 2020), so it is re-tested here.",
+      "overrides": {"model.pos": "rope", "model.n_kv_head": 2, "model.ffn": "gelu", "model.ffn_mult": 6.0}
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "candidate-vs-baseline",
+      "a": "baseline",
+      "b": "rope-gqa2",
+      "rule": "superiority",
+      "question": "Is RoPE + GQA-2 better than the current baseline at both learning rates?"
+    },
+    {
+      "name": "gelu-vs-swiglu",
+      "a": "rope-gqa2",
+      "b": "rope-gqa2-gelu",
+      "rule": "superiority",
+      "question": "Inside the candidate architecture, is GELU (ffn_mult 6) better than SwiGLU (ffn_mult 4) at both learning rates?"
+    }
+  ],
+  "reuse": [
+    {
+      "arm": "baseline",
+      "lr": 0.006,
+      "seed": 1337,
+      "run_dir": "out/arch/EXP-032/runs/lr-0.006/seed-1337",
+      "note": "EXP-032's lr-check cell is exactly this cell (same config, data, steps, seed, lr 6e-3). Reused only if its last/ checkpoint exists and its saved config matches; otherwise it is trained fresh. It is re-graded under EXP-033."
+    }
+  ],
+  "decision_rules": {
+    "per_learning_rate": "At each learning rate, delta = b - a in bits-per-byte from eval_compare (paired document bootstrap, 95%). BETTER if the CI upper bound < 0 AND every b seed beats every a seed. WORSE if the CI lower bound > 0 AND every a seed beats every b seed. Otherwise NO DETECTABLE DIFFERENCE AT THIS SCALE (the EXP-032 superiority rule).",
+    "divergence": "A cell whose training stops on a non-finite loss is DIVERGED: it is recorded as a result (never retrained, not a failure) and counts as the worst possible score. If only one arm of a comparison has diverged seeds at a learning rate, that arm loses there (WORSE for b, BETTER for b if only a diverged). If both arms have diverged seeds, that learning rate is UNSTABLE and gives no verdict.",
+    "adoption": "ADOPT only if the verdict is BETTER at every learning rate that is not UNSTABLE, and at least one learning rate is stable (fewer than all stable = weaker evidence, stated in D-043). Otherwise NOT ADOPTED.",
+    "d043": "candidate-vs-baseline ADOPT -> the provisional architecture uses RoPE + GQA-2; NOT ADOPTED -> it keeps the baseline (learned positions, 4 KV heads), and GQA may be reconsidered later purely as an inference-efficiency choice. gelu-vs-swiglu ADOPT -> GELU (ffn_mult 6); NOT ADOPTED -> SwiGLU stays (literature prior). RMSNorm stays (EXP-032). The learning-rate trend is descriptive only; the step-10 GPU runs must sweep the learning rate again at their own scale."
+  },
+  "eval_args": ["--no-contamination"],
+  "eval_args_note": "Contamination depends only on the suite and training data, which are identical to EXP-031/EXP-032 (0 exact / 0 13-gram overlaps); it is not re-computed per model."
+}

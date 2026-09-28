@@ -209,3 +209,150 @@ def test_spec_fingerprint_ignores_windows_line_endings(tmp_path):
     # EXP-032: the PC recorded the CRLF raw-byte hash of the committed spec
     import hashlib
     assert hashlib.sha256(crlf.read_bytes()).hexdigest().startswith("2a7048f290ff2221")
+
+
+# ------------------------------------------------------------------ v2 (EXP-033) --
+
+def test_real_exp033_spec_is_valid_and_plans_the_approved_grid():
+    from frontier_ai.config import ExperimentConfig
+    from frontier_ai.engine import checkpoint as ckpt
+
+    spec = ra.load_spec(REPO_ROOT / "configs" / "ablations" / "EXP-033.json")
+    assert spec["schema"] == "frontier-arch-ablation-v2" and spec["lrs"] == [0.006, 0.01]
+    cells = ra.plan_cells_v2(spec, Path("/tmp/x"))
+    assert len(cells) == 18 and len({c["id"] for c in cells}) == 18
+    groups = [c["group"] for c in cells]
+    for arm in ("baseline", "rope-gqa2", "rope-gqa2-gelu"):
+        for lr in ("0.006", "0.01"):
+            assert groups.count(f"{arm}-lr-{lr}") == 3
+    assert groups[:3] == ["baseline-lr-0.006"] * 3  # the first learning rate is completed first
+    assert all(c["overrides"][-1] == f"optim.lr={c['lr']}" for c in cells)
+    assert [(c["a"], c["b"]) for c in spec["comparisons"]] == [("baseline", "rope-gqa2"),
+                                                               ("rope-gqa2", "rope-gqa2-gelu")]
+    assert spec["reuse"] == [dict(spec["reuse"][0], arm="baseline", lr=0.006, seed=1337,
+                                  run_dir="out/arch/EXP-032/runs/lr-0.006/seed-1337")]
+    # GELU (ffn_mult 6) is exactly parameter-matched to its SwiGLU reference arm
+    base = ExperimentConfig.load(REPO_ROOT / spec["base_config"]).with_overrides(["model.vocab_size=32768"])
+    n = {a["name"]: sum(p.numel() for p in ckpt.build_model_from_config(
+        base.with_overrides(ra._overrides(a["overrides"])), torch.device("cpu")).parameters())
+        for a in spec["arms"]}
+    assert n == {"baseline": 5_260_416, "rope-gqa2": 5_178_496, "rope-gqa2-gelu": 5_178_496}
+
+
+@pytest.mark.parametrize("mutate, message", [
+    (lambda s: s["arms"][1]["overrides"].update({"optim.lr": 0.1}), "optim.lr"),
+    (lambda s: s["arms"][1].update(name=s["arms"][0]["name"]), "duplicate"),
+    (lambda s: s["arms"][1].update(overrides={"model.nope": 1}), "invalid override"),
+    (lambda s: s["comparisons"][0].update(b="nope"), "two different arms"),
+    (lambda s: s["comparisons"][0].update(b="baseline"), "two different arms"),
+    (lambda s: s["comparisons"][0].update(rule="non_inferiority"), "superiority"),
+    (lambda s: s.update(lrs=[0.006, 0.006]), "lrs"),
+    (lambda s: s.update(lrs=[]), "lrs"),
+    (lambda s: s["reuse"][0].update(lr=0.003), "reuse"),
+    (lambda s: s.update(checkpoint="best"), "last"),
+    (lambda s: s.pop("comparisons"), "comparisons"),
+])
+def test_v2_spec_validation_rejects_bad_specs(tmp_path, mutate, message):
+    spec = json.loads((REPO_ROOT / "configs" / "ablations" / "EXP-033.json").read_text(encoding="utf-8"))
+    mutate(spec)
+    p = tmp_path / "spec.json"
+    p.write_text(json.dumps(spec), encoding="utf-8")
+    with pytest.raises(ra.SpecError, match=message):
+        ra.load_spec(p)
+
+
+def test_per_learning_rate_rule_and_divergence():
+    ok3, inf = ["ok"] * 3, float("inf")
+    a, b = [1.40, 1.41, 1.42], [1.30, 1.31, 1.32]
+    assert ra.decide_at_lr(ok3, ok3, a, b, [-0.1, -0.05])[0] == "BETTER"
+    assert ra.decide_at_lr(ok3, ok3, b, a, [0.05, 0.1])[0] == "WORSE"
+    assert ra.decide_at_lr(ok3, ok3, a, [1.30, 1.31, 1.45], [-0.1, -0.01])[0].startswith("NO DETECTABLE")
+    div = ["ok", "DIVERGED", "ok"]
+    assert ra.decide_at_lr(ok3, div, a, [1.3, inf, 1.3], None)[0] == "WORSE"
+    assert ra.decide_at_lr(div, ok3, [1.4, inf, 1.4], b, None)[0] == "BETTER"
+    assert ra.decide_at_lr(div, div, a, b, None)[0] == "UNSTABLE"
+    assert ra.decide_at_lr(ok3, ["ok", "MISSING", "ok"], a, b, None)[0] == "INCOMPLETE"
+    assert ra.decide_at_lr(ok3, ok3, a, b, None)[0] == "INCOMPLETE"
+
+
+@pytest.mark.parametrize("verdicts, decision, basis", [
+    (["BETTER", "BETTER"], "ADOPT", "every"),
+    (["BETTER", "NO DETECTABLE DIFFERENCE AT THIS SCALE"], "NOT ADOPTED", ""),
+    (["BETTER", "WORSE"], "NOT ADOPTED", ""),
+    (["BETTER", "UNSTABLE"], "ADOPT", "weaker evidence"),
+    (["UNSTABLE", "UNSTABLE"], "NOT ADOPTED", "unstable"),
+    (["BETTER", "INCOMPLETE"], "INCOMPLETE", ""),
+])
+def test_adoption_needs_better_at_every_learning_rate(verdicts, decision, basis):
+    per_lr = {str(i): {"verdict": v} for i, v in enumerate(verdicts)}
+    got = ra.adoption(per_lr, len(verdicts))
+    assert got[0] == decision and basis in got[1]
+
+
+def test_v2_e2e_divergence_is_a_result_restart_and_reuse(env):
+    work = env.tmp / "work_v2"
+    work.mkdir()
+    spec = {k: env.spec[k] for k in ("base_config", "data", "tokenizer", "max_steps", "seeds", "eval_args")}
+    spec.update(schema="frontier-arch-ablation-v2", exp_id="EXP-089", checkpoint="last",
+                lrs=[0.003, 1e30],  # 1e30 makes every arm blow up -> UNSTABLE at that learning rate
+                arms=[{"name": "baseline", "overrides": {}}, {"name": "rope", "overrides": {"model.pos": "rope"}}],
+                comparisons=[{"name": "rope-vs-baseline", "a": "baseline", "b": "rope", "rule": "superiority"}])
+    out = env.tmp / "out_v2"
+    spec_path = _write_spec(env.tmp / "spec_v2.json", spec)
+    proc = _ablate(spec_path, out, cwd=work)
+    assert proc.returncode == 0, proc.stdout[-4000:] + proc.stderr[-2000:]
+    assert proc.stdout.count("DIVERGED baseline-lr-1e+30") == 2 and proc.stdout.count("DIVERGED rope-lr-1e+30") == 2
+    s = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+    assert s["failures"] == []
+    rows = {r["group"]: r for r in s["rows"]}
+    assert rows["rope-lr-1e+30"]["status"] == ["DIVERGED", "DIVERGED"] and rows["rope-lr-1e+30"]["mean"] is None
+    assert all(v is not None for v in rows["rope-lr-0.003"]["bpb"])
+    c = s["comparisons"]["rope-vs-baseline"]
+    assert c["per_lr"]["1e+30"]["verdict"] == "UNSTABLE"
+    assert c["per_lr"]["0.003"]["verdict"] in ("BETTER", "WORSE", "NO DETECTABLE DIFFERENCE AT THIS SCALE")
+    assert c["per_lr"]["0.003"]["delta_bpb"] == pytest.approx(
+        rows["rope-lr-0.003"]["mean"] - rows["baseline-lr-0.003"]["mean"], abs=1e-9)
+    assert c["decision"] == ("ADOPT" if c["per_lr"]["0.003"]["verdict"] == "BETTER" else "NOT ADOPTED")
+    d = json.loads((out / "runs" / "rope-lr-1e+30" / "seed-1" / "DIVERGED.json").read_text(encoding="utf-8"))
+    assert d["step"] >= 1
+    assert json.loads((out / "experiment.json").read_text(encoding="utf-8"))["execution"]["status"] == "success"
+    text = (out / "SUMMARY.txt").read_text(encoding="utf-8")
+    assert "DECISION:" in text and "UNSTABLE" in text and "DIVERGED" in text
+
+    # restart: nothing retrained (diverged cells included) or regraded; same decision
+    proc = _ablate(spec_path, out, "--no-record", cwd=work)
+    assert proc.returncode == 0, proc.stdout[-3000:]
+    assert "TRAIN " not in proc.stdout and "GRADE " not in proc.stdout
+    assert proc.stdout.count("DIVERGED earlier, not retrained") == 4
+    assert json.loads((out / "summary.json").read_text(encoding="utf-8"))["comparisons"] == s["comparisons"]
+
+    # reuse of a single verified cell from another experiment (dry run)
+    spec2 = dict(spec, exp_id="EXP-088", lrs=[0.003],
+                 reuse=[{"arm": "baseline", "lr": 0.003, "seed": 1,
+                         "run_dir": str(out / "runs" / "baseline-lr-0.003" / "seed-1")}])
+    proc = _ablate(_write_spec(env.tmp / "spec_v2b.json", spec2), env.tmp / "out_v2b", "--dry-run", cwd=work)
+    assert proc.returncode == 0, proc.stdout
+    assert proc.stdout.count("config verified") == 1 and "3 to train" in proc.stdout
+
+
+def test_unattended_night_script_static_safety():
+    """The PC runs this script with no agent watching it, so check its safety properties statically."""
+    import re
+
+    raw = (REPO_ROOT / "scripts" / "run_night_unattended.ps1").read_bytes()
+    raw.decode("ascii")  # Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page
+    text = raw.decode("ascii")
+    code = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
+    assert '$branch = "arena/01a0dc16-frontier-ai"' in code
+    assert "--force" not in code and " -f " not in code and "reset --hard" not in code
+    assert "Remove-Item" not in code and "git clean" not in code and "git checkout" not in code
+    # every git / python call goes through the stderr-safe cmd.exe helper (EXP-029 lesson)
+    for line in code.splitlines():
+        if "Stop-Night" in line or "Add-Report" in line:  # messages only
+            continue
+        if re.search(r"\bgit (status|add|commit|push|reset|diff|rev-parse)\b|\$python -u", line):
+            assert "Invoke-Logged" in line, line
+    assert '& cmd.exe /d /c "$cmdline 2>&1"' in code
+    assert "git push origin $branch" in code and code.count("Invoke-Logged \"git push") == 1
+    assert "git commit -q -F $msgFile" in code  # no quoted -m through cmd.exe
+    assert 'git add $resultsPrefix' in code and '$resultsPrefix = "evals/results/$Exp/"' in code
