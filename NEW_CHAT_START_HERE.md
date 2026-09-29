@@ -437,6 +437,11 @@ comes next. They also update the table in §3.
   **Next:** the founder chooses a D-044 option. Then: the streaming interface, MinHash
   near-dup, and the inverted suite-contamination check in the sandbox (tests); then a PC
   overnight run for the level-A v2-pilot.
+  - Same day: the protected-suite guard was built first, because it is needed under every
+    D-044 option. It lives in `src/frontier_ai/corpus/decontaminate.py`, with 9 tests in
+    `tests/test_suite_decontaminate.py`. It streams training documents past the suite's
+    13-grams with bounded memory, and removals are recorded as `suite_exact` / `suite_ngram`.
+    Still to build: the streaming interface for the other stages and MinHash near-dup.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

@@ -172,11 +172,28 @@ stop at level A at any time.
 |---|---|---|
 | Memory | every stage takes `list[PipelineDocument]` (whole corpus in memory; fine at 4.2M chars) | streaming stages over sharded input, bounded memory on the founder's laptop (RAM NOT VERIFIED) |
 | Duplicates | exact document-hash dedup only (`corpus/dedup.py`; near-dup was deliberately deferred to F3) | **near-duplicate removal (MinHash + LSH)**, deterministic, with recorded reasons |
-| Contamination | 13-gram check holds all training n-grams in memory | inverted streaming check against the suite; removal for new sources (§5) |
+| Contamination | 13-gram check holds all training n-grams in memory | inverted streaming check against the suite; removal for new sources (§5). **Built 2026-09-29:** `corpus/decontaminate.py` (§7a) |
 | Language ID | script-share gate; cannot separate hi/mr or bn/as | acceptable for level A (the wiki edition gives the language); a classifier is needed for level B |
 | PII | none | email / phone / ID-number scrubbing before level-B data |
 | Quality | 7 rule-based checks tuned for verse lines | per-source calibration; model-based quality stays later (F3) |
 | Input formats | Wikisource via the API parse (HTML) and Gutenberg text | Wikipedia dumps (wikitext XML) or the pre-cleaned `wikimedia/wikipedia` parquet; streaming JSON/parquet for collections |
+
+## 7a. Built so far: the protected-suite guard (`corpus/decontaminate.py`)
+
+- `SuiteGuard.from_texts(...)` indexes the suite once: exact text hashes plus every 13-gram,
+  using the same n-gram definition as `evaluation.contamination`.
+- `iter_decontaminate(...)` is the streaming form (bounded memory over sharded input);
+  `decontaminate(...)` is the pipeline-stage form (`list → StageOutcome`).
+- Removal reasons are `suite_exact` / `suite_ngram`, recording the suite doc_id and the
+  number of matched n-grams.
+- Tests (`tests/test_suite_decontaminate.py`, 9 tests) include the dump case (a suite
+  paragraph inside a whole page) and a check that `contamination_report` finds zero exact
+  and zero 13-gram overlap after the stage.
+- Sandbox micro-benchmark (synthetic text, 2-core sandbox, informal):
+  - a 3,427-document / ≈137K-word suite builds in 0.26 s with ≈18 MB peak memory
+    (95,956 n-grams);
+  - checking runs at ≈3.2M training words per second.
+  - The founder's laptop will be slower; its speed is NOT VERIFIED.
 
 ## 8. Phase-1 work order (after this survey)
 
