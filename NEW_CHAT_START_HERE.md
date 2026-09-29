@@ -485,6 +485,16 @@ comes next. They also update the table in §3.
     (`summary.json`, `SUMMARY.txt`, `samples.jsonl`: masked excerpts, suite-touching docs never
     sampled). **Next: read the samples, then propose EXP-036 (v2 build rules, each with its
     reason) — founder approval needed before any build code.**
+  - **EXP-035 complete (PC night 2026-09-29, 2 h 36 min, results commit `1be3c48`; analysis +
+    EXP-036 proposal appended to EXPERIMENTS.md).** 13/13 files verified and read in full,
+    short-suite CHECKED, nothing removed. Key findings: long docs (> 20k chars) are mostly books
+    and debates, so `max_chars` must go; about 8.4% of the Urdu file is Persian (no ٹ ڈ ڑ ں ے ھ; 6/6
+    samples); code-mixed rejects are mostly native text plus whole English lines; `digit_runs`
+    and `url_density` hit good text; hi near-dups 1.86%; Marathi NFC = र+nukta → ऱ (safe);
+    45 docs contain a 3–12-word suite passage; Sangraha `doc_id` is not unique. Runner fix:
+    the final report line now uses `-Exp` (it said "EXP-034 done"). **Next: EXP-036 (v2
+    build, 10 rules in the table at the end of EXP-035) is PROPOSED — founder must type
+    "approve EXP-036" before any build code.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

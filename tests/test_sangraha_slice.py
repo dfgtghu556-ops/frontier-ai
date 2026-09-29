@@ -377,6 +377,10 @@ def test_data_night_script_static_safety():
     assert '[ValidateSet("inspect", "calibrate")][string]$Task = "inspect"' in code
     assert 'Invoke-Logged "$python -u $stepScript --exp-id $Exp --pins $pins --out $outDir"' in code
     assert '$stepScript = "scripts\\calibrate_sangraha_slice.py"' in code
+    # the final report line names the experiment that ran (EXP-035's report said "EXP-034 done")
+    result_lines = [ln for ln in code.splitlines() if "RESULT: COMPLETE" in ln]
+    assert len(result_lines) == 1 and "Tell the Arena chat: $Exp done" in result_lines[0]
+    assert not re.search(r"EXP-0\d\d done", code)
     wrapper = (REPO / "scripts" / "run_calibration_night.ps1").read_bytes().decode("ascii")
     wcode = [ln for ln in wrapper.splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
     assert wcode == ['& "$PSScriptRoot\\run_data_night.ps1" -Exp "EXP-035" -Task "calibrate"', "exit $LASTEXITCODE"]

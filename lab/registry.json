@@ -238,18 +238,18 @@
   ],
   "current_work": [
     {
-      "title": "Data scale-up phase 1: calibrate the FrontierCorpus v2 build rules on the Sangraha slice (EXP-035)",
+      "title": "Data scale-up phase 1: FrontierCorpus v2 build rules for the Sangraha slice (EXP-035 done; EXP-036 proposed)",
       "evidence": [
         "EXP-035",
         "EXP-034",
         "D-044"
       ],
       "evidence_files": [
+        "evals/results/EXP-035/SUMMARY.txt",
         "evals/results/EXP-034/SUMMARY.txt",
-        "corpora/frontier/v2/sangraha_slice1.json",
-        "scripts/calibrate_sangraha_slice.py"
+        "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "EXP-035 approved and built: one CPU-only night on the laptop reads samples and counts per problem group, removes nothing. The v2 build rules (EXP-036) need their own founder approval"
+      "note": "EXP-035 complete (results commit 1be3c48): samples read and counted, nothing removed. Findings: long docs are the best text, about 8.4% of the Urdu file is Persian, code-mixed rejects are mostly native text plus English lines, digit_runs/url_density hit good text. EXP-036 (v2 build, 10 rules with reasons) is proposed and needs founder approval before any build code"
     }
   ],
   "baseline_model": {

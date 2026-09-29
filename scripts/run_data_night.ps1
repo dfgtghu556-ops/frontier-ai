@@ -226,6 +226,6 @@ if ($r.Code -ne 0) {
 }
 Add-Report "PASS 5e: pushed to origin/$branch"
 Add-Report ""
-Add-Report "RESULT: COMPLETE - finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'). Tell the Arena chat: EXP-034 done (or paste this report)."
+Add-Report "RESULT: COMPLETE - finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'). Tell the Arena chat: $Exp done (or paste this report)."
 Save-Report
 exit 0

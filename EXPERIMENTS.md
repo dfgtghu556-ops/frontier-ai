@@ -2237,3 +2237,133 @@ it with the old per-character method on random text). Sandbox throughput on synt
 web-like text: about 1,000 documents/s (EXP-034's inspection pass: about 1,500/s on the same
 text). Laptop runtime is **NOT VERIFIED**; estimate from EXP-034's 1.9 h inspection pass:
 about 2.5–3.5 h.
+
+**Results (PC night run 2026-09-29, 16:08–18:45 IST, 2 h 36 min; published by the runner as
+commit `1be3c48`: `evals/results/EXP-035/summary.json`, `SUMMARY.txt`, `samples.jsonl` (603
+masked records); machine Windows 10, Python 3.13.15, 4 logical CPUs; analysed by the agent from
+those files):**
+
+*Pre-registered rules checked:*
+- **Complete: yes.** All 13 files were re-verified (size + SHA-256, 13/13) and read in full
+  (`max_docs_per_file` null, `complete` true). `short_suite_status` = "CHECKED against
+  frontier-heldout-v1: 1727 suite documents of 3-12 words indexed (155 shorter; shard verified
+  against SUITE.json)". Throughput 160 (as) to 343 (gu) documents/s.
+- **Removed / adopted: nothing.** No sample touches the suite: 45 documents with a short suite
+  passage were withheld from sampling, and the 13-gram screen dropped 0 kept samples.
+- The runner's last report line said "EXP-034 done" (the text was fixed in the script, not
+  taken from `-Exp`). Fixed after the run; the static test now checks it. The results are
+  not affected.
+
+*Counts (all 13 files, before any filtering):*
+
+| lang | docs | script share < 0.6 | near-dup removable | chars in lines seen ≥ 100× | docs > 20k chars (share of chars) | not NFC | short-suite hits |
+|---|---|---|---|---|---|---|---|
+| as | 110,238 | 6,003 (5.45%) | 8 | 0.60% | 1,983 (23.2%) | 0.3% | 7 |
+| bn | 149,797 | 1,952 (1.30%) | 0 | 0.48% | 1,532 (15.6%) | 0.1% | 17 |
+| en | 349,525 | 222 (0.06%) | 543 (0.16%) | 1.01% | 2,007 (8.3%) | 0.3% | 3 |
+| gu | 149,797 | 1,364 (0.91%) | 0 | 0.29% | 709 (6.3%) | 0.1% | 0 |
+| hi | 174,763 | 2,507 (1.43%) | 3,248 (1.86%) | 2.10% | 767 (9.0%) | 1.2% | 3 |
+| kn | 174,762 | 2,664 (1.52%) | 1 | 1.44% | 501 (4.5%) | 0.1% | 1 |
+| ml | 174,763 | 1,283 (0.73%) | 1 | 2.76% | 546 (6.4%) | 0.0% | 0 |
+| mr | 174,763 | 878 (0.50%) | 1 | 1.09% | 594 (6.0%) | 42.8% | 2 |
+| or | 189,757 | 1,478 (0.78%) | 0 | 0.61% | 1,183 (14.0%) | 0.0% | 12 |
+| pa | 149,797 | 1,412 (0.94%) | 2 | 0.44% | 832 (8.5%) | 0.1% | 0 |
+| ta | 149,796 | 1,692 (1.13%) | 0 | 1.17% | 1,063 (9.5%) | 0.2% | 0 |
+| te | 174,762 | 2,131 (1.22%) | 0 | 1.04% | 488 (4.8%) | 0.1% | 0 |
+| ur | 209,716 | 646 (0.31%) | 2 | 0.05% | 1,293 (7.8%) | 3.8% | 0 |
+
+Script share is the declared script's share of letters in the first 5,000 characters (EXP-034
+profile). Near-duplicates are within one file (MinHash, estimated Jaccard ≥ 0.8), counting all
+but one document per cluster. "Chars in lines seen ≥ 100×" is the share of line characters in
+exact lines that occur at least 100 times in the file.
+
+*What the samples and counts show (samples read by the agent; excerpts ≤ 400 characters):*
+1. **Long documents are the best text, not errors.** Of 52 samples over 20,000 characters, nearly
+   all are books, novels, literary essays, scripture commentary, legislative debates and long
+   articles (3 are weak: a mojibake English blog, a spammy Kannada page, a machine-translated-
+   looking Punjabi page). They are 23.2% of Assamese, 15.6% of Bengali and 14.0% of Odia
+   characters. The default rule `max_chars` 20,000 would delete them. Of the documents longer
+   than 5,000 characters whose start passes the script check, 99.0–99.7% also pass in the middle
+   and at the end (e.g. en 35,507 of 35,623); later-window failures in the samples are English tails, parallel
+   English translations in debates, JavaScript in Kannada pages and one Malayalam page in an
+   old ASCII font (mojibake).
+2. **About 8.4% of the Urdu file is Persian.** 17,332 Urdu-file documents (48.1M characters)
+   contain none of the letters ٹ ڈ ڑ ں ے ھ. All 6 samples are Persian (Iranian news agencies,
+   e.g. Tasnim; Persian grammar and words), with Persian ه written as Urdu ہ. Also 209 documents
+   (0.58M chars) have Uyghur-only letters (EXP-034 showed a Uyghur document passing as Urdu) and
+   53 have Pashto letters (not sampled).
+3. **Assamese vs Bengali is not a real problem.** Only 20 Assamese-file documents look
+   Bengali-like and 1 Bengali-file document looks Assamese-like; 5 of the 6 as samples are old
+   Assamese printed with Bengali র (one is Middle Bengali poetry). The as file's real problem is
+   the 5,182 documents whose top script is not Bengali-Assamese at all (share < 0.2, already
+   rejected by the 0.6 script gate; EXP-034 samples: Latin-script religious texts).
+4. **Code-mixed band (0.4–0.6, 0.6–0.8):** most samples are real native-language text plus
+   whole English lines: site furniture ("Welcome! / Forgot your password?", "Begin typing your
+   search…"), product lists, embedded tweets, JSON-LD. Mixed words inside a sentence (Hinglish
+   "Post Office recruitment की लिस्ट") are rare in these samples. A smaller part is junk (drug
+   template pages, sex-story spam) or bilingual text (Telugu–English Bible in the en file). So
+   the document-level share mostly measures English *lines*, and removing lines with no letter
+   of the declared script would recover the native text.
+5. **Rule hits:**
+   - `digit_runs` (65 samples): ordinary news and books; the digit run is usually a phone
+     number, ID or date. **Not a quality signal** → replace by masking phone numbers/e-mails.
+   - `url_density` (39): mostly ordinary short articles with one or two web addresses; a few
+     junk pages (search pages, "What's Japanese for …" template pages, JavaScript notices).
+     **Not a good document-removal rule.**
+   - `template_residue`: with **one** `{{`/`}}` marker, 14 of 16 samples are PDF literature or
+     scripture with a stray OCR brace (good text); with **two or more**, 23 of 23 are web pages,
+     mostly wiki edit histories and raw wiki markup (junk).
+   - `repetition` (21): mostly junk — Malayalam pages that repeat their title/article many
+     times (494 of ml's hits), empty lyric/speech pages ("- - -", "! ! !"), tables; 2 song
+     lyrics and 1 repetitive scripture are the only losses.
+6. **Boilerplate lines.** The most repeated lines are site furniture: "- First Published :"
+   (×7,920 in as), News18/DNPA/"Don't Miss!"/"Follow us on Google News" footers, "Digitized by …"
+   stamps in Odia PDFs, an RTI nodal-officer line (×2,638 in hi). Lines seen ≥ 100 times hold
+   0.05% (ur) to 2.76% (ml) of line characters; ≥ 10 times, 0.10% to 5.18%.
+7. **PDF/OCR text is mostly readable.** Of 104 passing PDF samples, 1 is unreadable (Bengali with
+   stray Devanagari letters inside words); several have OCR letter errors but are readable (e.g.
+   Gujarati `ેા` for `ો`, Odia letter swaps). Most are literature, scripture, history and
+   legislative records — text that web crawls rarely have.
+8. **Near-duplicates:** Hindi 3,248 removable (69 clusters: land-record forms, government press
+   releases); English 543; every other file ≤ 8. Two of the 19 sampled pairs share the same
+   `doc_id`, so Sangraha `doc_id` is **not unique** (provenance must add file + row).
+9. **NFC is safe (D-036 stays).** The Marathi 42.8% is canonical composition: NFC joins र +
+   nukta (U+0930 U+093C) into ऱ (U+0931) — 208,556 RA and 208,711 nukta code points disappear.
+   Urdu: hamza above + waw → ؤ; Bengali: U+09DF is split by NFC (composition exclusion).
+10. **Short-suite containment:** 45 documents contain a suite passage of 3–12 words word for word
+    (as 7, bn 17, en 3, hi 3, kn 1, mr 2, or 12). 20 of them contain a passage of ≥ 5 words;
+    25 only 3–4-word passages, and some 3–4-word passages recur in several documents (one Odia
+    3-word passage in 6), which suggests common phrases or titles. Removing all 45 costs
+    0.002% of documents, so the protection does not need a trade-off.
+11. **Other observations (not measured, for later):** 249 Hindi-file documents with ≥ 3 ळ
+    (10.8M chars): 2 of 4 samples are Rajasthani, 2 Hindi. Machine-translation artefacts are
+    visible (English word fused into Gurmukhi: "architectਾਂਚਾਗਤ"). Their share is NOT VERIFIED.
+
+**Proposed next step (not approved; nothing built): EXP-036 = the v2 build on this slice.**
+Every rule below comes with its reason from EXP-034/EXP-035. Removal shares that EXP-035 could
+not count (line-level rules, markers after cleaning) are measured by EXP-036 itself and
+reported per rule and language before the corpus is accepted.
+
+| # | rule | threshold | reason (EXP-034/035) | removes (per language, before other rules) |
+|---|---|---|---|---|
+| 1 | protected suite | 13-gram hit (EXP-034) **or** a suite passage of ≥ 3 words contained word for word | 20 + 45 docs; cost 0.002% | ≤ 65 docs (as 12, bn 17, en 3, hi 4, kn 5, mr 2, or 20, pa 2) |
+| 2 | exact + near-duplicates | keep one per MinHash cluster (Jaccard ≥ 0.8), within file | hi 1.86% (templates, press releases) | hi 3,248, en 543, others ≤ 8 docs |
+| 3 | boilerplate lines | drop exact lines seen ≥ 100 times in the file | top lines are site furniture / stamps | 0.05% (ur) – 2.76% (ml) of chars |
+| 4 | foreign lines | drop lines with letters but **no** letter of the declared script | 0.4–0.8 band = native text + English lines | measured in EXP-036 |
+| 5 | script gate | declared share ≥ 0.6 on the **whole cleaned** document (not the first 5,000 chars) | 0.6 stays; after rule 4 most code-mixed docs pass | ≤ docs < 0.6 today (0.06% en – 5.45% as) |
+| 6 | Urdu language check | drop ur docs with none of ٹ ڈ ڑ ں ے ھ, and docs with Uyghur-only letters | 6/6 samples Persian; EXP-034 Uyghur sample | ≈ 17,541 docs, ≈ 8.5% of ur chars |
+| 7 | long documents | **no** length limit (drop `max_chars`) | long docs are books/debates | 0 (keeps 4.5–23.2% of chars) |
+| 8 | wiki markup | drop at ≥ 2 `{{`/`}}` markers (was ≥ 1) | 23/23 junk at ≥ 2; 14/16 good at 1 | ≤ 8–112 docs per file |
+| 9 | repetition | drop (was flag), same threshold (distinct-bigram ratio < 0.3) | mostly junk; 3 of 21 losses | ml 494, others ≤ 9 docs |
+| 10 | digits / URLs | no removal; mask e-mails and phone-like digit runs | `digit_runs` and `url_density` hit good text | 0 docs |
+
+Kept as is: NFC (D-036); PDFs stay (rule 3 removes their stamps). Not adopted yet, only
+measured in EXP-036: Pashto-letter docs (53), Hindi docs with ळ, a minimum length after
+cleaning, OCR garble and machine-translation signals. Output: JSONL shards with document
+boundaries and provenance (file, row, `doc_id`, type, revision), attribution file, **exact token
+count** with the frozen tokenizer, and a final suite guard on the output that must find 0 hits.
+The corpus itself stays on the PC (not in Git); only the manifest, counts and masked audit
+samples are committed.
+
+**Status:** complete (13/13 files verified and read in full; short-suite check CHECKED; adopts
+and removes nothing). EXP-036 (above) needs founder approval before any build code.

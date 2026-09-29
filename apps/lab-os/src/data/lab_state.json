@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "d6b659c8bbc8f537b9dc344cae071638668204ddfb5bec4c60214a244a9b7f15",
+  "source_digest": "94da697c3cddc516829f9a2f743af3ddb8855b3c632e1213d83db182e6f16160",
   "sources": {
-    "EXPERIMENTS.md": "a1bffa0350bc3743b6c65aa2d79aa2bd7363a046fd3f60314eb3652d3afce377",
+    "EXPERIMENTS.md": "8fea7e5981497fe20d96e1e5db45d09eb6e45730df4c4817a468ed2eded2a8a8",
     "DECISIONS.md": "09bd64fc4c4029b1bdf15366c78ca2d92b04948f0afc6580553e1bedbeeb7ec7",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "bb71c79c579194a63ae40aa90cddc9d8d28c959fe15cfe2a0dc5a39dfec03ea4",
+    "lab/registry.json": "7bd6d43a0e4439e421a4a6781d0f33d72fc8f6a9aba2e9a5723e6529ac8ff989",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -22,7 +22,8 @@
     "evals/results/EXP-031/mark_aware-32768-seed-1339/report.json": "45495b6143f01b882e42422d246c38f177cff27c3a73e8c354f6f665a6f3a500",
     "evals/results/EXP-032/summary.json": "930299a19de6630ad5badf97d685f589b757a536d07326b669a44f6912419cfa",
     "evals/results/EXP-033/summary.json": "c0d62d1864324365751d73632b03206352e7d608784879932a95e89e5b44ce76",
-    "evals/results/EXP-034/summary.json": "03483a0e46b0a82cd6fc72d920f6afdeb5cc3abfbffd43da559d7caabd56bc47"
+    "evals/results/EXP-034/summary.json": "03483a0e46b0a82cd6fc72d920f6afdeb5cc3abfbffd43da559d7caabd56bc47",
+    "evals/results/EXP-035/summary.json": "6caa19255b6065ccf8f6fdcaada17a57e5e433d502174a3e6e576231f562ceb3"
   },
   "roadmap": [
     {
@@ -312,18 +313,18 @@
   ],
   "current_work": [
     {
-      "title": "Data scale-up phase 1: calibrate the FrontierCorpus v2 build rules on the Sangraha slice (EXP-035)",
+      "title": "Data scale-up phase 1: FrontierCorpus v2 build rules for the Sangraha slice (EXP-035 done; EXP-036 proposed)",
       "evidence": [
         "EXP-035",
         "EXP-034",
         "D-044"
       ],
       "evidence_files": [
+        "evals/results/EXP-035/SUMMARY.txt",
         "evals/results/EXP-034/SUMMARY.txt",
-        "corpora/frontier/v2/sangraha_slice1.json",
-        "scripts/calibrate_sangraha_slice.py"
+        "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "EXP-035 approved and built: one CPU-only night on the laptop reads samples and counts per problem group, removes nothing. The v2 build rules (EXP-036) need their own founder approval"
+      "note": "EXP-035 complete (results commit 1be3c48): samples read and counted, nothing removed. Findings: long docs are the best text, about 8.4% of the Urdu file is Persian, code-mixed rejects are mostly native text plus English lines, digit_runs/url_density hit good text. EXP-036 (v2 build, 10 rules with reasons) is proposed and needs founder approval before any build code"
     }
   ],
   "experiments": [
@@ -660,11 +661,13 @@
       "id": "EXP-035",
       "title": "Calibrate the v2 build rules on the Sangraha slice: read samples, count, remove nothing (D-044; data scale-up phase 1)",
       "date": "2026-09-29",
-      "status": "pre-registered; code built and tested (sandbox); PC night run pending (founder: \"approve EXP-035\", 2026-09-29)",
-      "category": "planned",
+      "status": "complete (13/13 files verified and read in full; short-suite check CHECKED; adopts",
+      "category": "complete",
       "step": null,
       "summary": "EXP-034 showed what is in the 13 files (twelve findings: suite overlaps, code-mixed text, Uyghur passing as Urdu, 21.5% PDF/OCR text, long documents, rule hits of unknown quality). A cleaning threshold chosen without reading the documents it would remove is a guess. This experiment reads and counts, per problem group …",
-      "decisions": [],
+      "decisions": [
+        "D-036"
+      ],
       "line": 2164,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2164"
     }
