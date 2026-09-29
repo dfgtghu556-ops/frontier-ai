@@ -345,16 +345,47 @@ def _corpus_v1(root: Path) -> dict[str, Any]:
     }
 
 
+def _inspection(root: Path) -> dict[str, Any] | None:
+    """EXP-034's measurements per file (``evals/results/EXP-034/summary.json``), if published."""
+    path = root / "evals/results/EXP-034/summary.json"
+    if not path.is_file():
+        return None
+    r = _load_json(path)
+    per_language = {}
+    for f in r["files"]:
+        gate, type_chars = f["script_gate"], f["type_chars"]
+        per_language[f["language"]] = {
+            "documents": f["documents"],
+            "chars": f["chars"],
+            "script_pass_share": gate["documents"].get("pass", 0) / f["documents"],
+            "exact_duplicates": f["exact_duplicates_within_file"]["documents"],
+            "suite_hits": f["suite"]["documents_hit"],
+            "pdf_char_share": type_chars.get("pdf", 0) / sum(type_chars.values()),
+            "estimated_tokens": f["tokens"]["estimated_file_tokens"],
+            "token_sample_documents": f["tokens"]["sample_documents"],
+            "sha256_verified": f["pinned_sha256_verified"],
+        }
+    return {
+        "experiment": r["exp_id"],
+        "complete": bool(r["complete"]) and r["max_docs_per_file"] is None,
+        "suite_status": r["suite_status"],
+        "finished_at": r["finished_at"],
+        "per_language": dict(sorted(per_language.items())),
+        "url": _link("evals/results/EXP-034/SUMMARY.txt"),
+    }
+
+
 def _sangraha(root: Path) -> dict[str, Any]:
-    """The pinned slice. Its status is not typed here: it says whether EXP-034's published results
-    exist yet (``evals/results/EXP-034/``); what they mean is read from EXPERIMENTS.md."""
+    """The pinned slice plus EXP-034's measurements. The status is derived, not typed: it says
+    whether the published inspection exists and is complete; what it means is in EXPERIMENTS.md."""
     p = _load_json(root / "corpora/frontier/v2/sangraha_slice1.json")
-    published = (root / "evals/results/EXP-034").is_dir()
-    status = (
-        "pinned (sha256 per file); EXP-034 results published in evals/results/EXP-034/"
-        if published
-        else "pinned (sha256 per file); not yet downloaded or inspected (EXP-034 pending)"
-    )
+    inspection = _inspection(root)
+    if inspection is None:
+        status = "pinned (sha256 per file); not yet downloaded or inspected (EXP-034 pending)"
+    elif inspection["complete"] and inspection["suite_status"].startswith("CHECKED"):
+        status = "downloaded, all files match their pins, fully inspected (EXP-034); nothing filtered yet"
+    else:
+        status = "EXP-034 inspection published but partial; must be repeated before a build"
     return {
         "slice_id": p["slice_id"],
         "dataset": p["dataset"],
@@ -366,6 +397,7 @@ def _sangraha(root: Path) -> dict[str, Any]:
         "total_bytes": p["total_bytes"],
         "files": [{"language": f["language"], "size": f["size"], "sha256": f["sha256"]} for f in p["files"]],
         "status": status,
+        "inspection": inspection,
         "url": _link("corpora/frontier/v2/sangraha_slice1.json"),
     }
 

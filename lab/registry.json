@@ -238,16 +238,16 @@
   ],
   "current_work": [
     {
-      "title": "Data scale-up phase 1: Sangraha Verified slice 1 (download + inspect, filters nothing)",
+      "title": "Data scale-up phase 1: rules for building FrontierCorpus v2 from the inspected Sangraha slice",
       "evidence": [
         "EXP-034",
         "D-044"
       ],
       "evidence_files": [
-        "corpora/frontier/v2/sangraha_slice1.json",
-        "scripts/run_data_night.ps1"
+        "evals/results/EXP-034/SUMMARY.txt",
+        "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "runs overnight on the founder's laptop"
+      "note": "EXP-034 finished: 13 files verified and fully inspected. The next experiment (EXP-035, build thresholds) must be approved by the founder before any code is written"
     }
   ],
   "baseline_model": {

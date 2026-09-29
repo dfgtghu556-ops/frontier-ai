@@ -38,6 +38,8 @@ export const fmtInt = (n: number | null | undefined) =>
 export const fmtBpb = (n: number | null | undefined, digits = 4) =>
   n === null || n === undefined ? "—" : n.toFixed(digits);
 
+export const fmtPct = (x: number, digits = 1) => `${(100 * x).toFixed(digits)}%`;
+
 export function fmtBytes(n: number): string {
   if (n >= 1e9) return `${(n / 1e9).toFixed(2)} GB`;
   if (n >= 1e6) return `${(n / 1e6).toFixed(1)} MB`;

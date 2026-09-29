@@ -2070,3 +2070,93 @@ the PS runner. The langid script profile was made ~5× faster without changing i
 test compares it with the old per-character method, including key order). Sandbox throughput of
 the full inspection pass on synthetic Hindi web-like text: about 2.5M characters/s; laptop speed
 NOT VERIFIED.
+
+**Results (PC night run 2026-09-29, 11:42–14:11 IST; published by the runner as commit `484b8a7`:
+`evals/results/EXP-034/summary.json` and `SUMMARY.txt`; machine Windows 10, Python 3.13.15, 4
+logical CPUs):**
+
+*Pre-registered rules checked (by the agent, from `summary.json`):*
+- **Acquired: yes.** All 13 files match their pinned size and SHA-256 (`pinned_sha256_verified`
+  is true for 13/13). The download took 36 minutes.
+- **Inspection complete: yes.** `max_docs_per_file` is null (every document read) and
+  `complete` is true. Each file's document count equals the row count its parquet file declares.
+  `suite_status` = "CHECKED against frontier-heldout-v1 (3427 documents, 38,297 13-grams; shard
+  verified against SUITE.json)". The inspection pass took 1 h 53 min.
+- **Adopted / removed: nothing.** Only the measurements below exist; no corpus was built.
+
+*What the files contain (all 13 files, before any filtering):*
+
+| lang | documents | characters (M) | script pass (docs) | exact dups | suite hits | PDF share of chars | est. tokens (M) |
+|---|---|---|---|---|---|---|---|
+| as | 110,238 | 318.9 | 94.6% | 0 | 5 | 50.2% | 175.3 |
+| bn | 149,797 | 382.9 | 98.7% | 0 | 0 | 31.6% | 204.3 |
+| en | 349,525 | 936.7 | 99.9% | 90 | 0 | 4.0% | 490.4 |
+| gu | 149,797 | 362.0 | 99.1% | 0 | 0 | 29.3% | 205.3 |
+| hi | 174,763 | 387.5 | 98.6% | 3,019 | 1 | 22.8% | 208.3 |
+| kn | 174,762 | 360.1 | 98.5% | 0 | 4 | 16.7% | 174.2 |
+| ml | 174,763 | 330.9 | 99.3% | 0 | 0 | 2.4% | 149.0 |
+| mr | 174,763 | 379.5 | 99.5% | 0 | 0 | 11.5% | 185.1 |
+| or | 189,757 | 358.8 | 99.2% | 0 | 8 | 41.5% | 191.4 |
+| pa | 149,797 | 362.8 | 99.1% | 0 | 2 | 15.9% | 206.7 |
+| ta | 149,796 | 375.1 | 98.9% | 0 | 0 | 13.4% | 165.2 |
+| te | 174,762 | 356.0 | 98.8% | 0 | 0 | 19.4% | 200.7 |
+| ur | 209,716 | 571.3 | 99.7% | 0 | 0 | 40.0% | 358.2 |
+| **total** | **2,332,236** | **5,482.5** | 24,231 docs fail (1.0%) | 3,109 | **20** | 21.5% | **≈ 2,914 (estimate)** |
+
+The token column is an **estimate**: the frozen tokenizer ran on every 50th document, up to 3M
+characters per file (1,060–1,633 documents per file), and the result was scaled to the file. It
+is not a corpus size (pre-registered rule). For scale only: the v1 pilot has 3.8M training
+characters; this one slice, unfiltered, has about 1,400 times as many.
+
+*Findings that later rules must address (observed; causes marked NOT VERIFIED where unknown):*
+1. **Protected-suite overlap is real: 20 documents in 5 languages.** Every hit points to one of
+   the Wikisource books our held-out suite comes from: Manomati (as), Godaan (hi), Ranganna (kn),
+   Chha Mana Atha Guntha (or) and Satwant Kaur (pa). One Odia document shares 1,230 13-grams with
+   a single suite document, so Sangraha contains copies of the same public-domain books.
+   → Every build and every later slice must run the suite guard; this is already the design (D-044).
+2. **Coverage gap in the suite guard.** 1,882 of the 3,427 suite documents are shorter than one
+   13-gram. They are protected only by exact match, so a short held-out passage inside a longer
+   Sangraha document would not be caught. → EXP-035 must close this gap before a build.
+3. **The script gate is not a language check.** A document in the Urdu file that passed (share
+   0.964) is Uyghur, which is also written in Arabic script. Assamese and Bengali also share a
+   script. Script-mismatch samples show religious texts (Bible verses, a Quran translation) in
+   non-Indic Latin-script languages inside the as, or and ur files, Uzbek in the pa file, and
+   Gujarati and Telugu Bible text inside the English file.
+   → The build needs a language-level check where scripts are shared; how often this happens is
+   NOT VERIFIED.
+4. **The 0.6 threshold also rejects code-mixed text.** 13,536 documents have a declared-script
+   share of 0.4–0.6. In 7,931 rejected documents the declared script is still the most common
+   one (hi 1,018, kn 1,082, bn 968, …). The samples are mostly real language mixed with English
+   (Hindi news with "Google" and "Pixel"; site navigation text). → EXP-035 decides the threshold
+   from a read sample. It is under 0.4% of documents either way.
+5. **OCR text is a large share.** PDF-type documents are 21.5% of all characters, and 50.2% of
+   Assamese, 41.5% of Odia and 40.0% of Urdu characters. Their OCR quality has not been measured.
+   → EXP-035 needs an OCR-quality read before deciding how to treat them.
+6. **Long documents.** The default quality rule `max_chars` (20,000) would drop 488–2,007
+   documents per file (p99 document length is 10,872–27,615 characters; which types they are is
+   NOT VERIFIED). The
+   script check reads only the first 5,000 characters (8,507–35,727 documents per file are
+   longer). → EXP-035 decides between splitting long documents and dropping them.
+7. **Other quality-rule hits** (they count, remove nothing):
+   - `digit_runs` fires on 546–6,813 documents per file. It may be over-triggering on news
+     (dates, scores, phone numbers); NOT VERIFIED.
+   - `repetition` fires 494 times in ml and at most 9 times in every other file; the cause is
+     NOT VERIFIED.
+   - `url_density` fires on 87–1,437 documents per file and `template_residue` on 8–112.
+8. **Exact duplicates** are 1.7% of Hindi documents (3,019) and 90 English documents; every
+   other file has 0, which suggests the source already removed exact duplicates there.
+   Near-duplicates have not been measured (MinHash is planned).
+9. **Normalization:** NFC (D-036) changes 43.1% of Marathi documents and 0.3–11.8% of the other
+   files. The Marathi cause is NOT VERIFIED; the likely cause is a decomposed character sequence
+   that is common in Marathi. NFC is applied anyway.
+10. **Line structure:** 79–96% of documents in each file contain line breaks (41% in Urdu). The
+    v2 format must keep document boundaries and must not use one line per document.
+11. **Machine-translated text is visible in the samples.** For example, a Gujarati sample
+    transliterates Turkish names letter by letter. How much there is is NOT VERIFIED.
+12. **Known limitation (pre-registered):** web documents are 66.9–98.6% of each file. Whether
+    `data-0` is a random sample of each language is still NOT VERIFIED; later slices should add
+    other files (`data-1` …), not more of the same file.
+
+**Status:** complete (acquired, fully inspected, suite check ran; adopts nothing).
+Thresholds for the v2 build come in EXP-035, which is still to be proposed; the founder must
+approve it before any implementation.

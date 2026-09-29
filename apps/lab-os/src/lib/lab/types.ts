@@ -112,6 +112,27 @@ export interface CorpusV1 {
   url: string;
 }
 
+export interface SliceInspectionLanguage {
+  documents: number;
+  chars: number;
+  script_pass_share: number;
+  exact_duplicates: number;
+  suite_hits: number;
+  pdf_char_share: number;
+  estimated_tokens: number;
+  token_sample_documents: number;
+  sha256_verified: boolean;
+}
+
+export interface SliceInspection {
+  experiment: string;
+  complete: boolean;
+  suite_status: string;
+  finished_at: string;
+  per_language: Record<string, SliceInspectionLanguage>;
+  url: string;
+}
+
 export interface SangrahaSlice {
   slice_id: string;
   dataset: string;
@@ -123,6 +144,7 @@ export interface SangrahaSlice {
   total_bytes: number;
   files: { language: string; size: number; sha256: string }[];
   status: string;
+  inspection: SliceInspection | null;
   url: string;
 }
 

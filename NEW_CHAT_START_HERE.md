@@ -467,6 +467,14 @@ comes next. They also update the table in §3.
       `python scripts/export_lab_state.py` and commit the snapshot.** `tests/test_lab_state.py`
       fails while it is stale. When a roadmap step finishes, update its status in `lab/registry.json`.
     - Run: `cd apps/lab-os && npm ci && npm run dev`. See `apps/lab-os/README.md`.
+  - **EXP-034 complete (PC night 2026-09-29, results commit `484b8a7`; analysis appended to
+    EXPERIMENTS.md).** All 13 files verified; fully inspected; suite CHECKED. 2,332,236 docs,
+    5,482.5M chars, ≈2,914M tokens (ESTIMATE). Nothing filtered. Key findings: 20 suite hits
+    (same Wikisource books as the held-out suite); 1,882 short suite docs are only exact-match
+    protected; the script gate is not a language check (Uyghur passed in the ur file); OCR/PDF
+    = 21.5% of chars; `max_chars` 20k would drop long docs. **Next: EXP-035 (calibration:
+    sample read + extra measurements, removes nothing) is PROPOSED in chat — founder approval
+    needed before any code.** Dashboard snapshot refreshed (Sangraha table shows the inspection).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

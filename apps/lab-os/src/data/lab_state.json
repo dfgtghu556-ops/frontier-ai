@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "1ffa86fe8144bdddbcf2065e5b9b5411c6cfce25b8425aadf3e94f1b315b470c",
+  "source_digest": "77bedff76a5adea11c44e900df722e2f27708767ebc31ac97ab55f2f26320307",
   "sources": {
-    "EXPERIMENTS.md": "eefa74ab84c66d12ec0b2f5695366f899c3a69518e978757a4b7f9e63f9fb885",
+    "EXPERIMENTS.md": "91cf1646d87ec360bf82d2f4c25b08262e805d51b3870c8bb3d98e542b8035b0",
     "DECISIONS.md": "09bd64fc4c4029b1bdf15366c78ca2d92b04948f0afc6580553e1bedbeeb7ec7",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "c2a6570fdda5aaeb97d8a0537508e57154289a9d0865e0930460fc883c979148",
+    "lab/registry.json": "36132bb82da05668165e3b17beb586b1605f45fee4b506a29e17ecaa508d3490",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -21,7 +21,8 @@
     "evals/results/EXP-031/mark_aware-32768-seed-1338/report.json": "4a02f7f0d9e9f751da7b969efa8494a2f03b848cb528139754c1b6492326f5d6",
     "evals/results/EXP-031/mark_aware-32768-seed-1339/report.json": "45495b6143f01b882e42422d246c38f177cff27c3a73e8c354f6f665a6f3a500",
     "evals/results/EXP-032/summary.json": "930299a19de6630ad5badf97d685f589b757a536d07326b669a44f6912419cfa",
-    "evals/results/EXP-033/summary.json": "c0d62d1864324365751d73632b03206352e7d608784879932a95e89e5b44ce76"
+    "evals/results/EXP-033/summary.json": "c0d62d1864324365751d73632b03206352e7d608784879932a95e89e5b44ce76",
+    "evals/results/EXP-034/summary.json": "03483a0e46b0a82cd6fc72d920f6afdeb5cc3abfbffd43da559d7caabd56bc47"
   },
   "roadmap": [
     {
@@ -311,16 +312,16 @@
   ],
   "current_work": [
     {
-      "title": "Data scale-up phase 1: Sangraha Verified slice 1 (download + inspect, filters nothing)",
+      "title": "Data scale-up phase 1: rules for building FrontierCorpus v2 from the inspected Sangraha slice",
       "evidence": [
         "EXP-034",
         "D-044"
       ],
       "evidence_files": [
-        "corpora/frontier/v2/sangraha_slice1.json",
-        "scripts/run_data_night.ps1"
+        "evals/results/EXP-034/SUMMARY.txt",
+        "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "runs overnight on the founder's laptop"
+      "note": "EXP-034 finished: 13 files verified and fully inspected. The next experiment (EXP-035, build thresholds) must be approved by the founder before any code is written"
     }
   ],
   "experiments": [
@@ -642,8 +643,8 @@
       "id": "EXP-034",
       "title": "Sangraha Verified slice 1: acquire and inspect before any filtering (D-044; data scale-up phase 1)",
       "date": "2026-09-29",
-      "status": "pre-registered; code built and tested (sandbox); PC night run",
-      "category": "planned",
+      "status": "complete (acquired, fully inspected, suite check ran; adopts nothing).",
+      "category": "complete",
       "step": null,
       "summary": "a model that can compete with the best needs far more high-quality Indic text than the 4.2M-character v1 pilot. D-044 approves Sangraha Verified (CC-BY-4.0) as the first large source. Before any filter threshold is chosen, we measure what the files actually contain — so every later cleaning rule is justified by …",
       "decisions": [
@@ -1487,7 +1488,159 @@
         "sha256": "0220cd62b7dde5d12fa52c6c40f47f7e06df3e7ccb659576488fd8a83b110d48"
       }
     ],
-    "status": "pinned (sha256 per file); not yet downloaded or inspected (EXP-034 pending)",
+    "status": "downloaded, all files match their pins, fully inspected (EXP-034); nothing filtered yet",
+    "inspection": {
+      "experiment": "EXP-034",
+      "complete": true,
+      "suite_status": "CHECKED against frontier-heldout-v1 (3427 documents, 38,297 13-grams; shard verified against SUITE.json)",
+      "finished_at": "2026-09-29 14:11:46",
+      "per_language": {
+        "as": {
+          "documents": 110238,
+          "chars": 318853058,
+          "script_pass_share": 0.9455450933434931,
+          "exact_duplicates": 0,
+          "suite_hits": 5,
+          "pdf_char_share": 0.5019030145227587,
+          "estimated_tokens": 175343403,
+          "token_sample_documents": 1121,
+          "sha256_verified": true
+        },
+        "bn": {
+          "documents": 149797,
+          "chars": 382907103,
+          "script_pass_share": 0.9869623557214097,
+          "exact_duplicates": 0,
+          "suite_hits": 0,
+          "pdf_char_share": 0.3163778447849791,
+          "estimated_tokens": 204300988,
+          "token_sample_documents": 1173,
+          "sha256_verified": true
+        },
+        "en": {
+          "documents": 349525,
+          "chars": 936710771,
+          "script_pass_share": 0.9993648522995494,
+          "exact_duplicates": 90,
+          "suite_hits": 0,
+          "pdf_char_share": 0.039578121814935335,
+          "estimated_tokens": 490415683,
+          "token_sample_documents": 1060,
+          "sha256_verified": true
+        },
+        "gu": {
+          "documents": 149797,
+          "chars": 362044020,
+          "script_pass_share": 0.9908876679773293,
+          "exact_duplicates": 0,
+          "suite_hits": 0,
+          "pdf_char_share": 0.2927178634244532,
+          "estimated_tokens": 205323626,
+          "token_sample_documents": 1327,
+          "sha256_verified": true
+        },
+        "hi": {
+          "documents": 174763,
+          "chars": 387456259,
+          "script_pass_share": 0.9856548582938036,
+          "exact_duplicates": 3019,
+          "suite_hits": 1,
+          "pdf_char_share": 0.22750678032020125,
+          "estimated_tokens": 208348515,
+          "token_sample_documents": 1351,
+          "sha256_verified": true
+        },
+        "kn": {
+          "documents": 174762,
+          "chars": 360106143,
+          "script_pass_share": 0.9847564115768874,
+          "exact_duplicates": 0,
+          "suite_hits": 4,
+          "pdf_char_share": 0.16712228372066398,
+          "estimated_tokens": 174232845,
+          "token_sample_documents": 1355,
+          "sha256_verified": true
+        },
+        "ml": {
+          "documents": 174763,
+          "chars": 330912363,
+          "script_pass_share": 0.9926529070798739,
+          "exact_duplicates": 0,
+          "suite_hits": 0,
+          "pdf_char_share": 0.023942018751351397,
+          "estimated_tokens": 149038940,
+          "token_sample_documents": 1633,
+          "sha256_verified": true
+        },
+        "mr": {
+          "documents": 174763,
+          "chars": 379537142,
+          "script_pass_share": 0.9949760532835897,
+          "exact_duplicates": 0,
+          "suite_hits": 0,
+          "pdf_char_share": 0.11498952321246071,
+          "estimated_tokens": 185104134,
+          "token_sample_documents": 1375,
+          "sha256_verified": true
+        },
+        "or": {
+          "documents": 189757,
+          "chars": 358849764,
+          "script_pass_share": 0.9922110910269449,
+          "exact_duplicates": 0,
+          "suite_hits": 8,
+          "pdf_char_share": 0.4146485073346739,
+          "estimated_tokens": 191412223,
+          "token_sample_documents": 1555,
+          "sha256_verified": true
+        },
+        "pa": {
+          "documents": 149797,
+          "chars": 362799070,
+          "script_pass_share": 0.9905672343237849,
+          "exact_duplicates": 0,
+          "suite_hits": 2,
+          "pdf_char_share": 0.15898320246521028,
+          "estimated_tokens": 206681960,
+          "token_sample_documents": 1308,
+          "sha256_verified": true
+        },
+        "ta": {
+          "documents": 149796,
+          "chars": 375085598,
+          "script_pass_share": 0.9886979625624183,
+          "exact_duplicates": 0,
+          "suite_hits": 0,
+          "pdf_char_share": 0.13353702799327422,
+          "estimated_tokens": 165230869,
+          "token_sample_documents": 1185,
+          "sha256_verified": true
+        },
+        "te": {
+          "documents": 174762,
+          "chars": 355956531,
+          "script_pass_share": 0.9878062736750552,
+          "exact_duplicates": 0,
+          "suite_hits": 0,
+          "pdf_char_share": 0.19394992643076409,
+          "estimated_tokens": 200710176,
+          "token_sample_documents": 1403,
+          "sha256_verified": true
+        },
+        "ur": {
+          "documents": 209716,
+          "chars": 571309464,
+          "script_pass_share": 0.9969196437086345,
+          "exact_duplicates": 0,
+          "suite_hits": 0,
+          "pdf_char_share": 0.3995795245569396,
+          "estimated_tokens": 358165107,
+          "token_sample_documents": 1137,
+          "sha256_verified": true
+        }
+      },
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/results/EXP-034/SUMMARY.txt"
+    },
     "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/corpora/frontier/v2/sangraha_slice1.json"
   },
   "suite": {

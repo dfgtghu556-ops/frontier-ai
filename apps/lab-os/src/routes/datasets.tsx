@@ -9,7 +9,16 @@ import {
   Row,
   StatusChip,
 } from "@/components/lab/primitives";
-import { fmtBytes, fmtInt, lab, languageName, recordUrl, short } from "@/lib/lab/state";
+import {
+  fmtBytes,
+  fmtCount,
+  fmtInt,
+  fmtPct,
+  lab,
+  languageName,
+  recordUrl,
+  short,
+} from "@/lib/lab/state";
 
 export const Route = createFileRoute("/datasets")({
   head: () => ({
@@ -34,7 +43,7 @@ function Datasets() {
     <div className="space-y-3">
       <PageHeader
         title="Data & tokenizer"
-        description="Read from the tokenizer freeze record, the FrontierCorpus v1 manifest and the pinned Sangraha slice file. Sizes are measured, not estimated. No token count is shown for Sangraha because none has been measured yet."
+        description="Read from the tokenizer freeze record, the FrontierCorpus v1 manifest, the pinned Sangraha slice file and its EXP-034 inspection. Sizes are measured. The only estimate on this page is the Sangraha token column, and it is labelled as one."
       />
 
       <Panel title="Frozen tokenizer" meta={<RepoLink href={t.url}>FREEZE.json</RepoLink>}>
@@ -126,7 +135,7 @@ function Datasets() {
       </Panel>
 
       <Panel
-        title="Next data: Sangraha Verified, slice 1"
+        title="Next data: Sangraha Verified, slice 1 (not filtered yet)"
         meta={<RepoLink href={s.url}>sangraha_slice1.json</RepoLink>}
       >
         <p className="mb-3 text-[12px] text-muted-foreground">{s.status}</p>
@@ -141,21 +150,61 @@ function Datasets() {
         </div>
         <p className="mt-3 text-[11px] text-faint">{s.attribution}</p>
         <div className="mt-3">
-          <DataTable columns={["Language", "File size", "sha256"]}>
-            {s.files.map((f) => (
-              <Row key={f.language}>
-                <Cell>
-                  {languageName(f.language)}{" "}
-                  <span className="font-mono text-[10px] text-faint">{f.language}</span>
-                </Cell>
-                <Cell mono>{fmtBytes(f.size)}</Cell>
-                <Cell mono muted>
-                  {short(f.sha256, 16)}
-                </Cell>
-              </Row>
-            ))}
+          <DataTable
+            columns={[
+              "Language",
+              "File size",
+              "sha256",
+              "Documents",
+              "Characters",
+              "Script check pass",
+              "Exact dups",
+              "Suite hits",
+              "PDF (OCR) share",
+              "Tokens (estimate)",
+            ]}
+          >
+            {s.files.map((f) => {
+              const m = s.inspection?.per_language[f.language];
+              return (
+                <Row key={f.language}>
+                  <Cell>
+                    {languageName(f.language)}{" "}
+                    <span className="font-mono text-[10px] text-faint">{f.language}</span>
+                  </Cell>
+                  <Cell mono>{fmtBytes(f.size)}</Cell>
+                  <Cell mono muted>
+                    {short(f.sha256, 12)}
+                    {m?.sha256_verified ? " ✓" : ""}
+                  </Cell>
+                  <Cell mono>{m ? fmtInt(m.documents) : "—"}</Cell>
+                  <Cell mono>{m ? fmtCount(m.chars) : "—"}</Cell>
+                  <Cell mono>{m ? fmtPct(m.script_pass_share) : "—"}</Cell>
+                  <Cell mono muted>
+                    {m ? fmtInt(m.exact_duplicates) : "—"}
+                  </Cell>
+                  <Cell mono>{m ? fmtInt(m.suite_hits) : "—"}</Cell>
+                  <Cell mono muted>
+                    {m ? fmtPct(m.pdf_char_share) : "—"}
+                  </Cell>
+                  <Cell mono muted>
+                    {m ? `≈ ${fmtCount(m.estimated_tokens)}` : "—"}
+                  </Cell>
+                </Row>
+              );
+            })}
           </DataTable>
         </div>
+        {s.inspection ? (
+          <p className="mt-2 text-[11px] text-faint">
+            Measured before any filtering by{" "}
+            <RepoLink href={recordUrl(s.inspection.experiment)}>{s.inspection.experiment}</RepoLink>{" "}
+            (<RepoLink href={s.inspection.url}>SUMMARY.txt</RepoLink>). Suite check:{" "}
+            {s.inspection.suite_status}. Tokens are an estimate from a sample of each file (the
+            frozen tokenizer on every 50th document), not a corpus size. Suite hits are documents
+            that share text with the protected test set; the build must remove them.
+          </p>
+        ) : null}
       </Panel>
     </div>
   );

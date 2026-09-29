@@ -114,6 +114,11 @@ def test_real_repository_builds(state):
     assert state["suite"]["id"] == "frontier-heldout-v1"
     assert state["evaluation_reports"], "published EXP-031 reports must be read"
     assert state["baseline_model"]["record"]["seeds"] == 3
+    inspection = state["sangraha_slice1"]["inspection"]  # EXP-034, published 2026-09-29
+    assert inspection["complete"] and inspection["suite_status"].startswith("CHECKED")
+    assert len(inspection["per_language"]) == 13
+    assert sum(x["suite_hits"] for x in inspection["per_language"].values()) == 20
+    assert all(x["sha256_verified"] for x in inspection["per_language"].values())
     # hashes of every input, and nothing time-dependent
     assert set(state["sources"]) >= {"EXPERIMENTS.md", "DECISIONS.md", REGISTRY_PATH}
     assert "generated_at" not in state
@@ -163,7 +168,10 @@ def test_registry_mistakes_are_caught(mutate, expected):
 
 def test_complete_step_cannot_cite_unfinished_work():
     registry, exps, decs, titles = _inputs()
-    planned = next(e["id"] for e in exps if e["category"] == "planned")
+    # Simulate a not-yet-finished experiment (the real log may have none at a given moment).
+    exps = copy.deepcopy(exps)
+    exps[-1]["category"] = "planned"
+    planned = exps[-1]["id"]
     provisional = next(d["id"] for d in decs if d["category"] == "provisional")
     bad = copy.deepcopy(registry)
     bad["roadmap_steps"][0]["evidence"] += [planned, provisional]
