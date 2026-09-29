@@ -475,6 +475,16 @@ comes next. They also update the table in §3.
     = 21.5% of chars; `max_chars` 20k would drop long docs. **Next: EXP-035 (calibration:
     sample read + extra measurements, removes nothing) is PROPOSED in chat — founder approval
     needed before any code.** Dashboard snapshot refreshed (Sangraha table shows the inspection).
+  - **EXP-035 approved (founder: "approve EXP-035", 2026-09-29) and built; PC night pending.**
+    Calibration pass that removes nothing: `scripts/calibrate_sangraha_slice.py`
+    (`corpus/slice_calibrate.py`), new `ShortSuiteIndex` + `heldout_pairs` in
+    `corpus/decontaminate.py` (short suite docs contained word for word; not yet in the build
+    guard). PC line: `git pull --ff-only origin arena/01a0dc16-frontier-ai; powershell
+    -ExecutionPolicy Bypass -File scripts\run_calibration_night.ps1` (wrapper for
+    `run_data_night.ps1 -Exp EXP-035 -Task calibrate`). Results: `evals/results/EXP-035/`
+    (`summary.json`, `SUMMARY.txt`, `samples.jsonl`: masked excerpts, suite-touching docs never
+    sampled). **Next: read the samples, then propose EXP-036 (v2 build rules, each with its
+    reason) — founder approval needed before any build code.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

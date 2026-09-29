@@ -33,7 +33,9 @@ Samples are committed as evidence, so they are masked: e-mail addresses, URLs an
 7 or more digits (phone numbers, ids) are replaced. Shorter numbers (years, scores) stay, so the
 ``digit_runs`` question can be judged. Suite texts are never written out, only suite ids: a
 document that touches the protected suite (13-gram guard or short-passage containment) is
-counted but never sampled, and its repeated lines are counted without keeping their text.
+counted but never sampled, and its repeated lines are counted without keeping their text. The
+13-gram guard (as in EXP-034) screens only the documents a reservoir keeps and the near-duplicate
+excerpts, to keep the runtime down; screened-out samples are counted.
 
 Bounded cost on the 2-core laptop: signatures are 128 x uint32 per document (about 180 MB for
 the largest file). Line statistics keep one 8-byte hash and one length per line. Top repeated
@@ -360,6 +362,7 @@ def _length_bucket(words: int) -> str:
 
 
 WITHHELD = "[withheld: this document contains protected-suite text]"
+_SUITE_FLAG = "_touches_suite"
 SAMPLE_SIZES = {
     "random_pass": 6,
     "band_0.4_0.6": 6,
@@ -415,7 +418,7 @@ def calibrate_rows(
     labels: Counter[str] = Counter()
     labels_chars: Counter[str] = Counter()
     short_hits_bucket: Counter[str] = Counter()
-    short_hit_docs = guard_hit_docs = withheld_docs = 0
+    short_hit_docs = withheld_docs = 0
     short_examples: list[dict[str, Any]] = []
     family = FILE_MARKERS.get(language)
 
@@ -457,9 +460,6 @@ def calibrate_rows(
                             "suite_hits": [{"suite_doc_id": h.suite_doc_id, "words": h.words} for h in hits],
                         }
                     )
-        if guard is not None and guard.check(text) is not None:
-            withheld = True
-            guard_hit_docs += 1
         if withheld:
             withheld_docs += 1
         heads.append(WITHHELD if withheld else excerpt(text, 100))
@@ -496,6 +496,10 @@ def calibrate_rows(
                 }
                 if extra:
                     item.update({k: (v() if callable(v) else v) for k, v in extra.items()})
+                # 13-gram screen only for the few documents a reservoir keeps (a full-file 13-gram
+                # pass would double the runtime; EXP-034 already counted those hits: 20 in total)
+                if guard is not None and guard.check(text) is not None:
+                    item[_SUITE_FLAG] = True
                 return item
 
             res[stratum].offer(make)
@@ -575,7 +579,12 @@ def calibrate_rows(
             else:
                 seen_root.add(r)
     rng = random.Random(f"{exp_id}/{source_id}/near_dup")
-    shown = [p for p in pairs if WITHHELD not in (heads[p[0]], heads[p[1]])]
+
+    def _touches_suite(head: str) -> bool:
+        flat = head.replace(" / ", " ")
+        return head == WITHHELD or (guard is not None and guard.check(flat) is not None)
+
+    shown = [p for p in pairs if not (_touches_suite(heads[p[0]]) or _touches_suite(heads[p[1]]))]
     chosen = rng.sample(shown, min(4, len(shown))) if shown else []
     near_dup_examples = [
         {
@@ -588,6 +597,8 @@ def calibrate_rows(
         for x, y, a in chosen
     ]
 
+    kept = [item for r in res.values() for item in r.items]
+    dropped = sum(1 for item in kept if item.get(_SUITE_FLAG))
     elapsed = time.monotonic() - started
     stats: dict[str, Any] = {
         "source_id": source_id,
@@ -644,17 +655,15 @@ def calibrate_rows(
             if short_index is not None
             else {"checked": False}
         ),
-        "suite_ngram_guard": (
-            {"checked": True, "documents_hit": guard_hit_docs} if guard is not None else {"checked": False}
-        ),
         "documents_withheld_from_samples": withheld_docs,
+        "samples_dropped_by_13gram_screen": dropped,
         "samples_per_stratum": {
             name: {"candidates": r.seen, "kept": len(r.items)} for name, r in res.items()
         },
         "seconds": round(elapsed, 2),
         "documents_per_second": round(n / elapsed, 1) if elapsed > 0 else None,
     }
-    samples = [item for r in res.values() for item in r.items] + near_dup_examples
+    samples = [item for item in kept if not item.get(_SUITE_FLAG)] + near_dup_examples
     return stats, samples
 
 
@@ -671,7 +680,7 @@ def render_text_report(run: dict[str, Any]) -> str:
         f"Short-suite check: {run['short_suite_status']}",
         "",
         "lang  docs       near-dup-removable  chars-in-lines-seen>=10x  over-20k  not-NFC  "
-        "short-suite-hits  13-gram-hits  other-language-marker",
+        "short-suite-hits  other-language-marker",
     ]
     for f in run["files"]:
         docs = f["documents"]
@@ -689,12 +698,10 @@ def render_text_report(run: dict[str, Any]) -> str:
             other = f"lla>=3: {lm['labels_documents'].get('has_lla_3plus', 0):,}"
         ssc = f["short_suite_containment"]
         hits = str(ssc["documents_hit"]) if ssc["checked"] else "n/a"
-        sng = f.get("suite_ngram_guard", {"checked": False})
-        ngram = str(sng["documents_hit"]) if sng["checked"] else "n/a"
         near = f"{removable:,} ({_pct(removable, docs)})"
         out.append(
             f"{f['language']:<5} {docs:<10,} {near:<19} {boiler:<25} {over:<9,} {not_nfc:<8} "
-            f"{hits:<17} {ngram:<13} {other}"
+            f"{hits:<17} {other}"
         )
     out.append("")
     out.append("Top code points changed by NFC (per file):")

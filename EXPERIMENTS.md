@@ -2160,3 +2160,80 @@ characters; this one slice, unfiltered, has about 1,400 times as many.
 **Status:** complete (acquired, fully inspected, suite check ran; adopts nothing).
 Thresholds for the v2 build come in EXP-035, which is still to be proposed; the founder must
 approve it before any implementation.
+
+### EXP-035 — Calibrate the v2 build rules on the Sangraha slice: read samples, count, remove nothing (D-044; data scale-up phase 1)
+**Date:** 2026-09-29 · **Status:** pre-registered; code built and tested (sandbox); PC night run pending (founder: "approve EXP-035", 2026-09-29)
+
+**Purpose (why this serves the mission):** EXP-034 showed *what* is in the 13 files (twelve
+findings: suite overlaps, code-mixed text, Uyghur passing as Urdu, 21.5% PDF/OCR text, long
+documents, rule hits of unknown quality). A cleaning threshold chosen without reading the
+documents it would remove is a guess. This experiment reads and counts, per problem group, so
+that every v2 build rule (EXP-036) comes with a reason taken from our own data. Better rules
+mean cleaner training text, which is the part of model quality we control on a laptop.
+
+**Numbering note (no record changed):** the closing line of EXP-034 said the build thresholds
+would come in EXP-035. In the plan the founder approved, EXP-035 is this calibration and the
+thresholds + v2 build move to **EXP-036** (needs its own approval).
+
+**Inputs:** the same 13 pinned files as EXP-034 (`corpora/frontier/v2/sangraha_slice1.json`,
+revision `8b813c3f62d3…`), already on the PC; each file is re-checked (size + SHA-256) before it
+is read. No new download. The protected suite `frontier-heldout-v1` and its PC-only held-out
+shard (verified line by line against `SUITE.json`).
+
+**Method:** `scripts/calibrate_sangraha_slice.py` (`corpus/slice_calibrate.py`), one streaming
+pass per file, CPU only, **removes nothing**. Per file it writes:
+1. **Samples for a human read** (reservoir sampling, seed = `EXP-035/<file>/<group>`, so the
+   selection is reproducible): ordinary passing documents; script share 0.4–0.6 and 0.6–0.8
+   (code-mixed candidates); long documents whose later text fails the script check; PDF/OCR
+   documents; documents over 20,000 characters (start and middle excerpts); hits of the
+   `digit_runs`, `repetition`, `url_density` and `template_residue` rules; documents that look
+   like another language of the same script; Hindi documents with Marathi's `ळ`; up to 4
+   near-duplicate pairs. At most 60 records per file, excerpts ≤ 400 characters; e-mails, URLs
+   and digit runs of 7+ digits are masked.
+2. **Counts the samples cannot give:** script-share bands split by whether the declared script is
+   still the top script; start/middle/end script check for documents longer than the 5,000-
+   character profile; letter markers in shared scripts (Assamese ৰ/ৱ vs Bengali র; Urdu ٹ ڈ ڑ ں ے ھ
+   vs Uyghur, Sindhi, Pashto, Arabic letters); NFC changes vs whitespace-only changes, and which
+   code points NFC changes (the Marathi 43.1% question); repeated lines (exact line hashes;
+   boilerplate share); within-file near-duplicates (MinHash, 128 permutations, word 5-grams, LSH
+   16 bands × 8 rows, estimated Jaccard ≥ 0.8 with the bucket representative); quality-rule hits by
+   document type; documents over 20,000 characters by type.
+3. **The short-suite gap (EXP-034 finding):** 1,882 suite documents are shorter than 13 words and
+   were protected by exact match only. New `ShortSuiteIndex` (`corpus/decontaminate.py`) finds
+   every suite document of 3–12 words that appears **word for word inside** a Sangraha document
+   and counts hits by suite-document length (3–4, 5–6, 7–9, 10–12 words), so the minimum length
+   of the v2 containment rule can be chosen from data. It is not yet part of the build guard.
+4. **Suite text is never published.** A document that contains a short suite passage is counted
+   but never sampled; documents kept by a reservoir and the near-duplicate excerpts are also
+   screened with the EXP-034 13-gram guard, and screened-out samples are counted. Without the
+   held-out shard, no samples are written at all (`samples_status: WITHHELD`).
+5. `scripts/run_calibration_night.ps1` → `scripts/run_data_night.ps1 -Exp EXP-035 -Task
+   calibrate`: same checks as EXP-034, then commits only `evals/results/EXP-035/`
+   (`summary.json`, `SUMMARY.txt`, `samples.jsonl`) and pushes.
+
+**Pre-registered rules (fixed before any result):**
+- This experiment **adopts nothing and removes nothing.** No threshold is set here.
+- The calibration counts as **complete** only if all 13 files were read in full (no `--max-docs`,
+  no `--only`) and `short_suite_status` starts with `CHECKED`. Otherwise it is partial and is
+  repeated before EXP-036.
+- EXP-036 must state, for each rule it adopts, the threshold, the reason (a number or a sample
+  from EXP-034/EXP-035), and what share of documents and characters it removes per language.
+- Language markers are coarse letter counts used to pick samples and to size the problem; they
+  are not a language classifier and are not used to remove anything here.
+- Near-duplicate counts are within one file only; cross-file and cross-language duplicates are
+  EXP-036 work.
+- No corpus-size or token claim is made from this experiment.
+
+**Sandbox checks (2026-09-29):** 11 new tests (`tests/test_slice_calibrate.py`): masking keeps
+short numbers; reservoir determinism; short-suite containment (contained / one word different /
+too short / 13+ words left to the 13-gram guard; `min_words` validation); MinHash (identical and
+one-word-changed documents cluster, different documents do not; deterministic); exact repeated-
+line counts; Assamese/Bengali and Urdu/Uyghur markers; the calibration on a hand-built file
+(counts, suite-touching documents never sampled, reproducible); refusal when a file has more rows
+than declared; end-to-end CLI with and without the held-out shard (without: `NOT CHECKED`, not
+complete, no samples). The static test of the PS runner now also covers `-Task`. The quality
+rule `control_chars` was made faster with a regex that gives the same result (a test compares
+it with the old per-character method on random text). Sandbox throughput on synthetic Hindi
+web-like text: about 1,000 documents/s (EXP-034's inspection pass: about 1,500/s on the same
+text). Laptop runtime is **NOT VERIFIED**; estimate from EXP-034's 1.9 h inspection pass:
+about 2.5–3.5 h.

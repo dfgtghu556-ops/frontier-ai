@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "77bedff76a5adea11c44e900df722e2f27708767ebc31ac97ab55f2f26320307",
+  "source_digest": "d6b659c8bbc8f537b9dc344cae071638668204ddfb5bec4c60214a244a9b7f15",
   "sources": {
-    "EXPERIMENTS.md": "91cf1646d87ec360bf82d2f4c25b08262e805d51b3870c8bb3d98e542b8035b0",
+    "EXPERIMENTS.md": "a1bffa0350bc3743b6c65aa2d79aa2bd7363a046fd3f60314eb3652d3afce377",
     "DECISIONS.md": "09bd64fc4c4029b1bdf15366c78ca2d92b04948f0afc6580553e1bedbeeb7ec7",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "36132bb82da05668165e3b17beb586b1605f45fee4b506a29e17ecaa508d3490",
+    "lab/registry.json": "bb71c79c579194a63ae40aa90cddc9d8d28c959fe15cfe2a0dc5a39dfec03ea4",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -312,16 +312,18 @@
   ],
   "current_work": [
     {
-      "title": "Data scale-up phase 1: rules for building FrontierCorpus v2 from the inspected Sangraha slice",
+      "title": "Data scale-up phase 1: calibrate the FrontierCorpus v2 build rules on the Sangraha slice (EXP-035)",
       "evidence": [
+        "EXP-035",
         "EXP-034",
         "D-044"
       ],
       "evidence_files": [
         "evals/results/EXP-034/SUMMARY.txt",
-        "corpora/frontier/v2/sangraha_slice1.json"
+        "corpora/frontier/v2/sangraha_slice1.json",
+        "scripts/calibrate_sangraha_slice.py"
       ],
-      "note": "EXP-034 finished: 13 files verified and fully inspected. The next experiment (EXP-035, build thresholds) must be approved by the founder before any code is written"
+      "note": "EXP-035 approved and built: one CPU-only night on the laptop reads samples and counts per problem group, removes nothing. The v2 build rules (EXP-036) need their own founder approval"
     }
   ],
   "experiments": [
@@ -653,6 +655,18 @@
       ],
       "line": 2017,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2017"
+    },
+    {
+      "id": "EXP-035",
+      "title": "Calibrate the v2 build rules on the Sangraha slice: read samples, count, remove nothing (D-044; data scale-up phase 1)",
+      "date": "2026-09-29",
+      "status": "pre-registered; code built and tested (sandbox); PC night run pending (founder: \"approve EXP-035\", 2026-09-29)",
+      "category": "planned",
+      "step": null,
+      "summary": "EXP-034 showed what is in the 13 files (twelve findings: suite overlaps, code-mixed text, Uyghur passing as Urdu, 21.5% PDF/OCR text, long documents, rule hits of unknown quality). A cleaning threshold chosen without reading the documents it would remove is a guess. This experiment reads and counts, per problem group …",
+      "decisions": [],
+      "line": 2164,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2164"
     }
   ],
   "experiment_numbers_not_in_log": [

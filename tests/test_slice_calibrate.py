@@ -188,9 +188,11 @@ def test_calibrate_cli_end_to_end(tmp_path):
     root = tmp_path / "data"
     path = root / rev[:12] / "verified/hin/data-0.parquet"
     path.parent.mkdir(parents=True)
+    long_suite = " ".join(f"शब्द{i}" for i in range(20))
+    rows = [*ROWS, ("d8", "web", "शुरू में " + long_suite + " और अंत")]  # shares 13-grams with s-1
     pq.write_table(
         pa.table(
-            {"doc_id": [r[0] for r in ROWS], "type": [r[1] for r in ROWS], "text": [r[2] for r in ROWS]}
+            {"doc_id": [r[0] for r in rows], "type": [r[1] for r in rows], "text": [r[2] for r in rows]}
         ),
         str(path),
         row_group_size=3,
@@ -224,7 +226,7 @@ def test_calibrate_cli_end_to_end(tmp_path):
         def __init__(self, doc_id, text):
             self.doc_id, self.language, self.source_id, self.text = doc_id, "hi", "suite-src", text
 
-    suite_texts = [("s-0", SUITE_SHORT), ("s-1", " ".join(f"शब्द{i}" for i in range(20)))]
+    suite_texts = [("s-0", SUITE_SHORT), ("s-1", long_suite)]
     suite_path = tmp_path / "SUITE.json"
     write_suite(suite_path, build_suite([_D(*t) for t in suite_texts], "test-suite", {"corpus": "t"}))
     heldout = tmp_path / "heldout"
@@ -261,9 +263,10 @@ def test_calibrate_cli_end_to_end(tmp_path):
     lines = (out / "samples.jsonl").read_text(encoding="utf-8").splitlines()
     assert len(lines) == summary["samples_written"] > 0
     assert summary["samples_status"].startswith("screened")
-    assert f["suite_ngram_guard"] == {"checked": True, "documents_hit": 0}
+    assert f["samples_dropped_by_13gram_screen"] >= 1  # d8 was kept by a reservoir, then screened out
     assert f["documents_withheld_from_samples"] == 1
-    assert all(json.loads(x).get("doc_id") != "d4" for x in lines)  # the suite-touching doc
+    assert all(json.loads(x).get("doc_id") not in ("d4", "d8") for x in lines)  # suite-touching docs
+    assert "शब्द7 शब्द8 शब्द9" not in "".join(lines)
     assert SUITE_SHORT not in "".join(lines)
     assert "calibration of test-slice" in (out / "SUMMARY.txt").read_text(encoding="utf-8")
 
