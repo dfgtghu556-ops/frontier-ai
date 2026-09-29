@@ -456,6 +456,17 @@ comes next. They also update the table in §3.
       Results come back in `out\data\EXP-034\NIGHT_REPORT.txt` and `evals/results/EXP-034/`.
     - Next after EXP-034: pre-register v2 build thresholds from the numbers; MinHash near-dup
       (memory-bounded) and PII scrub; build; exact token count.
+  - **Founder approved "lab dashboard option B" (2026-09-29): Lab OS at `apps/lab-os/`.** It is a
+    read-only dashboard of this repository (UI shell from his `frontier-labs-os` prototype, mock
+    data removed). It is secondary to the model work.
+    - Data: `apps/lab-os/src/data/lab_state.json`, written by `scripts/export_lab_state.py`
+      (logic `src/frontier_ai/lab_state.py`). The only hand-kept input is `lab/registry.json`
+      (step status, current work, baseline, compute, documents). The exporter rejects it if it
+      contradicts EXPERIMENTS.md / DECISIONS.md / MASTER_CONTEXT §37.
+    - **After changing EXPERIMENTS.md, DECISIONS.md, `lab/registry.json` or `evals/results/`, run
+      `python scripts/export_lab_state.py` and commit the snapshot.** `tests/test_lab_state.py`
+      fails while it is stale. When a roadmap step finishes, update its status in `lab/registry.json`.
+    - Run: `cd apps/lab-os && npm ci && npm run dev`. See `apps/lab-os/README.md`.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

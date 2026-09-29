@@ -1400,6 +1400,14 @@ HF format is the standard artifact). Plan pending founder approval.
     python scripts/run_tokenizer_sweep.py --exp-id EXP-028 --out out/experiments/EXP-028-hf-mark-aware --configs hf-mark_aware-2048,hf-mark_aware-4096,hf-mark_aware-8192,hf-mark_aware-16384,hf-mark_aware-32768
 
 then merge both runs for review: `python scripts/summarize_sweep.py --sweep-dir out/experiments/EXP-028 out/experiments/EXP-028-hf-mark-aware`. Also new: `scripts/summarize_sweep.py` — a read-only verifier + ranked summarizer for a finished sweep (per-run consistency checks, ranked table, per-language matrix, TOP-2-for-EXP-B; exit 0/1/2).
+* **Status update (2026-09-29, follow-up note; the record above is unchanged):**
+  - **Status:** complete. The PC run finished on 2026-09-26 (see "Results … COMPLETE" above:
+    15/15 grid cells + 5/5 supplement cells). Its top configurations went on to EXP-029, and
+    it closed §37 step 5 (D-038, D-039).
+  - This note exists because the status line at the top of this entry still said "in
+    progress". The Lab OS snapshot exporter (`scripts/export_lab_state.py`) reads the last
+    status line of each entry and caught the mismatch.
+
 ### EXP-029 — Tokenizer-vs-tokenizer small-model comparison (EXP-B) — MASTER_CONTEXT §37 step 6
 **Date:** 2026-09-26 · **Status:** approved (founder: "approve EXP-B"), harness delivered, PC run pending
 

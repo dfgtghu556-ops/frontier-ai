@@ -1,0 +1,336 @@
+{
+  "schema": "frontier-lab-registry-v1",
+  "purpose": "The few facts the Lab OS dashboard needs that are not machine-readable elsewhere in the repository: the status of each MASTER_CONTEXT section 37 step, the compute we have, and the key documents. Everything else in the dashboard is derived automatically from repository files by scripts/export_lab_state.py. Every entry here is cross-checked by tests/test_lab_state.py: step titles must equal MASTER_CONTEXT section 37, cited experiments/decisions must exist, a 'complete' step may only cite complete experiments and accepted decisions, and cited files must exist.",
+  "updated": "2026-09-29",
+  "roadmap_steps": [
+    {
+      "step": 1,
+      "title": "Synchronize repository documentation with actual GitHub state.",
+      "status": "complete",
+      "evidence": [],
+      "evidence_files": [
+        "NEW_CHAT_START_HERE.md"
+      ],
+      "note": ""
+    },
+    {
+      "step": 2,
+      "title": "Freeze and verify the newly acquired corpus.",
+      "status": "complete",
+      "evidence": [
+        "EXP-025",
+        "EXP-026",
+        "D-035"
+      ],
+      "evidence_files": [],
+      "note": "indic-tokenizer/v2 frozen"
+    },
+    {
+      "step": 3,
+      "title": "Build the full FoundationCorpus pipeline.",
+      "status": "complete",
+      "evidence": [
+        "D-036",
+        "D-037"
+      ],
+      "evidence_files": [
+        "src/frontier_ai/corpus/pipeline.py"
+      ],
+      "note": ""
+    },
+    {
+      "step": 4,
+      "title": "Produce FrontierCorpus v1.",
+      "status": "complete",
+      "evidence": [
+        "EXP-027"
+      ],
+      "evidence_files": [
+        "corpora/frontier/v1/manifest.json"
+      ],
+      "note": "complete at pilot scale (about 4.2M characters); scale-up is in progress under D-044"
+    },
+    {
+      "step": 5,
+      "title": "Build the production tokenizer sweep.",
+      "status": "complete",
+      "evidence": [
+        "EXP-028",
+        "D-038",
+        "D-039"
+      ],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 6,
+      "title": "Run tokenizer-vs-tokenizer small-model experiments.",
+      "status": "complete",
+      "evidence": [
+        "EXP-029"
+      ],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 7,
+      "title": "Select Frontier Tokenizer v1.",
+      "status": "complete",
+      "evidence": [
+        "D-040",
+        "EXP-030",
+        "D-041"
+      ],
+      "evidence_files": [
+        "tokenizers/frontier-tokenizer-v1/FREEZE.json"
+      ],
+      "note": "selected and frozen"
+    },
+    {
+      "step": 8,
+      "title": "Build the evaluation harness.",
+      "status": "complete",
+      "evidence": [
+        "EXP-031",
+        "D-042"
+      ],
+      "evidence_files": [
+        "evals/suites/frontier-heldout-v1/SUITE.json"
+      ],
+      "note": ""
+    },
+    {
+      "step": 9,
+      "title": "Run architecture ablations.",
+      "status": "complete",
+      "evidence": [
+        "EXP-032",
+        "EXP-033",
+        "D-043"
+      ],
+      "evidence_files": [],
+      "note": "toy scale; no change adopted; RoPE + GQA-2 is the first step-11 candidate"
+    },
+    {
+      "step": 10,
+      "title": "Bring up actual GPU training.",
+      "status": "next",
+      "evidence": [
+        "D-043"
+      ],
+      "evidence_files": [
+        "GPU_COLLABORATOR_START_HERE.md"
+      ],
+      "note": "waiting for GPU access and a founder-approved plan"
+    },
+    {
+      "step": 11,
+      "title": "Run scaling experiments.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 12,
+      "title": "Train the first serious Frontier base model.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 13,
+      "title": "Validate distributed training.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 14,
+      "title": "Scale pretraining based on evidence.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 15,
+      "title": "Evaluate extensively.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 16,
+      "title": "SFT.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 17,
+      "title": "Preference optimization.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 18,
+      "title": "Reasoning.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 19,
+      "title": "Safety.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 20,
+      "title": "Inference optimization.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 21,
+      "title": "Multimodal.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 22,
+      "title": "Tools/agents.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 23,
+      "title": "Specialist ecosystem.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    },
+    {
+      "step": 24,
+      "title": "Frontier research and larger-scale models.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": ""
+    }
+  ],
+  "current_work": [
+    {
+      "title": "Data scale-up phase 1: Sangraha Verified slice 1 (download + inspect, filters nothing)",
+      "evidence": [
+        "EXP-034",
+        "D-044"
+      ],
+      "evidence_files": [
+        "corpora/frontier/v2/sangraha_slice1.json",
+        "scripts/run_data_night.ps1"
+      ],
+      "note": "runs overnight on the founder's laptop"
+    }
+  ],
+  "baseline_model": {
+    "model": "EXP-031/mark_aware-32768",
+    "evidence": [
+      "D-042",
+      "D-043"
+    ],
+    "note": "the reference every new candidate is compared against; D-043 makes this architecture the step-10 bring-up baseline"
+  },
+  "compute": [
+    {
+      "id": "founder-laptop",
+      "label": "Founder's laptop",
+      "kind": "cpu",
+      "status": "in_use",
+      "detail": "Intel i3-4030U, 2 cores / 4 threads, CPU only (integrated GPU not usable for training)",
+      "evidence_files": [
+        "NEW_CHAT_START_HERE.md",
+        "PC_TASK_ARCH_EXP033.md"
+      ],
+      "measured_environment_from": "evals/results/EXP-031/mark_aware-32768-seed-1337/report.json"
+    },
+    {
+      "id": "gpu-collaborator",
+      "label": "Collaborator's GPU machine",
+      "kind": "gpu",
+      "status": "not_available_yet",
+      "detail": "NVIDIA RTX card; exact model and VRAM NOT VERIFIED (waiting for scripts/gpu_env_report.py output)",
+      "evidence_files": [
+        "GPU_COLLABORATOR_START_HERE.md",
+        "scripts/gpu_env_report.py"
+      ],
+      "measured_environment_from": null
+    },
+    {
+      "id": "cloud-gpus",
+      "label": "Rented cloud GPUs",
+      "kind": "gpu",
+      "status": "planned",
+      "detail": "needed from step 10 onward for real training; nothing rented, no cost committed",
+      "evidence_files": [
+        "ROADMAP.md"
+      ],
+      "measured_environment_from": null
+    }
+  ],
+  "documents": [
+    {
+      "path": "NEW_CHAT_START_HERE.md",
+      "title": "Start here (handover and status log)"
+    },
+    {
+      "path": "MASTER_CONTEXT.md",
+      "title": "Master context: mission, method, 24-step roadmap"
+    },
+    {
+      "path": "ROADMAP.md",
+      "title": "Roadmap (narrative, stages)"
+    },
+    {
+      "path": "EXPERIMENTS.md",
+      "title": "Experiment log"
+    },
+    {
+      "path": "DECISIONS.md",
+      "title": "Decision log"
+    },
+    {
+      "path": "docs/frontier_corpus_v1.md",
+      "title": "FrontierCorpus v1 (pilot corpus)"
+    },
+    {
+      "path": "docs/frontier_corpus_v2_sources.md",
+      "title": "FrontierCorpus v2 source survey and data-rights options"
+    },
+    {
+      "path": "docs/tokenization.md",
+      "title": "Tokenization research"
+    },
+    {
+      "path": "GPU_COLLABORATOR_START_HERE.md",
+      "title": "Guide for the GPU collaborator"
+    }
+  ]
+}

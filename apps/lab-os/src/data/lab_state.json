@@ -1,0 +1,2407 @@
+{
+  "schema": "frontier-lab-state-v1",
+  "repository": {
+    "url": "https://github.com/dfgtghu556-ops/frontier-ai",
+    "branch": "arena/01a0dc16-frontier-ai"
+  },
+  "source_digest": "1ffa86fe8144bdddbcf2065e5b9b5411c6cfce25b8425aadf3e94f1b315b470c",
+  "sources": {
+    "EXPERIMENTS.md": "eefa74ab84c66d12ec0b2f5695366f899c3a69518e978757a4b7f9e63f9fb885",
+    "DECISIONS.md": "09bd64fc4c4029b1bdf15366c78ca2d92b04948f0afc6580553e1bedbeeb7ec7",
+    "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
+    "lab/registry.json": "c2a6570fdda5aaeb97d8a0537508e57154289a9d0865e0930460fc883c979148",
+    "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
+    "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
+    "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
+    "evals/suites/frontier-heldout-v1/SUITE.json": "043c1b7ee2a52e2889e645969a44cf19eb5b3c1c84d645b66249a8628eb6e572",
+    "evals/results/EXP-031/mark_aware-16384-seed-1337/report.json": "5fd0a909440057bf1b72f379701a84d4f93ec40971ffa13ae9d20092f8072ee5",
+    "evals/results/EXP-031/mark_aware-16384-seed-1338/report.json": "59b04fbd3bcef0c1e1ddb37422b358ac503839d938c6d87bcfd966446ecae10f",
+    "evals/results/EXP-031/mark_aware-16384-seed-1339/report.json": "2434ea8e8e39605cf8a5f4893c0e16e955273d3c6e57340eff2ffe8467ef8815",
+    "evals/results/EXP-031/mark_aware-32768-seed-1337/report.json": "74cc3f4c4951d273f7b4252824f871386d8b69b27678d8e88ec5f4fce37fd447",
+    "evals/results/EXP-031/mark_aware-32768-seed-1338/report.json": "4a02f7f0d9e9f751da7b969efa8494a2f03b848cb528139754c1b6492326f5d6",
+    "evals/results/EXP-031/mark_aware-32768-seed-1339/report.json": "45495b6143f01b882e42422d246c38f177cff27c3a73e8c354f6f665a6f3a500",
+    "evals/results/EXP-032/summary.json": "930299a19de6630ad5badf97d685f589b757a536d07326b669a44f6912419cfa",
+    "evals/results/EXP-033/summary.json": "c0d62d1864324365751d73632b03206352e7d608784879932a95e89e5b44ce76"
+  },
+  "roadmap": [
+    {
+      "step": 1,
+      "title": "Synchronize repository documentation with actual GitHub state.",
+      "status": "complete",
+      "evidence": [],
+      "evidence_files": [
+        "NEW_CHAT_START_HERE.md"
+      ],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 2,
+      "title": "Freeze and verify the newly acquired corpus.",
+      "status": "complete",
+      "evidence": [
+        "EXP-025",
+        "EXP-026",
+        "D-035"
+      ],
+      "evidence_files": [],
+      "note": "indic-tokenizer/v2 frozen",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1185",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1256",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1008"
+      ]
+    },
+    {
+      "step": 3,
+      "title": "Build the full FoundationCorpus pipeline.",
+      "status": "complete",
+      "evidence": [
+        "D-036",
+        "D-037"
+      ],
+      "evidence_files": [
+        "src/frontier_ai/corpus/pipeline.py"
+      ],
+      "note": "",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1057",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1098"
+      ]
+    },
+    {
+      "step": 4,
+      "title": "Produce FrontierCorpus v1.",
+      "status": "complete",
+      "evidence": [
+        "EXP-027"
+      ],
+      "evidence_files": [
+        "corpora/frontier/v1/manifest.json"
+      ],
+      "note": "complete at pilot scale (about 4.2M characters); scale-up is in progress under D-044",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1282"
+      ]
+    },
+    {
+      "step": 5,
+      "title": "Build the production tokenizer sweep.",
+      "status": "complete",
+      "evidence": [
+        "EXP-028",
+        "D-038",
+        "D-039"
+      ],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1318",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1155",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1219"
+      ]
+    },
+    {
+      "step": 6,
+      "title": "Run tokenizer-vs-tokenizer small-model experiments.",
+      "status": "complete",
+      "evidence": [
+        "EXP-029"
+      ],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1411"
+      ]
+    },
+    {
+      "step": 7,
+      "title": "Select Frontier Tokenizer v1.",
+      "status": "complete",
+      "evidence": [
+        "D-040",
+        "EXP-030",
+        "D-041"
+      ],
+      "evidence_files": [
+        "tokenizers/frontier-tokenizer-v1/FREEZE.json"
+      ],
+      "note": "selected and frozen",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1256",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1552",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1307"
+      ]
+    },
+    {
+      "step": 8,
+      "title": "Build the evaluation harness.",
+      "status": "complete",
+      "evidence": [
+        "EXP-031",
+        "D-042"
+      ],
+      "evidence_files": [
+        "evals/suites/frontier-heldout-v1/SUITE.json"
+      ],
+      "note": "",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1619",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1341"
+      ]
+    },
+    {
+      "step": 9,
+      "title": "Run architecture ablations.",
+      "status": "complete",
+      "evidence": [
+        "EXP-032",
+        "EXP-033",
+        "D-043"
+      ],
+      "evidence_files": [],
+      "note": "toy scale; no change adopted; RoPE + GQA-2 is the first step-11 candidate",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1750",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1876",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1386"
+      ]
+    },
+    {
+      "step": 10,
+      "title": "Bring up actual GPU training.",
+      "status": "next",
+      "evidence": [
+        "D-043"
+      ],
+      "evidence_files": [
+        "GPU_COLLABORATOR_START_HERE.md"
+      ],
+      "note": "waiting for GPU access and a founder-approved plan",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1386"
+      ]
+    },
+    {
+      "step": 11,
+      "title": "Run scaling experiments.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 12,
+      "title": "Train the first serious Frontier base model.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 13,
+      "title": "Validate distributed training.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 14,
+      "title": "Scale pretraining based on evidence.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 15,
+      "title": "Evaluate extensively.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 16,
+      "title": "SFT.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 17,
+      "title": "Preference optimization.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 18,
+      "title": "Reasoning.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 19,
+      "title": "Safety.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 20,
+      "title": "Inference optimization.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 21,
+      "title": "Multimodal.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 22,
+      "title": "Tools/agents.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 23,
+      "title": "Specialist ecosystem.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    },
+    {
+      "step": 24,
+      "title": "Frontier research and larger-scale models.",
+      "status": "not_started",
+      "evidence": [],
+      "evidence_files": [],
+      "note": "",
+      "evidence_links": []
+    }
+  ],
+  "current_work": [
+    {
+      "title": "Data scale-up phase 1: Sangraha Verified slice 1 (download + inspect, filters nothing)",
+      "evidence": [
+        "EXP-034",
+        "D-044"
+      ],
+      "evidence_files": [
+        "corpora/frontier/v2/sangraha_slice1.json",
+        "scripts/run_data_night.ps1"
+      ],
+      "note": "runs overnight on the founder's laptop"
+    }
+  ],
+  "experiments": [
+    {
+      "id": "EXP-001",
+      "title": "CPU smoke test: end-to-end pipeline verification",
+      "date": "2026-09-10",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "verify that the full pipeline (prepare → train → evaluate → checkpoint → resume → sample) works, and that a randomly-initialized model actually learns on a structured corpus.",
+      "decisions": [],
+      "line": 112,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L112"
+    },
+    {
+      "id": "EXP-002",
+      "title": "Tokenizer baselines on the Indian-language probe fixture",
+      "date": "2026-09-10",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "stand up the tokenizer research framework and take first measurements: compare character, word and byte-level BPE tokenizers on the same deterministic probe fixture, and check whether the framework can actually distinguish them.",
+      "decisions": [
+        "D-021",
+        "D-022"
+      ],
+      "line": 191,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L191"
+    },
+    {
+      "id": "EXP-003",
+      "title": "Experiment infrastructure: does the provenance system actually reproduce runs?",
+      "date": "2026-09-10",
+      "status": "complete (infrastructure verification)",
+      "category": "complete",
+      "step": null,
+      "summary": "verify that the Project 003 experiment infrastructure (ROADMAP Stage 1) captures code, data, configuration, seed, environment and command faithfully, that two identical runs produce identical results and identical record fingerprints, and that failures are recorded rather than swallowed.",
+      "decisions": [
+        "D-025",
+        "D-026"
+      ],
+      "line": 288,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L288"
+    },
+    {
+      "id": "EXP-004",
+      "title": "Multi-seed sweeps: does the aggregate reproduce, and does it report spread honestly?",
+      "date": "2026-09-10",
+      "status": "complete (infrastructure verification)",
+      "category": "complete",
+      "step": null,
+      "summary": "verify the Stage 1A multi-seed sweep: that one specification executed across several seeds keeps a full record per seed, aggregates a metric as mean ± spread, is independent of seed order, reproduces when repeated, and reports failures without hiding them.",
+      "decisions": [
+        "D-026"
+      ],
+      "line": 395,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L395"
+    },
+    {
+      "id": "EXP-005",
+      "title": "Multi-configuration sweeps: do two configurations separate, and does the sweep reproduce?",
+      "date": "2026-09-10",
+      "status": "complete (infrastructure verification)",
+      "category": "complete",
+      "step": null,
+      "summary": "verify the Stage 1B extension: several named configurations, each run across the same seeds, keeping one full record per configuration × seed, aggregating each configuration separately, and refusing to mix configurations — with order independence, reproducibility, and the existing explicit failure semantics intact.",
+      "decisions": [
+        "D-026",
+        "D-028"
+      ],
+      "line": 527,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L527"
+    },
+    {
+      "id": "EXP-006",
+      "title": "Bits per byte: does per-token loss misrank two tokenizations of the same text?",
+      "date": "2026-09-10",
+      "status": "complete (metric verification)",
+      "category": "complete",
+      "step": null,
+      "summary": "verify Project 003 Stage 1 item 2: loss is now reported per byte and per character as well as per token, the byte/character counts are measured and exact rather than estimated, and a corpus without them says null instead of guessing.",
+      "decisions": [],
+      "line": 654,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L654"
+    },
+    {
+      "id": "EXP-007",
+      "title": "CLIs that record themselves: one record, metrics preserved, stable thread provenance",
+      "date": "2026-09-11",
+      "status": "complete (infrastructure verification)",
+      "category": "complete",
+      "step": null,
+      "summary": "verify Project 003 Stage 1 item 4 (and the two audit findings it closed): (a) scripts/train.py and scripts/tokenizer_*.py write the standard record when run directly; (b) a run that is wrapped or swept produces exactly one record, owned by the outer run; (c) the swept CLI's structured metrics (best_val) still reach …",
+      "decisions": [
+        "D-026",
+        "D-031",
+        "D-034"
+      ],
+      "line": 922,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L922"
+    },
+    {
+      "id": "EXP-018",
+      "title": "P004B: fetch all 55 tokenizer corpus sources (indic-tokenizer/v2)",
+      "date": "2026-09-25",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "Download and verify all declared sources for indic-tokenizer/v2, generating baseline hashes and coverage report",
+      "decisions": [],
+      "line": 1009,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1009"
+    },
+    {
+      "id": "EXP-019",
+      "title": "P004B: lock all 55 tokenizer corpus sources (indic-tokenizer/v2)",
+      "date": "2026-09-25",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "Write cryptographic hashes for all verified sources to manifest, establishing the locked baseline",
+      "decisions": [],
+      "line": 1047,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1047"
+    },
+    {
+      "id": "EXP-020",
+      "title": "P004B: research Marathi and Urdu source candidates",
+      "date": "2026-09-25",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "Identify lawful, sufficiently proofread Wikisource works for the remaining Marathi and Urdu tokenizer slots.",
+      "decisions": [],
+      "line": 1084,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1084"
+    },
+    {
+      "id": "EXP-021",
+      "title": "P004B: first fetch of Marathi and Urdu scan ranges",
+      "date": "2026-09-26",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "Confirm the four declared scan ranges fetch, pass live rights verification and reach the corpus targets.",
+      "decisions": [],
+      "line": 1099,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1099"
+    },
+    {
+      "id": "EXP-022",
+      "title": "P004B: repair and re-fetch Marathi and Urdu scan ranges",
+      "date": "2026-09-26",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "Verify narrow, evidence-based Urdu cleanup and confirm Marathi/Urdu coverage without changing any earlier locked source.",
+      "decisions": [],
+      "line": 1121,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1121"
+    },
+    {
+      "id": "EXP-023",
+      "title": "P004B: lock Marathi and Urdu scan ranges",
+      "date": "2026-09-26",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "Lock the four reviewed Marathi and Urdu sources from a fresh fetch without changing any of the 55 existing fingerprints.",
+      "decisions": [],
+      "line": 1145,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1145"
+    },
+    {
+      "id": "EXP-024",
+      "title": "P004B: complete the real tokenizer research corpus",
+      "date": "2026-09-26",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "Close P004B with auditable coverage, legal-source and fingerprint status for all 14 language slots.",
+      "decisions": [],
+      "line": 1166,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1166"
+    },
+    {
+      "id": "EXP-025",
+      "title": "Freeze and verify indic-tokenizer/v2 (MASTER_CONTEXT §37 step 2)",
+      "date": "2026-09-26",
+      "status": "complete (corpus definition frozen; one live check intentionally out of reach, recorded below)",
+      "category": "complete",
+      "step": 2,
+      "summary": "freeze indic-tokenizer/v2 at the state P004B locked (EXP-018…EXP-024), and verify that freeze from the committed repository state: every pin present and well-formed, every pin consistent with the independent inspection report, the recorded coverage totals correct, and the test suite green.",
+      "decisions": [
+        "D-035"
+      ],
+      "line": 1185,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1185"
+    },
+    {
+      "id": "EXP-026",
+      "title": "Live freshness re-fetch of frozen indic-tokenizer/v2",
+      "date": "2026-09-26",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "confirm from a network-enabled machine that each of the 59 pinned source texts still matches the frozen EXP-023 fingerprint.",
+      "decisions": [],
+      "line": 1256,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1256"
+    },
+    {
+      "id": "EXP-027",
+      "title": "FrontierCorpus v1 frozen-corpus pilot",
+      "date": "2026-09-26",
+      "status": "complete",
+      "category": "complete",
+      "step": null,
+      "summary": "build and verify the FrontierCorpus v1 pilot from the frozen indic-tokenizer/v2 corpus, without fetching or changing sources.",
+      "decisions": [],
+      "line": 1282,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1282"
+    },
+    {
+      "id": "EXP-028",
+      "title": "Production tokenizer sweep (EXP-A) — MASTER_CONTEXT §37 step 5",
+      "date": "2026-09-26",
+      "status": "complete. The PC run finished on 2026-09-26 (see \"Results … COMPLETE\" above:",
+      "category": "complete",
+      "step": 5,
+      "summary": "train the approved 15-configuration grid on FrontierCorpus v1, gate every configuration on losslessness (exact round-trip of EVERY train and held-out document), and score the held-out side with model-free token-density metrics. No tokenizer is selected by this experiment — the top-2 hand-off to EXP-B (small model, ≥ 3 …",
+      "decisions": [
+        "D-032",
+        "D-038",
+        "D-039"
+      ],
+      "line": 1318,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1318"
+    },
+    {
+      "id": "EXP-029",
+      "title": "Tokenizer-vs-tokenizer small-model comparison (EXP-B) — MASTER_CONTEXT §37 step 6",
+      "date": "2026-09-26",
+      "status": "complete. The selection becomes D-040 — Frontier Tokenizer v1 only",
+      "category": "complete",
+      "step": 6,
+      "summary": "EXP-028 (EXP-A) measured token density model-free. EXP-B answers the remaining question before a selection: given the same small model, same data, same budget, same seeds — which tokenizer's token sequence yields the better held-out bits-per-byte (lower = better)? Per D-038, the tokenizer is selected after this …",
+      "decisions": [
+        "D-032",
+        "D-038",
+        "D-040"
+      ],
+      "line": 1411,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1411"
+    },
+    {
+      "id": "EXP-030",
+      "title": "Freeze Frontier Tokenizer v1 (D-040 follow-up)",
+      "date": "2026-09-27",
+      "status": "complete → D-041 (Frontier Tokenizer v1 frozen; change policy).",
+      "category": "complete",
+      "step": null,
+      "summary": "the D-040 tokenizer existed only on the founder's PC, under git-ignored out/. EXP-030 moves it into a tracked, hash-verified location and proves the copy is the exact artifact that won EXP-B, so every downstream consumer (evaluation harness, training) loads one provable object instead of a loose path.",
+      "decisions": [
+        "D-040",
+        "D-041"
+      ],
+      "line": 1552,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1552"
+    },
+    {
+      "id": "EXP-031",
+      "title": "Evaluation harness v1: full held-out re-evaluation of the EXP-B models (MASTER_CONTEXT §37 step 8)",
+      "date": "2026-09-27",
+      "status": "complete → D-042.",
+      "category": "complete",
+      "step": 8,
+      "summary": "EXP-029's bits-per-byte figures were training-time sampled estimates (51,200 of the ~184k held-out tokens). Step 8 needs a harness that scores every held-out token under identical, recorded conditions, so model comparisons (the D-040 tokenizer evidence first; architecture ablations later, with approval) rest on exact …",
+      "decisions": [
+        "D-040",
+        "D-042"
+      ],
+      "line": 1619,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1619"
+    },
+    {
+      "id": "EXP-032",
+      "title": "Step 9 architecture screening v1 (MASTER_CONTEXT §37 step 9)",
+      "date": "2026-09-27",
+      "status": "complete. D-043 is deferred: under the pre-registered adoption rule no",
+      "category": "complete",
+      "step": 9,
+      "summary": "before any GPU money is spent (steps 10–12), choose a provisional architecture for the first GPU bring-up from measured evidence on our own data and tokenizer, instead of copying a popular design. Each change is tested one at a time on the fixed EXP-B model and graded by harness v1 (D-042).",
+      "decisions": [
+        "D-042",
+        "D-043"
+      ],
+      "line": 1750,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1750"
+    },
+    {
+      "id": "EXP-033",
+      "title": "Step 9 architecture confirmation at two higher learning rates (MASTER_CONTEXT §37 step 9)",
+      "date": "2026-09-28",
+      "status": "complete. D-043 is proposed, pending founder review. It is recorded in",
+      "category": "complete",
+      "step": 9,
+      "summary": "EXP-032 was LR-CONFOUNDED (lr 6e-3 improved the seed-1337 baseline by 0.0571 bpb, more than the seed spread), so its verdicts at lr 3e-3 may reflect the learning rate rather than the architecture. EXP-033 re-tests the EXP-032 candidates as one combined architecture at two higher learning rates and adopts a change only …",
+      "decisions": [
+        "D-040",
+        "D-042",
+        "D-043"
+      ],
+      "line": 1876,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L1876"
+    },
+    {
+      "id": "EXP-034",
+      "title": "Sangraha Verified slice 1: acquire and inspect before any filtering (D-044; data scale-up phase 1)",
+      "date": "2026-09-29",
+      "status": "pre-registered; code built and tested (sandbox); PC night run",
+      "category": "planned",
+      "step": null,
+      "summary": "a model that can compete with the best needs far more high-quality Indic text than the 4.2M-character v1 pilot. D-044 approves Sangraha Verified (CC-BY-4.0) as the first large source. Before any filter threshold is chosen, we measure what the files actually contain — so every later cleaning rule is justified by …",
+      "decisions": [
+        "D-036",
+        "D-044"
+      ],
+      "line": 2017,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2017"
+    }
+  ],
+  "experiment_numbers_not_in_log": [
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ],
+  "decisions": [
+    {
+      "id": "D-001",
+      "title": "Train from random initialization; do not wrap someone else's model",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Foundation models are trained by us from random initialization. Our weights, our tokenizer, our data recipe.",
+      "experiments": [],
+      "line": 12,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L12"
+    },
+    {
+      "id": "D-002",
+      "title": "PyTorch is the core framework",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "PyTorch (with NumPy for data plumbing) is the implementation framework.",
+      "experiments": [],
+      "line": 35,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L35"
+    },
+    {
+      "id": "D-003",
+      "title": "CPU-first development, GPU-ready code, one device-agnostic path",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Default configs are small enough to train in seconds on 2 CPU cores. Device, autocast dtype, and GradScaler policy are resolved once at runtime in src/frontier_ai/utils/device.py (cuda → mps → cpu; bf16 if supported, else fp16, else fp32). No if cuda: branches in the model or training loop.",
+      "experiments": [],
+      "line": 56,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L56"
+    },
+    {
+      "id": "D-004",
+      "title": "Config-driven, modular architecture",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Hyperparameters live in dataclasses (config.py) with validation in __post_init__, serialized as JSON, overridable from the CLI via --set section.key=value. Packages are split by responsibility: data/, model/, engine/, utils/.",
+      "experiments": [],
+      "line": 80,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L80"
+    },
+    {
+      "id": "D-005",
+      "title": "Standard modern architecture, implemented from scratch",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Decoder-only transformer with pre-norm blocks, RMSNorm, SwiGLU FFN, tied embeddings, no biases, scaled_dot_product_attention, optional RoPE and grouped-query attention, KV-cached sampling.",
+      "experiments": [],
+      "line": 103,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L103"
+    },
+    {
+      "id": "D-006",
+      "title": "Research repository is separate from the Lovable control-center UI",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "This repository holds research and training code only. The product control-center UI lives in Lovable and is not in this repository.",
+      "experiments": [],
+      "line": 128,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L128"
+    },
+    {
+      "id": "D-007",
+      "title": "No proprietary model API in the core model path",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Third-party model APIs may be used for tooling, data-generation assistance, and evaluation baselines. They must never be the core model intelligence of a product we present as ours.",
+      "experiments": [],
+      "line": 150,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L150"
+    },
+    {
+      "id": "D-008",
+      "title": "Tests and reproducibility are part of the deliverable, not optional extras",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Behavior changes ship with tests. Every run records its config, seed, data version, environment, and metrics. Two bugs found during Project 001 (loss summed instead of averaged over accumulation steps; --set flags overwriting each other) got permanent regression tests.",
+      "experiments": [],
+      "line": 170,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L170"
+    },
+    {
+      "id": "D-009",
+      "title": "Incremental research; no premature scaling",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Explicitly out of scope until earlier stages are complete: 7B/70B training, RLHF/preference optimization, multimodality, agents, and frontier-scale training. Model size is an output of experiments, never a target set in advance.",
+      "experiments": [],
+      "line": 192,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L192"
+    },
+    {
+      "id": "D-010",
+      "title": "Char/word tokenizer now; trained BPE later",
+      "date": "2026-09-10",
+      "status": "provisional",
+      "category": "provisional",
+      "summary": "Ship CharTokenizer and WordTokenizer (both JSON-serializable, behind a shared interface). Defer a trained BPE/Unigram tokenizer to Stage 2.",
+      "experiments": [],
+      "line": 213,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L213"
+    },
+    {
+      "id": "D-011",
+      "title": "Synthetic corpus as the default smoke-test data",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "data/synthetic.py generates a deterministic pseudo-English corpus from a small grammar; it is the default data for smoke tests and CI.",
+      "experiments": [],
+      "line": 237,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L237"
+    },
+    {
+      "id": "D-012",
+      "title": "Dependency-light: torch + NumPy only",
+      "date": "2026-09-10",
+      "status": "provisional",
+      "category": "provisional",
+      "summary": "Runtime dependencies are torch and numpy. Configs are JSON (no PyYAML). No experiment tracker yet. Dev extras: pytest, ruff.",
+      "experiments": [],
+      "line": 258,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L258"
+    },
+    {
+      "id": "D-013",
+      "title": "CI workflow shipped as docs/ci.yml.example, not .github/workflows/",
+      "date": "2026-09-10",
+      "status": "accepted (constraint-driven)",
+      "category": "accepted",
+      "summary": "The GitHub Actions workflow is committed as docs/ci.yml.example and enabled with mkdir -p .github/workflows && cp docs/ci.yml.example .github/workflows/ci.yml.",
+      "experiments": [],
+      "line": 283,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L283"
+    },
+    {
+      "id": "D-014",
+      "title": "Device, dtype, and GradScaler policy resolved in one place",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "utils/device.py owns device selection (resolve_device), precision policy (resolve_spec), and thread counts (threads_for). Trainer consumes a DeviceSpec; GradScaler is enabled only for fp16 on CUDA (bf16 and fp32 need none).",
+      "experiments": [],
+      "line": 304,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L304"
+    },
+    {
+      "id": "D-015",
+      "title": "Checkpoint = a self-describing directory",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Each checkpoint directory contains model.pt (weights only, fp32 master), optimizer.pt (optimizer + scheduler state), config.json (full experiment config), and meta.json (step, best_val, tokens_seen, n_params, torch version, timestamp). Runs also write train.jsonl and the resolved config at the run root.",
+      "experiments": [],
+      "line": 323,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L323"
+    },
+    {
+      "id": "D-016",
+      "title": "MIT license",
+      "date": "2026-09-10",
+      "status": "provisional",
+      "category": "provisional",
+      "summary": "Code is MIT-licensed.",
+      "experiments": [],
+      "line": 347,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L347"
+    },
+    {
+      "id": "D-017",
+      "title": "One branch per Arena session; changes land via PR; no direct pushes to main",
+      "date": "2026-09-10",
+      "status": "accepted (workflow constraint)",
+      "category": "accepted",
+      "summary": "Work happens on the session branch (currently arena/01a08a78-frontier-ai), is pushed there, and is reviewed as a PR against main. Agents must not create other branches, merge PRs, or push to main.",
+      "experiments": [],
+      "line": 366,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L366"
+    },
+    {
+      "id": "D-018",
+      "title": "Subword baseline: HuggingFace tokenizers BPE, with our own BPE as a dependency-free reference",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "The baseline subword tokenizer is byte-level BPE via the HuggingFace tokenizers package (0.23.2, Apache-2.0), installed as an optional extra (pip install \".[tokenizer]\"). In parallel we implement and maintain our own byte-level BPE (bpe_python) with no dependencies.",
+      "experiments": [],
+      "line": 388,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L388"
+    },
+    {
+      "id": "D-019",
+      "title": "Tokenizers are pluggable via an interface + registry",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "All tokenizers implement SubwordTokenizer (train / encode / decode / vocab_size / special tokens / save / load) and register by name in registry.py. New implementations are added without touching the evaluator, comparator, or CLIs. The Project 001 char/word tokenizers are wrapped by adapters rather than modified.",
+      "experiments": [],
+      "line": 415,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L415"
+    },
+    {
+      "id": "D-020",
+      "title": "Research corpus: deterministic, hash-verified, ours, and explicitly a fixture",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Tokenizer experiments use corpora generated by our own code (tokenization/corpus.py): deterministic training text plus a hand-written evaluation fixture (179 probes, 14 languages + 9 orthography categories). The loader verifies the fixture sha256 against the manifest and refuses to run on a modified corpus. No …",
+      "experiments": [],
+      "line": 439,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L439"
+    },
+    {
+      "id": "D-021",
+      "title": "No production tokenizer is selected by Project 002",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Project 002 builds the framework and reports first measurements (EXP-002). It does not designate a production tokenizer, and EXP-002 must not be cited as evidence for one.",
+      "experiments": [
+        "EXP-002"
+      ],
+      "line": 464,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L464"
+    },
+    {
+      "id": "D-022",
+      "title": "Losslessness is a gate, not a metric",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "A tokenizer with any round-trip failure (decode(encode(x)) != x) is disqualified from \"best\" in comparisons and is reported separately, regardless of its compression numbers.",
+      "experiments": [],
+      "line": 486,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L486"
+    },
+    {
+      "id": "D-023",
+      "title": "Source code must never be git-ignored; artifact rules are anchored",
+      "date": "2026-09-10",
+      "status": "accepted",
+      "category": "accepted",
+      "summary": "Ignore rules for generated artifacts are written anchored to the repository root (/data/, /out/, /artifacts/), and tests/test_repo_hygiene.py fails the build if any .py file under src/, scripts/ or tests/ is untracked or matched by git check-ignore.",
+      "experiments": [],
+      "line": 508,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L508"
+    },
+    {
+      "id": "D-024",
+      "title": "One provenance mechanism, no new dependencies",
+      "date": "2026-09-10",
+      "status": "accepted (2026-09-10, Project 003)",
+      "category": "accepted",
+      "summary": "Experiment infrastructure lives in src/frontier_ai/experiments/ and is stdlib-only apart from the torch/numpy Project 001 already requires. Data hashing re-exports sha256_file/sha256_text from frontier_ai.tokenization.corpus (Project 002) rather than re-implementing them, and seeding goes through the existing …",
+      "experiments": [],
+      "line": 535,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L535"
+    },
+    {
+      "id": "D-025",
+      "title": "Reproducibility claims are bounded by the recorded environment",
+      "date": "2026-09-10",
+      "status": "accepted (2026-09-10, Project 003)",
+      "category": "accepted",
+      "summary": "The system claims reproducibility under the recorded environment, never bit-identity across machines, library versions or thread counts. Known limits (cuDNN nondeterminism, thread-dependent FP summation order, version sensitivity, RNGs outside python/numpy/torch) are stored in every record as randomness.limitations …",
+      "experiments": [],
+      "line": 564,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L564"
+    },
+    {
+      "id": "D-026",
+      "title": "Dirty trees and missing git are recorded, never hidden or guessed",
+      "date": "2026-09-10",
+      "status": "accepted (2026-09-10, Project 003)",
+      "category": "accepted",
+      "summary": "Git provenance captures commit, branch, dirty flag, up to 50 dirty paths, commit subject and remote. A dirty tree sets reproducible_from_commit=false and prints a warning, but the run proceeds and is recorded. If git is unavailable (not a repository, no commits, git binary missing, timeout), the record stores …",
+      "experiments": [],
+      "line": 590,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L590"
+    },
+    {
+      "id": "D-027",
+      "title": "Environment provenance is a selected field set, never an environment dump",
+      "date": "2026-09-10",
+      "status": "accepted (2026-09-10, Project 003; implemented since Stage 1 and recorded here",
+      "category": "accepted",
+      "summary": "capture_environment() records a deliberately small, stable set of fields: python version and implementation, platform/system/release/machine, the versions of the packages that can plausibly change a numerical result (torch, numpy, tokenizers, frontier-ai), and a torch section (version, CUDA availability, device count …",
+      "experiments": [],
+      "line": 617,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L617"
+    },
+    {
+      "id": "D-028",
+      "title": "Multi-seed sweeps: one record per seed, sample standard deviation as spread",
+      "date": "2026-09-10",
+      "status": "accepted (2026-09-10, Project 003 Stage 1A)",
+      "category": "accepted",
+      "summary": "A sweep (src/frontier_ai/experiments/sweep.py, scripts/experiment_sweep.py) runs one ExperimentSpec across an explicit list of seeds and writes both one normal experiment record per seed (seed-<seed>/experiment.json, with full git/data/environment/configuration provenance and its own content fingerprint) and an …",
+      "experiments": [],
+      "line": 649,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L649"
+    },
+    {
+      "id": "D-029",
+      "title": "Multi-configuration sweeps: one record per configuration × seed, never a mixed aggregate",
+      "date": "2026-09-10",
+      "status": "accepted (2026-09-10, Project 003 Stage 1B)",
+      "category": "accepted",
+      "summary": "A sweep may take named configurations in addition to a seed list (run_sweep(..., configurations={\"lr_low\": {\"params\": {\"lr\": 0.005}}, …}), scripts/experiment_sweep.py --configs NAME:key=value). Specifically:",
+      "experiments": [
+        "EXP-004"
+      ],
+      "line": 698,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L698"
+    },
+    {
+      "id": "D-030",
+      "title": "Loss is reported per token and per byte; byte counts are recorded at prepare time",
+      "date": "2026-09-10",
+      "status": "accepted (2026-09-10, Project 003 Stage 1, item 2)",
+      "category": "accepted",
+      "summary": "Experiment and CLI output report the validation loss in four forms, and the corpus carries the denominators needed for the last two:",
+      "experiments": [],
+      "line": 751,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L751"
+    },
+    {
+      "id": "D-031",
+      "title": "Real smoke corpora: a licensed manifest with hashes pinned only after a verified fetch",
+      "date": "2026-09-10",
+      "status": "accepted (2026-09-10, Project 003 Stage 1, item 3)",
+      "category": "accepted",
+      "summary": "The repository gains a second smoke fixture next to the synthetic generator: real text with a recorded licence, described by a manifest and acquired by a script. Specifically:",
+      "experiments": [],
+      "line": 816,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L816"
+    },
+    {
+      "id": "D-032",
+      "title": "Experiment-record ownership: the outer run owns the record, and scripts record themselves by default",
+      "date": "2026-09-11",
+      "status": "accepted (2026-09-11, Project 003 Stage 1, item 4)",
+      "category": "accepted",
+      "summary": "the Project 001/002 CLIs (scripts/train.py, scripts/tokenizer_*.py) write their own standard experiment record through the existing lifecycle — no second framework — with these two rules:",
+      "experiments": [
+        "EXP-000"
+      ],
+      "line": 877,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L877"
+    },
+    {
+      "id": "D-033",
+      "title": "An experiment record inside an input directory is not part of that input's digest",
+      "date": "2026-09-11",
+      "status": "accepted (2026-09-11, Project 003 Stage 1, item 4)",
+      "category": "accepted",
+      "summary": "when hashing a directory of experiment inputs, the files a recorded run writes (experiment.json, experiment.txt) are skipped. A record named explicitly in data_paths is still hashed — that is declared intent.",
+      "experiments": [],
+      "line": 923,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L923"
+    },
+    {
+      "id": "D-034",
+      "title": "A nested run publishes its metrics; the body owns torch's thread count",
+      "date": "2026-09-11",
+      "status": "accepted (2026-09-11, Project 003 Stage 1, fixes F-1 and F-2/Q-13 from the final",
+      "category": "accepted",
+      "summary": "",
+      "experiments": [],
+      "line": 951,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L951"
+    },
+    {
+      "id": "D-035",
+      "title": "indic-tokenizer/v2 is frozen at its locked state; changes mean a new version",
+      "date": "2026-09-26",
+      "status": "accepted (MASTER_CONTEXT §37 step 2)",
+      "category": "accepted",
+      "summary": "the tokenizer-research corpus indic-tokenizer/v2 is frozen at the state P004B locked and verified: 59 sources, all verified: true with a pinned sha256 and a retrieved_at, 13 of 14 slots EVALUATED (34,684 documents / 4,211,707 characters), hi-en NOT_EVALUATED. The machine-readable identity is …",
+      "experiments": [
+        "EXP-023",
+        "EXP-025"
+      ],
+      "line": 1008,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1008"
+    },
+    {
+      "id": "D-036",
+      "title": "FrontierCorpus v1 normalizes text to NFC, policy version 1",
+      "date": "2026-09-26",
+      "status": "accepted (built under the founder's 2026-09-26",
+      "category": "accepted",
+      "summary": "every FrontierCorpus v1 document is normalized once, at the front of the pipeline, to NFC (Unicode composed form), with deterministic whitespace canonicalization (every whitespace run → one space, ends stripped; \\r dropped, \\n preserved as content). The policy and its version (nfc / version \"1\") are recorded in every …",
+      "experiments": [],
+      "line": 1057,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1057"
+    },
+    {
+      "id": "D-037",
+      "title": "FrontierCorpus v1 is a staged, pure-function pipeline over the frozen corpus",
+      "date": "2026-09-26",
+      "status": "accepted (built under the founder's 2026-09-26",
+      "category": "accepted",
+      "summary": "FrontierCorpus v1 is built as a sequence of pure-function stages sharing one document model (frontier_ai.corpus), in the order normalize → langid → quality → exact dedup → (mix → split → shuffle → pack → shard → manifest). Each stage: takes an ordered list of documents, returns StageOutcome(kept, removed, flagged …",
+      "experiments": [
+        "EXP-023",
+        "EXP-027"
+      ],
+      "line": 1098,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1098"
+    },
+    {
+      "id": "D-038",
+      "title": "EXP-A is a 15-configuration, model-free sweep over the frozen FrontierCorpus v1",
+      "date": "2026-09-26",
+      "status": "accepted (founder approval 2026-09-26: \"approve EXP-A\")",
+      "category": "accepted",
+      "summary": "MASTER_CONTEXT §37 step 5 runs as EXP-A: train 15 configurations — bpe_python × {mark_aware, gpt2_style} × {2048, 4096, 8192, 16384, 32768} and bpe_hf (built-in ByteLevel pre-tokenization) × the same 5 vocab sizes — on the frozen FrontierCorpus v1 train side; gate every configuration on losslessness (exact round-trip …",
+      "experiments": [
+        "EXP-028"
+      ],
+      "line": 1155,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1155"
+    },
+    {
+      "id": "D-039",
+      "title": "The 5 bpe_hf + mark-aware cells are implemented as a sweep supplement, not part of the approved grid",
+      "date": "2026-09-26",
+      "status": "accepted (founder directive 2026-09-26: finish upcoming roadmap work in parallel while the EXP-028 PC run is in flight)",
+      "category": "accepted",
+      "summary": "the 5 bpe_hf + mark-aware combinations that D-038 documented as an open limitation are now implemented and can be run as a supplement to EXP-028 (runner flags --include-hf-mark-aware / --configs; SweepConfig.grid_supplemental()). The approved 15-configuration grid (D-038) is unchanged: the supplement cells are off by …",
+      "experiments": [
+        "EXP-028"
+      ],
+      "line": 1219,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1219"
+    },
+    {
+      "id": "D-040",
+      "title": "Frontier Tokenizer v1 is mark-aware BPE with a 32,768-token vocabulary",
+      "date": "2026-09-27",
+      "status": "accepted (founder approval 2026-09-27 after review of the EXP-029 table; MASTER_CONTEXT §37 step 7)",
+      "category": "accepted",
+      "summary": "Frontier Tokenizer v1 = mark_aware-32768 — byte-level BPE with the mark-aware pre-tokenizer (combining marks stay attached to their base characters; bpe_python.pretokenize, D-039 for the HF equivalent), vocabulary 32,768, trained on the train side of the frozen FrontierCorpus v1 (EXP-028 cell py-mark_aware-32768, seed …",
+      "experiments": [
+        "EXP-028",
+        "EXP-029"
+      ],
+      "line": 1256,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1256"
+    },
+    {
+      "id": "D-041",
+      "title": "Frontier Tokenizer v1 is frozen at tokenizers/frontier-tokenizer-v1 and loaded only through the verifying loader",
+      "date": "2026-09-27",
+      "status": "accepted (founder approved the freeze plan 2026-09-27; EXP-030 complete)",
+      "category": "accepted",
+      "summary": "the D-040 tokenizer is frozen as frontier-tokenizer-v1: artifact tokenizers/frontier-tokenizer-v1/tokenizer/bpe_python.json (sha256 303db552…, dir_sha256 b39afa08…) with its identity record FREEZE.json (commit fc7e8d8). All downstream code loads it via frontier_ai.tokenization.frozen.load_frontier_tokenizer(), which …",
+      "experiments": [
+        "EXP-028",
+        "EXP-029",
+        "EXP-030"
+      ],
+      "line": 1307,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1307"
+    },
+    {
+      "id": "D-042",
+      "title": "Evaluation harness v1 and the protected suite frontier-heldout-v1 are the standard for intrinsic evaluation",
+      "date": "2026-09-27",
+      "status": "accepted (founder approved the eval harness plan 2026-09-27; EXP-031 complete)",
+      "category": "accepted",
+      "summary": "1. Harness v1.0.0 (src/frontier_ai/evaluation/, scripts/eval_report.py, scripts/eval_compare.py) is the standard way to measure language-modelling quality of any checkpoint in this repository. Every token of the suite except the first is scored exactly once, and results are reported as bits-per-byte (primary) …",
+      "experiments": [
+        "EXP-028",
+        "EXP-031"
+      ],
+      "line": 1341,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1341"
+    },
+    {
+      "id": "D-043",
+      "title": "The EXP-B baseline stays the provisional architecture for GPU bring-up; RoPE + GQA-2 is the first step-11 candidate",
+      "date": "2026-09-29",
+      "status": "accepted (founder approved 2026-09-29: \"approve D-043 and data plan\"; evidence EXP-032, EXP-033)",
+      "category": "accepted",
+      "summary": "1. The provisional architecture for the first GPU training runs (MASTER_CONTEXT §37 step 10, bring-up) is the EXP-B baseline (configs/exp_b.json model block): learned absolute positions, 4 query / 4 key-value heads (no grouping), SwiGLU (ffn_mult 4), RMSNorm, tied input/output embeddings. Only the shape (layers …",
+      "experiments": [
+        "EXP-032",
+        "EXP-033"
+      ],
+      "line": 1386,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1386"
+    },
+    {
+      "id": "D-044",
+      "title": "Data-rights policy: open sources plus curated collections (option 2), starting with Sangraha Verified",
+      "date": "2026-09-29",
+      "status": "accepted (founder decision 2026-09-29: \"approve D-044 option 2 with Sangraha Verified\"; options in docs/frontier_corpus_v2_sources.md §6, §9)",
+      "category": "accepted",
+      "summary": "1. FrontierCorpus v2 may use level A (openly licensed: Wikipedia, Wikisource, public-domain books) and level B (curated collections with a stated permissive license and a source per document). This is option 2 of the survey (§6). 2. The first level-B source is AI4Bharat's Sangraha Verified subset (CC-BY-4.0, dataset …",
+      "experiments": [
+        "EXP-034"
+      ],
+      "line": 1435,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1435"
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "Q-1",
+      "question": "BPE vs Unigram tokenizer; vocabulary size",
+      "deferred_to": "Stage 2"
+    },
+    {
+      "id": "Q-2",
+      "question": "Data source mix and licensing review process",
+      "deferred_to": "Stage 3"
+    },
+    {
+      "id": "Q-3",
+      "question": "DDP vs FSDP as the primary distributed strategy",
+      "deferred_to": "Stage 5"
+    },
+    {
+      "id": "Q-4",
+      "question": "Which benchmark suite becomes our primary gate",
+      "deferred_to": "Stage 6"
+    },
+    {
+      "id": "Q-5",
+      "question": "SFT data sourcing: licensed vs synthetic vs human-written",
+      "deferred_to": "Stage 7"
+    },
+    {
+      "id": "Q-6",
+      "question": "RL method for reasoning (GRPO/PPO family)",
+      "deferred_to": "Stage 8"
+    },
+    {
+      "id": "Q-7",
+      "question": "Model/weights license for released checkpoints",
+      "deferred_to": "Stage 9"
+    },
+    {
+      "id": "Q-8",
+      "question": "Whether to adopt an experiment tracker (and sweep orchestration) on top of the JSON records, and which",
+      "deferred_to": "Stage 1/4"
+    },
+    {
+      "id": "Q-9",
+      "question": "Pre-tokenization: mark-aware vs GPT-2-style regex, whitespace attachment, script-aware initial alphabets",
+      "deferred_to": "Stage 2 (EXP-002 flagged this as the main difference between our BPE and the HF baseline)"
+    },
+    {
+      "id": "Q-10",
+      "question": "Vocabulary sizing policy for Indic multilingual models",
+      "deferred_to": "Stage 2, on real data"
+    },
+    {
+      "id": "Q-11",
+      "question": "Unicode normalization policy (NFC/NFD/None) as a tokenizer-level decision",
+      "deferred_to": "Stage 2"
+    },
+    {
+      "id": "Q-12",
+      "question": "BPE vs Unigram for our data mix",
+      "deferred_to": "Stage 2"
+    }
+  ],
+  "tokenizer": {
+    "id": "frontier-tokenizer-v1",
+    "status": "frozen",
+    "frozen_at": "2026-09-27T10:11:02Z",
+    "decision": "D-040",
+    "frozen_by": "EXP-030 (scripts/freeze_tokenizer.py)",
+    "vocab_size": 32768,
+    "merges": 32512,
+    "pretoken": "mark_aware",
+    "impl": "bpe_python",
+    "dir_sha256": "b39afa08fa86b0d1ccf7b7e1b59df305b5678bdd59061c6fae01245061321144",
+    "trained_chars": 3809046,
+    "training_corpus": "frontier-corpus-v1",
+    "selected_by": "EXP-029 (EXP-B small-model comparison)",
+    "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/tokenizers/frontier-tokenizer-v1/FREEZE.json"
+  },
+  "corpus_v1": {
+    "id": "frontier-corpus",
+    "version": "1.0.0-pilot",
+    "created_at": "2026-09-26T12:55:52+00:00",
+    "content_sha256": "6c43d12695f2ffaab6be2bae632c7dc4638b171de92c7fe5bbb138547bb47d50",
+    "domains": [
+      "literature"
+    ],
+    "licenses": [
+      "CC-BY-SA-4.0",
+      "PD-US"
+    ],
+    "sources": 59,
+    "normalization": {
+      "policy": "nfc",
+      "version": "1"
+    },
+    "sides": {
+      "train": {
+        "documents": 30584,
+        "chars": 3809043,
+        "bytes": 9398863
+      },
+      "held_out": {
+        "documents": 3427,
+        "chars": 428153,
+        "bytes": 1052401
+      }
+    },
+    "per_language": {
+      "as": {
+        "train_documents": 2224,
+        "train_chars": 215825,
+        "held_out_documents": 236,
+        "held_out_chars": 21467,
+        "sources": 2
+      },
+      "bn": {
+        "train_documents": 3604,
+        "train_chars": 188518,
+        "held_out_documents": 408,
+        "held_out_chars": 19335,
+        "sources": 2
+      },
+      "en": {
+        "train_documents": 5324,
+        "train_chars": 308784,
+        "held_out_documents": 574,
+        "held_out_chars": 33376,
+        "sources": 2
+      },
+      "gu": {
+        "train_documents": 1775,
+        "train_chars": 264587,
+        "held_out_documents": 190,
+        "held_out_chars": 29497,
+        "sources": 2
+      },
+      "hi": {
+        "train_documents": 4728,
+        "train_chars": 680655,
+        "held_out_documents": 551,
+        "held_out_chars": 74215,
+        "sources": 36
+      },
+      "kn": {
+        "train_documents": 2352,
+        "train_chars": 349697,
+        "held_out_documents": 269,
+        "held_out_chars": 38135,
+        "sources": 2
+      },
+      "ml": {
+        "train_documents": 1822,
+        "train_chars": 350559,
+        "held_out_documents": 226,
+        "held_out_chars": 45688,
+        "sources": 2
+      },
+      "mr": {
+        "train_documents": 1480,
+        "train_chars": 228415,
+        "held_out_documents": 158,
+        "held_out_chars": 27461,
+        "sources": 1
+      },
+      "or": {
+        "train_documents": 1693,
+        "train_chars": 183198,
+        "held_out_documents": 176,
+        "held_out_chars": 17823,
+        "sources": 1
+      },
+      "pa": {
+        "train_documents": 2143,
+        "train_chars": 317998,
+        "held_out_documents": 249,
+        "held_out_chars": 39978,
+        "sources": 2
+      },
+      "ta": {
+        "train_documents": 967,
+        "train_chars": 259470,
+        "held_out_documents": 103,
+        "held_out_chars": 24377,
+        "sources": 2
+      },
+      "te": {
+        "train_documents": 1249,
+        "train_chars": 249979,
+        "held_out_documents": 148,
+        "held_out_chars": 25627,
+        "sources": 2
+      },
+      "ur": {
+        "train_documents": 1223,
+        "train_chars": 180778,
+        "held_out_documents": 139,
+        "held_out_chars": 27748,
+        "sources": 3
+      }
+    },
+    "stages": [
+      {
+        "stage": "normalize",
+        "documents_in": 34684,
+        "kept": 34684,
+        "removed": 0
+      },
+      {
+        "stage": "langid",
+        "documents_in": 34684,
+        "kept": 34350,
+        "removed": 334
+      },
+      {
+        "stage": "quality",
+        "documents_in": 34350,
+        "kept": 34350,
+        "removed": 0
+      },
+      {
+        "stage": "exact_dedup",
+        "documents_in": 34350,
+        "kept": 34011,
+        "removed": 339
+      }
+    ],
+    "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/corpora/frontier/v1/manifest.json"
+  },
+  "sangraha_slice1": {
+    "slice_id": "sangraha-verified-slice1",
+    "dataset": "ai4bharat/sangraha",
+    "subset": "verified",
+    "revision": "8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8",
+    "license_id": "CC-BY-4.0",
+    "trust_level": "B",
+    "attribution": "Sangraha (AI4Bharat): Khan et al. 2024, IndicLLMSuite: A Blueprint for Creating Pre-training and Fine-Tuning Datasets for Indian Languages, ACL 2024 (arXiv:2403.06350). CC-BY-4.0.",
+    "total_bytes": 5106130219,
+    "files": [
+      {
+        "language": "as",
+        "size": 328035291,
+        "sha256": "f2edb84689abeec21c44436342f9805c6a83baabeb0093ef797f9c9ea249be25"
+      },
+      {
+        "language": "bn",
+        "size": 391867808,
+        "sha256": "5745f9a93f3e1d52bc1e4615f1133afe3b9f20e7bfbcefd26cbd9c321a5c604e"
+      },
+      {
+        "language": "en",
+        "size": 595992578,
+        "sha256": "3c080ef54239f17351162353e9ee957f9fdd6d158570e27186480805231bdade"
+      },
+      {
+        "language": "gu",
+        "size": 374269246,
+        "sha256": "ff4529617aead4bd47b2c9f5d62778b9b98699daabde82f7535997704db10e2d"
+      },
+      {
+        "language": "hi",
+        "size": 378091240,
+        "sha256": "001c615cca156edb0f99e7bdeabfa33fa6135f85d379b85999d8e071e3475d85"
+      },
+      {
+        "language": "kn",
+        "size": 368175508,
+        "sha256": "291ad9d11034bb18a185176c58c69dab79867f6f1633dd33b0b0d7a98bd62f74"
+      },
+      {
+        "language": "ml",
+        "size": 333917916,
+        "sha256": "de1cee391b3703ddfdcf73bec83247cefc1b2b0e9c90b2c0da9a5d05a8027615"
+      },
+      {
+        "language": "mr",
+        "size": 381849801,
+        "sha256": "394f7a33ebee8e2c75f1e93d09e63eb7cb224589aa226043048b24523c729be3"
+      },
+      {
+        "language": "or",
+        "size": 372271028,
+        "sha256": "cce0dc3307e022a191c1d4c156fff960e56bd414adfb25b02807b821f2c1907e"
+      },
+      {
+        "language": "pa",
+        "size": 358049731,
+        "sha256": "39ef1a3e7e50e704b43495f63d73b58d76144173d5bdcc9933107a54d68ba883"
+      },
+      {
+        "language": "ta",
+        "size": 357869888,
+        "sha256": "7787405e9881a0cc6fe62dbdbb109c51b4e05971236eea41d83e5bc724e9a26d"
+      },
+      {
+        "language": "te",
+        "size": 373244554,
+        "sha256": "76d2a831ba03f3c2c4b29a19b63a45ed03f308614863cf229649a94c82367b6b"
+      },
+      {
+        "language": "ur",
+        "size": 492495630,
+        "sha256": "0220cd62b7dde5d12fa52c6c40f47f7e06df3e7ccb659576488fd8a83b110d48"
+      }
+    ],
+    "status": "pinned (sha256 per file); not yet downloaded or inspected (EXP-034 pending)",
+    "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/corpora/frontier/v2/sangraha_slice1.json"
+  },
+  "suite": {
+    "id": "frontier-heldout-v1",
+    "status": "protected",
+    "totals": {
+      "documents": 3427,
+      "bytes": 1048975,
+      "chars": 424727
+    },
+    "fingerprint": "a488b2aa41f9e861fa279a67e1fb6d98a610b4e8eebe554b9cfad262fc628a2f",
+    "per_language": {
+      "as": {
+        "documents": 236,
+        "bytes": 57471,
+        "chars": 21467
+      },
+      "bn": {
+        "documents": 408,
+        "bytes": 51369,
+        "chars": 19335
+      },
+      "en": {
+        "documents": 574,
+        "bytes": 34082,
+        "chars": 33376
+      },
+      "gu": {
+        "documents": 190,
+        "bytes": 77151,
+        "chars": 29497
+      },
+      "hi": {
+        "documents": 551,
+        "bytes": 189687,
+        "chars": 74215
+      },
+      "kn": {
+        "documents": 269,
+        "bytes": 102639,
+        "chars": 38135
+      },
+      "ml": {
+        "documents": 226,
+        "bytes": 127950,
+        "chars": 45688
+      },
+      "mr": {
+        "documents": 158,
+        "bytes": 73311,
+        "chars": 27461
+      },
+      "or": {
+        "documents": 176,
+        "bytes": 47021,
+        "chars": 17823
+      },
+      "pa": {
+        "documents": 249,
+        "bytes": 101508,
+        "chars": 39978
+      },
+      "ta": {
+        "documents": 103,
+        "bytes": 67395,
+        "chars": 24377
+      },
+      "te": {
+        "documents": 148,
+        "bytes": 70397,
+        "chars": 25627
+      },
+      "ur": {
+        "documents": 139,
+        "bytes": 48994,
+        "chars": 27748
+      }
+    },
+    "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/suites/frontier-heldout-v1/SUITE.json"
+  },
+  "evaluation_reports": [
+    {
+      "experiment": "EXP-031",
+      "label": "mark_aware-16384-seed-1337",
+      "created_at": "2026-09-27T13:33:05Z",
+      "n_params": 3163264,
+      "vocab_size": 16384,
+      "step": 150,
+      "tokenizer": "out/experiments/EXP-028/py-mark_aware-16384/seed-0000001337/tokenizer",
+      "suite": "frontier-heldout-v1",
+      "bits_per_byte": 1.5834490629019906,
+      "ci95": [
+        1.565429260329855,
+        1.6021898465791937
+      ],
+      "documents": 3426,
+      "per_language": {
+        "as": 1.5646889371749177,
+        "bn": 1.5952977036719644,
+        "en": 3.706802992740419,
+        "gu": 1.6160260729861868,
+        "hi": 1.3642967133192403,
+        "kn": 1.3653013405341587,
+        "ml": 1.3143860221524268,
+        "mr": 1.4446722729711778,
+        "or": 1.7859402329584189,
+        "pa": 1.6486968625207372,
+        "ta": 1.2700015910600186,
+        "te": 1.5677308783981132,
+        "ur": 2.4046804435172198
+      },
+      "contamination": "CHECKED",
+      "environment": {
+        "python": "3.13.15",
+        "torch": "2.14.0+cpu",
+        "platform": "Windows-10-10.0.17763-SP0"
+      },
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/results/EXP-031/mark_aware-16384-seed-1337/report.json"
+    },
+    {
+      "experiment": "EXP-031",
+      "label": "mark_aware-16384-seed-1338",
+      "created_at": "2026-09-27T13:34:09Z",
+      "n_params": 3163264,
+      "vocab_size": 16384,
+      "step": 150,
+      "tokenizer": "out/experiments/EXP-028/py-mark_aware-16384/seed-0000001337/tokenizer",
+      "suite": "frontier-heldout-v1",
+      "bits_per_byte": 1.5760339583351999,
+      "ci95": [
+        1.5575677742151082,
+        1.594368340913019
+      ],
+      "documents": 3426,
+      "per_language": {
+        "as": 1.5676736670613394,
+        "bn": 1.5937071969709242,
+        "en": 3.6828146915482076,
+        "gu": 1.634956702591937,
+        "hi": 1.3423397252268028,
+        "kn": 1.3825224522792812,
+        "ml": 1.3024003023975275,
+        "mr": 1.4376221874613122,
+        "or": 1.7850815198121621,
+        "pa": 1.6329606726438974,
+        "ta": 1.2668902481225721,
+        "te": 1.5272161635257855,
+        "ur": 2.417675796238147
+      },
+      "contamination": "CHECKED",
+      "environment": {
+        "python": "3.13.15",
+        "torch": "2.14.0+cpu",
+        "platform": "Windows-10-10.0.17763-SP0"
+      },
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/results/EXP-031/mark_aware-16384-seed-1338/report.json"
+    },
+    {
+      "experiment": "EXP-031",
+      "label": "mark_aware-16384-seed-1339",
+      "created_at": "2026-09-27T13:35:14Z",
+      "n_params": 3163264,
+      "vocab_size": 16384,
+      "step": 150,
+      "tokenizer": "out/experiments/EXP-028/py-mark_aware-16384/seed-0000001337/tokenizer",
+      "suite": "frontier-heldout-v1",
+      "bits_per_byte": 1.57597088415787,
+      "ci95": [
+        1.5582419523564945,
+        1.5937765114708475
+      ],
+      "documents": 3426,
+      "per_language": {
+        "as": 1.5736855869391086,
+        "bn": 1.6037977992440229,
+        "en": 3.6453486125914365,
+        "gu": 1.6361091305275948,
+        "hi": 1.3372487107440942,
+        "kn": 1.373775613725345,
+        "ml": 1.319723410825868,
+        "mr": 1.4577497866097782,
+        "or": 1.7831358309325107,
+        "pa": 1.6353111833722436,
+        "ta": 1.257210362324068,
+        "te": 1.5310949995354188,
+        "ur": 2.390362742395854
+      },
+      "contamination": "CHECKED",
+      "environment": {
+        "python": "3.13.15",
+        "torch": "2.14.0+cpu",
+        "platform": "Windows-10-10.0.17763-SP0"
+      },
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/results/EXP-031/mark_aware-16384-seed-1339/report.json"
+    },
+    {
+      "experiment": "EXP-031",
+      "label": "mark_aware-32768-seed-1337",
+      "created_at": "2026-09-27T13:29:09Z",
+      "n_params": 5260416,
+      "vocab_size": 32768,
+      "step": 150,
+      "tokenizer": "frontier-tokenizer-v1",
+      "suite": "frontier-heldout-v1",
+      "bits_per_byte": 1.4619429841955736,
+      "ci95": [
+        1.4453868400282748,
+        1.4791640426936619
+      ],
+      "documents": 3426,
+      "per_language": {
+        "as": 1.4479361844679541,
+        "bn": 1.461598447427806,
+        "en": 3.4059372811907807,
+        "gu": 1.4938500983778413,
+        "hi": 1.2557237573333968,
+        "kn": 1.252671279083522,
+        "ml": 1.2209761661404939,
+        "mr": 1.3554862822555174,
+        "or": 1.6368900380352982,
+        "pa": 1.547511125602909,
+        "ta": 1.167801825203505,
+        "te": 1.4127449068797748,
+        "ur": 2.2316900239083237
+      },
+      "contamination": "CHECKED",
+      "environment": {
+        "python": "3.13.15",
+        "torch": "2.14.0+cpu",
+        "platform": "Windows-10-10.0.17763-SP0"
+      },
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/results/EXP-031/mark_aware-32768-seed-1337/report.json"
+    },
+    {
+      "experiment": "EXP-031",
+      "label": "mark_aware-32768-seed-1338",
+      "created_at": "2026-09-27T13:30:34Z",
+      "n_params": 5260416,
+      "vocab_size": 32768,
+      "step": 150,
+      "tokenizer": "frontier-tokenizer-v1",
+      "suite": "frontier-heldout-v1",
+      "bits_per_byte": 1.440626911929674,
+      "ci95": [
+        1.4233766058614805,
+        1.4585600220427435
+      ],
+      "documents": 3426,
+      "per_language": {
+        "as": 1.4328150739082846,
+        "bn": 1.4393665815270202,
+        "en": 3.3711800860961345,
+        "gu": 1.483800595554323,
+        "hi": 1.250668552001572,
+        "kn": 1.2390735667380102,
+        "ml": 1.1705644658388905,
+        "mr": 1.319769419013782,
+        "or": 1.6122211953049363,
+        "pa": 1.529103645339233,
+        "ta": 1.1383803060918294,
+        "te": 1.3698178543180213,
+        "ur": 2.253480810427301
+      },
+      "contamination": "CHECKED",
+      "environment": {
+        "python": "3.13.15",
+        "torch": "2.14.0+cpu",
+        "platform": "Windows-10-10.0.17763-SP0"
+      },
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/results/EXP-031/mark_aware-32768-seed-1338/report.json"
+    },
+    {
+      "experiment": "EXP-031",
+      "label": "mark_aware-32768-seed-1339",
+      "created_at": "2026-09-27T13:32:01Z",
+      "n_params": 5260416,
+      "vocab_size": 32768,
+      "step": 150,
+      "tokenizer": "frontier-tokenizer-v1",
+      "suite": "frontier-heldout-v1",
+      "bits_per_byte": 1.4400282197517862,
+      "ci95": [
+        1.4229533867051918,
+        1.457903089985432
+      ],
+      "documents": 3426,
+      "per_language": {
+        "as": 1.4410772738580737,
+        "bn": 1.4403031320477155,
+        "en": 3.3641511444685865,
+        "gu": 1.4765641191941912,
+        "hi": 1.2446416512694365,
+        "kn": 1.236438384457051,
+        "ml": 1.180223976958118,
+        "mr": 1.3382994969586914,
+        "or": 1.605716410292393,
+        "pa": 1.529968348818572,
+        "ta": 1.1197572398691311,
+        "te": 1.3784568888049462,
+        "ur": 2.239837522655165
+      },
+      "contamination": "CHECKED",
+      "environment": {
+        "python": "3.13.15",
+        "torch": "2.14.0+cpu",
+        "platform": "Windows-10-10.0.17763-SP0"
+      },
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/results/EXP-031/mark_aware-32768-seed-1339/report.json"
+    }
+  ],
+  "ablations": [
+    {
+      "experiment": "EXP-032",
+      "max_steps": 150,
+      "rows": [
+        {
+          "group": "baseline",
+          "arm": "baseline",
+          "lr": null,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.4619429841955736,
+            1.440626911929674,
+            1.4400282197517862
+          ],
+          "mean": 1.4475327052923446,
+          "std": 0.012483257252520308,
+          "n_params": 5260416,
+          "body_params": 1049728,
+          "kv_cache_values_per_token": 1024
+        },
+        {
+          "group": "rope",
+          "arm": "rope",
+          "lr": null,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.4119471181357406,
+            1.365041589191023,
+            1.3344766495544877
+          ],
+          "mean": 1.3704884522937504,
+          "std": 0.039021399434087584,
+          "n_params": 5244032,
+          "body_params": 1049728,
+          "kv_cache_values_per_token": 1024
+        },
+        {
+          "group": "gelu",
+          "arm": "gelu",
+          "lr": null,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.3891979230687703,
+            1.4220846144877324,
+            1.4297241265872098
+          ],
+          "mean": 1.4136688880479042,
+          "std": 0.021533964603319383,
+          "n_params": 5260416,
+          "body_params": 1049728,
+          "kv_cache_values_per_token": 1024
+        },
+        {
+          "group": "layernorm",
+          "arm": "layernorm",
+          "lr": null,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.4797635277531913,
+            1.4843782766093137,
+            1.454675033181026
+          ],
+          "mean": 1.4729389458478437,
+          "std": 0.01598442542530465,
+          "n_params": 5261568,
+          "body_params": 1050880,
+          "kv_cache_values_per_token": 1024
+        },
+        {
+          "group": "gqa2",
+          "arm": "gqa2",
+          "lr": null,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.3883865133022009,
+            1.4744364663830534,
+            1.4185454977487382
+          ],
+          "mean": 1.4271228258113309,
+          "std": 0.0436614993309235,
+          "n_params": 5194880,
+          "body_params": 984192,
+          "kv_cache_values_per_token": 512
+        },
+        {
+          "group": "lr-0.0015",
+          "arm": "lr-0.0015",
+          "lr": null,
+          "seeds": [
+            1337
+          ],
+          "bpb": [
+            1.4915765222974582
+          ],
+          "mean": 1.4915765222974582,
+          "std": null,
+          "n_params": 5260416,
+          "body_params": 1049728,
+          "kv_cache_values_per_token": 1024
+        },
+        {
+          "group": "lr-0.006",
+          "arm": "lr-0.006",
+          "lr": null,
+          "seeds": [
+            1337
+          ],
+          "bpb": [
+            1.4048707173951263
+          ],
+          "mean": 1.4048707173951263,
+          "std": null,
+          "n_params": 5260416,
+          "body_params": 1049728,
+          "kv_cache_values_per_token": 1024
+        },
+        {
+          "group": "repro-baseline",
+          "arm": "repro-baseline",
+          "lr": null,
+          "seeds": [
+            1337
+          ],
+          "bpb": [
+            1.4619429841955736
+          ],
+          "mean": 1.4619429841955736,
+          "std": null,
+          "n_params": 5260416,
+          "body_params": 1049728,
+          "kv_cache_values_per_token": 1024
+        }
+      ],
+      "summary_url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/results/EXP-032/SUMMARY.txt"
+    },
+    {
+      "experiment": "EXP-033",
+      "max_steps": 150,
+      "rows": [
+        {
+          "group": "baseline-lr-0.006",
+          "arm": "baseline",
+          "lr": 0.006,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.4048707173951263,
+            1.5049557738652857,
+            1.3779246985470535
+          ],
+          "mean": 1.4292503966024885,
+          "std": 0.06693280281608573,
+          "n_params": 5260416,
+          "body_params": 1049728,
+          "kv_cache_values_per_token": 1024
+        },
+        {
+          "group": "rope-gqa2-lr-0.006",
+          "arm": "rope-gqa2",
+          "lr": 0.006,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.3850529781382803,
+            1.3849681039703705,
+            1.3718596422842362
+          ],
+          "mean": 1.3806269081309623,
+          "std": 0.007592793539039027,
+          "n_params": 5178496,
+          "body_params": 984192,
+          "kv_cache_values_per_token": 512
+        },
+        {
+          "group": "rope-gqa2-gelu-lr-0.006",
+          "arm": "rope-gqa2-gelu",
+          "lr": 0.006,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.362066930586678,
+            1.407999232380464,
+            1.335907864191887
+          ],
+          "mean": 1.3686580090530096,
+          "std": 0.03649483632429733,
+          "n_params": 5178496,
+          "body_params": 984192,
+          "kv_cache_values_per_token": 512
+        },
+        {
+          "group": "baseline-lr-0.01",
+          "arm": "baseline",
+          "lr": 0.01,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.4565703010766515,
+            1.4007815197445228,
+            1.426908912866721
+          ],
+          "mean": 1.4280869112292984,
+          "std": 0.027913039797515693,
+          "n_params": 5260416,
+          "body_params": 1049728,
+          "kv_cache_values_per_token": 1024
+        },
+        {
+          "group": "rope-gqa2-lr-0.01",
+          "arm": "rope-gqa2",
+          "lr": 0.01,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.396049638845834,
+            1.3442039502942604,
+            1.346564590646389
+          ],
+          "mean": 1.3622727265954946,
+          "std": 0.029275467657979098,
+          "n_params": 5178496,
+          "body_params": 984192,
+          "kv_cache_values_per_token": 512
+        },
+        {
+          "group": "rope-gqa2-gelu-lr-0.01",
+          "arm": "rope-gqa2-gelu",
+          "lr": 0.01,
+          "seeds": [
+            1337,
+            1338,
+            1339
+          ],
+          "bpb": [
+            1.3795478134334729,
+            1.3936288247872284,
+            1.3678533384091913
+          ],
+          "mean": 1.3803433255432975,
+          "std": 0.01290614404629639,
+          "n_params": 5178496,
+          "body_params": 984192,
+          "kv_cache_values_per_token": 512
+        }
+      ],
+      "summary_url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/evals/results/EXP-033/SUMMARY.txt"
+    }
+  ],
+  "models": [
+    {
+      "id": "EXP-031/mark_aware-16384",
+      "experiment": "EXP-031",
+      "name": "mark_aware-16384",
+      "seeds": 3,
+      "n_params": 3163264,
+      "body_params": null,
+      "vocab_size": 16384,
+      "steps": 150,
+      "bpb_mean": 1.5784846351316866,
+      "bpb_std": 0.004299436230819599,
+      "hardware": "2.14.0+cpu"
+    },
+    {
+      "id": "EXP-031/mark_aware-32768",
+      "experiment": "EXP-031",
+      "name": "mark_aware-32768",
+      "seeds": 3,
+      "n_params": 5260416,
+      "body_params": null,
+      "vocab_size": 32768,
+      "steps": 150,
+      "bpb_mean": 1.4475327052923446,
+      "bpb_std": 0.012483257252520308,
+      "hardware": "2.14.0+cpu"
+    },
+    {
+      "id": "EXP-032/baseline",
+      "experiment": "EXP-032",
+      "name": "baseline",
+      "seeds": 3,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.4475327052923446,
+      "bpb_std": 0.012483257252520308,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-032/rope",
+      "experiment": "EXP-032",
+      "name": "rope",
+      "seeds": 3,
+      "n_params": 5244032,
+      "body_params": 1049728,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.3704884522937504,
+      "bpb_std": 0.039021399434087584,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-032/gelu",
+      "experiment": "EXP-032",
+      "name": "gelu",
+      "seeds": 3,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.4136688880479042,
+      "bpb_std": 0.021533964603319383,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-032/layernorm",
+      "experiment": "EXP-032",
+      "name": "layernorm",
+      "seeds": 3,
+      "n_params": 5261568,
+      "body_params": 1050880,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.4729389458478437,
+      "bpb_std": 0.01598442542530465,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-032/gqa2",
+      "experiment": "EXP-032",
+      "name": "gqa2",
+      "seeds": 3,
+      "n_params": 5194880,
+      "body_params": 984192,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.4271228258113309,
+      "bpb_std": 0.0436614993309235,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-032/lr-0.0015",
+      "experiment": "EXP-032",
+      "name": "lr-0.0015",
+      "seeds": 1,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.4915765222974582,
+      "bpb_std": null,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-032/lr-0.006",
+      "experiment": "EXP-032",
+      "name": "lr-0.006",
+      "seeds": 1,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.4048707173951263,
+      "bpb_std": null,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-032/repro-baseline",
+      "experiment": "EXP-032",
+      "name": "repro-baseline",
+      "seeds": 1,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.4619429841955736,
+      "bpb_std": null,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-033/baseline-lr-0.006",
+      "experiment": "EXP-033",
+      "name": "baseline-lr-0.006",
+      "seeds": 3,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.4292503966024885,
+      "bpb_std": 0.06693280281608573,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-033/rope-gqa2-lr-0.006",
+      "experiment": "EXP-033",
+      "name": "rope-gqa2-lr-0.006",
+      "seeds": 3,
+      "n_params": 5178496,
+      "body_params": 984192,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.3806269081309623,
+      "bpb_std": 0.007592793539039027,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-033/rope-gqa2-gelu-lr-0.006",
+      "experiment": "EXP-033",
+      "name": "rope-gqa2-gelu-lr-0.006",
+      "seeds": 3,
+      "n_params": 5178496,
+      "body_params": 984192,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.3686580090530096,
+      "bpb_std": 0.03649483632429733,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-033/baseline-lr-0.01",
+      "experiment": "EXP-033",
+      "name": "baseline-lr-0.01",
+      "seeds": 3,
+      "n_params": 5260416,
+      "body_params": 1049728,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.4280869112292984,
+      "bpb_std": 0.027913039797515693,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-033/rope-gqa2-lr-0.01",
+      "experiment": "EXP-033",
+      "name": "rope-gqa2-lr-0.01",
+      "seeds": 3,
+      "n_params": 5178496,
+      "body_params": 984192,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.3622727265954946,
+      "bpb_std": 0.029275467657979098,
+      "hardware": "CPU"
+    },
+    {
+      "id": "EXP-033/rope-gqa2-gelu-lr-0.01",
+      "experiment": "EXP-033",
+      "name": "rope-gqa2-gelu-lr-0.01",
+      "seeds": 3,
+      "n_params": 5178496,
+      "body_params": 984192,
+      "vocab_size": null,
+      "steps": 150,
+      "bpb_mean": 1.3803433255432975,
+      "bpb_std": 0.01290614404629639,
+      "hardware": "CPU"
+    }
+  ],
+  "baseline_model": {
+    "model": "EXP-031/mark_aware-32768",
+    "evidence": [
+      "D-042",
+      "D-043"
+    ],
+    "note": "the reference every new candidate is compared against; D-043 makes this architecture the step-10 bring-up baseline",
+    "record": {
+      "id": "EXP-031/mark_aware-32768",
+      "experiment": "EXP-031",
+      "name": "mark_aware-32768",
+      "seeds": 3,
+      "n_params": 5260416,
+      "body_params": null,
+      "vocab_size": 32768,
+      "steps": 150,
+      "bpb_mean": 1.4475327052923446,
+      "bpb_std": 0.012483257252520308,
+      "hardware": "2.14.0+cpu"
+    }
+  },
+  "compute": [
+    {
+      "id": "founder-laptop",
+      "label": "Founder's laptop",
+      "kind": "cpu",
+      "status": "in_use",
+      "detail": "Intel i3-4030U, 2 cores / 4 threads, CPU only (integrated GPU not usable for training)",
+      "evidence_files": [
+        "NEW_CHAT_START_HERE.md",
+        "PC_TASK_ARCH_EXP033.md"
+      ],
+      "measured_environment": {
+        "python": "3.13.15",
+        "torch": "2.14.0+cpu",
+        "platform": "Windows-10-10.0.17763-SP0"
+      },
+      "measured_environment_source": "evals/results/EXP-031/mark_aware-32768-seed-1337/report.json"
+    },
+    {
+      "id": "gpu-collaborator",
+      "label": "Collaborator's GPU machine",
+      "kind": "gpu",
+      "status": "not_available_yet",
+      "detail": "NVIDIA RTX card; exact model and VRAM NOT VERIFIED (waiting for scripts/gpu_env_report.py output)",
+      "evidence_files": [
+        "GPU_COLLABORATOR_START_HERE.md",
+        "scripts/gpu_env_report.py"
+      ],
+      "measured_environment": null,
+      "measured_environment_source": null
+    },
+    {
+      "id": "cloud-gpus",
+      "label": "Rented cloud GPUs",
+      "kind": "gpu",
+      "status": "planned",
+      "detail": "needed from step 10 onward for real training; nothing rented, no cost committed",
+      "evidence_files": [
+        "ROADMAP.md"
+      ],
+      "measured_environment": null,
+      "measured_environment_source": null
+    }
+  ],
+  "documents": [
+    {
+      "path": "NEW_CHAT_START_HERE.md",
+      "title": "Start here (handover and status log)",
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/NEW_CHAT_START_HERE.md"
+    },
+    {
+      "path": "MASTER_CONTEXT.md",
+      "title": "Master context: mission, method, 24-step roadmap",
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/MASTER_CONTEXT.md"
+    },
+    {
+      "path": "ROADMAP.md",
+      "title": "Roadmap (narrative, stages)",
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/ROADMAP.md"
+    },
+    {
+      "path": "EXPERIMENTS.md",
+      "title": "Experiment log",
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md"
+    },
+    {
+      "path": "DECISIONS.md",
+      "title": "Decision log",
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md"
+    },
+    {
+      "path": "docs/frontier_corpus_v1.md",
+      "title": "FrontierCorpus v1 (pilot corpus)",
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/docs/frontier_corpus_v1.md"
+    },
+    {
+      "path": "docs/frontier_corpus_v2_sources.md",
+      "title": "FrontierCorpus v2 source survey and data-rights options",
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/docs/frontier_corpus_v2_sources.md"
+    },
+    {
+      "path": "docs/tokenization.md",
+      "title": "Tokenization research",
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/docs/tokenization.md"
+    },
+    {
+      "path": "GPU_COLLABORATOR_START_HERE.md",
+      "title": "Guide for the GPU collaborator",
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/GPU_COLLABORATOR_START_HERE.md"
+    }
+  ]
+}
