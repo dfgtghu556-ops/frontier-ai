@@ -1,0 +1,76 @@
+EXP-035 calibration of sangraha-verified-slice1 (revision 8b813c3f62d3) - removes nothing
+Short-suite check: CHECKED against frontier-heldout-v1: 1727 suite documents of 3-12 words indexed (155 shorter; shard verified against SUITE.json)
+
+lang  docs       near-dup-removable  chars-in-lines-seen>=10x  over-20k  not-NFC  short-suite-hits  other-language-marker
+as    110,238    8 (0.0%)            0.8%                      1,983     0.3%     7                 20
+bn    149,797    0 (0.0%)            0.9%                      1,532     0.1%     17                1
+en    349,525    543 (0.2%)          2.1%                      2,007     0.3%     3                 -
+gu    149,797    0 (0.0%)            1.1%                      709       0.1%     0                 -
+hi    174,763    3,248 (1.9%)        5.2%                      767       1.2%     3                 lla>=3: 249
+kn    174,762    1 (0.0%)            2.0%                      501       0.1%     1                 -
+ml    174,763    1 (0.0%)            3.9%                      546       0.0%     0                 -
+mr    174,763    1 (0.0%)            1.4%                      594       42.8%    2                 -
+or    189,757    0 (0.0%)            0.7%                      1,183     0.0%     12                -
+pa    149,797    2 (0.0%)            0.6%                      832       0.1%     0                 -
+ta    149,796    0 (0.0%)            1.9%                      1,063     0.2%     0                 -
+te    174,762    0 (0.0%)            1.7%                      488       0.1%     0                 -
+ur    209,716    2 (0.0%)            0.1%                      1,293     3.8%     0                 17,594
+
+Top code points changed by NFC (per file):
+  as: U+09DF BENGALI LETTER YYA x4,457, U+0065 LATIN SMALL LETTER E x2,696, U+0328 COMBINING OGONEK x1,998
+  bn: U+09DF BENGALI LETTER YYA x11,048, U+09DC BENGALI LETTER RRA x2,332, U+095C DEVANAGARI LETTER DDDHA x25
+  en: U+0061 LATIN SMALL LETTER A x1,250, U+0065 LATIN SMALL LETTER E x1,184, U+0301 COMBINING ACUTE ACCENT x1,072
+  gu: U+095C DEVANAGARI LETTER DDDHA x93, U+095D DEVANAGARI LETTER RHA x34, U+095B DEVANAGARI LETTER ZA x12
+  hi: U+093C DEVANAGARI SIGN NUKTA x2,520, U+0928 DEVANAGARI LETTER NA x1,333, U+0930 DEVANAGARI LETTER RA x1,172
+  kn: U+0CC6 KANNADA VOWEL SIGN E x573, U+0CD5 KANNADA LENGTH MARK x522, U+0CC2 KANNADA VOWEL SIGN UU x307
+  ml: U+0D3E MALAYALAM VOWEL SIGN AA x5,593, U+0D47 MALAYALAM VOWEL SIGN EE x4,102, U+0D46 MALAYALAM VOWEL SIGN E x1,491
+  mr: U+093C DEVANAGARI SIGN NUKTA x208,711, U+0930 DEVANAGARI LETTER RA x208,556, U+0933 DEVANAGARI LETTER LLA x78
+  or: U+0B5C ORIYA LETTER RRA x361, U+0B5D ORIYA LETTER RHA x107, U+0B3E ORIYA VOWEL SIGN AA x31
+  pa: U+0A36 GURMUKHI LETTER SHA x1,796, U+0A5B GURMUKHI LETTER ZA x669, U+0A5E GURMUKHI LETTER FA x101
+  ta: U+0BBE TAMIL VOWEL SIGN AA x1,676, U+0BC7 TAMIL VOWEL SIGN EE x994, U+0BC6 TAMIL VOWEL SIGN E x682
+  te: U+0C46 TELUGU VOWEL SIGN E x1,635, U+0C56 TELUGU AI LENGTH MARK x1,635, U+0D47 MALAYALAM VOWEL SIGN EE x64
+  ur: U+0654 ARABIC HAMZA ABOVE x18,129, U+0648 ARABIC LETTER WAW x14,665, U+06C1 ARABIC LETTER HEH GOAL x3,464
+
+Most repeated lines (first 3 per file; masked):
+  [as x7,920] - First Published :
+  [as x1,894] অসমীয়াত ব্ৰেকিং নিউজ সৰ্বপ্ৰথম News18 অসমত। শেহতীয়া খবৰ, লাইভ নিউজ আপডেট, সবাতোকৈ বিশ্বাসযোগ্য অসমীয়া নিউজ ৱেবছাইট Ne...
+  [as x1,171] Begin typing your search above and press return to search.
+  [bn x2,532] "
+  [bn x2,368] পয়েন্ট)
+  [bn x1,836] নিউজ১৮ বাংলায় সবার আগে পড়ুন ব্রেকিং নিউজ। থাকছে দৈনিক টাটকা খবর, খবরের লাইভ আপডেট। সবচেয়ে ভরসাযোগ্য বাংলা খবর পড়ুন ন...
+  [en x4,383] Follow us on Google News and stay updated with the latest!
+  [en x4,132] Video Tags:
+  [en x2,209] Get the hottest deals available in your inbox plus news, reviews, opinion, analysis, deals and more from the TechRadar t...
+  [gu x2,074] First published:
+  [gu x1,761] This website follows the DNPA Code of Ethics.
+  [gu x600] આ પ્રકારના તમામ સમાચાર માટેે App ડાઉનલોડ કરો.
+  [hi x5,237] This website follows the DNPA Code of Ethics.
+  [hi x2,736] .
+  [hi x2,638] - सूचना का अधिकार अधिनियम 2005 के तहत नोडल अधिकारी का नामांकन (513.49 KB)
+  [kn x6,367] Don't Miss!
+  [kn x4,529] ಪ್ರಜಾವಾಣಿ ಫೇಸ್ಬುಕ್ ಪುಟವನ್ನುಫಾಲೋ ಮಾಡಿ.
+  [kn x3,891] - Education ಪ್ರತಿಯೊಂದು ಕ್ಷೇತ್ರಕ್ಕೂ ಎಕ್ಸೆಲ್ ಏನು ಮಹತ್ವ?
+  [ml x2,717] ഏറ്റവും വിശ്വാസ്യതയുള്ള വാർത്തകള്, തത്സമയ വിവരങ്ങൾ, ലോകം, ദേശീയം, ബോളിവുഡ്, സ്പോർട്സ്, ബിസിനസ്, ആരോഗ്യം, ലൈഫ് സ്റ്റൈൽ വാ...
+  [ml x2,537] Don't Miss!
+  [ml x2,121] - മറുനാടൻ ടിവിയുടെ ഫേസ്ബുക്ക് പേജ് ഹാക്ക് ചെയ്തു; മറുനാടൻ മലയാളിക്ക് നേരെയും ഹാക്കിങ് ശ്രമം; മറുനാടൻ മലയാളിക്കും മറുനാടൻ...
+  [mr x5,262] मराठी बातम्या, ब्रेकिंग न्यूज मराठीत सर्वात आधी News18 लोकमतवर. आजच्या ताज्या बातम्या, लाइव्ह न्यूज अपडेट, सर्वात आधी वा...
+  [mr x1,337] Read Goa news in Marathi and Goa local news on Tourism, Business, Politics, Entertainment, Sports and Goa latest news in...
+  [mr x1,337] दैनिक गोमन्तक आता सर्व सोशल मीडिया प्लॅटफॉर्मवर. ताज्या घडामोडींसाठी फेसबुक, इन्स्टाग्राम, ट्विटर, शेअर चॅट आणि टेलिग्रा...
+  [or x13,371] ପଢନ୍ତୁ ଓଡ଼ିଶା ରିପୋର୍ଟର ଖବର ଏବେ ଟେଲିଗ୍ରାମ୍ ରେ। ସମସ୍ତ ବଡ ଖବର ପାଇବା ପାଇଁ ଏଠାରେ କ୍ଲିକ୍ କରନ୍ତୁ।
+  [or x6,554] Digitized by [email]
+  [or x1,852] Digitized by PPRACHIN, SOA
+  [pa x2,357] ਬ੍ਰੇਕਿੰਗ ਖ਼ਬਰਾਂ ਪੰਜਾਬੀ \'ਚ ਸਭ ਤੋਂ ਪਹਿਲਾਂ News18 ਪੰਜਾਬੀ \'ਤੇ। ਤਾਜ਼ਾ ਖਬਰਾਂ, ਲਾਈਵ ਅਪਡੇਟ ਖ਼ਬਰਾਂ, ਪੜ੍ਹੋ ਸਭ ਤੋਂ ਭਰੋਸੇਯੋਗ ਪੰਜਾਬ...
+  [pa x2,010] Opinion/facts in this article are author\'s own and punjabi. newsd5. in does not assume any responsibility or liability ...
+  [pa x1,918] ਵੀਡੀਓ ਲਈ ਕਲਿੱਕ ਕਰੋ -:
+  [ta x5,216] Sign up to receive our newsletter in your inbox every day!
+  [ta x3,826] Don't Miss!
+  [ta x3,655] - Education India Security Press Nashik Recruitment 2023: ரூ. 1. 03 லட்சத்தில் நாணயங்கள் அச்சிடும் ஆலையில் வேலை...!
+  [te x3,986] Don't Miss!
+  [te x2,316] Follow us on:
+  [te x2,080] - Travel గుజరాత్లో త్వరలో ప్రారంభం కానున్న ఇంటర్నేషనల్ కైట్ ఫెస్టివల్ 2024..
+  [ur x1,278] فہرست کا خانہ :
+  [ur x746] Video Tags:
+  [ur x562] محکم دلائل وبراہین سے مزین ، متنوع ومنفرد موضوعات پر مشتمل مفت آن لائن مکتبہ
+
+Samples for reading: 603 records in samples.jsonl (source: Sangraha, CC-BY-4.0; masked).
+Samples: screened: documents touching the protected suite (exact, 13-gram, short passage) are not sampled
