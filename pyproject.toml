@@ -32,6 +32,11 @@ dev = [
 tokenizer = [
   "tokenizers>=0.20",
 ]
+# Optional: reads the parquet files of external corpora (FrontierCorpus v2, D-044:
+# Sangraha Verified). Apache-2.0. Training and the v1 pipeline do not need it.
+data = [
+  "pyarrow>=18",
+]
 
 [project.urls]
 Repository = "https://github.com/dfgtghu556-ops/frontier-ai"

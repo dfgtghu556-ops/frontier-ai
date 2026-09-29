@@ -1432,6 +1432,67 @@ with learned positions.
 
 ---
 
+## D-044 — Data-rights policy: open sources plus curated collections (option 2), starting with Sangraha Verified
+**Date:** 2026-09-29 · **Status:** accepted (founder decision 2026-09-29: "approve D-044 option 2 with Sangraha Verified"; options in `docs/frontier_corpus_v2_sources.md` §6, §9)
+
+**Decision:**
+1. FrontierCorpus v2 may use **level A** (openly licensed: Wikipedia, Wikisource, public-domain
+   books) and **level B** (curated collections with a stated permissive license and a source
+   per document). This is option 2 of the survey (§6).
+2. The **first level-B source is AI4Bharat's Sangraha *Verified* subset** (CC-BY-4.0, dataset
+   `ai4bharat/sangraha`). The first slice is **one pinned parquet file per language**
+   (`verified/<lang>/data-0.parquet`, 13 files, 5,106,130,219 bytes), pinned by revision,
+   size and SHA-256 in `corpora/frontier/v2/sangraha_slice1.json`.
+3. **Measure before filtering.** The slice is first inspected without changing anything
+   (EXP-034). Filter thresholds for the v2 build are chosen from those measurements and
+   pre-registered in their own experiment.
+4. **Excluded:** Sangraha *Synthetic* (machine-translated English, level C) and level X.
+   **Deferred** (each would need its own record): Sangraha *Unverified*, IndicAlign
+   (instruction data; fine-tuning is outside the current guardrails), Setu (a Spark pipeline,
+   too heavy for the laptop; its ideas may be borrowed with MIT credit), AI4Bharat models
+   (the goal is a model trained from scratch). Other level-B collections (IndicCorp v2,
+   FineWeb-2) come **one at a time**, each as its own experiment.
+
+**Rules that come with this decision (all sources):**
+- Every document keeps a provenance tag (`source_id` inside its `doc_id`), so a source can be
+  removed by rebuilding without it if the law or our policy changes.
+- Attribution is kept with the data and in every published report (CC-BY-4.0 requires it).
+- Protected evaluation data is never trained on: every v2 build removes documents that touch
+  `frontier-heldout-v1` (exact text or any shared 13-gram; `corpus/decontaminate.py`, D-042).
+- A PII-scrubbing stage runs before level-B text enters a training build. Published reports
+  mask e-mail addresses, URLs and long digit runs in their text samples.
+- Quality is not lowered because a collection is already cleaned: our own script check,
+  quality rules, exact and near-duplicate removal and suite decontamination all run on it
+  (the Sangraha preview already showed a non-Assamese document in `verified/asm`).
+- No fixed mixing percentages; mixtures are compared by experiment.
+
+**Rationale:** level A alone is about 552M Indic words (survey §4), far below what later steps
+need in most Indic languages. Sangraha Verified is the largest openly licensed, per-language,
+hash-pinnable Indic collection found (64.3B tokens reported by its authors), built from
+human-verified sources, and published file by file so it can be pinned exactly like v1.
+The founder chose it because it gives the best available quality at scale, not as a
+shortcut; the rules above keep our own quality bar in force.
+
+**Alternatives rejected:** option 1 (open only — too small for later steps); option 3
+(everything, including machine translation and unverified web text — highest legal and
+"translationese" risk); starting with the level-A Wikipedia pilot first, as the survey (§8)
+proposed — the founder chose Sangraha Verified first; the Wikipedia pilot stays available.
+
+**Consequences accepted:**
+- Level B rests on fair dealing (ANI v. OpenAI, Delhi HC, provisional) and on a possible
+  future licence/royalty regime (DPIIT working paper, a proposal). Hence the removability rule.
+- The CC-BY-4.0 tag covers the collection; the texts underneath keep their authors'
+  copyright. Whether any licence affects released model weights is Q-7, settled before any
+  release.
+- The token count of the slice under Frontier Tokenizer v1 is NOT VERIFIED until EXP-034
+  measures it; no corpus-size claim is made before that.
+
+**Revisit when:** the law changes (a licence/royalty regime or a court ruling on training
+data); AI4Bharat changes the dataset's licence; EXP-034 shows the slice is unusable; or a
+second level-B source is proposed.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

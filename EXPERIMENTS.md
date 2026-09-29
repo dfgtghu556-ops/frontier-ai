@@ -2005,3 +2005,60 @@ from the committed JSON.
 * **Update (2026-09-29):** the founder approved D-043 ("approve D-043 and data plan"). It is
   recorded in DECISIONS.md as accepted, and step 9 is complete. The EXP-033 record above is
   unchanged.
+
+### EXP-034 — Sangraha Verified slice 1: acquire and inspect before any filtering (D-044; data scale-up phase 1)
+**Date:** 2026-09-29 · **Status:** pre-registered; code built and tested (sandbox); PC night run
+pending (founder: "approve D-044 option 2 with Sangraha Verified", 2026-09-29)
+
+**Purpose (why this serves the mission):** a model that can compete with the best needs far more
+high-quality Indic text than the 4.2M-character v1 pilot. D-044 approves Sangraha *Verified*
+(CC-BY-4.0) as the first large source. Before any filter threshold is chosen, we measure what the
+files actually contain — so every later cleaning rule is justified by numbers from our own data,
+not by guesses or by trust in someone else's pipeline.
+
+**Inputs (pinned before any content was read):** `corpora/frontier/v2/sangraha_slice1.json` —
+revision `8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8`, file `verified/<lang>/data-0.parquet` for
+each of our 13 languages, 5,106,130,219 bytes total, size and SHA-256 per file (from the HF tree
+API; the LFS object id is the SHA-256). Selection rule: file name only (`data-0`).
+
+**Method:**
+1. `scripts/fetch_sangraha_slice.py`: disk-space check (missing bytes + 3 GB margin), resumable
+   download, accept a file only if size and SHA-256 equal the pin (else set aside, never used).
+2. `scripts/inspect_sangraha_slice.py` (`corpus/slice_inspect.py`), one streaming pass per file,
+   filtering nothing. Per file: documents; characters and bytes; length quantiles; `type` mix
+   (web / OCR / speech etc.); documents with line breaks; normalization changes (NFC policy of
+   D-036); **script check** with the pipeline's own langid rule (declared-script share ≥ 0.6 of
+   letters; profile of the first 5,000 characters, documents longer than that are counted); exact
+   duplicates within the file; hits of the default quality rules (`QualityPolicy`); **protected
+   suite overlap** (exact text or any 13-gram shared with `frontier-heldout-v1`; the held-out
+   shard is verified line by line against `SUITE.json` first); and a **token estimate** with the
+   frozen Frontier Tokenizer v1 (every 50th document, ≤ 3M characters per file) reported with its
+   sample size. A few text samples (≤ 160 characters, e-mails / URLs / long digit runs masked)
+   are kept for a human read.
+3. `scripts/run_data_night.ps1` runs 1–2 unattended on the PC and commits only
+   `evals/results/EXP-034/` (`summary.json`, `SUMMARY.txt`).
+
+**Pre-registered rules (fixed before any result):**
+- This experiment **adopts nothing and removes nothing.** Its only outputs are measurements.
+- The slice counts as **acquired** only if all 13 files verify against their pins.
+- The inspection counts as **complete** only if every file was inspected in full (no
+  `--max-docs`) and the suite check ran (`suite_status` starts with `CHECKED`). An inspection
+  with `NOT CHECKED` is reported as partial and must be repeated before a build.
+- Filter thresholds for the v2 build (script share, minimum/maximum length, quality rules,
+  near-duplicate settings) are chosen **after** reading these numbers and pre-registered in the
+  next experiment, together with the reason for each threshold.
+- The token figure is an **estimate** from a sample. No corpus-size claim is made from it; the
+  build experiment counts tokens exactly.
+- Known limitation, stated in advance: `data-0` may not be a random sample of each language (the
+  file order inside Sangraha is NOT VERIFIED). The `type` mix per file makes this visible; if one
+  source type dominates, later slices must add files, not just more of the same file.
+
+**Sandbox checks (2026-09-29):** 19 new tests (`tests/test_sangraha_slice.py`): pins complete
+and tamper-proof; download verifies, resumes after a dropped connection, restarts when a server
+ignores resume requests, sets aside a wrong-hash file; free-space refusal; parquet streaming with
+provenance ids; the held-out loader refuses a wrong/partial shard and ignores CRLF; inspection
+counts on a hand-built sample; end-to-end CLI including the `NOT CHECKED` path; static safety of
+the PS runner. The langid script profile was made ~5× faster without changing its result (a
+test compares it with the old per-character method, including key order). Sandbox throughput of
+the full inspection pass on synthetic Hindi web-like text: about 2.5M characters/s; laptop speed
+NOT VERIFIED.

@@ -12,7 +12,13 @@ the model and each stage module for its contract.
     from frontier_ai.corpus import PipelineDocument, normalize_documents, ...
 """
 
-from .decontaminate import SuiteGuard, SuiteHit, decontaminate, iter_decontaminate  # noqa: F401
+from .decontaminate import (  # noqa: F401
+    SuiteGuard,
+    SuiteHit,
+    decontaminate,
+    guard_from_heldout_shards,
+    iter_decontaminate,
+)
 from .dedup import exact_dedup  # noqa: F401
 from .frontier_docs import (  # noqa: F401
     FrontierBuild,
@@ -74,6 +80,7 @@ __all__ = [
     "check_shards",
     "decontaminate",
     "exact_dedup",
+    "guard_from_heldout_shards",
     "iter_decontaminate",
     "langid_documents",
     "language_scripts",

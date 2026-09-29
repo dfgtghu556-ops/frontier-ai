@@ -35,7 +35,9 @@ Nothing is removed silently: every removal carries the measured profile.
 from __future__ import annotations
 
 import unicodedata
+from collections import Counter
 from collections.abc import Mapping
+from functools import lru_cache
 from typing import Any
 
 from frontier_ai.corpus.pipeline import PipelineDocument, Removal, StageOutcome
@@ -70,6 +72,15 @@ def _script_of(char: str) -> str | None:
     return None
 
 
+@lru_cache(maxsize=65536)
+def _profile_class(ch: str) -> str | None:
+    """Profile bucket of one character (``None`` = whitespace, counted nowhere). Cached."""
+    if ch.isspace():
+        return None
+    script = _script_of(ch) if unicodedata.category(ch)[0] == "L" else "common"
+    return "unknown" if script is None else script
+
+
 def script_profile(text: str) -> dict[str, int]:
     """Count non-whitespace characters of ``text`` by script.
 
@@ -78,15 +89,19 @@ def script_profile(text: str) -> dict[str, int]:
     symbols) counts under ``"common"``. Whitespace counts nowhere. A letter
     outside the known blocks counts under ``"unknown"`` so it can never
     vanish silently.
+
+    Implementation: characters are counted in C (``Counter``) and each
+    *distinct* character is classified once, which is ~5x faster on long
+    web documents (EXP-034). The result - including the key order, which
+    decides ``top_script`` ties - is identical to classifying character by
+    character, because ``Counter`` keeps first-occurrence order (a test
+    compares both on mixed text).
     """
     profile: dict[str, int] = {}
-    for ch in text:
-        if ch.isspace():
-            continue
-        script = _script_of(ch) if unicodedata.category(ch)[0] == "L" else "common"
-        if script is None:
-            script = "unknown"
-        profile[script] = profile.get(script, 0) + 1
+    for ch, n in Counter(text).items():
+        script = _profile_class(ch)
+        if script is not None:
+            profile[script] = profile.get(script, 0) + n
     return profile
 
 

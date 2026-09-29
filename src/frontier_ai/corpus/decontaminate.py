@@ -36,6 +36,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from frontier_ai.corpus.pipeline import PipelineDocument, Removal, StageOutcome, sha256_text
@@ -169,3 +170,35 @@ def decontaminate(documents: Sequence[PipelineDocument], guard: SuiteGuard) -> S
     }
     return StageOutcome(stage="suite_decontaminate", kept=tuple(kept), removed=tuple(removed),
                         flagged={}, stats=stats)
+
+
+def guard_from_heldout_shards(shard_paths: Sequence[Path | str], suite: dict[str, Any],
+                              n: int = NGRAM) -> SuiteGuard:
+    """Build a :class:`SuiteGuard` from the on-disk held-out shard files, verified against the suite.
+
+    ``SUITE.json`` stores fingerprints only (the texts stay out of git). The texts live in the
+    git-ignored held-out shards (one document per line, LF). This refuses to build a guard unless
+    the shard lines are *exactly* the suite's documents (same multiset of SHA-256 hashes), so a
+    stale, partial or edited shard can never silently weaken the protection. Suite doc_ids are
+    assigned by hash, so the check does not depend on shard order.
+    """
+    by_hash: dict[str, list[str]] = {}
+    for record in suite["documents"]:
+        by_hash.setdefault(record["sha256"], []).append(record["doc_id"])
+    pairs: list[tuple[str, str]] = []
+    for path in shard_paths:
+        # CRLF normalisation: a Windows checkout/copy must not change the verdict.
+        text = Path(path).read_bytes().decode("utf-8").replace("\r\n", "\n")
+        for line in text.split("\n"):
+            if line == "":
+                continue
+            ids = by_hash.get(sha256_text(line))
+            if not ids:
+                raise ValueError(f"{path}: a line does not match any suite document "
+                                 f"(sha256 {sha256_text(line)[:12]}...); wrong or edited shard")
+            pairs.append((ids.pop(0), line))
+    missing = sum(len(v) for v in by_hash.values())
+    if missing:
+        raise ValueError(f"held-out shards are missing {missing} of {len(suite['documents'])} "
+                         "suite documents")
+    return SuiteGuard.from_texts(pairs, n=n)

@@ -1,0 +1,154 @@
+{
+  "schema": "frontier-v2-source-pins-v1",
+  "slice_id": "sangraha-verified-slice1",
+  "purpose": "FrontierCorpus v2 data scale-up, first level-B slice: one pinned parquet file per language from Sangraha Verified (D-044 option 2; founder approved 2026-09-29).",
+  "dataset": "ai4bharat/sangraha",
+  "subset": "verified",
+  "revision": "8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8",
+  "license_id": "CC-BY-4.0",
+  "license_evidence": "Hugging Face dataset metadata tag license:cc-by-4.0 (https://huggingface.co/api/datasets/ai4bharat/sangraha, read 2026-09-29)",
+  "attribution": "Sangraha (AI4Bharat): Khan et al. 2024, IndicLLMSuite: A Blueprint for Creating Pre-training and Fine-Tuning Datasets for Indian Languages, ACL 2024 (arXiv:2403.06350). CC-BY-4.0.",
+  "trust_level": "B",
+  "trust_note": "Collection licence CC-BY-4.0; the scraped/OCR'd/transcribed texts underneath keep their authors' copyright (docs/frontier_corpus_v2_sources.md sections 2, 6). Every document stays tagged with its source_id so the slice can be removed by rebuilding without it.",
+  "pins_evidence": "size and sha256 (the git-LFS object id, which is the SHA-256 of the file bytes) read from https://huggingface.co/api/datasets/ai4bharat/sangraha/tree/<revision>/verified/<code> on 2026-09-29",
+  "row_schema": [
+    "doc_id",
+    "type",
+    "text"
+  ],
+  "row_schema_evidence": "datasets-server first-rows API, config verified, split asm (2026-09-29)",
+  "selection_rule": "data-0.parquet of every one of our 13 languages; chosen by file name only, before any content was seen. Whether file order is random with respect to sources is NOT VERIFIED; EXP-034 inspects the 'type' mix per file.",
+  "total_bytes": 5106130219,
+  "files": [
+    {
+      "source_id": "sangraha-verified-asm-data-0",
+      "language": "as",
+      "sangraha_code": "asm",
+      "script": "bengali",
+      "path": "verified/asm/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/asm/data-0.parquet",
+      "size": 328035291,
+      "sha256": "f2edb84689abeec21c44436342f9805c6a83baabeb0093ef797f9c9ea249be25"
+    },
+    {
+      "source_id": "sangraha-verified-ben-data-0",
+      "language": "bn",
+      "sangraha_code": "ben",
+      "script": "bengali",
+      "path": "verified/ben/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/ben/data-0.parquet",
+      "size": 391867808,
+      "sha256": "5745f9a93f3e1d52bc1e4615f1133afe3b9f20e7bfbcefd26cbd9c321a5c604e"
+    },
+    {
+      "source_id": "sangraha-verified-eng-data-0",
+      "language": "en",
+      "sangraha_code": "eng",
+      "script": "latin",
+      "path": "verified/eng/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/eng/data-0.parquet",
+      "size": 595992578,
+      "sha256": "3c080ef54239f17351162353e9ee957f9fdd6d158570e27186480805231bdade"
+    },
+    {
+      "source_id": "sangraha-verified-guj-data-0",
+      "language": "gu",
+      "sangraha_code": "guj",
+      "script": "gujarati",
+      "path": "verified/guj/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/guj/data-0.parquet",
+      "size": 374269246,
+      "sha256": "ff4529617aead4bd47b2c9f5d62778b9b98699daabde82f7535997704db10e2d"
+    },
+    {
+      "source_id": "sangraha-verified-hin-data-0",
+      "language": "hi",
+      "sangraha_code": "hin",
+      "script": "devanagari",
+      "path": "verified/hin/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/hin/data-0.parquet",
+      "size": 378091240,
+      "sha256": "001c615cca156edb0f99e7bdeabfa33fa6135f85d379b85999d8e071e3475d85"
+    },
+    {
+      "source_id": "sangraha-verified-kan-data-0",
+      "language": "kn",
+      "sangraha_code": "kan",
+      "script": "kannada",
+      "path": "verified/kan/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/kan/data-0.parquet",
+      "size": 368175508,
+      "sha256": "291ad9d11034bb18a185176c58c69dab79867f6f1633dd33b0b0d7a98bd62f74"
+    },
+    {
+      "source_id": "sangraha-verified-mal-data-0",
+      "language": "ml",
+      "sangraha_code": "mal",
+      "script": "malayalam",
+      "path": "verified/mal/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/mal/data-0.parquet",
+      "size": 333917916,
+      "sha256": "de1cee391b3703ddfdcf73bec83247cefc1b2b0e9c90b2c0da9a5d05a8027615"
+    },
+    {
+      "source_id": "sangraha-verified-mar-data-0",
+      "language": "mr",
+      "sangraha_code": "mar",
+      "script": "devanagari",
+      "path": "verified/mar/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/mar/data-0.parquet",
+      "size": 381849801,
+      "sha256": "394f7a33ebee8e2c75f1e93d09e63eb7cb224589aa226043048b24523c729be3"
+    },
+    {
+      "source_id": "sangraha-verified-ori-data-0",
+      "language": "or",
+      "sangraha_code": "ori",
+      "script": "odia",
+      "path": "verified/ori/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/ori/data-0.parquet",
+      "size": 372271028,
+      "sha256": "cce0dc3307e022a191c1d4c156fff960e56bd414adfb25b02807b821f2c1907e"
+    },
+    {
+      "source_id": "sangraha-verified-pan-data-0",
+      "language": "pa",
+      "sangraha_code": "pan",
+      "script": "gurmukhi",
+      "path": "verified/pan/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/pan/data-0.parquet",
+      "size": 358049731,
+      "sha256": "39ef1a3e7e50e704b43495f63d73b58d76144173d5bdcc9933107a54d68ba883"
+    },
+    {
+      "source_id": "sangraha-verified-tam-data-0",
+      "language": "ta",
+      "sangraha_code": "tam",
+      "script": "tamil",
+      "path": "verified/tam/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/tam/data-0.parquet",
+      "size": 357869888,
+      "sha256": "7787405e9881a0cc6fe62dbdbb109c51b4e05971236eea41d83e5bc724e9a26d"
+    },
+    {
+      "source_id": "sangraha-verified-tel-data-0",
+      "language": "te",
+      "sangraha_code": "tel",
+      "script": "telugu",
+      "path": "verified/tel/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/tel/data-0.parquet",
+      "size": 373244554,
+      "sha256": "76d2a831ba03f3c2c4b29a19b63a45ed03f308614863cf229649a94c82367b6b"
+    },
+    {
+      "source_id": "sangraha-verified-urd-data-0",
+      "language": "ur",
+      "sangraha_code": "urd",
+      "script": "arabic",
+      "path": "verified/urd/data-0.parquet",
+      "url": "https://huggingface.co/datasets/ai4bharat/sangraha/resolve/8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8/verified/urd/data-0.parquet",
+      "size": 492495630,
+      "sha256": "0220cd62b7dde5d12fa52c6c40f47f7e06df3e7ccb659576488fd8a83b110d48"
+    }
+  ]
+}

@@ -442,6 +442,20 @@ comes next. They also update the table in §3.
     `tests/test_suite_decontaminate.py`. It streams training documents past the suite's
     13-grams with bounded memory, and removals are recorded as `suite_exact` / `suite_ngram`.
     Still to build: the streaming interface for the other stages and MinHash near-dup.
+  - **Founder decided D-044 (2026-09-29): option 2, starting with Sangraha Verified**
+    (CC-BY-4.0), "the best, not compromising". Recorded in DECISIONS.md as accepted.
+    - Pins: `corpora/frontier/v2/sangraha_slice1.json` (13 files `verified/<lang>/data-0.parquet`,
+      5,106,130,219 bytes, revision `8b813c3f…`, size + SHA-256 each).
+    - Code: `corpus/sangraha.py` (pins, resumable verified download, parquet streaming),
+      `corpus/slice_inspect.py` (measures, filters nothing), `guard_from_heldout_shards` in
+      `corpus/decontaminate.py`, `scripts/fetch_sangraha_slice.py`,
+      `scripts/inspect_sangraha_slice.py`, PC runner `scripts/run_data_night.ps1`; tests in
+      `tests/test_sangraha_slice.py`. Optional extra `data` (pyarrow).
+    - **EXP-034** pre-registered in EXPERIMENTS.md. PC line:
+      `git pull --ff-only origin arena/01a0dc16-frontier-ai; powershell -ExecutionPolicy Bypass -File scripts\run_data_night.ps1`
+      Results come back in `out\data\EXP-034\NIGHT_REPORT.txt` and `evals/results/EXP-034/`.
+    - Next after EXP-034: pre-register v2 build thresholds from the numbers; MinHash near-dup
+      (memory-bounded) and PII scrub; build; exact token count.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

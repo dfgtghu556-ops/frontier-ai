@@ -94,6 +94,13 @@
 
   No large download happens before the founder decides D-044. The corpus stays
   FrontierCorpus v1 until a v2 build is recorded as an experiment.
+- **Update (2026-09-29, later):** the founder decided **D-044: option 2** (open sources plus
+  curated collections), **starting with AI4Bharat's Sangraha Verified** (CC-BY-4.0), and asked
+  for the best quality with no compromise. First slice: one pinned file per language (13 files,
+  about 5.1 GB). **EXP-034** downloads it with fingerprint checks and measures it *before* any
+  filtering (wrong-script text, duplicates, overlap with the protected suite, estimated tokens).
+  Next after EXP-034: pre-register the v2 cleaning thresholds from those numbers, add the
+  memory-bounded near-duplicate stage and PII scrubbing, then build and count tokens exactly.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

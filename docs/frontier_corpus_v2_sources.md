@@ -237,3 +237,11 @@ use their free resources because it is fast. Checked the same day:
 - Legal position unchanged (§2): the CC-BY-4.0 tag covers the collection; the scraped pages
   underneath keep their authors' copyright, which is why it is level B and every document
   stays tagged and removable.
+
+## 10. Decision (2026-09-29): D-044 accepted — option 2, starting with Sangraha Verified
+
+The founder chose option 2 and asked to start with Sangraha *Verified*, for quality at scale
+(recorded as D-044 in DECISIONS.md). This changes the §8 work order: the first large source is
+Sangraha Verified slice 1 (one pinned file per language, `corpora/frontier/v2/sangraha_slice1.json`),
+measured first by EXP-034 before any threshold is chosen. The level-A Wikipedia pilot remains
+available as a later, separate source.
