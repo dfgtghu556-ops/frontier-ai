@@ -1,0 +1,2145 @@
+{
+  "schema": "frontier-slice-inspection-v1",
+  "exp_id": "EXP-034",
+  "slice_id": "sangraha-verified-slice1",
+  "dataset": "ai4bharat/sangraha",
+  "revision": "8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8",
+  "license_id": "CC-BY-4.0",
+  "attribution": "Sangraha (AI4Bharat): Khan et al. 2024, IndicLLMSuite: A Blueprint for Creating Pre-training and Fine-Tuning Datasets for Indian Languages, ACL 2024 (arXiv:2403.06350). CC-BY-4.0.",
+  "suite_status": "CHECKED against frontier-heldout-v1 (3427 documents, 38,297 13-grams; shard verified against SUITE.json)",
+  "suite_guard": {
+    "ngram_n": 13,
+    "suite_documents": 3427,
+    "suite_unique_texts": 3427,
+    "suite_ngrams": 38297,
+    "suite_too_short_documents": 1882
+  },
+  "tokenizer": {
+    "measured": true,
+    "tokenizer": "frontier-tokenizer-v1 (frozen, D-041)",
+    "vocab_size": 32768
+  },
+  "max_docs_per_file": null,
+  "machine": {
+    "platform": "Windows-10-10.0.17763-SP0",
+    "python": "3.13.15",
+    "cpu_count": 4
+  },
+  "started_at": "2026-09-29 12:19:06",
+  "files": [
+    {
+      "source_id": "sangraha-verified-asm-data-0",
+      "language": "as",
+      "declared_script": "bengali",
+      "documents": 110238,
+      "documents_empty_after_normalize": 0,
+      "normalize_changed_documents": 12980,
+      "raw_chars": 319032836,
+      "raw_bytes_utf8": 802252858,
+      "chars": 318853058,
+      "words_whitespace": 50023727,
+      "doc_chars_quantiles": {
+        "p1": 224,
+        "p10": 522,
+        "p25": 809,
+        "p50": 1281,
+        "p75": 2417,
+        "p90": 6045,
+        "p99": 27615,
+        "min": 99,
+        "max": 293350
+      },
+      "documents_with_newlines": 101056,
+      "lines_total": 1186279,
+      "type_documents": {
+        "pdf": 21050,
+        "speech": 51,
+        "web": 89137
+      },
+      "type_chars": {
+        "pdf": 160033311,
+        "speech": 1015286,
+        "web": 157804461
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 13666,
+        "documents": {
+          "pass": 104235,
+          "script_mismatch": 6003
+        },
+        "chars": {
+          "pass": 295456682,
+          "script_mismatch": 23396376
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 5182,
+          "[0.20,0.40)": 82,
+          "[0.40,0.60)": 739,
+          "[0.60,0.80)": 2327,
+          "[0.80,0.90)": 5050,
+          "[0.90,0.95)": 7270,
+          "[0.95,1.00]": 89588
+        },
+        "mismatch_top_script": {
+          "latin": 5588,
+          "bengali": 413,
+          "arabic": 1,
+          "odia": 1
+        },
+        "failures_by_type": {
+          "pdf": 285,
+          "speech": 17,
+          "web": 5701
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 1983,
+        "control_chars": 0,
+        "url_density": 116,
+        "template_residue": 26,
+        "digit_runs": 1007,
+        "repetition": 1
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {
+          "suite_ngram": 5
+        },
+        "documents_hit": 5,
+        "distinct_suite_documents_first_hit": 5,
+        "examples": [
+          {
+            "doc_id": "4f83aa8856872f4649878fe2b8a5bc0febfee04b2510de4fe28372a93cf82ddd",
+            "reason": "suite_ngram",
+            "suite_doc_id": "as-wikisource-manomati-part1-ccbysa-000630",
+            "matched_ngrams": 22
+          },
+          {
+            "doc_id": "40a8b74e8233a076cb343da7f85cbc120a8b6d0a9cfe97bd47c6a9b7277a805f",
+            "reason": "suite_ngram",
+            "suite_doc_id": "as-wikisource-manomati-part1-ccbysa-000212",
+            "matched_ngrams": 3
+          },
+          {
+            "doc_id": "d7cd9abbcb936a7d9d75c2cd53cd0403eee3d409a0402f252793841122928e92",
+            "reason": "suite_ngram",
+            "suite_doc_id": "as-wikisource-manomati-part2-ccbysa-001157",
+            "matched_ngrams": 22
+          },
+          {
+            "doc_id": "a5660e03458df12daaebf96ec1a3f7d8673e3e158f39a4fa59637e37fc59ca0d",
+            "reason": "suite_ngram",
+            "suite_doc_id": "as-wikisource-manomati-part2-ccbysa-000082",
+            "matched_ngrams": 4
+          },
+          {
+            "doc_id": "34987292f69f15fcb04466451db744315ae3f8bb457bd619b18dc36998790a5d",
+            "reason": "suite_ngram",
+            "suite_doc_id": "as-wikisource-manomati-part1-ccbysa-000355",
+            "matched_ngrams": 13
+          }
+        ]
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1121,
+        "sample_chars": 3000101,
+        "sample_tokens": 1649813,
+        "tokens_per_char": 0.5499191527218583,
+        "estimated_file_tokens": 175343403
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "629544f8c1e61326b651223be33d279fe0c2beba",
+            "type": "web",
+            "chars": "1826",
+            "share": "0.997",
+            "text": "প্ৰধানমন্ত্ৰী নৰেন্দ্ৰ মোদী নেতৃত্বাধীন কেন্দ্ৰীয় চৰকাৰে দেশৰ সংকটৰ সময়তো অষ্টলক্ষ্মী হিচাপে পৰিচিত উত্তৰ পূৰ্বাঞ্চলৰ তথা অসমৰ নামৰূপ সাৰ কাৰখানালৈ সৰ্বাংগীন ..."
+          },
+          {
+            "doc_id": "e4a85d23c4ff64d365c45625ebe1b409dc9ef5bc",
+            "type": "web",
+            "chars": "467",
+            "share": "0.923",
+            "text": "টিংখাং সমষ্টিৰ বিজেপি বিধায়ক বিমল বৰাই শক্তি বিভাগৰ দ্বায়িত্ব গ্ৰহণ কৰাৰ পিছতে বিভাগটোৰ শীৰ্ষ পৰ্যায়ৰ বিষয়া সকলৰ বিৰুদ্ধে গ্ৰহণ কৰিছে কঠোৰ স্থিতি। বুধবাৰে ব..."
+          },
+          {
+            "doc_id": "9b8b90179e0a507095bd14d6ec75b915b82e39c7",
+            "type": "web",
+            "chars": "227",
+            "share": "1.000",
+            "text": "অলপতে জোনাইত গ্ৰেপ্তাৰ কৰা দিলোৱাৰে নিশা আৰক্ষীক চোৰাংচিকাৰীৰ ঘাটি দেখুৱাবলৈ নিওতে পলবলৈ চেষ্টা কৰিছিল। / বৰ্তমান তেজপুৰ মেডিকেল কলেজত চিকিৎসাধীন গুলীবিদ্ধ দিলো..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "1250961fa612e44f06b08ad978edc1e843ed1299",
+            "type": "web",
+            "chars": "1141",
+            "share": "0.000",
+            "text": "1 Uru-o ti ibidaba. / Anduane Homogonaga mini mo yaraga halu iba gana lami̱ya ibidaba. / ibuhondo turu halu iba gana lo mimi̱ya ibidaba. / 2 Iname ibu kagoria k..."
+          },
+          {
+            "doc_id": "0113c255c4a2d2a2256a171665db0c423165dd88",
+            "type": "web",
+            "chars": "407",
+            "share": "0.000",
+            "text": "4 To jotend lweny mag jo-Filistia nokecho kode ma giwacho niya, \"Riemb ngʼatni odogi mondo odog kama ne imiye. Ok onego odhi kodwa e lweny, nikech e kinde ma lw..."
+          },
+          {
+            "doc_id": "35893743dd8f3585d58ac1a81b507ad8876bfb68",
+            "type": "web",
+            "chars": "3927",
+            "share": "0.000",
+            "text": "1 Etiya Iconium te eneka hoise, Paul aru Barnabas pora Yehudi khan laga mondoli te jaise aru kineka tai duijon kotha koise, etu huni kene bisi Yehudi aru Porjat..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 379.76,
+      "documents_per_second": 290.3,
+      "mb_per_second": 2.113,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 110238
+    },
+    {
+      "source_id": "sangraha-verified-ben-data-0",
+      "language": "bn",
+      "declared_script": "bengali",
+      "documents": 149797,
+      "documents_empty_after_normalize": 1,
+      "normalize_changed_documents": 12709,
+      "raw_chars": 383188931,
+      "raw_bytes_utf8": 1009671267,
+      "chars": 382907103,
+      "words_whitespace": 59137519,
+      "doc_chars_quantiles": {
+        "p1": 271,
+        "p10": 614,
+        "p25": 950,
+        "p50": 1484,
+        "p75": 2402,
+        "p90": 4664,
+        "p99": 20281,
+        "min": 0,
+        "max": 551618
+      },
+      "documents_with_newlines": 139594,
+      "lines_total": 1502204,
+      "type_documents": {
+        "pdf": 19700,
+        "speech": 166,
+        "web": 129931
+      },
+      "type_chars": {
+        "pdf": 121143324,
+        "speech": 1781352,
+        "web": 259982427
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 13612,
+        "documents": {
+          "pass": 147844,
+          "script_mismatch": 1952
+        },
+        "chars": {
+          "pass": 378364539,
+          "script_mismatch": 4542564
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 55,
+          "[0.20,0.40)": 178,
+          "[0.40,0.60)": 1719,
+          "[0.60,0.80)": 2850,
+          "[0.80,0.90)": 3603,
+          "[0.90,0.95)": 5044,
+          "[0.95,1.00]": 136347
+        },
+        "mismatch_top_script": {
+          "latin": 976,
+          "bengali": 968,
+          "arabic": 7,
+          "devanagari": 1
+        },
+        "failures_by_type": {
+          "pdf": 249,
+          "speech": 28,
+          "web": 1675
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 1532,
+        "control_chars": 0,
+        "url_density": 163,
+        "template_residue": 72,
+        "digit_runs": 727,
+        "repetition": 0
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {},
+        "documents_hit": 0,
+        "distinct_suite_documents_first_hit": 0,
+        "examples": []
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1173,
+        "sample_chars": 3034347,
+        "sample_tokens": 1618983,
+        "tokens_per_char": 0.5335523590413358,
+        "estimated_file_tokens": 204300988
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "7c2fe5a1ffd753aba26f090146edebcb",
+            "type": "web",
+            "chars": "1437",
+            "share": "0.974",
+            "text": "কি বলব? যা বলতে আসছি তা দেখছি সবাই আপনাকে বলেই দিয়েছে।একি স্টাইলের ধন্যবাদ আরেকবার দিতে চাচ্ছিনা।তবে আপনার এই প্রচেষ্টা আমাদের যততুকু সাহায্য করেছে তা ধন্যবাদে..."
+          },
+          {
+            "doc_id": "be99c3b41ac09961659d7a187d463f02",
+            "type": "web",
+            "chars": "2605",
+            "share": "0.991",
+            "text": "বিকাশ অ্যাপের মধ্যে সেভিংস স্কিম বা ডিপিএস খোলার সুযোগ রয়েছে। বিকাশ অ্যাপ ব্যবহার করে আইডিএলসি তে টাকা জমানো যাবে। কোনো বাড়তি ঝামেলা ছাড়া ঘরে বসে এই সেভিংস ব..."
+          },
+          {
+            "doc_id": "0cf723f9c209b721b4eb24b2c6157af9",
+            "type": "web",
+            "chars": "344",
+            "share": "1.000",
+            "text": "সত্যিই কী আপনার মনে হয় তিনি চুক্তির শর্ত পালন করবেন? বাক্যটাকে দু-ভাগ করে জিগেশ করলো ক্রেগ আর ফ্রাই। / সন্দেহ করার অবকাশ কই? উত্তর দিলো কিন-ফো। আমার অবস্থা যে ..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "667a773f5e7eac6a2c48d394449faadee38d5bc5",
+            "type": "web",
+            "chars": "1606",
+            "share": "0.454",
+            "text": "উপসাগরীয় সম্পদশালী দেশ সংযুক্ত আরব আমিরাতের সবচেয়ে ধনী ব্যবসায়ী পরিবারগুলোর বিরুদ্ধে বিরাট পদক্ষেপ নেয়া হচ্ছে। আমদানিকৃত পণ্য বিক্রির ক্ষেত্রে তাদের একচেটিয..."
+          },
+          {
+            "doc_id": "4050d9fa00895550445a1358ec84e0d4",
+            "type": "web",
+            "chars": "1535",
+            "share": "0.506",
+            "text": "জেনারেলাইজড সিস্টেম অফ প্রিফারেন্সেস, অথবা জিএসপি (ইংরেজিঃ Generalized System of Preferences, GSP) বিশ্ব বাণিজ্য সংস্থা (ডব্লিওটিও) এর সাধারণ নিয়ম থেকে ছাড় দে..."
+          },
+          {
+            "doc_id": "8a0be801cb49ce51de3449eef2516a49b1de201a",
+            "type": "web",
+            "chars": "2018",
+            "share": "0.439",
+            "text": "স্প্যানিশ সুপার কাপের ফাইনালে কোনো অঘটন দেখেনি ভক্তরা। সৌদি আরবের কিং ফাহাদ স্টেডিয়ামে অ্যাটলেটিক বিলবাওকে ২-০ গোলে পরাজিত করে শিরোপা জিতেছে রিয়াল মাদ্রিদ। এখ..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 436.86,
+      "documents_per_second": 342.9,
+      "mb_per_second": 2.311,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 149797
+    },
+    {
+      "source_id": "sangraha-verified-eng-data-0",
+      "language": "en",
+      "declared_script": "latin",
+      "documents": 349525,
+      "documents_empty_after_normalize": 0,
+      "normalize_changed_documents": 1190,
+      "raw_chars": 937044740,
+      "raw_bytes_utf8": 948102819,
+      "chars": 936710771,
+      "words_whitespace": 157528387,
+      "doc_chars_quantiles": {
+        "p1": 250,
+        "p10": 636,
+        "p25": 1129,
+        "p50": 1911,
+        "p75": 3007,
+        "p90": 5056,
+        "p99": 14658,
+        "min": 77,
+        "max": 375261
+      },
+      "documents_with_newlines": 336584,
+      "lines_total": 4258518,
+      "type_documents": {
+        "pdf": 4760,
+        "speech": 33,
+        "web": 344732
+      },
+      "type_chars": {
+        "pdf": 37073253,
+        "speech": 2044905,
+        "web": 897592613
+      },
+      "exact_duplicates_within_file": {
+        "documents": 90,
+        "chars": 137191
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 35727,
+        "documents": {
+          "no_letters": 1,
+          "pass": 349303,
+          "script_mismatch": 221
+        },
+        "chars": {
+          "no_letters": 4995,
+          "pass": 934402156,
+          "script_mismatch": 2303620
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 31,
+          "[0.20,0.40)": 21,
+          "[0.40,0.60)": 170,
+          "[0.60,0.80)": 1586,
+          "[0.80,0.90)": 1243,
+          "[0.90,0.95)": 879,
+          "[0.95,1.00]": 345595
+        },
+        "mismatch_top_script": {
+          "latin": 141,
+          "devanagari": 56,
+          "arabic": 11,
+          "odia": 4,
+          "telugu": 3,
+          "malayalam": 2,
+          "tamil": 2,
+          "gurmukhi": 1,
+          "kannada": 1
+        },
+        "failures_by_type": {
+          "pdf": 63,
+          "speech": 1,
+          "web": 158
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 2007,
+        "control_chars": 0,
+        "url_density": 1437,
+        "template_residue": 35,
+        "digit_runs": 6813,
+        "repetition": 3
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {},
+        "documents_hit": 0,
+        "distinct_suite_documents_first_hit": 0,
+        "examples": []
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1060,
+        "sample_chars": 3002402,
+        "sample_tokens": 1571910,
+        "tokens_per_char": 0.5235508103178722,
+        "estimated_file_tokens": 490415683
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "ed7dccd494782aa710cab9250a6c875116a0e2d7",
+            "type": "web",
+            "chars": "1861",
+            "share": "1.000",
+            "text": "Actor Simbu, who is known for raising his voice against several issues, has now issued a strong statement regarding the Sterlite shooting. / By India Today Web ..."
+          },
+          {
+            "doc_id": "0be1ddc07cfcf92d6aefb83644a00cde14392185",
+            "type": "web",
+            "chars": "2878",
+            "share": "1.000",
+            "text": "Global blockchain company Binance has completed its acquisition of Swipe, the multi-currency digital wallet and Visa debit card platform, for an undisclosed amo..."
+          },
+          {
+            "doc_id": "323b436bd1abbfb57969d69886e87d22882483ff",
+            "type": "web",
+            "chars": "7714",
+            "share": "1.000",
+            "text": "More than most sports promotions, the UFC is a star-driven business. In order to succeed and draw the most money, it needs its top fighters to be seen as supers..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "1a6dde5470ed8d2dd51578b26363e22de6b70981",
+            "type": "web",
+            "chars": "7866",
+            "share": "0.516",
+            "text": "5 રાજા બેલ્શાસ્સારે પોતાના એક હજાર ઉમરાવોને મોટી ઉજાણી આપી અને એ હજાર ઉમરાવોની સમક્ષ તે છૂટથી દ્રાક્ષારસ પીવા લાગ્યો. 2 દ્રાક્ષારસ પીતાં પીતાં બેલ્શાસ્સારને યાદ..."
+          },
+          {
+            "doc_id": "1b2c8d0a27944438d13023be3151a6ac45e1089e",
+            "type": "web",
+            "chars": "1504",
+            "share": "0.537",
+            "text": "తరువాత లేచి తన చేతికఱ్ఱతో బయటికి వెళ్లి తిరుగుచుండిన యెడల, వాని కొట్టిన వానికి శిక్ష విధింపబడదుగాని అతడు పనిచేయలేని కాలమునకు తగిన సొమ్ము ఇచ్చి వాడు అతనిని పూర్త..."
+          },
+          {
+            "doc_id": "028d468061539c34376644534ddb9c71f80cfb0b",
+            "type": "web",
+            "chars": "298",
+            "share": "0.577",
+            "text": "ଇନ୍ଫୋର୍ମସଂ ! / Free !! / Free !! / To get success in any field you have to cooperate with union thinking of people which is a great achievement in itself. / ଫୋଲ..."
+          }
+        ],
+        "no_letters": [
+          {
+            "doc_id": "fef8ee83e9b5d8bb0da2261b2f7491a409153887",
+            "type": "speech",
+            "chars": "4995",
+            "share": "0.000",
+            "text": ". / . / ! . / ! ! ! ! ! ! ! ! ! ! . / ! ! . / ! ! ? / ! ! ! . / . / . / ! . / ! ! . / . / . / . . / . / ! ! . / . / . / . / . / ! . / ! .! \" \"? / . / ! . / ! ? ..."
+          }
+        ]
+      },
+      "seconds": 672.92,
+      "documents_per_second": 519.4,
+      "mb_per_second": 1.409,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 349525
+    },
+    {
+      "source_id": "sangraha-verified-guj-data-0",
+      "language": "gu",
+      "declared_script": "gujarati",
+      "documents": 149797,
+      "documents_empty_after_normalize": 1,
+      "normalize_changed_documents": 4618,
+      "raw_chars": 362200003,
+      "raw_bytes_utf8": 931389895,
+      "chars": 362044020,
+      "words_whitespace": 62152842,
+      "doc_chars_quantiles": {
+        "p1": 248,
+        "p10": 646,
+        "p25": 1029,
+        "p50": 1581,
+        "p75": 2592,
+        "p90": 4828,
+        "p99": 14466,
+        "min": 0,
+        "max": 201028
+      },
+      "documents_with_newlines": 134570,
+      "lines_total": 1313550,
+      "type_documents": {
+        "pdf": 26862,
+        "speech": 524,
+        "web": 122411
+      },
+      "type_chars": {
+        "pdf": 105976752,
+        "speech": 1630322,
+        "web": 254436946
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 14152,
+        "documents": {
+          "pass": 148432,
+          "script_mismatch": 1364
+        },
+        "chars": {
+          "pass": 359097526,
+          "script_mismatch": 2946494
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 91,
+          "[0.20,0.40)": 195,
+          "[0.40,0.60)": 1078,
+          "[0.60,0.80)": 3237,
+          "[0.80,0.90)": 6819,
+          "[0.90,0.95)": 11192,
+          "[0.95,1.00]": 127184
+        },
+        "mismatch_top_script": {
+          "latin": 665,
+          "gujarati": 650,
+          "devanagari": 46,
+          "arabic": 3
+        },
+        "failures_by_type": {
+          "pdf": 406,
+          "speech": 134,
+          "web": 824
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 709,
+        "control_chars": 0,
+        "url_density": 101,
+        "template_residue": 92,
+        "digit_runs": 3719,
+        "repetition": 2
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {},
+        "documents_hit": 0,
+        "distinct_suite_documents_first_hit": 0,
+        "examples": []
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1327,
+        "sample_chars": 3003313,
+        "sample_tokens": 1703249,
+        "tokens_per_char": 0.567123373421285,
+        "estimated_file_tokens": 205323626
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "8607767fdf19be67d86ceba5a6d51fad936d5d55",
+            "type": "web",
+            "chars": "2201",
+            "share": "1.000",
+            "text": "જામનગર : / જામનગર જિલ્લામાં ડામર ચોરીના કૌભાંડમાં પીએસઆઈનો પુત્ર રંગહાથે ઝડપાઈ જતાં ચકચાર મચી જવા પામી હતી. જોડીયાના ભાદરા પાસે ડામર ચોરીનું કૌભાડ ઉજાગર થવા પામ..."
+          },
+          {
+            "doc_id": "e28dfe578c47fd8aa54a1e1cfc0e9cb7",
+            "type": "web",
+            "chars": "3082",
+            "share": "0.963",
+            "text": "Bબીબી પ્રમુખ એક્રેમ İમામોલાએ મેસિડિએક્ય-મહમૂત્બી મેટ્રો લાઇનના નૂર્ટેપ સ્ટેશન પર તપાસ કરી. તેમણે જણાવ્યું હતું કે તેઓ 19 મેના રોજ લાઇનને લાઇનમાં મૂકવાની યોજના ધ..."
+          },
+          {
+            "doc_id": "3f1b20af492e604149b19a9bced8e972c67f5099",
+            "type": "web",
+            "chars": "2270",
+            "share": "1.000",
+            "text": "અમદાવાદઃ 2008માં અમદાવાદના અલગ-અલગ વિસ્તારોમાં થયેલા સિરિયલ બ્લાસ્ટ કેસનો આજે ચુકાદો જાહેર થઈ ગયો છે. અત્યારસુધી મળતી માહિતી અનુસાર, 77માંથી 28 જેટલા આરોપીઓને શ..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "54c03e1a5df9cd72ab0ab242d90b581df6b018e4e399f78dbb02f043270363d7",
+            "type": "pdf",
+            "chars": "946",
+            "share": "0.571",
+            "text": "છો ? હું નથી ચાહાતો. Shut up the shop for me, my lad (શટ અપ ધ શાપ કાર મી માઇ લડ) મારા છોકરા મારે સારૂ દુકાન બંધ કર Give the stick to the man (ગીધ ધ સ્ટીક ટુ ધ મ..."
+          },
+          {
+            "doc_id": "e440c9f832667c1b67546d713757661beed7c87e",
+            "type": "web",
+            "chars": "143",
+            "share": "0.416",
+            "text": "Welcome! / Forgot your password? / A password will be e-mailed to you. / આજ કાલ યુવતીઓ આ કાર્ય માટે ઉપયોગમાં લઈ રહી છે કોલગેટ,સત્ય જાણી ચોંકી જશો."
+          },
+          {
+            "doc_id": "ea073903cfe30e629de929bb14514a255b8597ab",
+            "type": "web",
+            "chars": "180",
+            "share": "0.461",
+            "text": "Welcome! / Forgot your password? / A password will be e-mailed to you. / કાશ્મીરમાં SMS સેવા બંધઃ જાણો, શું છે વર્તમાન સ્થિતિ? / જાણો, કેવું રહયું આ દીપડાનું દિ..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 384.2,
+      "documents_per_second": 389.9,
+      "mb_per_second": 2.424,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 149797
+    },
+    {
+      "source_id": "sangraha-verified-hin-data-0",
+      "language": "hi",
+      "declared_script": "devanagari",
+      "documents": 174763,
+      "documents_empty_after_normalize": 0,
+      "normalize_changed_documents": 5870,
+      "raw_chars": 387733221,
+      "raw_bytes_utf8": 981414640,
+      "chars": 387456259,
+      "words_whitespace": 75464113,
+      "doc_chars_quantiles": {
+        "p1": 284,
+        "p10": 651,
+        "p25": 1025,
+        "p50": 1544,
+        "p75": 2232,
+        "p90": 3707,
+        "p99": 13431,
+        "min": 13,
+        "max": 615931
+      },
+      "documents_with_newlines": 164206,
+      "lines_total": 1415557,
+      "type_documents": {
+        "pdf": 20907,
+        "speech": 312,
+        "web": 153544
+      },
+      "type_chars": {
+        "pdf": 88148926,
+        "speech": 1834853,
+        "web": 297472480
+      },
+      "exact_duplicates_within_file": {
+        "documents": 3019,
+        "chars": 14106627
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 10964,
+        "documents": {
+          "pass": 172256,
+          "script_mismatch": 2507
+        },
+        "chars": {
+          "pass": 383893298,
+          "script_mismatch": 3562961
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 31,
+          "[0.20,0.40)": 490,
+          "[0.40,0.60)": 1986,
+          "[0.60,0.80)": 4932,
+          "[0.80,0.90)": 9519,
+          "[0.90,0.95)": 15741,
+          "[0.95,1.00]": 142064
+        },
+        "mismatch_top_script": {
+          "latin": 1477,
+          "devanagari": 1018,
+          "arabic": 11,
+          "telugu": 1
+        },
+        "failures_by_type": {
+          "pdf": 261,
+          "speech": 54,
+          "web": 2192
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 767,
+        "control_chars": 0,
+        "url_density": 134,
+        "template_residue": 42,
+        "digit_runs": 4260,
+        "repetition": 7
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {
+          "suite_ngram": 1
+        },
+        "documents_hit": 1,
+        "distinct_suite_documents_first_hit": 1,
+        "examples": [
+          {
+            "doc_id": "518ce70bd44cb2cf8d4c04bb4e9a2d123a158817c0fae330d41642c36ca39fa3",
+            "reason": "suite_ngram",
+            "suite_doc_id": "hi-wikisource-godaan-ch16-ccbysa-000005",
+            "matched_ngrams": 1
+          }
+        ]
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1351,
+        "sample_chars": 3000547,
+        "sample_tokens": 1613497,
+        "tokens_per_char": 0.5377342864484376,
+        "estimated_file_tokens": 208348515
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "c729b49b2d13dea710df863877cb3266df6e1a9e",
+            "type": "web",
+            "chars": "2476",
+            "share": "0.955",
+            "text": "अमेरिकी राष्ट्रपति चुनाव (US Presidential Election) के दिन नासा (NASA) की एस्ट्रॉनॉट केट रूबिन्स (Kate Rubins) अंतरिक्ष से वोट देंगी. 1997 में नासा के डेविड वूल..."
+          },
+          {
+            "doc_id": "e0fc83bd15451c7b438cd907a3a01e48cc5ced63",
+            "type": "web",
+            "chars": "2193",
+            "share": "0.970",
+            "text": "(source : IANS) (Photo Credit: (source : IANS)) / लंदनः / विश्व टेस्ट चैम्पियनशिप (डब्ल्यूटीसी) फाइनल जीतने के लिए अच्छी स्थिति में पहुंची ऑस्ट्रेलिया की टीम ने..."
+          },
+          {
+            "doc_id": "723783306b037fa3dbd9f7161d2403109808d2964d47d463e9baa1429fece7c2",
+            "type": "pdf",
+            "chars": "2831",
+            "share": "1.000",
+            "text": "रतन मेत्युपल थाफ एजूकेशन / (१) ग्रामीण क्षेत्रों के छात्रो का पारिवारिक वातावरण सराव है वह उन्हें मैंग्रेजी पहने अंग्रेजी बोलने और अँग्रेजी में अपने विचार व्यक्..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "fbd3f0e4d2cd1b795c51a1bf1eaed3edd2e76a3c",
+            "type": "web",
+            "chars": "500",
+            "share": "0.516",
+            "text": "Google ने अगले जेनरेशन के पिक्सल स्मार्टफोन पर काम करना शुरू कर दिया है। खबर है कि गूगल अपने अपकमिंग Pixel सीरीज के स्मार्टफोन को एंड्रॉयड गो वर्जन के साथ पेश क..."
+          },
+          {
+            "doc_id": "a73bbd1bea8686e663e850365d4a2a2b1cf9254b",
+            "type": "web",
+            "chars": "445",
+            "share": "0.478",
+            "text": "हथियार बनाने वाली शीर्ष अमेरिकी कंपनी लॉकहीड मार्टिन ने कहा कि भारत के साथ 'गेम चेंजिंग' रक्षा समझौते करने का समय आ गया है। लॉकहीड मार्टिन के उपाध्यक्ष विवेक ला..."
+          },
+          {
+            "doc_id": "4dee128c5556ab11e6792e9788f1bdee683ada2c",
+            "type": "web",
+            "chars": "434",
+            "share": "0.427",
+            "text": "कर्नाटक उच्च न्यायालय ने व्यवस्था दी है कि आरोपी शिकायतकर्ता से जिरह करने के अधिकार का दावा कर सकता है, भले ही उसने अंतरिम क्षतिपूर्ति जमा नहीं कर आदेश का उल्लं..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 546.52,
+      "documents_per_second": 319.8,
+      "mb_per_second": 1.796,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 174763
+    },
+    {
+      "source_id": "sangraha-verified-kan-data-0",
+      "language": "kn",
+      "declared_script": "kannada",
+      "documents": 174762,
+      "documents_empty_after_normalize": 0,
+      "normalize_changed_documents": 1683,
+      "raw_chars": 360293358,
+      "raw_bytes_utf8": 949437442,
+      "chars": 360106143,
+      "words_whitespace": 44546116,
+      "doc_chars_quantiles": {
+        "p1": 293,
+        "p10": 589,
+        "p25": 892,
+        "p50": 1428,
+        "p75": 2387,
+        "p90": 3743,
+        "p99": 11451,
+        "min": 79,
+        "max": 221071
+      },
+      "documents_with_newlines": 164978,
+      "lines_total": 1479711,
+      "type_documents": {
+        "pdf": 15458,
+        "speech": 618,
+        "web": 158686
+      },
+      "type_chars": {
+        "pdf": 60181761,
+        "speech": 2466054,
+        "web": 297458328
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 10485,
+        "documents": {
+          "pass": 172098,
+          "script_mismatch": 2664
+        },
+        "chars": {
+          "pass": 351450408,
+          "script_mismatch": 8655735
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 913,
+          "[0.20,0.40)": 211,
+          "[0.40,0.60)": 1540,
+          "[0.60,0.80)": 4150,
+          "[0.80,0.90)": 7642,
+          "[0.90,0.95)": 15539,
+          "[0.95,1.00]": 144767
+        },
+        "mismatch_top_script": {
+          "latin": 1580,
+          "kannada": 1082,
+          "bengali": 2
+        },
+        "failures_by_type": {
+          "pdf": 126,
+          "speech": 120,
+          "web": 2418
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 501,
+        "control_chars": 0,
+        "url_density": 372,
+        "template_residue": 14,
+        "digit_runs": 3730,
+        "repetition": 9
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {
+          "suite_ngram": 4
+        },
+        "documents_hit": 4,
+        "distinct_suite_documents_first_hit": 4,
+        "examples": [
+          {
+            "doc_id": "fa7ba16a1834c6cc6aab8a1ffb612fda48dc4f74cb0c85824d709606527cb37c",
+            "reason": "suite_ngram",
+            "suite_doc_id": "kn-wikisource-ranganna-ch01-15-ccbysa-000488",
+            "matched_ngrams": 3
+          },
+          {
+            "doc_id": "162c18549b1d77e521e44a9a453bc51077a458e7d019894b9724566ffb0db857",
+            "reason": "suite_ngram",
+            "suite_doc_id": "kn-wikisource-ranganna-ch16-30-ccbysa-000241",
+            "matched_ngrams": 5
+          },
+          {
+            "doc_id": "3da5547292b652280093d28602e4401d32e73322544743cfb4dc34a473a2313b",
+            "reason": "suite_ngram",
+            "suite_doc_id": "kn-wikisource-ranganna-ch16-30-ccbysa-000801",
+            "matched_ngrams": 4
+          },
+          {
+            "doc_id": "8ab4a732d18b4182b984600510482607172973a8d904afa34ee4e2789b23818c",
+            "reason": "suite_ngram",
+            "suite_doc_id": "kn-wikisource-ranganna-ch01-15-ccbysa-000696",
+            "matched_ngrams": 10
+          }
+        ]
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1355,
+        "sample_chars": 3000520,
+        "sample_tokens": 1451764,
+        "tokens_per_char": 0.4838374681721835,
+        "estimated_file_tokens": 174232845
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "595897c4b635c3c4d05565f311d161e1d73ec99a",
+            "type": "web",
+            "chars": "831",
+            "share": "1.000",
+            "text": "ನಗರದ ಕುಮಾರಸ್ವಾಮಿ ದೇವಸ್ಥಾನದ ಮುಖ್ಯರಸ್ತೆ ಬಳಿ ಇರುವ ಕುರುಬರ ಸಂಘದ ಆವರಣದಲ್ಲಿ ವಸತಿ ನಿಲಯ ಕಟ್ಟಡ ನಿರ್ಮಾಣಕ್ಕಾಗಿ ಅಗೆದಿದ್ದ ಅಂದಾಜು 10 ಅಡಿ ಆಳದ ಬುನಾದಿಯಲ್ಲಿ ಬಿದ್ದ ಹೋರಿಯನ್ನು ಅಗ್ನಿಶ..."
+          },
+          {
+            "doc_id": "a2abb73040587d61c377d12ab4089739f368f1c8",
+            "type": "web",
+            "chars": "1857",
+            "share": "1.000",
+            "text": "ಮಂಗಳೂರುಃ ಕರ್ನಾಟಕದಲ್ಲಿ ತೌಕ್ತೆ ಚಂಡಮಾರುತದಿಂದ ಸಂಭವಿಸಿದ ಹಾನಿಗೆ ರಾಜ್ಯ ಸರ್ಕಾರ ಪರಿಹಾರ ಘೋಷಿಸಿದೆ. ಚಂಡಮಾರುತದಿಂದ ಮನೆ ಸಂಪೂರ್ಣ ಕುಸಿದು ಬಿದ್ದಿದ್ದರೆ 5 ಲಕ್ಷ ಪರಿಹಾರ, ಭಾಗಶಃ ಹಾನಿಯಾಗ..."
+          },
+          {
+            "doc_id": "91b1dfdb43eb18e5b7929e5594c96c6aaa9ea2c0",
+            "type": "web",
+            "chars": "992",
+            "share": "1.000",
+            "text": "ಶಿವಮೊಗ್ಗಃ ಬಜರಂಗದಳ ಕಾರ್ಯಕರ್ತ ಹರ್ಷ ಹತ್ಯೆ ಪ್ರಕರಣದ ಆರೋಪಿಗಳನ್ನು ಬಂಧಿಸಲಾಗಿದೆ. ಕೊಲೆ ಹಿಂದಿನ ಕೈವಾಡದ ಬಗ್ಗೆ ಪತ್ತೆ ಹಚ್ಚಬೇಕಾಗಿದೆ ಎಂದು ಗ್ರಾಮೀಣಾಭಿವೃದ್ಧಿ ಸಚಿವ ಕೆ. ಎಸ್. ಈಶ್ವರಪ್ಪ..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "681d8c2e605d0f0733a0804569c088ef",
+            "type": "web",
+            "chars": "1052",
+            "share": "0.467",
+            "text": "ರವಿ ಡಿ. ಚನ್ನಣ್ಣನವರ್ ಕರ್ನಾಟಕದ ಒಬ್ಬ ಭಾರತೀಯ ನಾಗರಿಕ ಸೇವಕ. ಇವರು ೨೦೦೮ ರ ತಂಡದಲ್ಲಿ ತರಬೇತಿ ಪಡೆದ ಕರ್ನಾಟಕದ ಅಧಿಕಾರಿ. [೧][೧]. / ರವಿ ಅವರು ೨೦೧೧ ರಲ್ಲಿ ಬೆಳಗಾವಿ ಜಿಲ್ಲೆಯ ಹೆಚ್ಚುವರಿ..."
+          },
+          {
+            "doc_id": "fcd161abaa84814c14e413cc7a93b0f0b25bf26f",
+            "type": "web",
+            "chars": "2377",
+            "share": "0.489",
+            "text": "ಹೊಸದಿಲ್ಲಿಃ ಶ್ರೀಕೃಷ್ಣ ಜನ್ಮಭೂಮಿ-ಈದ್ಗಾ ವಿವಾದ ಪ್ರಕರಣದ ಹೊಸ ಬೆಳವಣಿಗೆಯೊಂದರಲ್ಲಿ ಮಥುರಾ ಜಿಲ್ಲಾ ನ್ಯಾಯಾಲಯವು ಶನಿವಾರ ಮಸೀದಿ ಸಂಕೀರ್ಣದ ಅಧಿಕೃತ ಸಮೀಕ್ಷೆಗೆ ಆದೇಶಿಸಿದೆ. / ಜನವರಿ 2 ರ ನಂ..."
+          },
+          {
+            "doc_id": "dd6f8ab86868c835c058d50826962bdb07b2723b",
+            "type": "web",
+            "chars": "2578",
+            "share": "0.518",
+            "text": "ಮೂಡುಬಿದಿರೆ, ಜೂ. 21: ಆಳ್ವಾಸ್ ಶಿಕ್ಷಣ ಪ್ರತಿಷ್ಠಾನದ ಆಳ್ವಾಸ್ ನ್ಯಾಚುರೋಪಥಿ ಹಾಗೂ ಯೋಗಿಕ್ ಸೈನ್ಸ್ ಕಾಲೇಜಿನ ಆಶ್ರಯದಲ್ಲಿ ಅಂತಾರಾಷ್ಟ್ರೀಯ ಯೋಗ ದಿನಾಚರಣೆಯನ್ನು ಪುತ್ತಿಗೆ ಪದವಿನಲ್ಲಿರುವ ಆ..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 642.87,
+      "documents_per_second": 271.8,
+      "mb_per_second": 1.477,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 174762
+    },
+    {
+      "source_id": "sangraha-verified-mal-data-0",
+      "language": "ml",
+      "declared_script": "malayalam",
+      "documents": 174763,
+      "documents_empty_after_normalize": 1,
+      "normalize_changed_documents": 1499,
+      "raw_chars": 331108757,
+      "raw_bytes_utf8": 900631667,
+      "chars": 330912363,
+      "words_whitespace": 33932338,
+      "doc_chars_quantiles": {
+        "p1": 321,
+        "p10": 596,
+        "p25": 849,
+        "p50": 1268,
+        "p75": 2012,
+        "p90": 3433,
+        "p99": 10872,
+        "min": 0,
+        "max": 208327
+      },
+      "documents_with_newlines": 160530,
+      "lines_total": 1333181,
+      "type_documents": {
+        "pdf": 1836,
+        "speech": 654,
+        "web": 172273
+      },
+      "type_chars": {
+        "pdf": 7922710,
+        "speech": 10628015,
+        "web": 312361638
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 8507,
+        "documents": {
+          "pass": 173479,
+          "script_mismatch": 1283
+        },
+        "chars": {
+          "pass": 327890134,
+          "script_mismatch": 3022229
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 398,
+          "[0.20,0.40)": 138,
+          "[0.40,0.60)": 747,
+          "[0.60,0.80)": 2585,
+          "[0.80,0.90)": 3886,
+          "[0.90,0.95)": 6021,
+          "[0.95,1.00]": 160987
+        },
+        "mismatch_top_script": {
+          "latin": 776,
+          "malayalam": 469,
+          "arabic": 24,
+          "devanagari": 10,
+          "kannada": 2,
+          "bengali": 1,
+          "tamil": 1
+        },
+        "failures_by_type": {
+          "pdf": 47,
+          "speech": 83,
+          "web": 1153
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 546,
+        "control_chars": 0,
+        "url_density": 147,
+        "template_residue": 15,
+        "digit_runs": 6798,
+        "repetition": 494
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {},
+        "documents_hit": 0,
+        "distinct_suite_documents_first_hit": 0,
+        "examples": []
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1633,
+        "sample_chars": 3000158,
+        "sample_tokens": 1351235,
+        "tokens_per_char": 0.45038794623483164,
+        "estimated_file_tokens": 149038940
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "825e8ff56a9d40c85cf4a3b8242521e5466b238a",
+            "type": "web",
+            "chars": "2896",
+            "share": "1.000",
+            "text": "കാലവർഷത്തിന് മുന്നോടിയായി ജില്ലയിലെ ദുരന്ത സാഹചര്യം ഒഴിവാക്കുന്നതിനാവശ്യമായ നടപടികൾ സ്വീകരിക്കാൻ ബന്ധപ്പെട്ട വകുപ്പുകൾക്ക് ജില്ലാ ദുരന്തനിവാരണ അതോറിറ്റി ചെയർ പേ..."
+          },
+          {
+            "doc_id": "4f2b1f8502415eb538108cab6b439f82532376c5",
+            "type": "web",
+            "chars": "981",
+            "share": "1.000",
+            "text": "സുൽത്താൻ ബത്തേരിഃ താലൂക്ക് ആയുർവേദ ആശുപത്രിയിൽ ഒ. പി പരിശോധനക്കായി രോഗികൾക്ക് മണിക്കൂറുകൾ കാത്തുനിൽക്കേണ്ടുന്ന അവസ്ഥ. രോഗികളുടെ എണ്ണത്തിനനുസരിച്ച് ഡോക്ടർമാർ ഇല്..."
+          },
+          {
+            "doc_id": "997175e77661a9d8e1887efca2913c974864cf57",
+            "type": "web",
+            "chars": "490",
+            "share": "1.000",
+            "text": "ഇഞ്ചി കാല് ടീസ്പൂണ് (ചെറുതായി അരിഞ്ഞത്) / പച്ചമുളക് 3 എണ്ണം (ചെറുതായി അരിഞ്ഞത്) / തേങ്ങ ചിരകിയത്, ഇഞ്ചി, പച്ചമുളക്, പഞ്ചസാര, എണ്ണ, ഉപ്പ്, മല്ലിയില എന്നിവ റവയില്..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "a7cf813dbf894510b16652f0cadd081a24fda2f0",
+            "type": "web",
+            "chars": "1003",
+            "share": "0.593",
+            "text": "കൊല്ലംഃ ചടയമംഗലത്തെ മൂന്നുപഞ്ചായത്തുകളിലെ ജനവാസമേഖലളിൽ കഴിഞ്ഞ കുറെ ദിവസങ്ങളായി ഭീതിപരത്തിയിരുന്ന കാട്ടുപോത്തിനെ ഞായറാഴ്ച വൈകുന്നേരം മുതൽ കാണാനില്ല. കാട്ടുപോത്ത്..."
+          },
+          {
+            "doc_id": "72c0ac40e90f6196ac14aa58c9e6f4f373f3d7c2",
+            "type": "web",
+            "chars": "1317",
+            "share": "0.385",
+            "text": "To Start receiving timely alerts please follow the below steps: / Click on the Menu icon of the browser, it opens up a list of options. / Click on the \"Options ..."
+          },
+          {
+            "doc_id": "37f1eac117337c4e2f869a66839d659c001cc3d25edb26e09599ff4784f6a4ca",
+            "type": "pdf",
+            "chars": "1599",
+            "share": "0.000",
+            "text": "অধ্যায় : তিজারাত / ٢٤. باب الرجحان في الوزن / ۲۲۲۰ حدثنا أبو بكر بن أبي شيبة وعلى بن محمد ومحمد بن إسماعيل قالوا ثنا وكيع ثنا سفيان عن سماك بن حرب عـن سـويـد ب..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 557.58,
+      "documents_per_second": 313.4,
+      "mb_per_second": 1.615,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 174763
+    },
+    {
+      "source_id": "sangraha-verified-mar-data-0",
+      "language": "mr",
+      "declared_script": "devanagari",
+      "documents": 174763,
+      "documents_empty_after_normalize": 0,
+      "normalize_changed_documents": 75398,
+      "raw_chars": 379914603,
+      "raw_bytes_utf8": 995847542,
+      "chars": 379537142,
+      "words_whitespace": 55405602,
+      "doc_chars_quantiles": {
+        "p1": 291,
+        "p10": 730,
+        "p25": 1113,
+        "p50": 1628,
+        "p75": 2310,
+        "p90": 3630,
+        "p99": 11457,
+        "min": 120,
+        "max": 254402
+      },
+      "documents_with_newlines": 159847,
+      "lines_total": 1175229,
+      "type_documents": {
+        "pdf": 7500,
+        "speech": 312,
+        "web": 166951
+      },
+      "type_chars": {
+        "pdf": 43642795,
+        "speech": 1330162,
+        "web": 334564185
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 9988,
+        "documents": {
+          "pass": 173885,
+          "script_mismatch": 878
+        },
+        "chars": {
+          "pass": 377589178,
+          "script_mismatch": 1947964
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 42,
+          "[0.20,0.40)": 128,
+          "[0.40,0.60)": 708,
+          "[0.60,0.80)": 5921,
+          "[0.80,0.90)": 10623,
+          "[0.90,0.95)": 13665,
+          "[0.95,1.00]": 143676
+        },
+        "mismatch_top_script": {
+          "devanagari": 478,
+          "latin": 400
+        },
+        "failures_by_type": {
+          "pdf": 59,
+          "speech": 46,
+          "web": 773
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 594,
+        "control_chars": 0,
+        "url_density": 96,
+        "template_residue": 8,
+        "digit_runs": 2424,
+        "repetition": 0
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {},
+        "documents_hit": 0,
+        "distinct_suite_documents_first_hit": 0,
+        "examples": []
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1375,
+        "sample_chars": 3000251,
+        "sample_tokens": 1463253,
+        "tokens_per_char": 0.4877101949136922,
+        "estimated_file_tokens": 185104134
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "4603f789ccfb42194bea07a0dd5c30940fb8c592",
+            "type": "web",
+            "chars": "2520",
+            "share": "1.000",
+            "text": "शासनाने प्रादेशिक योजनेतील गावांना पाणीपुरवठा होत नसल्याने विद्युत व तांत्रिक प्रस्ताव मागविले असून यापूर्वीच्या रखडलेल्या वीजदेयकांची अदायगी करण्याचा विचार करी..."
+          },
+          {
+            "doc_id": "ec98f8ca2135b8600c9bc70c5e4a56a6c3910335",
+            "type": "web",
+            "chars": "1171",
+            "share": "0.706",
+            "text": "केंद्रीय गृह राज्यमंत्री नित्यानंद राय यांनी मंगळवारी लोकसभेत एका प्रश्नाला उत्तर देताना सांगितले की, गेल्या दोन वर्षांत जम्मू-काश्मीरमध्ये 473 दहशतवादी घटना घड..."
+          },
+          {
+            "doc_id": "97aefa69d63ebf163f8154d6a933360a0e7ba9c2",
+            "type": "web",
+            "chars": "1391",
+            "share": "1.000",
+            "text": "मुंबई साकीनाका बलात्कार आणि हत्या प्रकरणातील दोषी आरोपी सिद्ध झाला आहे. दिंडोशी सत्र न्यायालयाने आरोपी मोहन काथवारू चौहानला बलात्कार आणि हत्येसह सर्व आरोपांमध्य..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "02c12b186607d6188421fae9b6e4a41a8a508dcf",
+            "type": "web",
+            "chars": "621",
+            "share": "0.420",
+            "text": "फोरम ऑनलाइन चर्चा मंच आहे जेथे युवक किंवा अगदी अनुभवी व्यावसायिक संबंधित त्यांच्या प्रश्नांची चर्चा करतात आणि इतर प्रतिभावान व्यक्तींकडून त्यांच्या प्रश्नांची उ..."
+          },
+          {
+            "doc_id": "c9998ddb130b3cfb59ef1203a161c729c0e4894e9b95a1e7c41fbb24c372259c",
+            "type": "pdf",
+            "chars": "3510",
+            "share": "0.426",
+            "text": "संस्थानांतील कारखान्यांची वाढ / १ भोर ट्रेडिंग कंपनी लि. / भोर ट्रेडिंग कंपनीनें त्रि. सरकारच्या मिलिटरी खात्यास तंबूचा पुरवठा सुमारें १३,००,००० रुपये किंमतीचा ..."
+          },
+          {
+            "doc_id": "184fa068e07305b7d0e19aa676f8711f7acc9958",
+            "type": "web",
+            "chars": "413",
+            "share": "0.488",
+            "text": "राज्यातील साखर कारखान्यांनी यंदाच्या हंगामात विक्रमी गाळप केले. यंदाचा हंगाम सरासरी १७३ दिवस चालला. यामुळे साखर उद्योगाची उलाढाल एक लाख कोटी रुपयांच्या पुढे गेल..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 435.37,
+      "documents_per_second": 401.4,
+      "mb_per_second": 2.287,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 174763
+    },
+    {
+      "source_id": "sangraha-verified-ori-data-0",
+      "language": "or",
+      "declared_script": "odia",
+      "documents": 189757,
+      "documents_empty_after_normalize": 0,
+      "normalize_changed_documents": 9474,
+      "raw_chars": 359068794,
+      "raw_bytes_utf8": 945097214,
+      "chars": 358849764,
+      "words_whitespace": 56844837,
+      "doc_chars_quantiles": {
+        "p1": 270,
+        "p10": 512,
+        "p25": 740,
+        "p50": 1126,
+        "p75": 1752,
+        "p90": 3049,
+        "p99": 15061,
+        "min": 120,
+        "max": 368856
+      },
+      "documents_with_newlines": 150712,
+      "lines_total": 1245431,
+      "type_documents": {
+        "pdf": 28148,
+        "speech": 9,
+        "web": 161600
+      },
+      "type_chars": {
+        "pdf": 148796519,
+        "speech": 193014,
+        "web": 209860231
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 9859,
+        "documents": {
+          "pass": 188279,
+          "script_mismatch": 1478
+        },
+        "chars": {
+          "pass": 355512027,
+          "script_mismatch": 3337737
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 496,
+          "[0.20,0.40)": 234,
+          "[0.40,0.60)": 748,
+          "[0.60,0.80)": 2162,
+          "[0.80,0.90)": 3648,
+          "[0.90,0.95)": 7027,
+          "[0.95,1.00]": 175442
+        },
+        "mismatch_top_script": {
+          "latin": 1087,
+          "odia": 391
+        },
+        "failures_by_type": {
+          "pdf": 143,
+          "speech": 2,
+          "web": 1333
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 1183,
+        "control_chars": 0,
+        "url_density": 90,
+        "template_residue": 112,
+        "digit_runs": 546,
+        "repetition": 0
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {
+          "suite_ngram": 8
+        },
+        "documents_hit": 8,
+        "distinct_suite_documents_first_hit": 7,
+        "examples": [
+          {
+            "doc_id": "4bcb533382d03a104ac351a2e640c6c03b59e480",
+            "reason": "suite_ngram",
+            "suite_doc_id": "or-wikisource-chha-mana-atha-guntha-ccbysa-000506",
+            "matched_ngrams": 9
+          },
+          {
+            "doc_id": "db9c96e190a5066b0fa7c1eac4796bfd66f6c396dddb8fdda30452a3a2217077",
+            "reason": "suite_ngram",
+            "suite_doc_id": "or-wikisource-chha-mana-atha-guntha-ccbysa-001001",
+            "matched_ngrams": 2
+          },
+          {
+            "doc_id": "67008783171610077706b11363a8740f2547c4c9b3d5b3ac65275ce53382102d",
+            "reason": "suite_ngram",
+            "suite_doc_id": "or-wikisource-chha-mana-atha-guntha-ccbysa-000305",
+            "matched_ngrams": 4
+          },
+          {
+            "doc_id": "d3264b3e9cf4809411e527348a913a6561b4ecde",
+            "reason": "suite_ngram",
+            "suite_doc_id": "or-wikisource-chha-mana-atha-guntha-ccbysa-000777",
+            "matched_ngrams": 12
+          },
+          {
+            "doc_id": "3ed63232d15e74f4720efcc6fdd4bc38f69b14c6",
+            "reason": "suite_ngram",
+            "suite_doc_id": "or-wikisource-chha-mana-atha-guntha-ccbysa-000014",
+            "matched_ngrams": 1230
+          },
+          {
+            "doc_id": "e23ffd6d27cab3694ebb65e8fc854b3cc86b2b7b",
+            "reason": "suite_ngram",
+            "suite_doc_id": "or-wikisource-chha-mana-atha-guntha-ccbysa-000777",
+            "matched_ngrams": 12
+          },
+          {
+            "doc_id": "6a7452b201dd76ec6ca877421ea182d7e6eb55e4d8d099786cd80ade11cfe83e",
+            "reason": "suite_ngram",
+            "suite_doc_id": "or-wikisource-chha-mana-atha-guntha-ccbysa-001515",
+            "matched_ngrams": 2
+          },
+          {
+            "doc_id": "4967af18eac773288b6c9ca2ea2d89781fc1490b",
+            "reason": "suite_ngram",
+            "suite_doc_id": "or-wikisource-chha-mana-atha-guntha-ccbysa-001000",
+            "matched_ngrams": 151
+          }
+        ]
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1555,
+        "sample_chars": 3003197,
+        "sample_tokens": 1601920,
+        "tokens_per_char": 0.5334049015099576,
+        "estimated_file_tokens": 191412223
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "3d2ab9a624bbe778e11ab4dc177b56ce17de6586",
+            "type": "web",
+            "chars": "783",
+            "share": "1.000",
+            "text": "କନକ ବ୍ୟୁରୋ : ଅନୁଗୁଳ ହଣ୍ଡପା ଷ୍ଟେସନ ନିକଟରେ ଆଜମେର-ପୁରୀ ଏକ୍ସପ୍ରେସ୍ ଇଞ୍ଜିନ୍ରେ ହଠାତ ଗୁରୁବାର ଅପରାହ୍ନରେ ନିଆଁ ଲାଗିଥିଲା । ଏହି ନିଆଁ ଲାଗିବା ଖବର ତୁରନ୍ତ ଅଗ୍ନିଶମ ବାହିନୀଙ୍କୁ ଦି..."
+          },
+          {
+            "doc_id": "fedd89f7a0cfea5618d99533fb56c9938aa02d7a",
+            "type": "web",
+            "chars": "464",
+            "share": "1.000",
+            "text": "ବାରିପଦାଃ କୂଅ ଭିତରେ ଖସି ପଡ଼ିଲା ଛୁଆ ହାତୀ । ମୟୂରଭଞ୍ଜ ଜିଲ୍ଲା ରାସଗୋବିନ୍ଦପୁର ରେଞ୍ଜ ସୁରେଇଡିହି ଗାଁରେ ଏହି ଘଟଣା ଘଟିଛି । ଗତକାଲି ବିଳମ୍ବିତ ରାତିରେ କୂଅ ଭିତରେ ଛୁଆ ହାତୀଟି ଖସିପଡ଼..."
+          },
+          {
+            "doc_id": "4f4d89f1dba46e0f38d9d0878833853e5b969248",
+            "type": "web",
+            "chars": "1018",
+            "share": "1.000",
+            "text": "ମୁମ୍ବାଇ ୦୮। ୦୭ଃ ବଲିଉଡର ଭେଟେରାନ ଅଭିନେତ୍ରୀ ନୀତୁ କପୁର ଆଜି ତାଙ୍କର ୬୪ ତମ ଜନ୍ମଦିନ ପାଳନ କରୁଛନ୍ତି। ନିଜ ସର୍ତ୍ତରେ ଜୀବନ ବିତାଉଥିବା ନୀତୁ ସବୁବେଳେ ଚର୍ଚ୍ଚାରେ ରହିଥାନ୍ତି। ଗତ ରାତି..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "5cc36ba51ad9dfbe4b59f392a0bddbaedce425e3",
+            "type": "web",
+            "chars": "4842",
+            "share": "0.000",
+            "text": "1 Ieriko ai, Ioridane sinavaina isena ai, Moab taorana ai, Iehova ese Mose ma e hereva henia, eto, 2 Israel taudia ba haḡanidia, bae abia tanona lalonai Levi ta..."
+          },
+          {
+            "doc_id": "c2f67211721a6b5bd08ded930dedb6979ed95d00",
+            "type": "web",
+            "chars": "590",
+            "share": "0.415",
+            "text": "Welcome! / Forgot your password? / Welcome! / A password will be e-mailed to you. / A password will be e-mailed to you. / A password will be e-mailed to you. / ..."
+          },
+          {
+            "doc_id": "53eb6dd7666fce742969fd58e9e923a79f0a1f51",
+            "type": "web",
+            "chars": "277",
+            "share": "0.377",
+            "text": "କେମିତି କରିବେ ଗର୍ଭଧାରଣ ପାଇଁ ଯୋଜନା? / ବାରମ୍ବାର ପରିସ୍ରା ଲାଗୁଛି କି? / ଫୋନକୁ ସର୍ଭିସ ସେଣ୍ଟର ଓ ଲୋକାଲ ଇଲେକଟ୍ରୋନିକ୍ସ ଦୋକାନରେ ସଜାଡ଼ିବା ଭିତରେ ଫରକ କ'ଣ? / Independent. Respo..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 436.59,
+      "documents_per_second": 434.6,
+      "mb_per_second": 2.165,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 189757
+    },
+    {
+      "source_id": "sangraha-verified-pan-data-0",
+      "language": "pa",
+      "declared_script": "gurmukhi",
+      "documents": 149797,
+      "documents_empty_after_normalize": 1,
+      "normalize_changed_documents": 5048,
+      "raw_chars": 362952109,
+      "raw_bytes_utf8": 912916064,
+      "chars": 362799070,
+      "words_whitespace": 72035523,
+      "doc_chars_quantiles": {
+        "p1": 303,
+        "p10": 657,
+        "p25": 968,
+        "p50": 1506,
+        "p75": 2570,
+        "p90": 4792,
+        "p99": 15027,
+        "min": 0,
+        "max": 297399
+      },
+      "documents_with_newlines": 129325,
+      "lines_total": 1242404,
+      "type_documents": {
+        "pdf": 11611,
+        "speech": 21,
+        "web": 138165
+      },
+      "type_chars": {
+        "pdf": 57678958,
+        "speech": 381090,
+        "web": 304739022
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 14005,
+        "documents": {
+          "pass": 148384,
+          "script_mismatch": 1412
+        },
+        "chars": {
+          "pass": 360200107,
+          "script_mismatch": 2598963
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 65,
+          "[0.20,0.40)": 242,
+          "[0.40,0.60)": 1105,
+          "[0.60,0.80)": 3775,
+          "[0.80,0.90)": 7927,
+          "[0.90,0.95)": 12438,
+          "[0.95,1.00]": 124244
+        },
+        "mismatch_top_script": {
+          "latin": 747,
+          "gurmukhi": 659,
+          "devanagari": 6
+        },
+        "failures_by_type": {
+          "pdf": 175,
+          "speech": 3,
+          "web": 1234
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 832,
+        "control_chars": 0,
+        "url_density": 88,
+        "template_residue": 69,
+        "digit_runs": 4220,
+        "repetition": 0
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {
+          "suite_ngram": 2
+        },
+        "documents_hit": 2,
+        "distinct_suite_documents_first_hit": 2,
+        "examples": [
+          {
+            "doc_id": "07be62b84b485013c8f4b7bbe1f8a8e897d675c75916866db05a763a9135ee3c",
+            "reason": "suite_ngram",
+            "suite_doc_id": "pa-wikisource-satwant-kaur-p007-164-ccbysa-000201",
+            "matched_ngrams": 20
+          },
+          {
+            "doc_id": "40ba87341fe04b34278c0055eda4c9d2598cc9ac0502cc027e8521ca3604091e",
+            "reason": "suite_ngram",
+            "suite_doc_id": "pa-wikisource-satwant-kaur-p007-164-ccbysa-000174",
+            "matched_ngrams": 16
+          }
+        ]
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1308,
+        "sample_chars": 3002190,
+        "sample_tokens": 1710309,
+        "tokens_per_char": 0.5696871283962707,
+        "estimated_file_tokens": 206681960
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "564a2d888fc0b36f9a4a16fbff9d2317bd9cb756",
+            "type": "web",
+            "chars": "1205",
+            "share": "1.000",
+            "text": "ਮੁੰਬਈ (ਬਿਊਰੋ) - ਸਾਊਥ ਫ਼ਿਲਮ ਇੰਡਸਟਰੀ ਦੇ ਸੁਪਰਸਟਾਰ ਪ੍ਰਭਾਸ ਇਨ੍ਹੀਂ ਦਿਨੀਂ ਆਪਣੀ ਆਉਣ ਵਾਲੀ ਫ਼ਿਲਮ 'ਆਦਿਪੁਰਸ਼' ਨੂੰ ਲੈ ਕੇ ਲਗਾਤਾਰ ਸੁਰਖੀਆਂ 'ਚ ਹਨ। ਹਾਲ ਹੀ 'ਚ, ਨਿਰਮਾਤਾਵਾਂ ਨੇ ਅਦਾਕਾ..."
+          },
+          {
+            "doc_id": "54b3a013c2e9b1abad8ad81aea2b5536",
+            "type": "web",
+            "chars": "1956",
+            "share": "1.000",
+            "text": "ਨਰੇਸ਼ ਕੁਮਾਰ, ਮਹਿਲਾਂ ਚੌਕ (ਸੰਗਰੂਰ)। ਲੋਕਾਂ ਦੇ ਘਰਾਂ 'ਚ ਮਜ਼ਦੂਰੀ ਕਰਕੇ ਆਪਣਾ ਅਤੇ ਆਪਣੀ ਇਕਲੌਤੀ ਬੇਟੀ ਦਾ ਪਾਲਣ-ਪੋਸ਼ਣ ਕਰ ਰਹੀ ਪਿੰਡ ਸਜੂਮਾ ਵਾਸੀ ਰਾਣੀ ਨਾਂਅ ਦੀ ਔਰਤ, ਇੱਕ ਖਸਤਾ ਹਾਲਤ ਮ..."
+          },
+          {
+            "doc_id": "fbe73675fd4ff65ba3445b41f32ff880924603472ceb59c4e34d8048c95e1402",
+            "type": "pdf",
+            "chars": "12592",
+            "share": "0.967",
+            "text": "੧੮੪੯ ਈਃ ਦੇ ਕਲਕਤਾ ਰੀਵੀਊ ਦੇ ਪੰਨਾ ੨੮੬ ਉੱਤੇ ਲਿਖਿਆ ਹੈ, \"ਭਾਰਤ ਵਿਚ ਅੰਗਰੇਜ਼ਾਂ ਦੇ ਜਿੰਨੇ ਯੁੱਧ ਹੋਏ, ਉਹਨਾਂ ਵਿਚੋਂ ਚੇਲੀਆਂ ਵਾਲੀ ਦਾ ਯੁੱਧ ਉਹਨਾਂ ਵਾਸਤੇ ਅੱਤ ਭਿਆਨਕ ਹੈ।\" / ਸਰ ਲੇਪਲ ਗ੍..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "249dcf908a22c5d39d51d33a6baed02667833bf2",
+            "type": "web",
+            "chars": "6246",
+            "share": "0.000",
+            "text": "Sanoatning ishlashi va rivojlanishining o'ziga xos qonuniyatlari mavjud.Inson qanday vaziyatda bo'lishidan qat'i nazar, sanoatni oldinga siljitadigan boshqalar ..."
+          },
+          {
+            "doc_id": "3b2448e9f545be0186cca44a92b6535c7e1847c0",
+            "type": "web",
+            "chars": "709",
+            "share": "0.590",
+            "text": "ਡਾਕਟਰ ਮੁਤਾਬਕ 'ਡਿਸਕੋ ਡਾਂਸਰ' ਹਿੱਟਮੇਕਰ ਦਾ ਬੀਤੀ ਰਾਤ ਕਈ ਸਿਹਤ ਸਮੱਸਿਆਵਾਂ ਕਾਰਨ ਦਿਹਾਂਤ ਹੋ ਗਿਆ। ਡਾ. ਦੀਪਕ ਨਾਮਜੋਸ਼ੀ ਨੇ ਕਿਹਾ, 'ਉਹ ਇਕ ਮਹੀਨੇ ਤੋਂ ਹਸਪਤਾਲ ਵਿਚ ਦਾਖ਼ਲ ਸਨ ਅਤੇ ਸੋਮਵਾਰ..."
+          },
+          {
+            "doc_id": "3cb9988ede1631cde9b2331482b4a043",
+            "type": "web",
+            "chars": "4487",
+            "share": "0.371",
+            "text": "Glucomol in Punjabi ਵਰਤੋਂ, ਖੁਰਾਕ, ਬੁਰੇ ਪ੍ਰਭਾਵ, ਲਾਭ, ਪਰਸਪਰ ਪ੍ਰਭਾਵ ਅਤੇ ਚੇਤਾਵਨੀ - Glucomol varton, khurak, bure prabhav, laabh, paraspar prabhav ate chetavni\\nGluc..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 421.79,
+      "documents_per_second": 355.1,
+      "mb_per_second": 2.164,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 149797
+    },
+    {
+      "source_id": "sangraha-verified-tam-data-0",
+      "language": "ta",
+      "declared_script": "tamil",
+      "documents": 149796,
+      "documents_empty_after_normalize": 1,
+      "normalize_changed_documents": 1387,
+      "raw_chars": 375238343,
+      "raw_bytes_utf8": 1007640131,
+      "chars": 375085598,
+      "words_whitespace": 41936788,
+      "doc_chars_quantiles": {
+        "p1": 321,
+        "p10": 632,
+        "p25": 924,
+        "p50": 1464,
+        "p75": 2542,
+        "p90": 4815,
+        "p99": 17840,
+        "min": 0,
+        "max": 206517
+      },
+      "documents_with_newlines": 138659,
+      "lines_total": 1563440,
+      "type_documents": {
+        "pdf": 12497,
+        "speech": 642,
+        "web": 136657
+      },
+      "type_chars": {
+        "pdf": 50087816,
+        "speech": 2408875,
+        "web": 322588907
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 14197,
+        "documents": {
+          "pass": 148103,
+          "script_mismatch": 1692
+        },
+        "chars": {
+          "pass": 372200486,
+          "script_mismatch": 2885112
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 205,
+          "[0.20,0.40)": 273,
+          "[0.40,0.60)": 1214,
+          "[0.60,0.80)": 2500,
+          "[0.80,0.90)": 7407,
+          "[0.90,0.95)": 13463,
+          "[0.95,1.00]": 124733
+        },
+        "mismatch_top_script": {
+          "latin": 1050,
+          "tamil": 639,
+          "arabic": 2,
+          "telugu": 1
+        },
+        "failures_by_type": {
+          "pdf": 124,
+          "speech": 63,
+          "web": 1505
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 1063,
+        "control_chars": 0,
+        "url_density": 194,
+        "template_residue": 21,
+        "digit_runs": 3962,
+        "repetition": 2
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {},
+        "documents_hit": 0,
+        "distinct_suite_documents_first_hit": 0,
+        "examples": []
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1185,
+        "sample_chars": 3003695,
+        "sample_tokens": 1323173,
+        "tokens_per_char": 0.44051509890318424,
+        "estimated_file_tokens": 165230869
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "d8467560df293124156db767026a1e930b96341d",
+            "type": "web",
+            "chars": "1488",
+            "share": "1.000",
+            "text": "புதுச்சேரி-நேருக்கு நேர் விவாதம் செய்தால் மீசை அல்ல, மொட்டையே அடித்துக் கொள்ள நேரிடும் என முன்னாள் அமைச்சருக்கு, கல்யாணசுந்தரம் எம். எல். ஏ. , சவால் விடுத்துள்ள..."
+          },
+          {
+            "doc_id": "6e9d2be2015727c4f1590a67b5a200854cf08771",
+            "type": "web",
+            "chars": "386",
+            "share": "1.000",
+            "text": "செய்முறைஃ / பச்சரிசி மற்றும் பச்சைப்பயறை ஒன்றாக சேர்த்து ஒரு மணி நேரம் ஊற வைக்கவும். ஊறிய அரிசி, பயறுடன், தேங்காய் துருவல், காய்ந்த மிளகாய், பெருங்காயத்தூள், இஞ..."
+          },
+          {
+            "doc_id": "b3e78a0285e8107ae20371a68ba750d4ce1347f4",
+            "type": "web",
+            "chars": "2448",
+            "share": "0.890",
+            "text": "புதுச்சேரியின் ஏனாம் பிராந்தியம் ஆந்திர எல்லையில் உள்ளது. இதன் அருகே ஆந்திர மாநில கோதாவரி படுகையில் மும்முடிவரம் தொகுதியில் ஜியோர்ஜிபேட்டா என்னும் கிராமத்தில் ப..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "6fd786e1aa8794224c0a16d00285d783",
+            "type": "web",
+            "chars": "4745",
+            "share": "0.469",
+            "text": "Clopam in Tamil பயன்பாடுகள், மருந்தளவு, பக்க விளைவுகள், நன்மைகள், தொடர்புகள் மற்றும் எச்சரிக்கைகள் - Clopam payanpaadugal, marundhalavu, pakka vilaivugal, nanma..."
+          },
+          {
+            "doc_id": "0d94e09f25c764727eb0c4eee78c0091d9f1c828",
+            "type": "web",
+            "chars": "7108",
+            "share": "0.427",
+            "text": "American King James Version (1999) / American Standard Version (1901) / Amplified Bible (1965) / Apostles' Bible Complete (2004) / Bible in Basic English (1964)..."
+          },
+          {
+            "doc_id": "a16561559cfefaaa6c2c5c9f88acb932856d125e",
+            "type": "web",
+            "chars": "38347",
+            "share": "0.229",
+            "text": "சிப்பி எங்கே, முத்து எங்கே? சகதி எங்கே, தாமரை எங்கே? மான் எங்கே கஸ்தூரி எங்கே? தூ! பாரேன், படைத்தவனின் புத்திசாலித்தனத்தை! - தூ!! / Where are the oysters and wh..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 526.63,
+      "documents_per_second": 284.4,
+      "mb_per_second": 1.913,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 149796
+    },
+    {
+      "source_id": "sangraha-verified-tel-data-0",
+      "language": "te",
+      "declared_script": "telugu",
+      "documents": 174762,
+      "documents_empty_after_normalize": 0,
+      "normalize_changed_documents": 3269,
+      "raw_chars": 356140880,
+      "raw_bytes_utf8": 941993673,
+      "chars": 355956531,
+      "words_whitespace": 44877990,
+      "doc_chars_quantiles": {
+        "p1": 306,
+        "p10": 622,
+        "p25": 920,
+        "p50": 1431,
+        "p75": 2268,
+        "p90": 3665,
+        "p99": 11303,
+        "min": 134,
+        "max": 244463
+      },
+      "documents_with_newlines": 147520,
+      "lines_total": 1252534,
+      "type_documents": {
+        "pdf": 19540,
+        "speech": 329,
+        "web": 154893
+      },
+      "type_chars": {
+        "pdf": 69037743,
+        "speech": 1238730,
+        "web": 285680058
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 9868,
+        "documents": {
+          "pass": 172631,
+          "script_mismatch": 2131
+        },
+        "chars": {
+          "pass": 351003487,
+          "script_mismatch": 4953044
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 226,
+          "[0.20,0.40)": 415,
+          "[0.40,0.60)": 1490,
+          "[0.60,0.80)": 4594,
+          "[0.80,0.90)": 8703,
+          "[0.90,0.95)": 14376,
+          "[0.95,1.00]": 144958
+        },
+        "mismatch_top_script": {
+          "latin": 1271,
+          "telugu": 847,
+          "kannada": 5,
+          "tamil": 4,
+          "devanagari": 2,
+          "malayalam": 1,
+          "gujarati": 1
+        },
+        "failures_by_type": {
+          "pdf": 231,
+          "speech": 77,
+          "web": 1823
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 488,
+        "control_chars": 0,
+        "url_density": 87,
+        "template_residue": 29,
+        "digit_runs": 2536,
+        "repetition": 0
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {},
+        "documents_hit": 0,
+        "distinct_suite_documents_first_hit": 0,
+        "examples": []
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1403,
+        "sample_chars": 3001058,
+        "sample_tokens": 1692181,
+        "tokens_per_char": 0.5638614781853599,
+        "estimated_file_tokens": 200710176
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "d2390203b0a4330a79c2af6973cbc7f5",
+            "type": "web",
+            "chars": "1689",
+            "share": "1.000",
+            "text": "భారత టెన్నిస్ స్టార్ సానియా మిర్జా దేని కోసం ఆరాటపడుతోందో తెలుసా..? అదే ఫ్రెంచ్ కిస్..గతంలో ఎన్నడూ లేని విధంగా ఈసారి మాత్రం ఈ హైదరాబాదీ బ్యూటీ ఫ్రెంచ్ ఓపెన్ పై ..."
+          },
+          {
+            "doc_id": "5da17cae14c0c72a18d225baed4671d9a68c60ab",
+            "type": "web",
+            "chars": "1960",
+            "share": "1.000",
+            "text": "గాంధీఆస్పత్రిః సికింద్రాబాద్ గాంధీ ఆస్పత్రి వైద్యులు అరుదైన శస్త్రచికిత్స చేశారు. రోగికి సినిమా చూపిస్తూ విజయవంతంగా సర్జరీ చేసి ప్రాణాలు కాపాడారు. స్పృహలో ఉన్న ..."
+          },
+          {
+            "doc_id": "68f4c0961fe11811692e2831e211114c1e4546ee",
+            "type": "web",
+            "chars": "1329",
+            "share": "0.891",
+            "text": "బరోడా, మదీనా గ్రామాల్లోని వ్యవసాయ పొలాలు తిరిగిన రాహుల్. . అక్కడి రైతులతో సంభాషిస్తున్న, పొలం దున్నుతున్న, నాటు వేస్తున్న ఫొటోలు సోషల్ మీడియాలో వైరల్ అవుతున్నాయ..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "9c64a6e53d0a41121eb877278f0f354de0b5b25e",
+            "type": "web",
+            "chars": "1640",
+            "share": "0.433",
+            "text": "ఈ ఐకాన్ క్లిక్ చేసి, మీ నోటిఫికేషన్ మ్యానేజ్ చేయండి. / To Start receiving timely alerts please follow the below steps: / Click on the Menu icon of the browser, ..."
+          },
+          {
+            "doc_id": "98769970eb51d16afd6cc5d5cbdb9dd2c16ed1e0",
+            "type": "web",
+            "chars": "1637",
+            "share": "0.569",
+            "text": "కదిలేందుకు సిద్ధంగా ఉన్న రైలు ముందుకు దూకి ఓ వ్యక్తి ఆత్మహత్యకు ప్రయత్నించాడు. అయితే పైలట్ సమయస్ఫూర్తితో వ్యవహరించడంతో అతడు ప్రాణాలతో బయటపడ్డాడు. / కదిలేందుకు స..."
+          },
+          {
+            "doc_id": "05508572ca61cf10048f70d1426c754976d89ceeff438c498ed5ae5a78957fba",
+            "type": "pdf",
+            "chars": "2227",
+            "share": "0.506",
+            "text": "Short Notice Questions and Answers. 14th July, 1977. / కొల్లాయిడ్ అయి 107 జామీన్ కేసులు పెడుతున్నారు. సోషల్ వెల్ఫేరుఈ సంబంధించిన సెల్ ద్వారా ఎంక్వయిరీ చేయించడాన..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 531.28,
+      "documents_per_second": 328.9,
+      "mb_per_second": 1.773,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 174762
+    },
+    {
+      "source_id": "sangraha-verified-urd-data-0",
+      "language": "ur",
+      "declared_script": "arabic",
+      "documents": 209716,
+      "documents_empty_after_normalize": 0,
+      "normalize_changed_documents": 12704,
+      "raw_chars": 571339849,
+      "raw_bytes_utf8": 1007509239,
+      "chars": 571309464,
+      "words_whitespace": 126303020,
+      "doc_chars_quantiles": {
+        "p1": 336,
+        "p10": 674,
+        "p25": 1040,
+        "p50": 1689,
+        "p75": 3054,
+        "p90": 5585,
+        "p99": 16219,
+        "min": 94,
+        "max": 313429
+      },
+      "documents_with_newlines": 86994,
+      "lines_total": 700295,
+      "type_documents": {
+        "pdf": 69429,
+        "speech": 11,
+        "web": 140276
+      },
+      "type_chars": {
+        "pdf": 228283564,
+        "speech": 278107,
+        "web": 342747793
+      },
+      "exact_duplicates_within_file": {
+        "documents": 0,
+        "chars": 0
+      },
+      "script_gate": {
+        "min_declared_share": 0.6,
+        "profile_cap_chars": 5000,
+        "documents_longer_than_cap": 25591,
+        "documents": {
+          "pass": 209070,
+          "script_mismatch": 646
+        },
+        "chars": {
+          "pass": 569065011,
+          "script_mismatch": 2244453
+        },
+        "declared_share_histogram": {
+          "[0.00,0.20)": 289,
+          "[0.20,0.40)": 65,
+          "[0.40,0.60)": 292,
+          "[0.60,0.80)": 912,
+          "[0.80,0.90)": 1564,
+          "[0.90,0.95)": 3231,
+          "[0.95,1.00]": 203363
+        },
+        "mismatch_top_script": {
+          "latin": 469,
+          "arabic": 176,
+          "devanagari": 1
+        },
+        "failures_by_type": {
+          "pdf": 97,
+          "speech": 3,
+          "web": 546
+        }
+      },
+      "quality_rule_hits_default_policy": {
+        "min_chars": 0,
+        "max_chars": 1293,
+        "control_chars": 0,
+        "url_density": 140,
+        "template_residue": 32,
+        "digit_runs": 4116,
+        "repetition": 1
+      },
+      "suite": {
+        "checked": true,
+        "hits_by_reason": {},
+        "documents_hit": 0,
+        "distinct_suite_documents_first_hit": 0,
+        "examples": []
+      },
+      "tokens": {
+        "measured": true,
+        "method": "frozen v1 tokenizer on every 50th document, <= 3,000,000 chars per file",
+        "sample_documents": 1137,
+        "sample_chars": 3001975,
+        "sample_tokens": 1881997,
+        "tokens_per_char": 0.6269196112559232,
+        "estimated_file_tokens": 358165107
+      },
+      "samples": {
+        "pass": [
+          {
+            "doc_id": "71bfe16a479c257e47dd3e6597f853584f15e983",
+            "type": "web",
+            "chars": "2112",
+            "share": "0.964",
+            "text": "بیرینچیدین ، ئۆتمۈشتیکی بارلیق کیشیلەرگە چین کۆڭلیمیزدین رەھمەت ئېیتیمیز .ۋاقیت ئۇچیدۇ ، 2- ئای کۆزنی یۇمۇپ ئاچقۇچە ئۆتۈپ کەتتی ، ھازیر مارت .جۇڭگودا ، ئیشلەپچی..."
+          },
+          {
+            "doc_id": "96a4467c8d8ce83681a108dcb47ccb1e282580f8",
+            "type": "web",
+            "chars": "798",
+            "share": "1.000",
+            "text": "( جنید ریاض ) سی ای او ٹی آر جی ندیم الہی کی چئیرمین ٹیوٹا عرفان قیصر شیخ سے ملاقات ، عرفان قیصر شیخ کا کہنا تھا کہ ٹی آرجی کے ساتھ مل کر دو ہزار بچوں کو سالانہ..."
+          },
+          {
+            "doc_id": "4796f929bb614108fa2abaed373b2edde1d57aa75aaa3c861ca48c9b2184840e",
+            "type": "pdf",
+            "chars": "1171",
+            "share": "1.000",
+            "text": "میدان جنگ / ی یار / خوب کرینگے جنکونلٹون مین پہنا ہوا ابرین سے ٹھنڈا کیا ہوا پانی گلاپ اورکیوڑا ڈال کر نے کوملتا ہے اور پھر ہی گرمیوں کے موسم میں ان کی شنگی رفع..."
+          }
+        ],
+        "script_mismatch": [
+          {
+            "doc_id": "8c9005cdaf12aed43f6531df701e5162ef11c00b",
+            "type": "web",
+            "chars": "10629",
+            "share": "0.000",
+            "text": "(1) Rwose abemeramana barahiriwe, / (2) Ba bandi bakora iswala zabo bibombaritse, / (3) Na ba bandi birengagiza ibidafite akamaro ( mu mvugo no mu bikorwa), / (..."
+          },
+          {
+            "doc_id": "093b63e4a796efb8de0a28ca7f9350d6524a5bd0",
+            "type": "web",
+            "chars": "4732",
+            "share": "0.421",
+            "text": "You can use any kind of oil to massage your feet.Massage is the best way to keep your feet moisturized and to treat peeling skin on the feet.Almond oil, pepperm..."
+          },
+          {
+            "doc_id": "d7a66468dfcfea5155509d2c11aea4b65577e235",
+            "type": "web",
+            "chars": "1660",
+            "share": "0.588",
+            "text": "ممبئی ، 3 اکتوبر ( پی ایس آئی ) بالی ووڈ کے نامور فلم ساز کرن جوہر نے دھمکیوں کے باوجود فواد خان اور کترینہ کیف کی فلم \" رات باقی \" کی شوٹنگ رواں برس شروع کرنے ..."
+          }
+        ],
+        "no_letters": []
+      },
+      "seconds": 718.23,
+      "documents_per_second": 292.0,
+      "mb_per_second": 1.403,
+      "pinned_sha256_verified": true,
+      "parquet_rows_declared": 209716
+    }
+  ],
+  "complete": true,
+  "finished_at": "2026-09-29 14:11:46"
+}
