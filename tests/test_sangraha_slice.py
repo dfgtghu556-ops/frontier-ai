@@ -373,3 +373,10 @@ def test_data_night_script_static_safety():
     # only the small reports are published: the publisher copies summary.json / SUMMARY.txt
     assert "publish_eval_results.py --exp-id $Exp --src $outDir" in code
     assert '$outDir = "out\\data\\$Exp"' in code
+    # EXP-035 reuses the runner: -Task only switches the step-4 script and the texts
+    assert '[ValidateSet("inspect", "calibrate")][string]$Task = "inspect"' in code
+    assert 'Invoke-Logged "$python -u $stepScript --exp-id $Exp --pins $pins --out $outDir"' in code
+    assert '$stepScript = "scripts\\calibrate_sangraha_slice.py"' in code
+    wrapper = (REPO / "scripts" / "run_calibration_night.ps1").read_bytes().decode("ascii")
+    wcode = [ln for ln in wrapper.splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
+    assert wcode == ['& "$PSScriptRoot\\run_data_night.ps1" -Exp "EXP-035" -Task "calibrate"', "exit $LASTEXITCODE"]

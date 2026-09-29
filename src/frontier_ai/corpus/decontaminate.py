@@ -168,19 +168,103 @@ def decontaminate(documents: Sequence[PipelineDocument], guard: SuiteGuard) -> S
         "per_language": per_language,
         "guard": guard.describe(),
     }
-    return StageOutcome(stage="suite_decontaminate", kept=tuple(kept), removed=tuple(removed),
-                        flagged={}, stats=stats)
+    return StageOutcome(
+        stage="suite_decontaminate", kept=tuple(kept), removed=tuple(removed), flagged={}, stats=stats
+    )
 
 
-def guard_from_heldout_shards(shard_paths: Sequence[Path | str], suite: dict[str, Any],
-                              n: int = NGRAM) -> SuiteGuard:
-    """Build a :class:`SuiteGuard` from the on-disk held-out shard files, verified against the suite.
+REASON_SHORT = "suite_short_contained"
 
-    ``SUITE.json`` stores fingerprints only (the texts stay out of git). The texts live in the
-    git-ignored held-out shards (one document per line, LF). This refuses to build a guard unless
-    the shard lines are *exactly* the suite's documents (same multiset of SHA-256 hashes), so a
-    stale, partial or edited shard can never silently weaken the protection. Suite doc_ids are
-    assigned by hash, so the check does not depend on shard order.
+
+@dataclass(frozen=True)
+class ShortHit:
+    """A short suite document found word-for-word inside a training text."""
+
+    suite_doc_id: str
+    words: int  # length of the suite document in whitespace words
+
+
+@dataclass
+class ShortSuiteIndex:
+    """Closes the gap the 13-gram guard leaves: suite documents with fewer than ``n`` words.
+
+    EXP-034 found 1,882 of the 3,427 suite documents are shorter than one 13-gram, so they were
+    protected only by *whole-text* equality. A training document that merely *contains* such a
+    passage (a verse line inside a long web page) passed. This index finds a short suite document
+    when its words appear **consecutively, word for word** (same whitespace-token semantics as the
+    13-gram guard) anywhere in a training text.
+
+    Cost is one extra pass over the training text's ``min_words``-grams: every short suite document
+    is keyed by its first ``min_words`` words (the anchor) and verified in full only on an anchor
+    hit. Suite documents shorter than ``min_words`` are not indexed and are counted in
+    ``too_short`` (a 1-3 word line such as a chapter heading matches ordinary prose, so indexing it
+    would remove innocent documents; the threshold is chosen from EXP-035 measurements).
+    """
+
+    n: int
+    min_words: int
+    anchors: dict[tuple[str, ...], list[tuple[str, tuple[str, ...]]]]
+    indexed: int
+    too_short: int
+
+    @classmethod
+    def from_texts(
+        cls, documents: Iterable[tuple[str, str]], n: int = NGRAM, min_words: int = 5
+    ) -> ShortSuiteIndex:
+        if not 1 <= min_words < n:
+            raise ValueError(f"min_words must be in [1, {n - 1}], got {min_words}")
+        anchors: dict[tuple[str, ...], list[tuple[str, tuple[str, ...]]]] = {}
+        indexed = too_short = 0
+        seen: set[tuple[str, ...]] = set()
+        for doc_id, text in documents:
+            words = tuple(text.split())
+            if len(words) >= n:
+                continue  # the 13-gram guard covers it
+            if len(words) < min_words:
+                too_short += 1
+                continue
+            indexed += 1
+            if words in seen:
+                continue
+            seen.add(words)
+            anchors.setdefault(words[:min_words], []).append((doc_id, words))
+        return cls(n=n, min_words=min_words, anchors=anchors, indexed=indexed, too_short=too_short)
+
+    def find(self, text: str, limit: int | None = None) -> list[ShortHit]:
+        """All short suite documents contained in ``text`` (first occurrence order), up to ``limit``."""
+        words = text.split()
+        m = self.min_words
+        hits: list[ShortHit] = []
+        found: set[str] = set()
+        for i in range(len(words) - m + 1):
+            entries = self.anchors.get(tuple(words[i : i + m]))
+            if not entries:
+                continue
+            for doc_id, suite_words in entries:
+                if doc_id in found:
+                    continue
+                k = len(suite_words)
+                if tuple(words[i : i + k]) == suite_words:
+                    found.add(doc_id)
+                    hits.append(ShortHit(doc_id, k))
+                    if limit is not None and len(hits) >= limit:
+                        return hits
+        return hits
+
+    def describe(self) -> dict[str, Any]:
+        return {
+            "min_words": self.min_words,
+            "below_ngram": self.n,
+            "indexed_documents": self.indexed,
+            "not_indexed_too_short": self.too_short,
+            "distinct_anchors": len(self.anchors),
+        }
+
+
+def heldout_pairs(shard_paths: Sequence[Path | str], suite: dict[str, Any]) -> list[tuple[str, str]]:
+    """``(suite doc_id, text)`` for every suite document, read from the held-out shards and verified.
+
+    See :func:`guard_from_heldout_shards` for the verification contract.
     """
     by_hash: dict[str, list[str]] = {}
     for record in suite["documents"]:
@@ -194,11 +278,28 @@ def guard_from_heldout_shards(shard_paths: Sequence[Path | str], suite: dict[str
                 continue
             ids = by_hash.get(sha256_text(line))
             if not ids:
-                raise ValueError(f"{path}: a line does not match any suite document "
-                                 f"(sha256 {sha256_text(line)[:12]}...); wrong or edited shard")
+                raise ValueError(
+                    f"{path}: a line does not match any suite document "
+                    f"(sha256 {sha256_text(line)[:12]}...); wrong or edited shard"
+                )
             pairs.append((ids.pop(0), line))
     missing = sum(len(v) for v in by_hash.values())
     if missing:
-        raise ValueError(f"held-out shards are missing {missing} of {len(suite['documents'])} "
-                         "suite documents")
-    return SuiteGuard.from_texts(pairs, n=n)
+        raise ValueError(
+            f"held-out shards are missing {missing} of {len(suite['documents'])} suite documents"
+        )
+    return pairs
+
+
+def guard_from_heldout_shards(
+    shard_paths: Sequence[Path | str], suite: dict[str, Any], n: int = NGRAM
+) -> SuiteGuard:
+    """Build a :class:`SuiteGuard` from the on-disk held-out shard files, verified against the suite.
+
+    ``SUITE.json`` stores fingerprints only (the texts stay out of git). The texts live in the
+    git-ignored held-out shards (one document per line, LF). This refuses to build a guard unless
+    the shard lines are *exactly* the suite's documents (same multiset of SHA-256 hashes), so a
+    stale, partial or edited shard can never silently weaken the protection. Suite doc_ids are
+    assigned by hash, so the check does not depend on shard order.
+    """
+    return SuiteGuard.from_texts(heldout_pairs(shard_paths, suite), n=n)

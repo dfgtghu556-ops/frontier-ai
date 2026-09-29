@@ -105,7 +105,19 @@ class QualityPolicy:
 _WS_CONTROL = frozenset("\t\n\r\f\v")  # handled by normalization, not garbage
 
 
+# Unicode category Cc is exactly U+0000-U+001F and U+007F-U+009F; minus _WS_CONTROL (U+0009-U+000D).
+# One regex pass instead of a per-character category lookup (same result; a test compares both).
+_CONTROL = re.compile("[\x00-\x08\x0e-\x1f\x7f-\x9f]")
+
+
 def _control_ratio(text: str) -> float:
+    if not text:
+        return 0.0
+    return len(_CONTROL.findall(text)) / len(text)
+
+
+def _control_ratio_reference(text: str) -> float:
+    """The original per-character definition, kept for the equivalence test."""
     if not text:
         return 0.0
     n = sum(1 for ch in text if unicodedata.category(ch) == "Cc" and ch not in _WS_CONTROL)

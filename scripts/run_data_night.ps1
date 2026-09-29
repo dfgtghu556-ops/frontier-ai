@@ -27,7 +27,12 @@
 # This file is ASCII-only on purpose: Windows PowerShell 5.1 reads BOM-less scripts
 # with the ANSI code page.
 
-param([string]$Exp = "EXP-034")
+# EXP-035 reuses this runner with -Task calibrate (see scripts\run_calibration_night.ps1): step 4
+# then runs scripts\calibrate_sangraha_slice.py (removes nothing; writes counts + masked samples)
+# instead of the inspection. Steps 1-3 and 5-6 are identical (the download step only re-checks
+# the fingerprints of files that are already there).
+
+param([string]$Exp = "EXP-034", [ValidateSet("inspect", "calibrate")][string]$Task = "inspect")
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -40,6 +45,15 @@ $log = "$outDir\night.log"
 $reportPath = "$outDir\NIGHT_REPORT.txt"
 $python = ".venv\Scripts\python.exe"
 $resultsPrefix = "evals/results/$Exp/"
+if ($Task -eq "calibrate") {
+    $stepScript = "scripts\calibrate_sangraha_slice.py"
+    $title = "Sangraha Verified slice: calibration samples + counts, removes nothing"
+    $commitTitle = "Sangraha Verified slice-1 calibration results (pre-registered, measures only)"
+} else {
+    $stepScript = "scripts\inspect_sangraha_slice.py"
+    $title = "Sangraha Verified slice: download + inspect"
+    $commitTitle = "Sangraha Verified slice-1 inspection results (pre-registered, measures only)"
+}
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
 $report = New-Object System.Collections.Generic.List[string]
@@ -74,7 +88,7 @@ function Invoke-Logged([string]$cmdline) {
     return New-Object PSObject -Property @{ Code = $rc; Lines = $lines }
 }
 
-Add-Report "NIGHT REPORT $Exp (Sangraha Verified slice: download + inspect) - started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+Add-Report "NIGHT REPORT $Exp ($title) - started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Add-Report ""
 
 # --- 1) checks ----------------------------------------------------------------------
@@ -98,7 +112,7 @@ if ($r.Code -ne 0 -or ($r.Lines | Where-Object { $_.Trim() -ne "" })) {
 }
 Add-Report "PASS 1b: git tree clean"
 
-foreach ($f in @($pins, $suite, "scripts\fetch_sangraha_slice.py", "scripts\inspect_sangraha_slice.py",
+foreach ($f in @($pins, $suite, "scripts\fetch_sangraha_slice.py", $stepScript,
                  "scripts\publish_eval_results.py", $python)) {
     if (-not (Test-Path $f)) { Stop-Night "missing file: $f" 2 }
 }
@@ -146,11 +160,11 @@ if ($code -eq 2) { Stop-Night "the download did not start (disk space or pin fil
 if ($code -ne 0) { Stop-Night "the download did not complete; run the same line again tomorrow - it resumes" 1 }
 Add-Report "PASS 3: all files downloaded and their SHA-256 fingerprints match the pins"
 
-# --- 4) inspection (measures only; filters nothing) ----------------------------------
+# --- 4) inspection or calibration (measures only; filters nothing) ----------------------------------
 Add-Report ""
-Add-Report "=== inspection started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') (CPU near 100% is normal; progress every 50,000 documents) ==="
-$code = (Invoke-Logged "$python -u scripts\inspect_sangraha_slice.py --exp-id $Exp --pins $pins --out $outDir").Code
-Add-Report "=== inspection finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | exit code: $code ==="
+Add-Report "=== $Task started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') (CPU near 100% is normal; progress every 50,000 documents) ==="
+$code = (Invoke-Logged "$python -u $stepScript --exp-id $Exp --pins $pins --out $outDir").Code
+Add-Report "=== $Task finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | exit code: $code ==="
 Add-Report ""
 Add-Report "----- SUMMARY.txt -----"
 if (Test-Path "$outDir\SUMMARY.txt") {
@@ -161,11 +175,11 @@ if (Test-Path "$outDir\SUMMARY.txt") {
 Add-Report "-----------------------"
 Add-Report ""
 if ($code -ne 0) {
-    Add-Report "FAIL 4: inspection failed (exit $code). Last 60 log lines:"
+    Add-Report "FAIL 4: $Task failed (exit $code). Last 60 log lines:"
     foreach ($line in (Get-Content $log -Tail 60 -Encoding UTF8)) { $report.Add("  $line") }
-    Stop-Night "the inspection did not finish cleanly" 1
+    Stop-Night "the $Task step did not finish cleanly" 1
 }
-Add-Report "PASS 4: inspection complete (exit 0)"
+Add-Report "PASS 4: $Task complete (exit 0)"
 
 # --- 5) publish, check, commit and push ONLY evals/results/<EXP>/ -----------------------
 $r = Invoke-Logged "$python -u scripts\publish_eval_results.py --exp-id $Exp --src $outDir"
@@ -194,7 +208,7 @@ if ($changed.Count -eq 0) {
 
     # The message goes through a file: PowerShell 5.1 mangles embedded quotes passed to cmd.exe.
     $msgFile = "$outDir\commit_message.txt"
-    "${Exp}: Sangraha Verified slice-1 inspection results (pre-registered, measures only)" |
+    "${Exp}: $commitTitle" |
         Set-Content -Path $msgFile -Encoding ASCII
     $r = Invoke-Logged "git commit -q -F $msgFile"
     if ($r.Code -ne 0) { Stop-Night "git commit failed: $($r.Lines -join ' | ')" 1 }
