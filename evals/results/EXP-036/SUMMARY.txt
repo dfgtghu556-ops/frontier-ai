@@ -1,0 +1,62 @@
+EXP-036 - FrontierCorpus v2 build on sangraha-verified-slice1 (ai4bharat/sangraha @ 8b813c3f62d3)
+complete: True   suite: CHECKED against frontier-heldout-v1 (3427 documents; 13-grams + exact + passages of 3-12 words; shard verified against SUITE.json)
+tokenizer: frontier-tokenizer-v1 (frozen, D-041)   config: 43ce349329a98770
+
+lang | input docs | kept docs | kept chars (share) | tokens (exact) | minutes
+  as |    110,238 |   104,386 |    292,524,670 (91.74%) |    155,735,335 | 21.6
+  bn |    149,797 |   149,458 |    377,600,908 (98.61%) |    201,968,766 | 30.3
+  en |    349,525 |   348,394 |    920,291,150 (98.25%) |    478,709,767 | 53.2
+  gu |    149,797 |   149,466 |    357,391,570 (98.71%) |    201,772,881 | 28.5
+  hi |    174,763 |   171,199 |    366,875,458 (94.69%) |    196,987,821 | 29.7
+  kn |    174,762 |   173,555 |    346,614,900 (96.25%) |    166,057,000 | 33.2
+  ml |    174,763 |   173,825 |    313,551,713 (94.75%) |    140,843,642 | 36.4
+  mr |    174,763 |   174,485 |    372,982,531 (98.27%) |    181,004,073 | 29.1
+  or |    189,757 |   188,737 |    352,233,374 (98.16%) |    188,496,005 | 28.6
+  pa |    149,797 |   149,398 |    358,396,617 (98.79%) |    203,960,544 | 26.0
+  ta |    149,796 |   149,525 |    367,312,056 (97.93%) |    161,146,485 | 34.9
+  te |    174,762 |   174,147 |    347,777,028 (97.70%) |    196,080,611 | 32.9
+  ur |    209,716 |   191,621 |    519,533,986 (90.94%) |    323,285,283 | 46.1
+ all |  2,332,236 | 2,298,196 |  5,293,085,961 (96.54%) |  2,796,048,213 |
+
+Removed documents per rule (docs / share of the file's characters):
+  empty [normalization (v1)]: bn 1/0.00%, gu 1/0.00%, ml 1/0.00%, pa 1/0.00%, ta 1/0.00%
+  suite_exact [1 protected suite]: 0
+  suite_ngram [1 protected suite]: as 5/0.03%, hi 1/0.00%, kn 4/0.00%, or 8/0.07%, pa 2/0.00%
+  suite_short [1 protected suite]: as 3/0.01%, bn 17/0.07%, en 3/0.00%, hi 3/0.03%, mr 2/0.00%, or 8/0.01%
+  exact_duplicate [2 duplicates]: en 90/0.01%, hi 3,019/3.64%
+  control_chars [control chars (v1)]: 0
+  empty_after_cleaning [3/4 lines]: as 5,171/6.50%, bn 55/0.04%, en 91/0.01%, gu 84/0.10%, hi 29/0.01%, kn 891/1.14%, ml 249/0.31%, mr 31/0.04%, or 494/0.57%, pa 58/0.07%, ta 20/0.01%, te 177/0.21%, ur 272/0.21%
+  no_letters [5 script gate]: en 1/0.00%
+  script_share [5 script gate]: as 324/0.32%, bn 247/0.13%, en 124/0.01%, gu 231/0.10%, hi 422/0.15%, kn 228/0.21%, ml 149/0.12%, mr 238/0.11%, or 449/0.07%, pa 296/0.22%, ta 226/0.13%, te 393/0.26%, ur 256/0.10%
+  urdu_persian_like [6 Urdu check]: ur 17,337/8.43%
+  urdu_uyghur_like [6 Urdu check]: ur 209/0.10%
+  wiki_markup [8 wiki markup]: as 14/0.02%, bn 19/0.03%, en 28/0.01%, gu 11/0.02%, hi 28/0.05%, kn 7/0.02%, ml 10/0.01%, mr 4/0.01%, or 43/0.05%, pa 35/0.02%, ta 12/0.02%, te 15/0.01%, ur 18/0.01%
+  repetition [9 repetition]: as 1/0.01%, en 3/0.01%, gu 2/0.00%, hi 8/0.02%, kn 7/0.03%, ml 494/1.46%, ta 2/0.00%, ur 1/0.02%
+  suite_after_cleaning [1 protected suite]: 0
+  near_duplicate [2 duplicates]: as 334/0.12%, en 791/0.16%, gu 2/0.00%, hi 54/0.01%, kn 70/0.02%, ml 35/0.02%, mr 3/0.00%, or 18/0.01%, pa 7/0.00%, ta 10/0.00%, te 30/0.01%, ur 2/0.00%
+
+Removed lines (share of the file's characters):
+  boilerplate: as 0.59%, bn 0.48%, en 1.00%, gu 0.29%, hi 0.74%, kn 1.43%, ml 2.74%, mr 1.09%, or 0.61%, pa 0.44%, ta 1.16%, te 1.04%, ur 0.05%
+  foreign: as 7.02%, bn 0.54%, en 0.40%, gu 0.76%, hi 0.52%, kn 1.80%, ml 0.72%, mr 0.35%, or 0.93%, pa 0.43%, ta 0.55%, te 0.84%, ur 0.37%
+
+Masked (rule 10): as 83 e-mails/778 phones, bn 129 e-mails/540 phones, en 1,314 e-mails/830 phones, gu 141 e-mails/978 phones, hi 152 e-mails/581 phones, kn 148 e-mails/1,109 phones, ml 149 e-mails/708 phones, mr 111 e-mails/1,320 phones, or 1,371 e-mails/757 phones, pa 204 e-mails/994 phones, ta 244 e-mails/862 phones, te 74 e-mails/674 phones, ur 0 e-mails/434 phones
+
+Measured only (nothing removed):
+  as: kept_docs_latin_fused_with_marks 393, kept_docs_with_lines_removed 21,197, kept_under_200_chars 1,431, latin_fused_with_marks_occurrences 527
+  bn: kept_docs_latin_fused_with_marks 543, kept_docs_with_lines_removed 15,620, kept_under_200_chars 578, latin_fused_with_marks_occurrences 843
+  en: kept_docs_with_lines_removed 63,962, kept_under_200_chars 2,702
+  gu: kept_docs_latin_fused_with_marks 1,347, kept_docs_with_lines_removed 20,044, kept_under_200_chars 997, latin_fused_with_marks_occurrences 2,401
+  hi: kept_docs_latin_fused_with_marks 122, kept_docs_with_lines_removed 28,736, kept_lla_3plus 236, kept_under_200_chars 694, latin_fused_with_marks_occurrences 146
+  kn: kept_docs_latin_fused_with_marks 243, kept_docs_with_lines_removed 32,487, kept_under_200_chars 454, latin_fused_with_marks_occurrences 334
+  ml: kept_docs_latin_fused_with_marks 30, kept_docs_with_lines_removed 30,444, kept_under_200_chars 254, latin_fused_with_marks_occurrences 45
+  mr: kept_docs_latin_fused_with_marks 301, kept_docs_with_lines_removed 21,749, kept_lla_3plus 149,102, kept_under_200_chars 457, latin_fused_with_marks_occurrences 554
+  or: kept_docs_latin_fused_with_marks 55, kept_docs_with_lines_removed 33,119, kept_under_200_chars 972, latin_fused_with_marks_occurrences 68
+  pa: kept_docs_latin_fused_with_marks 2,812, kept_docs_with_lines_removed 21,862, kept_under_200_chars 426, latin_fused_with_marks_occurrences 8,820
+  ta: kept_docs_latin_fused_with_marks 69, kept_docs_with_lines_removed 30,254, kept_under_200_chars 444, latin_fused_with_marks_occurrences 86
+  te: kept_docs_latin_fused_with_marks 253, kept_docs_with_lines_removed 24,891, kept_under_200_chars 329, latin_fused_with_marks_occurrences 292
+  ur: kept_docs_with_lines_removed 13,877, kept_pashto_like 53, kept_under_200_chars 378
+
+REVIEW (a rule removed more than its pre-registered bound; read before accepting):
+  as: empty_after_cleaning 6.50% > 2.00%
+
+Output suite hits: 0 (must be 0)

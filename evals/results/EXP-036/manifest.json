@@ -1,0 +1,218 @@
+{
+  "schema": "frontier-corpus-manifest-v1",
+  "corpus_id": "frontier-v2-sangraha-slice1",
+  "exp_id": "EXP-036",
+  "complete": true,
+  "built_at": "2026-09-30 02:16:41",
+  "source": {
+    "dataset": "ai4bharat/sangraha",
+    "subset": "verified",
+    "revision": "8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8",
+    "slice_id": "sangraha-verified-slice1",
+    "pins": "corpora\\frontier\\v2\\sangraha_slice1.json",
+    "license_id": "CC-BY-4.0",
+    "attribution": "Sangraha (AI4Bharat): Khan et al. 2024, IndicLLMSuite: A Blueprint for Creating Pre-training and Fine-Tuning Datasets for Indian Languages, ACL 2024 (arXiv:2403.06350). CC-BY-4.0."
+  },
+  "rules": "EXPERIMENTS.md EXP-036 (approved 2026-09-29); code: src/frontier_ai/corpus/slice_build.py",
+  "config": {
+    "boilerplate_min_repeats": 100,
+    "min_declared_share": 0.6,
+    "urdu_min_letters": 50,
+    "wiki_marker_limit": 2,
+    "min_repetition_ratio": 0.3,
+    "repetition_min_tokens": 8,
+    "max_control_ratio": 0.02,
+    "near_dup_threshold": 0.8,
+    "near_dup_bands": 16,
+    "minhash_perm": 128,
+    "minhash_shingle": 5,
+    "minhash_seed": 35,
+    "short_suite_min_words": 3,
+    "normalization": "nfc"
+  },
+  "config_fingerprint": "43ce349329a98770",
+  "tokenizer": {
+    "name": "frontier-tokenizer-v1 (frozen, D-041)",
+    "dir_sha256_16": "b39afa08fa86b0d1",
+    "exact_count": true
+  },
+  "suite": {
+    "status": "CHECKED against frontier-heldout-v1 (3427 documents; 13-grams + exact + passages of 3-12 words; shard verified against SUITE.json)",
+    "suite_id": "frontier-heldout-v1",
+    "suite_sha256_16": "043c1b7ee2a52e28",
+    "ngram_n": 13,
+    "suite_documents": 3427,
+    "suite_unique_texts": 3427,
+    "suite_ngrams": 38297,
+    "suite_too_short_documents": 1882,
+    "short_index": {
+      "min_words": 3,
+      "below_ngram": 13,
+      "indexed_documents": 1727,
+      "not_indexed_too_short": 155,
+      "distinct_anchors": 1725
+    }
+  },
+  "record_fields": {
+    "id": "<source_id>#<row>: unique in the corpus",
+    "text": "the document after the EXP-036 rules (NFC, cleaned lines, masked contacts)",
+    "lang": "declared language code of the source file",
+    "source": "pinned source file id (corpora/frontier/v2/sangraha_slice1.json)",
+    "row": "0-based row in the source parquet file",
+    "doc_id": "Sangraha doc_id (NOT unique, EXP-035)",
+    "type": "Sangraha document type (web, pdf, ...)",
+    "revision": "Hugging Face dataset revision",
+    "tokens": "exact token count with frontier-tokenizer-v1"
+  },
+  "files": [
+    {
+      "language": "as",
+      "source_id": "sangraha-verified-asm-data-0",
+      "path": "as.jsonl.gz",
+      "docs": 104386,
+      "chars": 292524670,
+      "tokens": 155735335,
+      "sha256_gz": "41b6c04731829e6da41d843be6f1f0970694929c109b0ac19b7f223afb67bfef",
+      "sha256_jsonl": "841cf8b4504c882dc1cebfabdc1ede401037a34f6f1b125b1c18c921b98a94ac",
+      "bytes_gz": 176799213
+    },
+    {
+      "language": "bn",
+      "source_id": "sangraha-verified-ben-data-0",
+      "path": "bn.jsonl.gz",
+      "docs": 149458,
+      "chars": 377600908,
+      "tokens": 201968766,
+      "sha256_gz": "71700f7f6c54b8621e51b916682b88cf21d7ba611331920661c045e35c5c4189",
+      "sha256_jsonl": "5d694f40e5607e516b749184a732379bee9463e3075c97372aefdece3ea23ece",
+      "bytes_gz": 222416171
+    },
+    {
+      "language": "en",
+      "source_id": "sangraha-verified-eng-data-0",
+      "path": "en.jsonl.gz",
+      "docs": 348394,
+      "chars": 920291150,
+      "tokens": 478709767,
+      "sha256_gz": "7d134ee43f74300b1585e513364ab13a31bc29cf96d54cd9f13b303ea021e92c",
+      "sha256_jsonl": "e075e60aa5411e9f2b9ffa42ffc824db78a51e4e2f3b0049309bc6c4c60a44b7",
+      "bytes_gz": 386604335
+    },
+    {
+      "language": "gu",
+      "source_id": "sangraha-verified-guj-data-0",
+      "path": "gu.jsonl.gz",
+      "docs": 149466,
+      "chars": 357391570,
+      "tokens": 201772881,
+      "sha256_gz": "3cb2821e46e66a2ba08eada1796d407bf9d452251bba3ed207968fb0f9d54ee4",
+      "sha256_jsonl": "5b4aa25cabbdcdd0c1743abbe898addddb765d7f4d8ec2c8f66e3b74482d78fc",
+      "bytes_gz": 216911627
+    },
+    {
+      "language": "hi",
+      "source_id": "sangraha-verified-hin-data-0",
+      "path": "hi.jsonl.gz",
+      "docs": 171199,
+      "chars": 366875458,
+      "tokens": 196987821,
+      "sha256_gz": "3471e3e56e24c7734b7aa816c9816e669fb3ab307ac3cd1b63f693e7706fe066",
+      "sha256_jsonl": "caed0f55196fd07fa667707e9db6a839d13c7b9b961f21e5866e11ba7c7832c6",
+      "bytes_gz": 213048573
+    },
+    {
+      "language": "kn",
+      "source_id": "sangraha-verified-kan-data-0",
+      "path": "kn.jsonl.gz",
+      "docs": 173555,
+      "chars": 346614900,
+      "tokens": 166057000,
+      "sha256_gz": "2d56fc8cced1af6e6a1700e21ad8b6c4e5c593b640aa9a2e131e55361b7dc750",
+      "sha256_jsonl": "309f07a6bec37dfaf0d772e095dcd9afe645e751294450e85a39ff1269d1d4b0",
+      "bytes_gz": 203399571
+    },
+    {
+      "language": "ml",
+      "source_id": "sangraha-verified-mal-data-0",
+      "path": "ml.jsonl.gz",
+      "docs": 173825,
+      "chars": 313551713,
+      "tokens": 140843642,
+      "sha256_gz": "21a77a03ccaca3622b982ad0634d19787674d59227ec3b5d8fd3bc3b367bb243",
+      "sha256_jsonl": "f37052c40babde6780109ee56007292dff4444eb653542ab5b6f64b6e9391b82",
+      "bytes_gz": 177396627
+    },
+    {
+      "language": "mr",
+      "source_id": "sangraha-verified-mar-data-0",
+      "path": "mr.jsonl.gz",
+      "docs": 174485,
+      "chars": 372982531,
+      "tokens": 181004073,
+      "sha256_gz": "d9b7552e5a68100819cef1c9bb6b0186464d389b3b44f636feebfa84bd465409",
+      "sha256_jsonl": "c58f8c7ce0903dd9657638a735fb2c0b5cd872dcfe154552f9886f07a6ab6c09",
+      "bytes_gz": 217101501
+    },
+    {
+      "language": "or",
+      "source_id": "sangraha-verified-ori-data-0",
+      "path": "or.jsonl.gz",
+      "docs": 188737,
+      "chars": 352233374,
+      "tokens": 188496005,
+      "sha256_gz": "d4d32443fc663e52705e009ece0b41dbb38aba014cf3975263da46d8d902f46e",
+      "sha256_jsonl": "8e1260525d22b873f7bbd9729c9f9ba5b06c8e8f2a287cca9abc86541a524db5",
+      "bytes_gz": 211048790
+    },
+    {
+      "language": "pa",
+      "source_id": "sangraha-verified-pan-data-0",
+      "path": "pa.jsonl.gz",
+      "docs": 149398,
+      "chars": 358396617,
+      "tokens": 203960544,
+      "sha256_gz": "96aff0017adb2b3b2e094a8ce65f5f80c95b5764c07325fa12a7160059437dec",
+      "sha256_jsonl": "633a2ea643d00562be98f400b517740b526cc4d91c3830eae3c0a3c986942575",
+      "bytes_gz": 209616507
+    },
+    {
+      "language": "ta",
+      "source_id": "sangraha-verified-tam-data-0",
+      "path": "ta.jsonl.gz",
+      "docs": 149525,
+      "chars": 367312056,
+      "tokens": 161146485,
+      "sha256_gz": "917593646a790c3d51544537acb54b8269d094f7da7a8999911579697ccb027d",
+      "sha256_jsonl": "10d31e3bcf740937f5f87418ea34177ccf27aa7cf8db4a2ace3a7c787447fcf8",
+      "bytes_gz": 189897559
+    },
+    {
+      "language": "te",
+      "source_id": "sangraha-verified-tel-data-0",
+      "path": "te.jsonl.gz",
+      "docs": 174147,
+      "chars": 347777028,
+      "tokens": 196080611,
+      "sha256_gz": "a57ce8520bc8fec3b24cd4caa72953b50d389f6ab00188addee96973f258eee0",
+      "sha256_jsonl": "e55607fa3fbdc9fe7e4aec0501023ca44e912ad51ac518f5ca8c3ca94000836b",
+      "bytes_gz": 210784741
+    },
+    {
+      "language": "ur",
+      "source_id": "sangraha-verified-urd-data-0",
+      "path": "ur.jsonl.gz",
+      "docs": 191621,
+      "chars": 519533986,
+      "tokens": 323285283,
+      "sha256_gz": "b33afa0e1bf4fd38019c1aa6f29ad8ca212d8fa1bff9c523b17ba18621ba678d",
+      "sha256_jsonl": "b63ad36de0b871f21e6c164ba6c908d3b81fbc8dbcf2b02893c1c94387fc4ba6",
+      "bytes_gz": 272118706
+    }
+  ],
+  "totals": {
+    "docs": 2298196,
+    "chars": 5293085961,
+    "tokens": 2796048213
+  },
+  "token_count_status": "exact count with the frozen tokenizer over every kept document"
+}
