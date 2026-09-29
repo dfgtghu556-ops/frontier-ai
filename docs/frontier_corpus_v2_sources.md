@@ -206,3 +206,34 @@ stop at level A at any time.
 4. Only then: level-B sources one at a time (if D-044 allows), and mixing experiments
    (comparison framework, no fixed percentages). A future tokenizer v2 would be considered
    only then, under D-041 (founder approval + new experiment).
+
+## 9. Addendum (2026-09-29): the founder's AI4Bharat suggestion
+
+The founder pointed to AI4Bharat's LLM page (ai4bharat.iitm.ac.in/areas/llm) and asked to
+use their free resources because it is fast. Checked the same day:
+
+- **Their GitHub repositories hold code, not data.** `AI4Bharat/IndicLLMSuite` (MIT, about
+  69 KB) and `AI4Bharat/setu` (MIT) contain pipelines and download scripts. The data
+  (Sangraha, 705 GB) is on Hugging Face. It cannot be "copied into our repository": GitHub
+  rejects files over 100 MB, and this repository keeps data out of git by design (shards
+  and tokens are git-ignored and hash-pinned, as in v1).
+- **Sangraha Verified is published as per-language parquet files, each with a SHA-256.**
+  Read from the HF tree API:
+  - `verified/asm` is 3 files (328,035,291 + 326,255,363 + 325,164,324 bytes);
+  - `verified/hin` is more than 30 files of about 345–378 MB each.
+
+  So a download can be **pinned file by file**, exactly like the v1 pins. One file per
+  language is a natural first slice for the laptop. Its token count under Frontier Tokenizer
+  v1 is NOT VERIFIED until measured.
+- **What we would use and not use:**
+  - *Sangraha Verified*: yes, as level B (option 2).
+  - *Sangraha Synthetic* (machine-translated): no (level C).
+  - *Sangraha Unverified*: not now.
+  - *IndicAlign* (instruction/alignment data): not now. That is fine-tuning (SFT) data, and
+    SFT is outside the founder's current guardrails; it is recorded for a later stage.
+  - *Setu* (Apache Spark pipeline): built for clusters, too heavy for the laptop. Its ideas
+    can be borrowed with credit (MIT).
+  - *AI4Bharat models* (Airavata etc.): not used. The goal is a model trained from scratch.
+- Legal position unchanged (§2): the CC-BY-4.0 tag covers the collection; the scraped pages
+  underneath keep their authors' copyright, which is why it is level B and every document
+  stays tagged and removable.
