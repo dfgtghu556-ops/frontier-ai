@@ -374,7 +374,7 @@ def test_data_night_script_static_safety():
     assert "publish_eval_results.py --exp-id $Exp --src $outDir" in code
     assert '$outDir = "out\\data\\$Exp"' in code
     # EXP-035 reuses the runner: -Task only switches the step-4 script and the texts
-    assert '[ValidateSet("inspect", "calibrate")][string]$Task = "inspect"' in code
+    assert '[ValidateSet("inspect", "calibrate", "build")][string]$Task = "inspect"' in code
     assert 'Invoke-Logged "$python -u $stepScript --exp-id $Exp --pins $pins --out $outDir"' in code
     assert '$stepScript = "scripts\\calibrate_sangraha_slice.py"' in code
     # the final report line names the experiment that ran (EXP-035's report said "EXP-034 done")
@@ -384,3 +384,10 @@ def test_data_night_script_static_safety():
     wrapper = (REPO / "scripts" / "run_calibration_night.ps1").read_bytes().decode("ascii")
     wcode = [ln for ln in wrapper.splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
     assert wcode == ['& "$PSScriptRoot\\run_data_night.ps1" -Exp "EXP-035" -Task "calibrate"', "exit $LASTEXITCODE"]
+    # EXP-036: -Task build runs the v2 build; it must not run without the held-out shard
+    assert '$stepScript = "scripts\\build_sangraha_v2.py"' in code
+    assert '} elseif ($Task -eq "build") {\n    Stop-Night' in code
+    assert '-like "*build_sangraha_v2.py*"' in code  # a second night run is refused while one runs
+    bwrapper = (REPO / "scripts" / "run_build_night.ps1").read_bytes().decode("ascii")
+    bcode = [ln for ln in bwrapper.splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
+    assert bcode == ['& "$PSScriptRoot\\run_data_night.ps1" -Exp "EXP-036" -Task "build"', "exit $LASTEXITCODE"]

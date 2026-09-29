@@ -2367,3 +2367,100 @@ samples are committed.
 
 **Status:** complete (13/13 files verified and read in full; short-suite check CHECKED; adopts
 and removes nothing). EXP-036 (above) needs founder approval before any build code.
+
+### EXP-036 — FrontierCorpus v2 build on the Sangraha slice with the 10 approved rules (D-044; data scale-up phase 1)
+**Date:** 2026-09-29 · **Status:** pre-registered; code built and tested (sandbox); PC night run pending (founder: "approve EXP-036", 2026-09-29)
+
+**Purpose (why this serves the mission):** a model can only be as good as the text it learns
+from. EXP-034 measured the 13 files and EXP-035 read samples of everything each rule would
+remove. This experiment applies the resulting rules and produces the first cleaned, provenance-
+tracked, suite-protected Indian-language corpus of this project with an **exact** token count —
+the first real training-data number instead of an estimate.
+
+**Inputs:** the 13 pinned files (`corpora/frontier/v2/sangraha_slice1.json`, revision
+`8b813c3f62d3…`, already on the PC; each re-checked by size + SHA-256 before it is read); the
+protected suite `frontier-heldout-v1` with its PC-only held-out shard (verified line by line
+against `SUITE.json`; **mandatory** — without it the build stops before reading any data); the
+frozen tokenizer `frontier-tokenizer-v1` (hash-checked by its loader).
+
+**Method:** `scripts/build_sangraha_v2.py` (`src/frontier_ai/corpus/slice_build.py`), CPU only,
+two files at a time (`--workers 2`, the laptop has 2 cores). Per file, three streaming passes:
+(A) count every exact line; (B) apply the rules to each document and record the **first** reason
+it fails; (C) near-duplicates, then write. The rules of the EXP-036 table (end of EXP-035), in the
+order they are applied:
+
+| order | rule (table #) | exact definition in the code |
+|---|---|---|
+| 1 | normalization (v1, D-036) | NFC, `\r` removed, runs of spaces/tabs → one space; empty → `empty` |
+| 2 | protected suite (1) | on the normalized source text: exact suite text or a shared 13-gram (`SuiteGuard`) → `suite_exact`/`suite_ngram`; a suite document of 3–12 words contained word for word (`ShortSuiteIndex`, `min_words=3`) → `suite_short` |
+| 3 | exact duplicates (2) | identical normalized text seen earlier in the same file → `exact_duplicate` |
+| 4 | control characters (v1, unchanged) | > 2% invisible control characters → `control_chars` (0 hits in EXP-034/035) |
+| 5 | boilerplate lines (3) | drop every line (stripped) whose exact text occurs ≥ 100 times in the file (counted in pass A over all documents) |
+| 6 | foreign lines (4) | drop every line that has ≥ 1 letter (any script, including blocks the profiler does not know) and **no** letter of the declared script; lines without letters (numbers, punctuation) stay |
+| 7 | — | lines are stripped; runs of blank lines become one blank line; nothing left → `empty_after_cleaning` |
+| 8 | script gate (5) | on the **whole cleaned** document: no letters → `no_letters`; declared-script share < 0.6 → `script_share` |
+| 9 | Urdu check (6, ur only) | on the cleaned document, EXP-035's `marker_label`: none of ٹ ڈ ڑ ں ے ھ among ≥ 50 letters → `urdu_persian_like`; ≥ 3 Uyghur-only letters and more than Urdu letters → `urdu_uyghur_like`; Pashto-/Sindhi-like documents are kept and counted |
+| 10 | long documents (7) | no length limit |
+| 11 | wiki markup (8) | ≥ 2 `{{`/`}}` markers in the cleaned document → `wiki_markup` |
+| 12 | repetition (9) | ≥ 8 words and distinct word-bigram ratio < 0.3 → `repetition` |
+| 13 | contacts (10) | nothing dropped: e-mail addresses → `[email]`; phone numbers → `[phone]` (`+CC` followed by 8–13 digits with optional spaces/hyphens; Indian mobile `98765 43210`/`98765-43210`; 10–13 contiguous digits; Indic digits count). Year lists (`1991 1992 1993`), PIN codes and amounts are not touched (tested) |
+| 14 | protected suite again (1) | the **exact output text** is checked again (13-gram, exact, short passages) → `suite_after_cleaning`. Why: removing a line joins the words around it, which could create a 13-gram the source did not have |
+| 15 | near-duplicates (2) | among documents that passed everything above: MinHash on the output text (128 permutations, word 5-grams, seed 35, LSH 16 × 8, estimated Jaccard ≥ 0.8 with the bucket representative); keep the first row of each cluster → `near_duplicate`. Done last so a cluster keeps a document that is really in the corpus |
+
+**Output (PC only, git-ignored):** `data\frontier_v2\sangraha-slice1-v2\<lang>.jsonl.gz`, one JSON
+document per line: `id` (`<source_id>#<row>`, unique; Sangraha `doc_id` is not), `text`, `lang`,
+`source`, `row`, `doc_id`, `type`, `revision`, `tokens` (exact, frozen tokenizer). gzip with
+`mtime=0`, so the same input gives the same bytes. Plus `ATTRIBUTION.txt` (Khan et al. 2024,
+CC-BY-4.0, list of changes) and `manifest.json`. A finished file is recorded in
+`<lang>.stats.json`; running the same line again reuses files built with the same code, rules,
+pin, suite and tokenizer (checked by SHA-256), so an interrupted night is not lost.
+
+**Committed evidence (runner, `evals/results/EXP-036/`):** `summary.json`, `SUMMARY.txt`,
+`manifest.json` (file names, counts, tokens, SHA-256; no text) and `samples.jsonl`: per file up
+to 4 masked excerpts (≤ 400 chars) per removal reason, 8 removed foreign lines, 6 kept documents
+and 4 kept documents that lost lines, plus the top 25 removed boilerplate lines in the summary.
+Suite-touching documents are never sampled as documents.
+
+**Pre-registered rules (fixed before any result):**
+- **Complete** only if all 13 files were built in full (no `--max-docs`/`--only`), every file
+  matched its pin, the suite check was CHECKED, rows read = parquet row count, and kept + removed
+  = rows for every file (the code refuses otherwise).
+- **Suite gate: 0 hits in the output.** Every written text passed the 13-gram, exact and short-
+  passage checks on its exact final form (step 14); tests re-check the output independently.
+- **Per-rule cost is reported per language** (documents and share of characters, for removed
+  documents and for removed lines). A rule is marked **REVIEW** in the report when it removes
+  more than its bound (share of the file's characters): boilerplate lines 5%, foreign lines 10%,
+  exact or near-duplicates 5%, script share 8%, no letters 2%, Urdu Persian-like 12%, Uyghur-like
+  1%, wiki markup 2%, repetition 2%, empty after cleaning 2%, control chars 0.1%, suite after
+  cleaning > 0. REVIEW does not stop the build; it means "read before accepting".
+- **The corpus is not accepted automatically.** After the night the agent reads the samples per
+  rule and the REVIEW lines and reports to the founder; the founder decides whether v2 is
+  accepted. A rule that removes good text is changed only in a new, pre-registered experiment.
+- **Token claims:** the exact count applies to this slice only (the first file `data-0` of each of
+  13 languages), not to Sangraha. No model is trained on v2 without a separate approval.
+- Measured only (nothing removed): Pashto-/Sindhi-like Urdu documents, Hindi/Marathi documents
+  with ≥ 3 ळ, kept documents under 200 characters, Latin letters fused with Indic vowel signs
+  ("architectਾਂ", a machine-translation/OCR artefact), kept documents that lost lines.
+- Not done here (later work): cross-file and cross-language duplicates; OCR-garble detection.
+
+**Sandbox checks (2026-09-29):** 20 new tests (`tests/test_slice_build.py`): the fast foreign-
+line check equals its definition on 3,000 random mixed-script lines × 5 scripts; line cleaning
+(boilerplate, foreign, paragraph breaks); 9 contact-masking cases (e-mail, +91, Indian mobile,
+0-prefixed, Bengali digits; year lists, PIN, amounts, decimals untouched); the token counter
+equals `len(encode(...))` with the frozen tokenizer (and with special tokens) and its cache is
+bounded; the fused-Latin detector; a hand-built 16-document Hindi file that triggers every
+removal reason exactly as designed (including a suite 13-gram created only by line removal),
+with provenance, exact tokens, masked samples that contain no suite text, and an independent
+suite re-check of the output; byte-identical output across two builds; the Urdu check (Persian,
+Uyghur, short text kept); refusal on a row-count mismatch or a wrong short-suite index; the CLI
+end to end (manifest hashes and token totals match the files; reuse on a second run; a damaged
+output file is rebuilt; STOP without the held-out shard; STOP on too little disk space); and 1
+vs 2 worker processes give byte-identical files. Runner: `-Task build` added to
+`scripts/run_data_night.ps1` (step 1e stops without the held-out shard), wrapper
+`scripts/run_build_night.ps1`, publisher also copies `manifest.json`; static test extended.
+
+**Runtime and disk: NOT VERIFIED.** Sandbox, synthetic text built from EXP-035 samples: about
+380–530 documents/s per worker, about 2× the time of the EXP-035 calibration pass on the same
+text. EXP-035 took 2 h 36 min on the laptop, so one worker would need about 5 h; with two workers
+the estimate is **about 3–6 h**. Output size is expected to be at most about the input size
+(5.1 GB); the script stops before starting if less than 1.5 × the input size + 2 GB is free.

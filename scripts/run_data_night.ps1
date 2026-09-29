@@ -32,7 +32,13 @@
 # instead of the inspection. Steps 1-3 and 5-6 are identical (the download step only re-checks
 # the fingerprints of files that are already there).
 
-param([string]$Exp = "EXP-034", [ValidateSet("inspect", "calibrate")][string]$Task = "inspect")
+# EXP-036 reuses it with -Task build (see scripts\run_build_night.ps1): step 4 then runs
+# scripts\build_sangraha_v2.py, which BUILDS the v2 corpus with the approved rules. The corpus goes
+# to data\frontier_v2\ (git-ignored, stays on this PC); only the small reports (summary, manifest,
+# masked samples) are committed. The build refuses to run without the held-out shard (step 1e
+# stops) and checks the free disk space itself.
+
+param([string]$Exp = "EXP-034", [ValidateSet("inspect", "calibrate", "build")][string]$Task = "inspect")
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -45,7 +51,11 @@ $log = "$outDir\night.log"
 $reportPath = "$outDir\NIGHT_REPORT.txt"
 $python = ".venv\Scripts\python.exe"
 $resultsPrefix = "evals/results/$Exp/"
-if ($Task -eq "calibrate") {
+if ($Task -eq "build") {
+    $stepScript = "scripts\build_sangraha_v2.py"
+    $title = "Sangraha Verified slice: v2 corpus build with the approved rules (corpus stays on this PC)"
+    $commitTitle = "FrontierCorpus v2 build on Sangraha slice-1 (manifest, counts, masked samples; corpus stays on the PC)"
+} elseif ($Task -eq "calibrate") {
     $stepScript = "scripts\calibrate_sangraha_slice.py"
     $title = "Sangraha Verified slice: calibration samples + counts, removes nothing"
     $commitTitle = "Sangraha Verified slice-1 calibration results (pre-registered, measures only)"
@@ -93,9 +103,9 @@ Add-Report ""
 
 # --- 1) checks ----------------------------------------------------------------------
 $running = Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
-    Where-Object { $_.CommandLine -like "*sangraha_slice.py*" }
+    Where-Object { $_.CommandLine -like "*sangraha_slice.py*" -or $_.CommandLine -like "*build_sangraha_v2.py*" }
 if ($running) {
-    Write-Host "STOP: a Sangraha download/inspection is already running (PID $($running.ProcessId -join ', '))."
+    Write-Host "STOP: a Sangraha download/inspection/build is already running (PID $($running.ProcessId -join ', '))."
     Write-Host "Do NOT start another one. Wait for it, or close it if it is stale, then run this again."
     exit 2
 }
@@ -133,6 +143,8 @@ Add-Report "PASS 1d: pyarrow installed ($ver)"
 
 if (Test-Path "corpora\frontier\v1\shards\heldout") {
     Add-Report "PASS 1e: held-out shard folder found (the protected-suite check will run)"
+} elseif ($Task -eq "build") {
+    Stop-Night "corpora\frontier\v1\shards\heldout not found - the build must check every document against the protected suite" 2
 } else {
     Add-Report "WARN 1e: corpora\frontier\v1\shards\heldout not found - the suite check will say NOT CHECKED"
 }
@@ -160,7 +172,7 @@ if ($code -eq 2) { Stop-Night "the download did not start (disk space or pin fil
 if ($code -ne 0) { Stop-Night "the download did not complete; run the same line again tomorrow - it resumes" 1 }
 Add-Report "PASS 3: all files downloaded and their SHA-256 fingerprints match the pins"
 
-# --- 4) inspection or calibration (measures only; filters nothing) ----------------------------------
+# --- 4) inspection or calibration (measures only; filters nothing), or the v2 build ------------------
 Add-Report ""
 Add-Report "=== $Task started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') (CPU near 100% is normal; progress every 50,000 documents) ==="
 $code = (Invoke-Logged "$python -u $stepScript --exp-id $Exp --pins $pins --out $outDir").Code

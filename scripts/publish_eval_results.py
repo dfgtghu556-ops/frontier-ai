@@ -6,7 +6,8 @@
 Copies, for every report directory under ``out/eval/<exp-id>/`` (recursively), the files
 ``report.json``, ``report.txt``, ``compare.json``, ``compare.txt``, ``experiment.json``,
 ``summary.json``, ``SUMMARY.txt`` and ``samples.jsonl`` (EXP-035: at most ~800 short, PII-masked
-calibration excerpts; no held-out suite text)
+calibration excerpts; no held-out suite text) and ``manifest.json`` (EXP-036: the corpus manifest,
+file names, counts and SHA-256 fingerprints only; the corpus itself stays on the PC)
 into ``evals/results/<exp-id>/`` with the same relative layout, normalised to LF line
 endings. ``per_document.jsonl`` (large, regenerable by re-running the report) stays in
 ``out/``. Refuses to overwrite a different existing file (exit 2): published results are
@@ -20,7 +21,7 @@ import sys
 from pathlib import Path
 
 PUBLISHED = ("report.json", "report.txt", "compare.json", "compare.txt", "experiment.json",
-             "summary.json", "SUMMARY.txt", "DIVERGED.json", "samples.jsonl")
+             "summary.json", "SUMMARY.txt", "DIVERGED.json", "samples.jsonl", "manifest.json")
 
 
 def main() -> int:

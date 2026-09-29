@@ -238,18 +238,20 @@
   ],
   "current_work": [
     {
-      "title": "Data scale-up phase 1: FrontierCorpus v2 build rules for the Sangraha slice (EXP-035 done; EXP-036 proposed)",
+      "title": "Data scale-up phase 1: FrontierCorpus v2 build on the Sangraha slice (EXP-036 approved and built; PC night pending)",
       "evidence": [
+        "EXP-036",
         "EXP-035",
         "EXP-034",
         "D-044"
       ],
       "evidence_files": [
+        "src/frontier_ai/corpus/slice_build.py",
+        "scripts/build_sangraha_v2.py",
         "evals/results/EXP-035/SUMMARY.txt",
-        "evals/results/EXP-034/SUMMARY.txt",
         "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "EXP-035 complete (results commit 1be3c48): samples read and counted, nothing removed. Findings: long docs are the best text, about 8.4% of the Urdu file is Persian, code-mixed rejects are mostly native text plus English lines, digit_runs/url_density hit good text. EXP-036 (v2 build, 10 rules with reasons) is proposed and needs founder approval before any build code"
+      "note": "EXP-036 approved (founder, 2026-09-29) and built: the 10 rules from EXP-035, each removal with its reason, provenance per document, exact token count with the frozen tokenizer, suite check on the exact output text (must be 0). Sandbox: 20 new tests pass. PC night pending: scripts/run_build_night.ps1; runtime NOT VERIFIED (estimate 3-6 h). The corpus stays on the PC; only manifest, counts and masked samples are committed"
     }
   ],
   "baseline_model": {

@@ -495,6 +495,18 @@ comes next. They also update the table in §3.
     the final report line now uses `-Exp` (it said "EXP-034 done"). **Next: EXP-036 (v2
     build, 10 rules in the table at the end of EXP-035) is PROPOSED — founder must type
     "approve EXP-036" before any build code.**
+  - **EXP-036 approved (founder: "approve EXP-036", 2026-09-29) and built; PC night pending.**
+    The v2 build with the 10 rules from the EXP-035 table: `scripts/build_sangraha_v2.py`
+    (`corpus/slice_build.py`); every removed document/line has a reason; provenance per
+    document (`<source_id>#<row>`); exact token count with the frozen tokenizer; suite check on
+    the exact output text (must be 0); near-duplicates last among survivors. Corpus →
+    `data\frontier_v2\sangraha-slice1-v2\` on the PC (git-ignored, resumable per file).
+    PC line: `git pull --ff-only origin arena/01a0dc16-frontier-ai; powershell -ExecutionPolicy
+    Bypass -File scripts\run_build_night.ps1` (wrapper for `run_data_night.ps1 -Exp EXP-036
+    -Task build`). Results: `evals/results/EXP-036/` (`summary.json`, `SUMMARY.txt`,
+    `manifest.json`, `samples.jsonl`). Runtime NOT VERIFIED (estimate 3–6 h). **Next: read the
+    per-rule costs, REVIEW lines and samples; report to the founder, who decides whether v2 is
+    accepted.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "94da697c3cddc516829f9a2f743af3ddb8855b3c632e1213d83db182e6f16160",
+  "source_digest": "4496fe1ec6254a5a642a0a393d6c96b2dce8e957594450b6484cc9991365959f",
   "sources": {
-    "EXPERIMENTS.md": "8fea7e5981497fe20d96e1e5db45d09eb6e45730df4c4817a468ed2eded2a8a8",
+    "EXPERIMENTS.md": "e91831cffcfddde5d4026988c6efb33f1b51f472ad28d589b1e2fc702891acff",
     "DECISIONS.md": "09bd64fc4c4029b1bdf15366c78ca2d92b04948f0afc6580553e1bedbeeb7ec7",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "7bd6d43a0e4439e421a4a6781d0f33d72fc8f6a9aba2e9a5723e6529ac8ff989",
+    "lab/registry.json": "cb6f1765d67c062d7e652451da5102692278422dffdb23d4a71110b3f6b2c98b",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -313,18 +313,20 @@
   ],
   "current_work": [
     {
-      "title": "Data scale-up phase 1: FrontierCorpus v2 build rules for the Sangraha slice (EXP-035 done; EXP-036 proposed)",
+      "title": "Data scale-up phase 1: FrontierCorpus v2 build on the Sangraha slice (EXP-036 approved and built; PC night pending)",
       "evidence": [
+        "EXP-036",
         "EXP-035",
         "EXP-034",
         "D-044"
       ],
       "evidence_files": [
+        "src/frontier_ai/corpus/slice_build.py",
+        "scripts/build_sangraha_v2.py",
         "evals/results/EXP-035/SUMMARY.txt",
-        "evals/results/EXP-034/SUMMARY.txt",
         "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "EXP-035 complete (results commit 1be3c48): samples read and counted, nothing removed. Findings: long docs are the best text, about 8.4% of the Urdu file is Persian, code-mixed rejects are mostly native text plus English lines, digit_runs/url_density hit good text. EXP-036 (v2 build, 10 rules with reasons) is proposed and needs founder approval before any build code"
+      "note": "EXP-036 approved (founder, 2026-09-29) and built: the 10 rules from EXP-035, each removal with its reason, provenance per document, exact token count with the frozen tokenizer, suite check on the exact output text (must be 0). Sandbox: 20 new tests pass. PC night pending: scripts/run_build_night.ps1; runtime NOT VERIFIED (estimate 3-6 h). The corpus stays on the PC; only manifest, counts and masked samples are committed"
     }
   ],
   "experiments": [
@@ -670,6 +672,20 @@
       ],
       "line": 2164,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2164"
+    },
+    {
+      "id": "EXP-036",
+      "title": "FrontierCorpus v2 build on the Sangraha slice with the 10 approved rules (D-044; data scale-up phase 1)",
+      "date": "2026-09-29",
+      "status": "pre-registered; code built and tested (sandbox); PC night run pending (founder: \"approve EXP-036\", 2026-09-29)",
+      "category": "planned",
+      "step": null,
+      "summary": "a model can only be as good as the text it learns from. EXP-034 measured the 13 files and EXP-035 read samples of everything each rule would remove. This experiment applies the resulting rules and produces the first cleaned, provenance- tracked, suite-protected Indian-language corpus of this project with an exact …",
+      "decisions": [
+        "D-036"
+      ],
+      "line": 2371,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2371"
     }
   ],
   "experiment_numbers_not_in_log": [
