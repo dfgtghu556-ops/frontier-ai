@@ -38,7 +38,7 @@ and recorded honestly; see [ROADMAP.md](ROADMAP.md) for the 24-step plan.
 | FrontierCorpus v1 pipeline (pilot build) | done | D-036, D-037, EXP-027 |
 | Production tokenizer: **Frontier Tokenizer v1** (mark-aware BPE, 32,768 tokens), frozen | done | D-040, D-041, EXP-028–030 |
 | Evaluation harness v1 + protected held-out suite `frontier-heldout-v1` | done | D-042, EXP-031 |
-| Step 9 — architecture ablations (CPU screening) | done | EXP-032, EXP-033; D-043 proposed |
+| Step 9 — architecture ablations (CPU screening) | done | EXP-032, EXP-033; D-043 |
 | **Step 10 — first GPU training (bring-up)** | **next**, awaiting founder approval | — |
 
 Every model so far is a small CPU research model (~5M parameters); **no GPU training has
@@ -57,7 +57,7 @@ Read these first if you are joining the project (human or AI agent):
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
 | [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
 | [GPU_COLLABORATOR_START_HERE.md](GPU_COLLABORATOR_START_HERE.md) | setting up a GPU machine for the project, working rules, readiness report |
-| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-042; D-043 proposed) and open questions |
+| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-043) and open questions |
 | [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log |
 | [docs/tokenization.md](docs/tokenization.md) | tokenizer research: why it matters, metrics, Indic/Unicode notes, workflow |
 | [docs/tokenizer_corpus_stage_a.md](docs/tokenizer_corpus_stage_a.md) | Project 004 Stage A: the tokenizer research corpus (manifest, licensing, split, leakage) |

@@ -2001,3 +2001,7 @@ from the committed JSON.
     about large-model architecture. It only says what did *not* earn a change here.
 * **Status:** complete. **D-043 is proposed, pending founder review.** It is recorded in
   DECISIONS.md after approval, as with D-040.
+
+* **Update (2026-09-29):** the founder approved D-043 ("approve D-043 and data plan"). It is
+  recorded in DECISIONS.md as accepted, and step 9 is complete. The EXP-033 record above is
+  unchanged.

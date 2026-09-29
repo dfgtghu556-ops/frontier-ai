@@ -80,6 +80,20 @@
 
   The current training data (about 1.8M tokens) is small, so growing the corpus remains on
   the critical path.
+- **Update (2026-09-29):** the founder approved **D-043** ("approve D-043 and data plan"),
+  so **step 9 is complete**: the EXP-B baseline is the provisional architecture for GPU
+  bring-up, and RoPE + GQA-2 is the first step-11 candidate. Step 10 still waits for the
+  GPU collaborator and a founder-approved plan.
+
+  While it waits, the founder approved **data scale-up phase 1** (Stage 3 scale-up, no GPU):
+  1. a source survey with license evidence for every candidate
+     (`docs/frontier_corpus_v2_sources.md`);
+  2. a data-rights policy for the founder to decide (proposed D-044);
+  3. making the corpus pipeline ready for far more data (streaming, near-duplicate removal,
+     decontamination against the protected suite at scale).
+
+  No large download happens before the founder decides D-044. The corpus stays
+  FrontierCorpus v1 until a v2 build is recorded as an experiment.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

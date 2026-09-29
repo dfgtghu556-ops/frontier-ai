@@ -1383,6 +1383,55 @@ code-mixed source become available.
 
 ---
 
+## D-043 — The EXP-B baseline stays the provisional architecture for GPU bring-up; RoPE + GQA-2 is the first step-11 candidate
+**Date:** 2026-09-29 · **Status:** accepted (founder approved 2026-09-29: "approve D-043 and data plan"; evidence EXP-032, EXP-033)
+
+**Decision:**
+1. The **provisional architecture** for the first GPU training runs (MASTER_CONTEXT §37
+   step 10, bring-up) is the **EXP-B baseline** (`configs/exp_b.json` `model` block):
+   learned absolute positions, 4 query / 4 key-value heads (no grouping), SwiGLU
+   (ffn_mult 4), RMSNorm, tied input/output embeddings. Only the *shape* (layers, width,
+   heads, context) changes at GPU scale; the component choices above do not.
+2. **RoPE + GQA-2** (rotary positions, 2 key-value heads) is recorded as the **first
+   architecture question for the GPU-scale ablation** (step 11). It is not adopted now.
+3. **GELU and LayerNorm are dropped** as candidates (EXP-033: GELU − SwiGLU changed sign
+   between learning rates; EXP-032: LayerNorm showed no detectable difference). SwiGLU and
+   RMSNorm stay.
+4. The **learning rate is re-swept at GPU scale** (step 10/11). The toy-scale optimum
+   (about 6e-3–1e-2) is not carried over.
+
+**Rationale:** the adoption rule was pre-registered before EXP-033 had results: a change is
+adopted only if it is BETTER at both learning rates. RoPE + GQA-2 was BETTER at lr 1e-2
+(−0.066 bpb) but NO DETECTABLE DIFFERENCE at lr 6e-3 (−0.049 bpb; one unusually good
+baseline seed overlapped). Honouring that rule after seeing the results is the point of
+pre-registration, so nothing is adopted. RoPE + GQA-2 had a lower mean bpb than the
+baseline in every comparison so far and was better in all 13 languages each time, which is
+why it is first in line for re-testing at a scale where the evidence can be decisive.
+
+**Alternatives rejected:** (a) adopt RoPE + GQA-2 now on the strength of the mean
+improvement — rejected, it would override a pre-registered rule; (b) adopt GELU from
+EXP-032 — rejected, it did not replicate (learning-rate artefact) and contradicts the
+literature (Narang et al., 2021; Shazeer, 2020); (c) run more CPU seeds first —
+rejected, toy-scale seed noise (std 0.008–0.067 bpb) dominates and the answer that matters
+is the GPU-scale one.
+
+**Consequences accepted:**
+- `configs/gpu_1x.json` (a Stage-1 single-GPU smoke config written before step 9) uses
+  `pos: rope` and `n_kv_head: 4`, which is **not** the D-043 architecture. It is left
+  unchanged as a historical file; the step-10 plan must use a config that follows D-043
+  (learned positions, 4 KV heads) or state explicitly why it deviates.
+- Step 9 says nothing about large-model architecture (toy scale: a transformer body of
+  about 1M parameters, 150 steps, 3 seeds, in-distribution suite). It only records what did
+  *not* earn a change at this scale.
+- Architecture items not tested in step 9 (MoE, MLA, multi-token prediction, long context,
+  depth vs width, untied embeddings, qk-norm / z-loss) stay deferred to step 11 or later.
+
+**Revisit when:** the step-11 GPU-scale ablation reports on RoPE + GQA-2 (expected to
+supersede this record with a new decision), or step-10 bring-up shows training instability
+with learned positions.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 
