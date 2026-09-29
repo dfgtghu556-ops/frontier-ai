@@ -65,6 +65,7 @@ Read these first if you are joining the project (human or AI agent):
 | [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md) | how a new AI chat catches up with the latest branch |
 | [docs/experiments.md](docs/experiments.md) | Project 003: experiment records, seeding and documented limits, git/data/env provenance, the runner |
 | [docs/frontier_corpus_v1.md](docs/frontier_corpus_v1.md) | FrontierCorpus v1: the reproducible, versioned training-data pipeline |
+| [docs/frontier_corpus_v2_sources.md](docs/frontier_corpus_v2_sources.md) | data scale-up phase 1: source survey with license evidence, India legal context, data-rights options (D-044 proposed) |
 | [evals/](evals/) | evaluation harness v1 suite definition and published results (`evals/results/EXP-0xx/`) |
 
 The rest of this README is the technical quickstart.

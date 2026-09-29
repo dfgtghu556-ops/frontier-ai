@@ -421,6 +421,22 @@ comes next. They also update the table in §3.
 
   **Next:** the friend's `REPORT.txt`, then a step-10 plan written for that GPU (founder
   approval), then a data zip plus a hash-verification command.
+* **2026-09-29, Arena agent (D-043 accepted; data scale-up phase 1 started):** the founder
+  wrote "approve D-043 and data plan".
+  - D-043 is recorded in DECISIONS.md as accepted, so step 9 is complete (commit `97ad349`).
+    ROADMAP has a 2026-09-29 update.
+  - New `docs/frontier_corpus_v2_sources.md`: a source survey with license evidence
+    (Wikipedia/Wikisource CC BY-SA 4.0 + GFDL, IndicCorp v2 CC0 per card, Sangraha
+    cc-by-4.0 tag, FineWeb-2 ODC-By + Common Crawl terms, HPLT license NOT VERIFIED),
+    per-language Indic Wikipedia sizes (≈552M words, not tokens), the India legal context
+    (DPIIT working paper Dec 2025; ANI v. OpenAI interim ruling 24 Jul 2026), the
+    protected-suite rule for new sources, the pipeline gaps, and **D-044 options**
+    (1 open only / 2 open + curated collections, recommended / 3 everything).
+  - Nothing has been downloaded.
+
+  **Next:** the founder chooses a D-044 option. Then: the streaming interface, MinHash
+  near-dup, and the inverted suite-contamination check in the sandbox (tests); then a PC
+  overnight run for the level-A v2-pilot.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
