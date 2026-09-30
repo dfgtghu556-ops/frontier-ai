@@ -566,6 +566,15 @@ comes next. They also update the table in §3.
   - **Founder verified his Kaggle phone (2026-09-30)** and asked how GPUs work. He was given a
     5-minute read-only GPU check (new notebook → GPU T4 → `!nvidia-smi`, then stop the session);
     not a project run. EXP-038 still needs "approve EXP-038" before any code.
+  - **EXP-038 approved ("approve EXP-038", 2026-09-30) and implemented.** Trainer fix: resume now
+    restores the batch generator and fp16 scaler (`trainer_state.pt`), so a resumed run draws the
+    same batches (the new test failed before the fix). Built `scripts/gpu_bringup.py` (Parts 0–3,
+    `--smoke` on CPU), `scripts/kaggle/exp038_kernel.py` and `scripts/run_kaggle_exp038.ps1`
+    (one typed line: hidden one-time Kaggle token prompt stored in the Windows user env, private
+    dataset with `hi.bin`, private one-T4 kernel at the pinned pushed commit, waits, commits only
+    `evals/results/EXP-038/`). **No GPU result yet. Next: the founder creates a Kaggle API token
+    (Kaggle → Settings → API; never pasted into chat) and runs the line; then I record EXP-038
+    from the committed results.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

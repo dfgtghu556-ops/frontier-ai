@@ -2822,3 +2822,20 @@ The Kaggle API details (token type, how a T4 is requested) come from its documen
 same script, later), any spending.
 
 **Status:** proposed — founder approval needed before any code.
+
+**Approved (2026-09-30, founder: "approve EXP-038") and implemented (no GPU result yet):**
+- Trainer fix found while building Part 1.3: a resumed run did NOT draw the same batches as an
+  uninterrupted run (the batch generator state and the fp16 scaler state were not saved). Each
+  checkpoint now also stores `trainer_state.pt`; older checkpoints still load. The new test
+  failed on the old trainer and passes now. fp16 scaler-skipped steps are counted and saved.
+- `scripts/gpu_bringup.py` (Parts 0–3); `--smoke` runs every part on a CPU in about a minute
+  (`tests/test_gpu_bringup.py`). Correctness runs 1.1 and 1.3 use the deterministic math
+  attention kernel; the timings in Part 2 use the normal kernels. MFU uses
+  6·N + 12·layers·width·context FLOPs per token (N without the position table) against the T4
+  data-sheet peaks (65 fp16 / 8.1 fp32 TFLOP/s). Part 3 uses compile only if Part 1.4 passed.
+- `scripts/run_kaggle_exp038.ps1` + `scripts/kaggle/exp038_kernel.py` (static tests in
+  `tests/test_kaggle_exp038.py`; the PowerShell runner could not be executed in the sandbox).
+- Kaggle API behaviour (token, `machine_shape`, status texts) remains **NOT VERIFIED** until the
+  first run on the founder's account.
+
+**Status:** approved — code ready; waiting for the founder to launch the Kaggle run.
