@@ -2955,3 +2955,23 @@ differences for Parts A and B, plus the environment record).
 collaborator's GPU, multi-GPU work, any spending.
 
 **Status:** proposed — founder approval needed before any code.
+
+**Approved (2026-10-01, founder: "approve EXP-039") and built (no GPU result yet):**
+- `scripts/gpu_bringup.py --part cpu-gpu-diagnostic` runs Part 0 (environment, data sha256,
+  tests) and then Parts A and B exactly as pre-registered: the same model S setup as EXP-038
+  check 1 (seed, batches, schedule, 50 steps, math attention, deterministic mode).
+- **Two things found while building it, both fixed before any run:**
+  1. The training log rounds losses to 5 decimals, which would have hidden any float64
+     difference below 1e-5 (Part A would have passed automatically). The diagnostic therefore
+     reads the **exact** loss of every training step from the model output through a forward
+     hook. EXP-038's check 1 was unaffected (its tolerance, 1e-3, is far above 1e-5).
+  2. The model computed RMSNorm and the loss in float32 even when the model itself was float64,
+     which would have left float32 rounding inside Part A. Both now keep float64 when the model
+     is float64; fp16, bf16 and fp32 behave exactly as before (new tests).
+- `scripts/run_kaggle_exp039.ps1` (the EXP-038 runner with `-Exp EXP-039`; same private
+  dataset, no new upload) with a push retry: if the push is rejected, it runs
+  `git pull --rebase` once and pushes again.
+- On a CPU (smoke test) float64 really runs end to end: its losses differ from float32 by
+  about 1e-6, and without a GPU the verdict is recorded as n/a, never PASS.
+
+**Status:** approved — code ready; waiting for the founder to launch the Kaggle run.

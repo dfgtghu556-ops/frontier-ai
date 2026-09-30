@@ -584,6 +584,13 @@ comes next. They also update the table in §3.
     `git pull --rebase` and pushed. **EXP-039 proposed** (float64 CPU vs GPU, ≤ 1e-8, plus a
     runner push fix). **Next: the founder types "approve EXP-039"; no code before that.** The
     friend's GPU (RTX 3050, 4 GB) awaits his `REPORT.txt`.
+  - **EXP-039 approved ("approve EXP-039", 2026-10-01) and built.** `gpu_bringup.py --part
+    cpu-gpu-diagnostic` (exact per-step losses via a forward hook, because the log keeps 5
+    decimals; float64 Part A ≤ 1e-8, float32 Part B numbers only). The model now keeps float64 in
+    RMSNorm and the loss when it is float64 (other precisions unchanged). Runner:
+    `scripts/run_kaggle_exp039.ps1` (same dataset, remembered username, push retry with
+    `pull --rebase`). **Next: the founder runs `git pull` then that line; then I record EXP-039
+    and, if Part A passes, propose D-047 to close step 10.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

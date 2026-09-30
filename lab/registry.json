@@ -125,7 +125,7 @@
         "scripts/gpu_bringup.py",
         "scripts/run_kaggle_exp038.ps1"
       ],
-      "note": "EXP-038 ran on a Kaggle T4: 3 of 4 correctness checks pass, CPU = GPU failed narrowly; EXP-039 proposed"
+      "note": "EXP-038 ran on a Kaggle T4: 3 of 4 correctness checks pass, CPU = GPU failed narrowly; EXP-039 approved and built, launch pending"
     },
     {
       "step": 11,
@@ -242,7 +242,7 @@
   ],
   "current_work": [
     {
-      "title": "EXP-038 complete (first GPU training, one Kaggle T4); CPU = GPU check failed narrowly; EXP-039 proposed, needs \"approve EXP-039\"",
+      "title": "EXP-039 approved and built (float64 CPU vs GPU check); waiting for the founder to launch it on Kaggle",
       "evidence": [
         "EXP-038",
         "EXP-039",
@@ -250,11 +250,12 @@
       ],
       "evidence_files": [
         "evals/results/EXP-038/summary.json",
-        "evals/results/EXP-038/SUMMARY.txt",
-        "evals/results/EXP-038/samples.jsonl",
+        "scripts/gpu_bringup.py",
+        "scripts/run_kaggle_exp039.ps1",
+        "scripts/kaggle/exp039_kernel.py",
         "docs/compute_options_and_costs.md"
       ],
-      "note": "EXP-038 ran on one Kaggle T4 in 74.1 min (commit 57a53ef, results 740fc16). Correctness: fp16 vs fp32 PASS (1.35%), resume PASS (identical), compile PASS (0.98%), CPU = GPU FAIL (1.81e-3 > 1e-3 tolerance). Speed, fp16 + compile: 69,127 tokens/s at 32 M params (22% MFU), 17,870 at 139 M (26% MFU). First real-data run: 32 M model, 168 M Hindi tokens in 48.6 min, validation 10.590 -> 1.923 nats/token (0.586 bits per byte, not comparable to earlier models); samples fluent-looking but factually wrong, no quality claim. EXP-039 (float64 CPU vs GPU, pass <= 1e-8) is proposed to settle the failed check before step 11; step 10 closes only after it."
+      "note": "EXP-038 ran on one Kaggle T4 in 74.1 min (commit 57a53ef, results 740fc16). Correctness: fp16 vs fp32 PASS (1.35%), resume PASS (identical), compile PASS (0.98%), CPU = GPU FAIL (1.81e-3 > 1e-3 tolerance). Speed, fp16 + compile: 69,127 tokens/s at 32 M params (22% MFU), 17,870 at 139 M (26% MFU). First real-data run: 32 M model, 168 M Hindi tokens in 48.6 min, validation 10.590 -> 1.923 nats/token (0.586 bits per byte, not comparable to earlier models); samples fluent-looking but factually wrong, no quality claim. EXP-039 (float64 CPU vs GPU, pass <= 1e-8) was approved 2026-10-01 and built (exact per-step losses via a forward hook; norms and loss now stay float64 in a float64 model); the founder launches it with scripts/run_kaggle_exp039.ps1. Step 10 closes only after it."
     }
   ],
   "baseline_model": {
