@@ -220,3 +220,46 @@ def test_precision_settings_do_not_crash(tmp_path, precision):
     cfg.model.vocab_size = meta.vocab_size
     result = Trainer(cfg, ds).fit()
     assert result["steps"] == 3
+
+
+def _step_losses(out_dir):
+    import json
+
+    records = [json.loads(line) for line in (out_dir / "train.jsonl").read_text().splitlines()]
+    return {r["step"]: r["loss"] for r in records if r["event"] == "train"}
+
+
+def test_resume_draws_the_same_batches_as_an_uninterrupted_run(tmp_path):
+    """EXP-038: the data generator is checkpointed, so resume reproduces the straight run exactly."""
+    import copy
+
+    ds, tok, meta = make_dataset(tmp_path, chars=8_000)
+    common = dict(max_steps=20, eval_interval=5, eval_iters=2, log_interval=1, deterministic=True)
+    straight = make_cfg(tmp_path, out_dir=str(tmp_path / "straight"), **common)
+    straight.model.vocab_size = meta.vocab_size
+    Trainer(straight, ds).fit()
+
+    first = make_cfg(tmp_path, out_dir=str(tmp_path / "resumed"), save_interval=10, **common)
+    first.model.vocab_size = meta.vocab_size
+    # 10 steps of the same 20-step schedule, then a fresh Trainer resumes from step-10
+    half = copy.deepcopy(first)
+    half.train.max_steps = 10
+    trainer_half = Trainer(half, ds)
+    trainer_half.scheduler.max_steps = 20
+    trainer_half.fit()
+    resumed_cfg = copy.deepcopy(first)
+    resumed_cfg.train.init_from = "resume"
+    resumed = Trainer(resumed_cfg, ds)
+    assert resumed.state.step == 10
+    resumed.fit()
+
+    a, b = _step_losses(tmp_path / "straight"), _step_losses(tmp_path / "resumed")
+    assert [a[s] for s in range(11, 21)] == [b[s] for s in range(11, 21)]
+
+
+def test_trainer_counts_no_skipped_steps_without_fp16(tmp_path):
+    ds, tok, meta = make_dataset(tmp_path, chars=6_000)
+    cfg = make_cfg(tmp_path, max_steps=3, eval_interval=0)
+    cfg.model.vocab_size = meta.vocab_size
+    result = Trainer(cfg, ds).fit()
+    assert result["skipped_steps"] == 0

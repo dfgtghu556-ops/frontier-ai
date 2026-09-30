@@ -6,7 +6,9 @@ CPU smoke test and a multi-hour CUDA run. Key mechanics:
 * gradient accumulation (`accum_steps`) -> effective batch = batch_size * accum_steps
 * mixed precision via `torch.autocast` (bf16/fp16 on CUDA, fp32 elsewhere)
 * cosine LR with linear warmup, grad-norm clipping
-* periodic + best-checkpoint saving, resume from any checkpoint directory
+* periodic + best-checkpoint saving, resume from any checkpoint directory. A checkpoint also
+  stores the batch-sampling generator and the fp16 GradScaler (``trainer_state.pt``), so a
+  resumed run draws exactly the batches the uninterrupted run would have drawn (EXP-038).
 """
 
 from __future__ import annotations
@@ -36,7 +38,11 @@ class TrainState:
     step: int = 0
     best_val: float = float("inf")
     tokens_seen: int = 0
+    skipped_steps: int = 0  # optimizer steps skipped by the fp16 GradScaler (inf/NaN gradients)
     history: list = field(default_factory=list)
+
+
+TRAINER_STATE = "trainer_state.pt"
 
 
 class Trainer:
@@ -90,10 +96,17 @@ class Trainer:
         if meta.get("best_val") is not None:
             self.state.best_val = float(meta["best_val"])
         self.state.tokens_seen = int(meta.get("tokens_seen", 0))
+        self.state.skipped_steps = int(meta.get("skipped_steps", 0))
+        extra_state = path / TRAINER_STATE
+        if extra_state.exists():  # checkpoints written before EXP-038 do not have it
+            blob = ckpt._torch_load(extra_state, "cpu")  # noqa: SLF001 - same package
+            self._gen.set_state(blob["data_generator"])
+            if blob.get("scaler"):
+                self.scaler.load_state_dict(blob["scaler"])
         print(f"[resume] loaded {path} at step {self.state.step} (best_val={self.state.best_val:.4f})")
 
     def save(self, tag: str, extra: dict | None = None) -> Path:
-        return ckpt.save_checkpoint(
+        path = ckpt.save_checkpoint(
             self.out_dir,
             self.model,
             self.optimizer,
@@ -101,9 +114,18 @@ class Trainer:
             self.cfg,
             step=self.state.step,
             best_val=self.state.best_val,
-            extra={"tokens_seen": self.state.tokens_seen, **(extra or {})},
+            extra={
+                "tokens_seen": self.state.tokens_seen,
+                "skipped_steps": self.state.skipped_steps,
+                **(extra or {}),
+            },
             tag=tag,
         )
+        torch.save(
+            {"data_generator": self._gen.get_state(), "scaler": self.scaler.state_dict()},
+            path / TRAINER_STATE,
+        )
+        return path
 
     # --------------------------------------------------------------- train --
     def fit(self) -> dict[str, float]:
@@ -165,8 +187,11 @@ class Trainer:
             else:
                 grad_norm = float("nan")
 
+            scale_before = self.scaler.get_scale() if self.scaler.is_enabled() else None
             self.scaler.step(self.optimizer)
             self.scaler.update()
+            if scale_before is not None and self.scaler.get_scale() < scale_before:
+                self.state.skipped_steps += 1  # the scaler lowers its scale exactly when it skips
             self.scheduler.step()
 
             self.state.tokens_seen += tokens_per_micro * accum
@@ -225,8 +250,14 @@ class Trainer:
             minutes=round(total_min, 2),
             mean_tps=round(mean_tps, 1),
             throughput=fmt_tokens_per_sec(mean_tps),
+            skipped_steps=self.state.skipped_steps,
         )
-        return {"best_val": self.state.best_val, "steps": self.state.step, "best_bpb": best_bpb}
+        return {
+            "best_val": self.state.best_val,
+            "steps": self.state.step,
+            "best_bpb": best_bpb,
+            "skipped_steps": self.state.skipped_steps,
+        }
 
     # ------------------------------------------------------------ reporting --
     def loss_report(self, nats: float, split: str = "val") -> dict[str, float | None]:
