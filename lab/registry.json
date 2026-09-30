@@ -238,7 +238,7 @@
   ],
   "current_work": [
     {
-      "title": "Data scale-up phase 1: FrontierCorpus v2 build on the Sangraha slice (EXP-036 approved and built; PC night pending)",
+      "title": "Data scale-up phase 1: FrontierCorpus v2-slice1 built (EXP-036 complete); acceptance awaits the founder (proposed D-045)",
       "evidence": [
         "EXP-036",
         "EXP-035",
@@ -246,12 +246,12 @@
         "D-044"
       ],
       "evidence_files": [
+        "evals/results/EXP-036/SUMMARY.txt",
+        "evals/results/EXP-036/manifest.json",
         "src/frontier_ai/corpus/slice_build.py",
-        "scripts/build_sangraha_v2.py",
-        "evals/results/EXP-035/SUMMARY.txt",
         "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "EXP-036 approved (founder, 2026-09-29) and built: the 10 rules from EXP-035, each removal with its reason, provenance per document, exact token count with the frozen tokenizer, suite check on the exact output text (must be 0). Sandbox: 20 new tests pass. PC night pending: scripts/run_build_night.ps1; runtime NOT VERIFIED (estimate 3-6 h). The corpus stays on the PC; only manifest, counts and masked samples are committed"
+      "note": "EXP-036 PC night 2026-09-29/30 (3 h 43 min, results commit 47eae55): 13/13 files built, suite CHECKED with 0 hits in the output, 2,298,196 of 2,332,236 docs kept (96.54% of characters), exact token count 2,796,048,213 for this slice only (frozen tokenizer). One REVIEW line (Assamese empty_after_cleaning 6.50%) is a label shift: non-Indian Latin-script Bible texts removed by the foreign-line rule before the script gate. Founder decides acceptance (proposed D-045); no training on v2 without a separate approved plan"
     }
   ],
   "baseline_model": {

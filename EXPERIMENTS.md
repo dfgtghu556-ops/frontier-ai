@@ -2464,3 +2464,122 @@ vs 2 worker processes give byte-identical files. Runner: `-Task build` added to
 text. EXP-035 took 2 h 36 min on the laptop, so one worker would need about 5 h; with two workers
 the estimate is **about 3–6 h**. Output size is expected to be at most about the input size
 (5.1 GB); the script stops before starting if less than 1.5 × the input size + 2 GB is free.
+
+**Results (PC night run 2026-09-29/30, results commit `47eae55`; analysis 2026-09-30):**
+`evals/results/EXP-036/` (`summary.json`, `SUMMARY.txt`, `manifest.json`, `samples.jsonl` with 471
+masked excerpts). Founder's laptop (Windows 10, Python 3.13, 2 workers), 22:34 → 02:16
+(**3 h 43 min**, inside the 3–6 h estimate). Config fingerprint `43ce349329a98770`, code
+`24941a071255c303`, frozen tokenizer `b39afa08fa86b0d1`.
+
+Pre-registered completeness checks:
+
+| check | result |
+|---|---|
+| all 13 files built, row counts match the pins | yes (`complete: true`, `max_docs_per_file: null`) |
+| suite check | CHECKED against frontier-heldout-v1 (3,427 docs, shard verified against SUITE.json) |
+| suite hits in the written output | **0** (all 13 files) |
+| suite removals before cleaning | 13-gram 20 docs, 3–12-word passage 36 docs, exact 0; created by line removal 0 |
+| samples | 471, every one screened against the suite on its full text |
+| REVIEW lines | 1: Assamese `empty_after_cleaning` 6.50% > 2% (explained below) |
+
+Kept per language (exact token counts with the frozen tokenizer, **this slice only**):
+
+| lang | input docs | kept docs | kept chars (share of input) | exact tokens | chars/token |
+|---|---:|---:|---:|---:|---:|
+| as | 110,238 | 104,386 | 292,524,670 (91.74%) | 155,735,335 | 1.88 |
+| bn | 149,797 | 149,458 | 377,600,908 (98.61%) | 201,968,766 | 1.87 |
+| en | 349,525 | 348,394 | 920,291,150 (98.25%) | 478,709,767 | 1.92 |
+| gu | 149,797 | 149,466 | 357,391,570 (98.71%) | 201,772,881 | 1.77 |
+| hi | 174,763 | 171,199 | 366,875,458 (94.69%) | 196,987,821 | 1.86 |
+| kn | 174,762 | 173,555 | 346,614,900 (96.25%) | 166,057,000 | 2.09 |
+| ml | 174,763 | 173,825 | 313,551,713 (94.75%) | 140,843,642 | 2.23 |
+| mr | 174,763 | 174,485 | 372,982,531 (98.27%) | 181,004,073 | 2.06 |
+| or | 189,757 | 188,737 | 352,233,374 (98.16%) | 188,496,005 | 1.87 |
+| pa | 149,797 | 149,398 | 358,396,617 (98.79%) | 203,960,544 | 1.76 |
+| ta | 149,796 | 149,525 | 367,312,056 (97.93%) | 161,146,485 | 2.28 |
+| te | 174,762 | 174,147 | 347,777,028 (97.70%) | 196,080,611 | 1.77 |
+| ur | 209,716 | 191,621 | 519,533,986 (90.94%) | 323,285,283 | 1.61 |
+| **all** | **2,332,236** | **2,298,196 (98.54%)** | **5,293,085,961 (96.54%)** | **2,796,048,213** | 1.89 |
+
+Compressed output: 2.91 GB (13 `.jsonl.gz` files, sha256 in `manifest.json`; the text stays on
+the PC). **FrontierCorpus v2-slice1 = 2,796,048,213 tokens (≈ 2.80 B), exact.** This is the
+first real token count of v2; it applies to the 13 `data-0` files only, not to Sangraha. For
+scale: FrontierCorpus v1 training data is about 1.8 M tokens. Cross-check: EXP-034 *estimated*
+about 2,914 M tokens for the uncleaned slice; 2,914 M × 96.54% (kept characters) ≈ 2,813 M, within
+about 0.6% of the exact count, so the EXP-034 estimation method is confirmed for planning.
+
+**The REVIEW line (Assamese `empty_after_cleaning`, 5,171 docs, 6.50% of characters).** All 4
+sampled documents are Latin-script texts in non-Indian languages (Bible translations such as a
+Mayan, a Guarani and two Papuan-like languages). These are the ~5,182 Assamese-file documents
+whose main script was not Bengali in EXP-034 (and the first row seen through the datasets
+server). Because the foreign-line rule (step 6) runs before the script gate (step 8), every line
+of these documents was removed as foreign and the empty remainder was counted under
+`empty_after_cleaning` instead of `script_share`. The documents are correctly removed; only the
+label differs from the one the 2% bound was written for. Assamese removals by the two labels
+together: 5,495 docs, versus 6,003 docs under the old document-level gate in EXP-035. **Verdict:
+expected, no rule change needed.** Future bounds should count `empty_after_cleaning` together with
+`script_share` (noted for a later experiment; the pre-registered bound is not changed here).
+
+**What each rule removed, read against its samples** (removed share of the file's characters):
+
+- **Foreign lines** (as 7.02%, kn 1.80%, all others ≤ 0.93%): 104 samples. Mostly site furniture
+  in English ("Click to share on Twitter", "Follow Us On:"), Malagasy/Uzbek factory spam, and
+  lines of other languages. **Known loss (small):** some good lines in another script are cut
+  out of otherwise kept documents: Sanskrit verses (Devanagari) in Gujarati and Tamil religious
+  books, English translation paragraphs in Bengali, Hindi lines in English parliamentary
+  debates, Arabic Qur'an/hadith quotations in Bengali/Odia/Urdu books.
+- **Script share < 0.6 after cleaning** (0.07–0.32% per language; 52 samples): medicine
+  template pages ("X in Assamese ৰ ব্যৱহাৰ..."), spam, heavy code-mixing. Loss: some bilingual
+  dictionaries (Odia–English) and English-learning books (Gujarati).
+- **Line cleaning rescued documents.** Compared with the EXP-035 document-level gate (script
+  share < 0.6: 24,232 docs), the build removed 3,583 docs by script share plus 7,622 as empty
+  after cleaning. Roughly **13,000 documents that the old gate would have thrown away are now
+  kept without their foreign lines** (approximate: EXP-035 measured the first 5,000 characters,
+  the build measures the whole cleaned text).
+- **Empty after cleaning, other languages** (kn 1.14%, or, ml, ur, te smaller): mostly non-Indian
+  Latin-script Bible text and spam. Loss: whole documents in the wrong file (Hindi news in the
+  English file, a Bengali hadith PDF in the Malayalam file, an English "Mann Ki Baat" transcript
+  in the Marathi file) and romanised Hindi/Tamil/Urdu.
+- **Exact duplicates:** hi 3,019 docs (3.64%, below the 5% bound): copies of one RTI disclosure
+  page (4/4 samples); en 90 (JavaScript notices). **Near-duplicates** (last step, among survivors):
+  en 791 (0.16%), as 334 (0.12%), hi 54, kn 70, ≤ 35 elsewhere. The Assamese number is higher
+  than EXP-035's within-file count (8) on raw text; the samples are news articles, consistent with
+  the same story republished by different sites becoming alike once their boilerplate lines
+  (e.g. "- First Published :" × 7,920) were removed. NOT VERIFIED pair by pair (only the removed
+  side is sampled).
+- **Urdu check:** Persian-like 17,337 docs (8.43%, EXP-035 predicted ≈ 17,332); 4/4 samples are
+  Persian (Iranian news, a Persian diwan). Uyghur-like 209 docs (0.10%): 4/4 are Uyghur or
+  Sorani Kurdish, not Urdu. Pashto-/Sindhi-like 53 kept (measured only).
+- **Wiki markup** (≤ 0.05% everywhere): mostly wiki edit histories and template source. Small
+  loss: a few encyclopedia-style articles and OCR'd PDFs where stray braces counted as markup.
+- **Repetition** (ml 494 docs, 1.46%, as EXP-035 predicted; ≤ 8 elsewhere): Malayalam news pages
+  that repeat their own text; elsewhere tabular government gazettes and 2 Tamil song lyrics.
+- **No letters:** 1 (a punctuation-only English transcript). **Control characters:** 0.
+- **Boilerplate lines** (≤ 2.74% per language, ml highest): news-site footers, ad lines
+  ("২ হাজাৰ টকা বিনিয়োগ কৰি..."), "This website follows the DNPA Code of Ethics." (hi × 5,237).
+  A few short normal lines also repeat ≥ 100× ("ശരി." = "OK.", × 982); the loss is tiny.
+- **Contact masking:** 4,120 e-mail addresses and 10,565 phone numbers replaced by placeholders.
+- **Kept documents** (78 samples + 52 that lost lines): news, literature, government and
+  religious books in the right language; no problem found in the samples.
+
+Measured only (nothing removed): Latin letters fused with Indic vowel signs (a machine-
+translation/OCR artefact) in pa 2,812 kept docs (1.9%), gu 1,347, bn 543; kept documents under
+200 characters 10,116 in total. The ≥ 3 ळ count is meaningful only for Hindi (236 docs); for
+Marathi (149,102) it only shows that ळ is an ordinary Marathi letter.
+
+**Conclusion.** The build did what was pre-registered: every file is complete, the protected
+suite is untouched (0 hits), each removal has a reason, and the one REVIEW line is a label shift,
+not a wrong removal. The losses found in the samples are small (each ≤ 1% of a language) and are
+listed for a later, separately approved experiment (not done here): cross-file routing of
+documents that are in the wrong language file, keeping quoted verses/translations in another
+script inside a document, counting the two script labels together, cross-file duplicates and
+detecting machine-translation artefacts.
+
+**Proposed decision (founder):** accept FrontierCorpus v2-slice1 (this build: 2,298,196
+documents, 2,796,048,213 tokens, manifest `evals/results/EXP-036/manifest.json`) as the first v2
+corpus, to be recorded as D-045. Accepting it does not start any training; training on v2 needs
+its own approved plan (and step 10 still needs a GPU plan).
+
+**Status:** complete (13/13 files built; 0 suite hits in the output; 2,796,048,213 tokens)
+Suite check CHECKED; the exact token count is for this slice only. Acceptance of v2 is the
+founder's decision (proposed D-045).

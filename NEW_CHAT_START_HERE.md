@@ -507,6 +507,16 @@ comes next. They also update the table in §3.
     `manifest.json`, `samples.jsonl`). Runtime NOT VERIFIED (estimate 3–6 h). **Next: read the
     per-rule costs, REVIEW lines and samples; report to the founder, who decides whether v2 is
     accepted.**
+  - **EXP-036 complete (PC night 2026-09-29/30, 3 h 43 min, results commit `47eae55`; analysis
+    appended to EXPERIMENTS.md).** 13/13 files built, suite CHECKED, **0 suite hits in the
+    output**; 2,298,196 of 2,332,236 docs kept (96.54% of characters); **exact token count
+    2,796,048,213 for this slice only** (frozen tokenizer; EXP-034's estimate was within about
+    0.6%). The one REVIEW line (Assamese `empty_after_cleaning` 6.50%) is a label shift: the
+    non-Indian Latin-script Bible texts in the Assamese file lose every line to the foreign-line
+    rule before the script gate sees them. Small known losses (quoted Sanskrit verses, documents
+    in the wrong language file) are listed for a later experiment. **Next: the founder decides
+    whether v2-slice1 is accepted (proposed D-045: type "approve D-045"). Only after that: record
+    D-045 in DECISIONS.md. No training on v2 without its own approved plan.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
