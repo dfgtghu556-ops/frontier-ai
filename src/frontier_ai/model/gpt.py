@@ -26,6 +26,15 @@ from ..config import ModelConfig
 
 
 # --------------------------------------------------------------------- norms --
+def _upcast(x: torch.Tensor) -> torch.Tensor:
+    """At least float32 for numerically sensitive ops (fp16/bf16 -> fp32; fp32 unchanged).
+
+    float64 is kept as float64, so a model converted with ``.double()`` computes norms and the loss
+    in 64-bit too (EXP-039 compares CPU and GPU in float64).
+    """
+    return x if x.dtype == torch.float64 else x.float()
+
+
 class RMSNorm(nn.Module):
     """Root-mean-square layer normalisation (LLaMA-style)."""
 
@@ -36,7 +45,7 @@ class RMSNorm(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         dtype = x.dtype
-        x = x.float()
+        x = _upcast(x)
         rms = torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
         return (x * rms).to(dtype) * self.weight
 
@@ -293,7 +302,7 @@ class GPT(nn.Module):
         loss = None
         if targets is not None:
             loss = F.cross_entropy(
-                logits.reshape(-1, logits.size(-1)).float(), targets.reshape(-1)
+                _upcast(logits.reshape(-1, logits.size(-1))), targets.reshape(-1)
             )
         self._last_cache = new_cache  # consumed by generate()
         return ForwardOutput(logits=logits, loss=loss)

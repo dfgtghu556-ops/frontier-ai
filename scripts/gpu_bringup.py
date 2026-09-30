@@ -17,6 +17,10 @@ so a session that is cut off still leaves the evidence gathered so far). Checkpo
 * Part 3: model M on the training split of the data file for one pass or 90 minutes, whichever is
   first; validation curve, bits per byte, 5 sample completions (look only; no quality claim).
 
+``--part cpu-gpu-diagnostic`` (EXP-039) runs Part 0 and then only the CPU-vs-GPU comparison of model S
+in float64 (Part A, pass if every step differs by <= 1e-8) and in float32 (Part B, numbers only), with
+the exact per-step losses (not the 5-decimal log values).
+
 ``--smoke`` shrinks everything so the whole script runs on a CPU in a minute (tests use it).
 Single GPU only (no distributed training). ``--max-hours`` is a hard budget for the session.
 """
@@ -66,6 +70,7 @@ TOL_CPU_GPU = 1e-3  # max |loss difference| per step, fp32
 TOL_REL_VAL = 0.02  # fp16 vs fp32 and compile vs eager: final validation loss, relative
 TOL_SKIPPED = 0.05  # share of optimizer steps the fp16 scaler may skip
 TOL_RESUME = 1e-5  # max |loss difference| per step after resume, fp32 deterministic
+TOL_FP64 = 1e-8  # EXP-039 Part A: max |loss difference| per step, CPU vs GPU, float64
 PEAK_TFLOPS = {  # dense tensor-core peaks from the vendor data sheets (no sparsity)
     "Tesla T4": {"fp16": 65.0, "fp32": 8.1},
     "Tesla P100-PCIE-16GB": {"fp16": 18.7, "fp32": 9.3},
@@ -275,6 +280,8 @@ class Report:
         )
         tmp.replace(self.out / "summary.json")
         (self.out / "SUMMARY.txt").write_text(render_text(self.data), encoding="utf-8", newline="\n")
+        if self.data.get("mode", "bringup") != "bringup":
+            return  # the diagnostic produces no samples
         with open(self.out / "samples.jsonl", "w", encoding="utf-8", newline="\n") as fh:
             for s in self.samples:
                 fh.write(json.dumps(s, ensure_ascii=False) + "\n")
@@ -287,7 +294,12 @@ def _fmt_pass(v: Any) -> str:
 def render_text(d: dict[str, Any]) -> str:
     env = d.get("environment", {})
     lines = [
-        f"{d['exp_id']}: GPU training bring-up (step 10)"
+        f"{d['exp_id']}: "
+        + (
+            "CPU vs GPU diagnostic (step 10 follow-up)"
+            if d.get("mode") == "diagnostic"
+            else "GPU training bring-up (step 10)"
+        )
         + (" [SMOKE TEST, not a result]" if d.get("smoke") else ""),
         f"complete: {d['complete']}   started {d['started_at']}   finished {d.get('finished_at', '-')}   "
         f"elapsed {d.get('elapsed_min', 0)} min",
@@ -306,6 +318,27 @@ def render_text(d: dict[str, Any]) -> str:
             f"  data file sha256 matches EXP-037 manifest: {_fmt_pass(p0.get('data_sha256_ok'))}",
             f"  model/trainer tests: {_fmt_pass(p0.get('tests_pass'))} ({p0.get('tests_line', '')})",
         ]
+    if "diagnostic" in p:
+        g = p["diagnostic"]
+        lines += ["", "CPU vs GPU, model S, same seed and batches, exact per-step losses"]
+        for key, label in (("fp64", "Part A - float64"), ("fp32", "Part B - float32 (numbers only)")):
+            r = g.get(key)
+            if r is None:
+                continue
+            if "error" in r:
+                lines.append(f"  {label}: {_fmt_pass(r.get('pass'))}  error: {r['error']}")
+                continue
+            verdict = f"{_fmt_pass(r.get('pass'))}  " if key == "fp64" else ""
+            lines.append(
+                f"  {label}: {verdict}max |loss diff| {r['max_abs_diff']:.3e} over {r['steps']} steps"
+                f" (step 1: {r['diffs'][0]:.3e}; dtypes {r['dtype_cpu']} / {r['dtype_gpu']})"
+                + (f"; tolerance {r['tolerance']:.0e}" if key == "fp64" else "")
+            )
+            marks = [1, 2, 5, 10, 20, 30, 40, 50]
+            lines.append(
+                "    per-step diff: "
+                + ", ".join(f"{m}: {r['diffs'][m - 1]:.2e}" for m in marks if m <= len(r["diffs"]))
+            )
     if "part1" in p:
         lines += ["", "Part 1 - correctness (pre-registered tolerances)"]
         for key, label in (
@@ -852,6 +885,87 @@ def part3(
     rep.save()
 
 
+def exact_losses(cfg: ExperimentConfig, ds: TokenDataset, *, fp64: bool) -> tuple[list[float], str]:
+    """Train with the repository Trainer and return every step's exact training loss.
+
+    The loss is read from the model output by a forward hook (training forwards only), because the
+    log keeps 5 decimals. ``fp64`` converts the model with ``.double()`` after the trainer built it:
+    the parameters stay the same objects, so the optimizer (and its state) follows in float64.
+    """
+    out = Path(cfg.train.out_dir)
+    if out.exists():
+        shutil.rmtree(out)
+    losses: list[float] = []
+
+    def hook(_module, _inputs, output) -> None:
+        if torch.is_grad_enabled() and getattr(output, "loss", None) is not None:
+            losses.append(float(output.loss.detach()))
+
+    with math_attention(True):
+        trainer = Trainer(cfg, ds)
+        if fp64:
+            trainer.model.double()
+        dtype = str(next(trainer.model.parameters()).dtype).replace("torch.", "")
+        handle = trainer.model.register_forward_hook(hook)
+        try:
+            trainer.fit()
+        finally:
+            handle.remove()
+    del trainer
+    reset_backend()
+    return losses, dtype
+
+
+def part_diagnostic(args: argparse.Namespace, rep: Report, ds: TokenDataset, sizes: dict, plan: dict) -> None:
+    """EXP-039: CPU vs GPU for model S in float64 (Part A, pre-registered) and float32 (Part B)."""
+    g: dict[str, Any] = {}
+    rep.data["parts"]["diagnostic"] = g
+    gpu = torch.cuda.is_available()
+    dev = "cuda" if gpu else "cpu"
+    n = plan["cpu_gpu_steps"]
+    scratch = Path(args.scratch) / "diagnostic"
+    for key, fp64 in (("fp64", True), ("fp32", False)):
+        _say(f"diagnostic: CPU vs {dev}, model S, {key}, {n} steps")
+        try:
+            runs: dict[str, list[float]] = {}
+            dtypes: dict[str, str] = {}
+            for d in ("cpu", dev):
+                cfg = make_cfg(
+                    sizes["S"],
+                    Path(ds.path),
+                    scratch / f"{key}-{d}",
+                    max_steps=n,
+                    device=d,
+                    precision="fp32",
+                    deterministic=True,
+                    eval_iters=plan["eval_iters"],
+                )
+                runs[d], dtypes[d] = exact_losses(cfg, ds, fp64=fp64)
+            cpu_l, gpu_l = runs["cpu"], runs[dev]
+            if len(cpu_l) != n or len(gpu_l) != n:
+                raise RuntimeError(f"expected {n} losses per run, got {len(cpu_l)} and {len(gpu_l)}")
+            diffs = [abs(a - b) for a, b in zip(cpu_l, gpu_l)]
+            r = {
+                "steps": n,
+                "devices": ["cpu", dev],
+                "dtype_cpu": dtypes["cpu"],
+                "dtype_gpu": dtypes[dev],
+                "max_abs_diff": max(diffs),
+                "diffs": diffs,
+                "losses_cpu": cpu_l,
+                "losses_gpu": gpu_l,
+            }
+            if fp64:
+                ok = max(diffs) <= TOL_FP64 and dtypes["cpu"] == dtypes[dev] == "float64"
+                r["tolerance"] = TOL_FP64
+                r["pass"] = ok if gpu else None  # without a GPU it is CPU vs CPU: not a result
+            g[key] = r
+        except Exception as exc:  # noqa: BLE001 - every failure is evidence
+            g[key] = {"pass": False if fp64 else None, "error": _err(exc)}
+        rep.save()
+    shutil.rmtree(scratch, ignore_errors=True)
+
+
 def child_resume(cfg_path: str) -> int:
     cfg = ExperimentConfig.load(cfg_path)
     ds = TokenDataset(cfg.data.path)
@@ -869,6 +983,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--exp-id", default="EXP-038")
     p.add_argument("--max-hours", type=float, default=5.5, help="hard time budget for the whole session")
     p.add_argument("--smoke", action="store_true", help="tiny sizes and steps (CPU test of the script)")
+    p.add_argument(
+        "--part",
+        choices=["all", "cpu-gpu-diagnostic"],
+        default="all",
+        help="all = EXP-038 Parts 0-3; cpu-gpu-diagnostic = EXP-039 (Part 0 + float64/float32 CPU vs GPU)",
+    )
     p.add_argument("--skip-tests", action="store_true", help=argparse.SUPPRESS)
     p.add_argument("--skip-data-hash", action="store_true", help=argparse.SUPPRESS)
     p.add_argument("--child-resume", default=None, help=argparse.SUPPRESS)
@@ -880,6 +1000,7 @@ def main(argv: list[str] | None = None) -> int:
     deadline = time.time() + args.max_hours * 3600
     sizes, plan = (SIZES_SMOKE, PLAN_SMOKE) if args.smoke else (SIZES_FULL, PLAN_FULL)
     rep = Report(Path(args.out), args.exp_id, args.smoke)
+    rep.data["mode"] = "diagnostic" if args.part == "cpu-gpu-diagnostic" else "bringup"
     rep.data["plan"] = {
         "sizes": sizes,
         "steps": plan,
@@ -889,6 +1010,7 @@ def main(argv: list[str] | None = None) -> int:
             "rel_val": TOL_REL_VAL,
             "skipped": TOL_SKIPPED,
             "resume": TOL_RESUME,
+            "fp64_cpu_equals_gpu": TOL_FP64,
         },
         "architecture": "D-043 (EXP-B baseline: learned positions, SwiGLU, RMSNorm, tied embeddings)",
         "tokenizer": "frontier-tokenizer-v2 (vocab 32,896)",
@@ -905,6 +1027,14 @@ def main(argv: list[str] | None = None) -> int:
             rep.data["stopped"] = f"vocab {ds.meta.vocab_size} in {data_path.name}.meta.json, expected 32896"
             rep.save()
             return 1
+        if args.part == "cpu-gpu-diagnostic":
+            part_diagnostic(args, rep, ds, sizes, plan)
+            g = rep.data["parts"]["diagnostic"]
+            rep.data["complete"] = all(k in g and "error" not in g[k] for k in ("fp64", "fp32"))
+            rep.data["finished_at"] = _now()
+            rep.save()
+            print(render_text(rep.data), flush=True)
+            return 0 if rep.data["complete"] else 1
         p1 = part1(args, rep, ds, sizes, plan)
         compile_ok = bool(p1.get("compile", {}).get("pass"))
         bench = part2(args, rep, ds, sizes, plan, compile_ok, deadline)

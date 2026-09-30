@@ -1,6 +1,7 @@
 # scripts/run_kaggle_exp038.ps1
 #
-# ONE-COMMAND runner for EXP-038 (step 10: first GPU training bring-up on ONE free Kaggle T4 GPU).
+# ONE-COMMAND runner for EXP-038 (step 10: first GPU training bring-up on ONE free Kaggle T4 GPU)
+# and, with -Exp EXP-039, for its follow-up (see below).
 # It needs NO chat agent and can be started again at any time: it remembers where it stopped
 # (out\kaggle\EXP-038\state.json) and continues from there.
 #
@@ -25,6 +26,13 @@
 # If the laptop was closed while the GPU run was going: run the same line again - it only checks
 # on the kernel and continues. Add -Relaunch only if the report tells you to (a failed kernel).
 #
+# EXP-039 (the float64 CPU-vs-GPU follow-up) reuses this runner with -Exp EXP-039 (see
+# scripts\run_kaggle_exp039.ps1): its own state folder out\kaggle\EXP-039, its own kernel
+# <username>/frontier-exp039 from scripts\kaggle\exp039_kernel.py, the SAME private dataset (no new
+# upload; the fingerprint is still checked) and the Kaggle username remembered from EXP-038.
+# If the final push is rejected because the branch moved meanwhile (seen once in EXP-038), it pulls
+# with --rebase once and pushes again; the results commit still touches only evals/results/<EXP>/.
+#
 # It never deletes anything, never edits a tracked file, never force-pushes, and pushes only to
 # arena/01a0dc16-frontier-ai. Checkpoints stay on Kaggle's temporary disk and vanish with the
 # session; only summary.json, SUMMARY.txt and samples.jsonl come back. No money is spent: Kaggle's
@@ -32,25 +40,26 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([switch]$Relaunch)
+param([ValidateSet("EXP-038", "EXP-039")][string]$Exp = "EXP-038", [switch]$Relaunch)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
-$Exp = "EXP-038"
+$expSlug = $Exp.ToLower().Replace("-", "")
 $branch = "arena/01a0dc16-frontier-ai"
 $python = ".venv\Scripts\python.exe"
 $kaggle = ".venv\Scripts\kaggle.exe"
 $dataDir = "data\frontier_v2\sangraha-slice1-v2-tok2"
 $manifestPath = "evals\results\EXP-037\manifest.json"
-$template = "scripts\kaggle\exp038_kernel.py"
+$template = "scripts\kaggle\${expSlug}_kernel.py"
 $outDir = "out\kaggle\$Exp"
 $statePath = "$outDir\state.json"
 $log = "$outDir\run.log"
 $reportPath = "$outDir\REPORT.txt"
 $resultsPrefix = "evals/results/$Exp/"
 $datasetSlug = "frontier-v2-hi-tok2"
-$kernelSlug = "frontier-exp038"
+$kernelSlug = "frontier-$expSlug"
+$userFile = "out\kaggle\username.txt"
 $pollSeconds = 600
 $maxWaitHours = 9
 New-Item -ItemType Directory -Force $outDir | Out-Null
@@ -94,7 +103,7 @@ function Save-State($s) { $s | ConvertTo-Json | Set-Content -Path $statePath -En
 # Kaggle's tool reads its JSON files with Python; they must not start with a byte-order mark.
 function Write-Ascii([string]$path, [string]$text) { [System.IO.File]::WriteAllText((Join-Path (Get-Location) $path), $text) }
 
-Add-Report "REPORT $Exp (first GPU training bring-up on one free Kaggle T4) - started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+Add-Report "REPORT $Exp (GPU run on one free Kaggle T4) - started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Add-Report ""
 $state = Read-State
 
@@ -159,10 +168,15 @@ if (-not $env:KAGGLE_API_TOKEN -and -not (Test-Path $legacyJson)) {
     Add-Report "INFO 2b: token saved in your Windows user settings (KAGGLE_API_TOKEN); not in the repository"
 }
 if (-not $state.username) {
-    if (Test-Path $legacyJson) { $state.username = (Get-Content $legacyJson -Raw | ConvertFrom-Json).username }
+    if (Test-Path $userFile) { $state.username = (Get-Content $userFile -Raw).Trim() }
+    if (-not $state.username -and (Test-Path "out\kaggle\EXP-038\state.json")) {
+        $state.username = (Get-Content "out\kaggle\EXP-038\state.json" -Raw -Encoding UTF8 | ConvertFrom-Json).username
+    }
+    if (-not $state.username -and (Test-Path $legacyJson)) { $state.username = (Get-Content $legacyJson -Raw | ConvertFrom-Json).username }
     if (-not $state.username) { $state.username = (Read-Host "FIRST TIME ONLY: your Kaggle username (as in kaggle.com/<username>)").Trim().ToLower() }
     Save-State $state
 }
+if (-not (Test-Path $userFile)) { $state.username | Set-Content -Path $userFile -Encoding ASCII }
 $user = $state.username
 $env:KAGGLE_USERNAME = $user
 $datasetId = "$user/$datasetSlug"
@@ -242,7 +256,7 @@ try {
     & powercfg /change hibernate-timeout-ac 0
 } catch { }
 Add-Report ""
-Add-Report "=== waiting for the GPU run (checks every 10 minutes; usually 4-6 hours). Leave the PC on and online. ==="
+Add-Report "=== waiting for the GPU run (checks every 10 minutes; EXP-038 took about 80 minutes, EXP-039 should be shorter). Leave the PC on and online. ==="
 $deadline = (Get-Date).AddHours($maxWaitHours)
 $status = ""
 while ($true) {
@@ -265,7 +279,7 @@ $outputDir = "$outDir\output"
 New-Item -ItemType Directory -Force $outputDir | Out-Null
 $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force"
 if ($r.Code -ne 0) { Stop-Run "downloading the kernel output failed; run this line again" 1 }
-$resultDir = "$outputDir\EXP-038"
+$resultDir = "$outputDir\$Exp"
 $summaryPath = "$resultDir\summary.json"
 if (-not (Test-Path $summaryPath)) {
     Add-Report "FAIL 5a: the kernel left no summary.json. Last 60 lines of the kernel log:"
@@ -285,7 +299,7 @@ foreach ($line in (Get-Content "$resultDir\SUMMARY.txt" -Encoding UTF8)) { Add-R
 Add-Report "-----------------------"
 Add-Report ""
 
-# --- 6) publish, check, commit and push ONLY evals/results/EXP-038/ --------------------------
+# --- 6) publish, check, commit and push ONLY evals/results/<EXP>/ ----------------------------
 $r = Invoke-Logged "$python -u scripts\publish_eval_results.py --exp-id $Exp --src $resultDir"
 if ($r.Code -ne 0) { Stop-Run "publishing failed (exit $($r.Code))" 1 }
 Add-Report "PASS 6a: published to $resultsPrefix"
@@ -308,7 +322,7 @@ if ($changed.Count -eq 0) {
     }
     Add-Report "PASS 6b: staged $($staged.Count) files, all under $resultsPrefix"
     $msgFile = "$outDir\commit_message.txt"
-    "${Exp}: GPU bring-up results from one Kaggle T4 (commit $($state.pinned_commit.Substring(0, 7)); checkpoints stay on Kaggle)" |
+    "${Exp}: GPU results from one Kaggle T4 (commit $($state.pinned_commit.Substring(0, 7)); checkpoints stay on Kaggle)" |
         Set-Content -Path $msgFile -Encoding ASCII
     $r = Invoke-Logged "git commit -q -F $msgFile"
     if ($r.Code -ne 0) { Stop-Run "git commit failed: $($r.Lines -join ' | ')" 1 }
@@ -317,6 +331,20 @@ if ($changed.Count -eq 0) {
 }
 
 $r = Invoke-Logged "git push origin $branch"
+if ($r.Code -ne 0) {
+    # The branch moved on GitHub while the GPU ran (seen once in EXP-038). Our commit touches only
+    # evals/results/<EXP>/, so replaying it on top of the new commits is safe; try that ONCE.
+    Add-Report "INFO 6d: push rejected; fetching the newer GitHub commits and replaying the results commit on top"
+    $r = Invoke-Logged "git pull --rebase origin $branch"
+    if ($r.Code -ne 0) {
+        Invoke-Logged "git rebase --abort" | Out-Null
+        Add-Report "FAIL 6d: git pull --rebase failed and was undone (the results ARE committed locally; nothing is lost)"
+        Add-Report "RESULT: run complete, push FAILED - paste this report into the Arena chat."
+        Save-Report
+        exit 1
+    }
+    $r = Invoke-Logged "git push origin $branch"
+}
 if ($r.Code -ne 0) {
     Add-Report "FAIL 6d: git push failed (the results ARE committed locally; nothing is lost):"
     foreach ($line in $r.Lines) { Add-Report "  $line" }

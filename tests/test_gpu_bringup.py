@@ -138,3 +138,78 @@ def test_the_real_manifest_lists_the_hindi_file():
     m = json.loads((ROOT / "evals/results/EXP-037/manifest.json").read_text(encoding="utf-8"))
     hi = next(f for f in m["files"] if f["path"] == "hi.bin")
     assert hi["language"] == "hi" and len(hi["sha256"]) == 64
+
+
+def test_diagnostic_mode_records_exact_per_step_losses_in_float64_and_float32(packed, tmp_path):
+    """EXP-039: --part cpu-gpu-diagnostic compares exact losses (not the 5-decimal log values)."""
+    out = tmp_path / "EXP-039"
+    res = _run(
+        [
+            "--part",
+            "cpu-gpu-diagnostic",
+            "--smoke",
+            "--skip-tests",
+            "--exp-id",
+            "EXP-039",
+            "--data",
+            str(packed / "hi.bin"),
+            "--manifest",
+            str(packed / "manifest.json"),
+            "--out",
+            str(out),
+            "--scratch",
+            str(tmp_path / "scratch"),
+        ]
+    )
+    assert res.returncode == 0, res.stdout[-3000:] + res.stderr[-3000:]
+    s = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+    assert s["mode"] == "diagnostic" and s["complete"] is True and s["exp_id"] == "EXP-039"
+    assert set(s["parts"]) == {"part0", "diagnostic"}
+    g = s["parts"]["diagnostic"]
+    assert g["fp64"]["dtype_cpu"] == g["fp64"]["dtype_gpu"] == "float64"
+    assert g["fp32"]["dtype_cpu"] == "float32"
+    assert g["fp64"]["tolerance"] == 1e-8
+    n = s["plan"]["steps"]["cpu_gpu_steps"]
+    for key in ("fp64", "fp32"):
+        assert len(g[key]["diffs"]) == len(g[key]["losses_cpu"]) == n
+        assert g[key]["max_abs_diff"] == 0.0  # CPU vs CPU here
+    # without a GPU the verdict is n/a, never a PASS
+    assert g["fp64"]["pass"] is None
+    # float64 really ran: its losses differ from float32 beyond the 5-decimal log precision
+    gap = max(abs(a - b) for a, b in zip(g["fp64"]["losses_cpu"], g["fp32"]["losses_cpu"]))
+    assert 0 < gap < 1e-3
+    assert any(abs(v - round(v, 5)) > 0 for v in g["fp64"]["losses_cpu"])
+    assert sorted(x.name for x in out.iterdir()) == ["SUMMARY.txt", "summary.json"]
+    assert "CPU vs GPU diagnostic" in (out / "SUMMARY.txt").read_text(encoding="utf-8")
+
+
+def test_model_keeps_float64_in_norms_and_loss_and_upcasts_half_precision():
+    sys.path.insert(0, str(ROOT / "src"))
+    import torch
+
+    from frontier_ai.config import ModelConfig
+    from frontier_ai.model.gpt import GPT, RMSNorm
+
+    torch.manual_seed(0)
+    cfg = ModelConfig(
+        vocab_size=64,
+        n_layer=1,
+        n_head=2,
+        n_embd=16,
+        block_size=8,
+        dropout=0.0,
+        norm="rmsnorm",
+        ffn="swiglu",
+        pos="learned",
+    )
+    model = GPT(cfg)
+    x = torch.randint(0, 64, (2, 8))
+    loss32 = model(x, targets=x).loss.detach()
+    model.double()
+    loss64 = model(x, targets=x).loss.detach()
+    assert loss32.dtype == torch.float32 and loss64.dtype == torch.float64
+    assert abs(float(loss64) - float(loss32)) < 1e-5
+    norm = RMSNorm(16)
+    h = torch.randn(2, 16).half()
+    ref = (h.float() * torch.rsqrt(h.float().pow(2).mean(-1, keepdim=True) + 1e-6)).half()
+    assert torch.equal(norm(h), ref)  # fp16 input is normalised in fp32, as before

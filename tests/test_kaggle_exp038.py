@@ -28,14 +28,15 @@ def test_runner_is_ascii_and_pushes_only_the_session_branch():
     text = _ps1()
     assert f'$branch = "{BRANCH}"' in text
     pushes = re.findall(r'Invoke-Logged "(git push[^"]*)"', text)
-    assert pushes == ["git push origin $branch"]
+    assert set(pushes) == {"git push origin $branch"} and len(pushes) == 2  # first try + one retry
     assert "--force" not in text.replace("kernels output $kernelId -p $outputDir --force", "")
     assert "Remove-Item" not in text
 
 
 def test_runner_commits_only_the_exp038_results_folder():
     text = _ps1()
-    assert '$resultsPrefix = "evals/results/$Exp/"' in text and '$Exp = "EXP-038"' in text
+    assert '$resultsPrefix = "evals/results/$Exp/"' in text
+    assert 'param([ValidateSet("EXP-038", "EXP-039")][string]$Exp = "EXP-038", [switch]$Relaunch)' in text
     assert "git add $resultsPrefix" in text
     assert re.findall(r'Invoke-Logged "(git add[^"]*)"', text) == ["git add $resultsPrefix"]
     assert "scripts\\publish_eval_results.py --exp-id $Exp --src $resultDir" in text
@@ -122,3 +123,44 @@ def test_kernel_arguments_are_accepted_by_the_bringup_script():
     ).stdout
     for flag in {"--data", "--out", "--scratch", "--exp-id", "--max-hours"}:
         assert flag in helptext, flag
+
+
+def test_push_retry_rebases_once_and_undoes_a_failed_rebase():
+    text = _ps1()
+    assert text.count('Invoke-Logged "git pull --rebase origin $branch"') == 1
+    assert 'Invoke-Logged "git rebase --abort"' in text
+    # the retry comes after the results commit and before the final push check
+    assert text.index("git commit -q -F $msgFile") < text.index("git pull --rebase origin $branch")
+
+
+# ------------------------------------------------------------------------------------ EXP-039 --
+PS1_039 = ROOT / "scripts" / "run_kaggle_exp039.ps1"
+KERNEL_039 = ROOT / "scripts" / "kaggle" / "exp039_kernel.py"
+
+
+def test_exp039_wrapper_reuses_the_runner_and_the_dataset():
+    wrapper = PS1_039.read_text(encoding="ascii")
+    assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-039" -Relaunch:$Relaunch' in wrapper
+    text = _ps1()
+    assert '$template = "scripts\\kaggle\\${expSlug}_kernel.py"' in text
+    assert '$kernelSlug = "frontier-$expSlug"' in text
+    assert '$resultDir = "$outputDir\\$Exp"' in text
+    # the username saved during EXP-038 is reused; the dataset slug is shared (no second upload)
+    assert 'out\\kaggle\\EXP-038\\state.json' in text and '$userFile = "out\\kaggle\\username.txt"' in text
+    assert text.count("$datasetSlug = ") == 1
+
+
+def test_exp039_kernel_runs_the_diagnostic_within_one_gpu_hour():
+    tree = ast.parse(KERNEL_039.read_text(encoding="ascii"))
+    consts = {
+        n.targets[0].id: (n.value.args[0].value if isinstance(n.value, ast.Call) else n.value.value)
+        for n in tree.body
+        if isinstance(n, ast.Assign) and isinstance(n.value, (ast.Constant, ast.Call))
+    }
+    assert consts["COMMIT"] == "__PINNED_COMMIT__" and float(consts["MAX_HOURS"]) <= 1.0
+    assert consts["OUT"] == "/kaggle/working/EXP-039"
+    text = KERNEL_039.read_text(encoding="ascii")
+    assert '"--part",\n        "cpu-gpu-diagnostic"' in text and '"EXP-039"' in text
+    res = subprocess.run([sys.executable, str(KERNEL_039)], capture_output=True, text=True, timeout=60)
+    assert res.returncode != 0 and "placeholder" in (res.stderr + res.stdout)
+
