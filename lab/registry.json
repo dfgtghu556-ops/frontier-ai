@@ -238,21 +238,20 @@
   ],
   "current_work": [
     {
-      "title": "EXP-037 complete: v2-slice1 packed for training with Frontier Tokenizer v2 (all checks pass); D-046 proposed",
+      "title": "D-046 accepted: Frontier Tokenizer v2 + EXP-037 packed files are the v2 training input; next is the step-10 GPU bring-up plan",
       "evidence": [
+        "D-046",
         "EXP-037",
         "D-045",
-        "EXP-036",
-        "D-041"
+        "EXP-036"
       ],
       "evidence_files": [
-        "evals/results/EXP-037/SUMMARY.txt",
         "evals/results/EXP-037/manifest.json",
         "tokenizers/frontier-tokenizer-v2/FREEZE.json",
-        "src/frontier_ai/corpus/pack.py",
-        "evals/results/EXP-036/manifest.json"
+        "docs/compute_options_and_costs.md",
+        "GPU_COLLABORATOR_START_HERE.md"
       ],
-      "note": "EXP-037 PC night run complete (2026-09-30, 2 h 35 min, results commit 3925cd7): 13/13 per-language uint16 token files on the founder's laptop (5,596,692,818 bytes); 2,783,830,088 train + 14,516,321 validation tokens (11,660 validation docs, 0.507%), incl. one <|endoftext|> per document; train + val - docs = 2,796,048,213 = the EXP-036 exact count; every document's v2 count equalled its v1 count; files re-read (no other special id); 1,750 sampled documents decoded exactly. D-046 proposed (tokenizer v2 for all v2 training; EXP-037 packed files canonical, validation split never trained on) - founder approval needed. No training on v2 without its own approved plan; step 10 still waits for the GPU collaborator's report."
+      "note": "Founder accepted D-046 (\"approve D-046\", 2026-09-30): Frontier Tokenizer v2 for all training on v2 data (v1 stays frozen); the EXP-037 packed files (2,783,830,088 train + 14,516,321 validation tokens; manifest evals/results/EXP-037/manifest.json) are the canonical v2-slice1 training input; the validation split is never trained on. No training has started. Next: step-10 GPU bring-up plan (needs founder approval). Compute options and cost estimates for the founder are in docs/compute_options_and_costs.md (free: Kaggle 2xT4 ~30 h/week, TPU Research Cloud by application, the GPU collaborator's machine; subsidised: IndiaAI portal if eligible). The GPU collaborator's REPORT.txt is still awaited."
     }
   ],
   "baseline_model": {

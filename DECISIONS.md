@@ -1546,6 +1546,54 @@ data changes (D-044).
 
 ---
 
+## D-046 — Frontier Tokenizer v2 is the tokenizer for training on v2 data; the EXP-037 packed files are the canonical v2-slice1 training input
+**Date:** 2026-09-30 · **Status:** accepted (founder decision 2026-09-30: "approve D-046"; evidence EXP-037, D-045, D-041)
+
+**Decision:**
+1. **Frontier Tokenizer v2** (`tokenizers/frontier-tokenizer-v2/`, dir_sha256 `87bd6d31ae8723c2…`,
+   loaded only through `load_frontier_tokenizer_v2()`) is the tokenizer for all training and
+   evaluation on v2 data. It is v1 plus 128 special tokens: `<|endoftext|>` (32768), `<|pad|>`
+   (32769), `<|reserved_0..125|>` (32770–32895); vocab 32,896. Merges, pre-tokenizer and every
+   ordinary id are v1's. Training text is encoded only with `encode_ordinary` (special-token
+   strings inside text stay text); special ids are inserted only by code.
+2. Frontier Tokenizer v1 stays frozen and unchanged (D-041) for reproducing EXP-029–033.
+3. The **EXP-037 packed files** are the canonical training input for FrontierCorpus v2-slice1
+   (`packed_id` `frontier-v2-sangraha-slice1@frontier-tokenizer-v2`). Their identity is
+   `evals/results/EXP-037/manifest.json` (sha256 of each of the 13 `.bin` files; 5,596,692,818
+   bytes; 2,783,830,088 train + 14,516,321 validation tokens incl. one `<|endoftext|>` per
+   document). A file that does not match the manifest is not this data.
+4. The **validation split is fixed** (sha256(record id) in the lowest 5,000 ppm; 11,660
+   documents) and is never trained on. Changing the rule is a new experiment.
+
+**Rationale:** EXP-037 passed every pre-registered check: inputs = the D-045 manifest; for every
+one of 2,298,196 documents the v2 ordinary token count equalled the recorded v1 count; train +
+val − docs = 2,796,048,213 per file and in total; every file re-read (exactly one `<|endoftext|>`
+per document, no other special id); 1,750 sampled documents decoded exactly; record ids unique;
+rerun determinism shown in tests. Document boundaries and padding are needed for training on
+many documents; adding them without changing ordinary ids keeps every earlier count and
+comparison valid.
+
+**Alternatives rejected:** retraining a tokenizer on v2 text first (a separate, measured
+experiment with its own approval; it would invalidate the exact counts); a single mixed file
+(it would fix a mixing ratio, which is to be compared by experiment); a separator made of
+ordinary characters (could be produced by raw text).
+
+**Consequences accepted:**
+- Models trained on v2 have a 32,896-row embedding; models trained with v1 (32,768) are not
+  directly weight-compatible with them. Earlier checkpoints are not changed.
+- The token files exist only on the founder's laptop (git-ignored). A GPU machine gets them by
+  copying (verify with the manifest) or by rebuilding from pinned inputs (EXP-036 + EXP-037
+  code; about 4 h + 2.5 h on the laptop).
+- Validation loss on this split measures in-distribution fit only; the protected held-out suite
+  remains the benchmark. Near-duplicates were removed within files, not across files.
+- **Accepting this starts no training and no GPU use.** Training needs its own approved plan
+  (step 10); mixtures are compared by experiment (no fixed percentages).
+
+**Revisit when:** a tokenizer retrained on v2 text is proposed; a v3 corpus is built; an error is
+found in the packed files; or a model needs more reserved special tokens than the 126 spare ids.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

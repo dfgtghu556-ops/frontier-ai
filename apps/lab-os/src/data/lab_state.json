@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "1ab4e69a095c9736f016c20a20e0dab4eb838c36ad712088633625dbb592610e",
+  "source_digest": "7102d264d11cad4ee56eaff7bad450e6f174bcd448fb22f5956ec0329fbab2ad",
   "sources": {
     "EXPERIMENTS.md": "45182e39baa35d69cc75cd4f564b0830af641c998f603668a2d14ebcd02f7af5",
-    "DECISIONS.md": "8c64a2ba88381c284dee8885ffefe6d267fb866e5e22b1de5724346972078561",
+    "DECISIONS.md": "9526efcabf6f7b7b791ce12b6c884d726cc1c1117bc55e2c97bdeefc36635494",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "48f07f5059a77a2c53ca120487a807b3bd613d4840f0f67e7181b26e7546273b",
+    "lab/registry.json": "c7bdf1fa396b0f59135a9810afd2ae2cfc2fac7d7a3f1a7686ccce232cd8e2f2",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -315,21 +315,20 @@
   ],
   "current_work": [
     {
-      "title": "EXP-037 complete: v2-slice1 packed for training with Frontier Tokenizer v2 (all checks pass); D-046 proposed",
+      "title": "D-046 accepted: Frontier Tokenizer v2 + EXP-037 packed files are the v2 training input; next is the step-10 GPU bring-up plan",
       "evidence": [
+        "D-046",
         "EXP-037",
         "D-045",
-        "EXP-036",
-        "D-041"
+        "EXP-036"
       ],
       "evidence_files": [
-        "evals/results/EXP-037/SUMMARY.txt",
         "evals/results/EXP-037/manifest.json",
         "tokenizers/frontier-tokenizer-v2/FREEZE.json",
-        "src/frontier_ai/corpus/pack.py",
-        "evals/results/EXP-036/manifest.json"
+        "docs/compute_options_and_costs.md",
+        "GPU_COLLABORATOR_START_HERE.md"
       ],
-      "note": "EXP-037 PC night run complete (2026-09-30, 2 h 35 min, results commit 3925cd7): 13/13 per-language uint16 token files on the founder's laptop (5,596,692,818 bytes); 2,783,830,088 train + 14,516,321 validation tokens (11,660 validation docs, 0.507%), incl. one <|endoftext|> per document; train + val - docs = 2,796,048,213 = the EXP-036 exact count; every document's v2 count equalled its v1 count; files re-read (no other special id); 1,750 sampled documents decoded exactly. D-046 proposed (tokenizer v2 for all v2 training; EXP-037 packed files canonical, validation split never trained on) - founder approval needed. No training on v2 without its own approved plan; step 10 still waits for the GPU collaborator's report."
+      "note": "Founder accepted D-046 (\"approve D-046\", 2026-09-30): Frontier Tokenizer v2 for all training on v2 data (v1 stays frozen); the EXP-037 packed files (2,783,830,088 train + 14,516,321 validation tokens; manifest evals/results/EXP-037/manifest.json) are the canonical v2-slice1 training input; the validation split is never trained on. No training has started. Next: step-10 GPU bring-up plan (needs founder approval). Compute options and cost estimates for the founder are in docs/compute_options_and_costs.md (free: Kaggle 2xT4 ~30 h/week, TPU Research Cloud by application, the GPU collaborator's machine; subsidised: IndiaAI portal if eligible). The GPU collaborator's REPORT.txt is still awaited."
     }
   ],
   "experiments": [
@@ -1250,6 +1249,21 @@
       ],
       "line": 1496,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1496"
+    },
+    {
+      "id": "D-046",
+      "title": "Frontier Tokenizer v2 is the tokenizer for training on v2 data; the EXP-037 packed files are the canonical v2-slice1 training input",
+      "date": "2026-09-30",
+      "status": "accepted (founder decision 2026-09-30: \"approve D-046\"; evidence EXP-037, D-045, D-041)",
+      "category": "accepted",
+      "summary": "1. Frontier Tokenizer v2 (tokenizers/frontier-tokenizer-v2/, dir_sha256 87bd6d31ae8723c2…, loaded only through load_frontier_tokenizer_v2()) is the tokenizer for all training and evaluation on v2 data. It is v1 plus 128 special tokens: <|endoftext|> (32768), <|pad|> (32769), <|reserved_0..125|> (32770–32895); vocab …",
+      "experiments": [
+        "EXP-029",
+        "EXP-036",
+        "EXP-037"
+      ],
+      "line": 1549,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1549"
     }
   ],
   "open_questions": [

@@ -548,6 +548,14 @@ comes next. They also update the table in §3.
     **Next: founder decides D-046 ("approve D-046": tokenizer v2 for all v2 training, packed
     files canonical, validation split never trained on). Then step 10 GPU plan (still waits for
     the GPU collaborator's REPORT.txt).**
+  - **D-046 accepted ("approve D-046", 2026-09-30; DECISIONS.md, ROADMAP update block).**
+    Tokenizer v2 for all v2 training; EXP-037 packed files canonical; validation split never
+    trained on. The founder asked for free GPU options, costs and an honest ChatGPT comparison:
+    answered in `docs/compute_options_and_costs.md` (Kaggle free 2×T4 ~30 h/week is enough for
+    step 10–11 sized runs; ≥ 1 B params needs money/grants and more data; ChatGPT class is out of
+    reach for a personal budget). **Next: the founder creates a Kaggle account and verifies his
+    phone (free GPU access); then I write the step-10 bring-up plan for Kaggle (and/or the
+    collaborator's GPU) for approval. No GPU run before that approval.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

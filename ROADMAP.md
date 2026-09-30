@@ -107,6 +107,11 @@
   tokenizer, this slice only), 0 protected-suite hits. The text stays on the founder's laptop;
   the manifest is `evals/results/EXP-036/manifest.json`. No training on v2 starts without its
   own approved plan; step 10 still waits for the GPU collaborator's report and a plan.
+- **Update (2026-09-30, later):** **EXP-037** made v2-slice1 training-ready: Frontier Tokenizer
+  v2 (v1 + `<|endoftext|>`, `<|pad|>`, 126 reserved ids; ordinary text encodes exactly as v1)
+  and 13 per-language token files with a fixed 0.5% validation split (2,783,830,088 train +
+  14,516,321 validation tokens; all checks passed). The founder accepted both as **D-046**.
+  Still no training: step 10 needs a GPU plan and its own approval.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and
