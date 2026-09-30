@@ -306,6 +306,21 @@ class PythonBPE(SubwordTokenizer):
                     ids.extend(self._encode_chunk(chunk))
         return ids
 
+    def encode_ordinary(self, text: str) -> list[int]:
+        """Text -> ids, treating special-token strings as ordinary text (EXP-037).
+
+        :meth:`encode` gives a special token its own id wherever its string appears, so a web
+        page that happens to contain ``<|endoftext|>`` would inject a document boundary. Training
+        data must never do that: its text goes through this method, and special ids are
+        inserted only by the code that builds the token stream. With no special tokens (v1)
+        this is exactly :meth:`encode`.
+        """
+        pre_fn = _PRETOKENIZERS[self._pretoken]
+        ids: list[int] = []
+        for chunk in pre_fn(text):
+            ids.extend(self._encode_chunk(chunk))
+        return ids
+
     def _encode_chunk(self, chunk: str) -> list[int]:
         symbols = list(chunk.encode("utf-8"))
         if len(symbols) < 2:

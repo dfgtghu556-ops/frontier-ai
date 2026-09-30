@@ -27,6 +27,7 @@ from .bpe_python import PythonBPE
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FROZEN_ROOT = REPO_ROOT / "tokenizers"
 FRONTIER_TOKENIZER_V1 = "frontier-tokenizer-v1"
+FRONTIER_TOKENIZER_V2 = "frontier-tokenizer-v2"
 FREEZE_NAME = "FREEZE.json"
 ARTIFACT_SUBDIR = "tokenizer"
 ARTIFACT_FILE = "bpe_python.json"
@@ -118,6 +119,40 @@ def load_frozen_tokenizer(freeze_dir: str | Path) -> tuple[PythonBPE, dict[str, 
     return tokenizer, freeze
 
 
+# EXP-037: Frontier Tokenizer v2 = v1 (same merges, same pre-tokenizer, same 32,768 ordinary ids)
+# plus these special tokens, appended at ids 32768.. (D-041: appended ids keep every existing id).
+# 128 specials make the vocabulary 32,896 = 257 x 128, a GPU-friendly multiple of 128. The reserved
+# slots have no meaning yet; giving one a meaning later is a recorded change.
+ENDOFTEXT = "<|endoftext|>"
+PAD = "<|pad|>"
+N_RESERVED = 126
+V2_SPECIAL_TOKENS: tuple[str, ...] = (ENDOFTEXT, PAD, *(f"<|reserved_{i}|>" for i in range(N_RESERVED)))
+
+
+def derive_with_special_tokens(base: PythonBPE, special_tokens: tuple[str, ...] | list[str]) -> PythonBPE:
+    """A new tokenizer with ``base``'s merges and pre-tokenizer plus ``special_tokens`` appended.
+
+    ``base`` must have no special tokens, so every ordinary id stays what it was. Used once, by
+    ``scripts/freeze_tokenizer_v2.py``; downstream code loads the frozen result instead.
+    """
+    if base.special_tokens:
+        raise FrozenTokenizerError("the base tokenizer already has special tokens")
+    specials = list(special_tokens)
+    if len(set(specials)) != len(specials) or any(not s for s in specials):
+        raise FrozenTokenizerError("special tokens must be unique and non-empty")
+    tok = PythonBPE()
+    tok._pretoken = base._pretoken  # noqa: SLF001 - same package, deliberate copy
+    tok._merges = base.merges  # noqa: SLF001
+    tok._ranks = {pair: i for i, pair in enumerate(tok._merges)}  # noqa: SLF001
+    tok._special_tokens = specials  # noqa: SLF001
+    first = 256 + len(tok._merges)  # noqa: SLF001
+    tok._special_ids = {s: first + i for i, s in enumerate(specials)}  # noqa: SLF001
+    tok._id_to_bytes = [base._id_to_bytes[i] for i in range(first)] + [s.encode("utf-8") for s in specials]  # noqa: SLF001
+    tok._target_vocab_size = first + len(specials)  # noqa: SLF001
+    tok._trained_chars = base._trained_chars  # noqa: SLF001
+    return tok
+
+
 def frontier_tokenizer_v1_dir(root: str | Path | None = None) -> Path:
     return Path(root) if root is not None else FROZEN_ROOT / FRONTIER_TOKENIZER_V1
 
@@ -125,4 +160,18 @@ def frontier_tokenizer_v1_dir(root: str | Path | None = None) -> Path:
 def load_frontier_tokenizer(root: str | Path | None = None) -> PythonBPE:
     """Frontier Tokenizer v1 (D-040), verified against its freeze record."""
     tokenizer, _freeze = load_frozen_tokenizer(frontier_tokenizer_v1_dir(root))
+    return tokenizer
+
+
+def frontier_tokenizer_v2_dir(root: str | Path | None = None) -> Path:
+    return Path(root) if root is not None else FROZEN_ROOT / FRONTIER_TOKENIZER_V2
+
+
+def load_frontier_tokenizer_v2(root: str | Path | None = None) -> PythonBPE:
+    """Frontier Tokenizer v2 (EXP-037), verified against its freeze record.
+
+    Encode training text with ``encode_ordinary`` (special-token strings in text stay text) and
+    insert ``special_token_ids["<|endoftext|>"]`` yourself between documents.
+    """
+    tokenizer, _freeze = load_frozen_tokenizer(frontier_tokenizer_v2_dir(root))
     return tokenizer

@@ -38,7 +38,13 @@
 # masked samples) are committed. The build refuses to run without the held-out shard (step 1e
 # stops) and checks the free disk space itself.
 
-param([string]$Exp = "EXP-034", [ValidateSet("inspect", "calibrate", "build")][string]$Task = "inspect")
+# EXP-037 reuses it with -Task pack (see scripts\run_pack_night.ps1): no download (step 3 is
+# skipped); step 4 runs scripts\pack_sangraha_v2.py, which turns the accepted v2 corpus (D-045, in
+# data\frontier_v2\sangraha-slice1-v2\) into training token files with Frontier Tokenizer v2 in
+# data\frontier_v2\sangraha-slice1-v2-tok2\ (git-ignored, stays on this PC). Only the small
+# reports (summary, manifest with counts and fingerprints) are committed.
+
+param([string]$Exp = "EXP-034", [ValidateSet("inspect", "calibrate", "build", "pack")][string]$Task = "inspect")
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -51,7 +57,11 @@ $log = "$outDir\night.log"
 $reportPath = "$outDir\NIGHT_REPORT.txt"
 $python = ".venv\Scripts\python.exe"
 $resultsPrefix = "evals/results/$Exp/"
-if ($Task -eq "build") {
+if ($Task -eq "pack") {
+    $stepScript = "scripts\pack_sangraha_v2.py"
+    $title = "FrontierCorpus v2-slice1: training token files with Frontier Tokenizer v2 (files stay on this PC)"
+    $commitTitle = "v2-slice1 packed for training with frontier-tokenizer-v2 (counts, fingerprints; token files stay on the PC)"
+} elseif ($Task -eq "build") {
     $stepScript = "scripts\build_sangraha_v2.py"
     $title = "Sangraha Verified slice: v2 corpus build with the approved rules (corpus stays on this PC)"
     $commitTitle = "FrontierCorpus v2 build on Sangraha slice-1 (manifest, counts, masked samples; corpus stays on the PC)"
@@ -103,7 +113,7 @@ Add-Report ""
 
 # --- 1) checks ----------------------------------------------------------------------
 $running = Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
-    Where-Object { $_.CommandLine -like "*sangraha_slice.py*" -or $_.CommandLine -like "*build_sangraha_v2.py*" }
+    Where-Object { $_.CommandLine -like "*sangraha_slice.py*" -or $_.CommandLine -like "*build_sangraha_v2.py*" -or $_.CommandLine -like "*pack_sangraha_v2.py*" }
 if ($running) {
     Write-Host "STOP: a Sangraha download/inspection/build is already running (PID $($running.ProcessId -join ', '))."
     Write-Host "Do NOT start another one. Wait for it, or close it if it is stale, then run this again."
@@ -127,6 +137,13 @@ foreach ($f in @($pins, $suite, "scripts\fetch_sangraha_slice.py", $stepScript,
     if (-not (Test-Path $f)) { Stop-Night "missing file: $f" 2 }
 }
 Add-Report "PASS 1c: pin file, protected suite, scripts and .venv found"
+if ($Task -eq "pack") {
+    if (-not (Test-Path "data\frontier_v2\sangraha-slice1-v2\manifest.json")) {
+        Stop-Night "the v2 corpus (data\frontier_v2\sangraha-slice1-v2) is not on this PC - EXP-036 must have run here" 2
+    }
+    if (-not (Test-Path "tokenizers\frontier-tokenizer-v2\FREEZE.json")) { Stop-Night "tokenizers\frontier-tokenizer-v2 missing - run git pull first" 2 }
+    Add-Report "PASS 1c+: v2 corpus and Frontier Tokenizer v2 found"
+}
 
 # No embedded quotes on purpose (PowerShell 5.1 mangles them on the way to cmd.exe):
 # "pip show" exits 1 when the package is missing. The version is the one the tests ran with.
@@ -145,6 +162,8 @@ if (Test-Path "corpora\frontier\v1\shards\heldout") {
     Add-Report "PASS 1e: held-out shard folder found (the protected-suite check will run)"
 } elseif ($Task -eq "build") {
     Stop-Night "corpora\frontier\v1\shards\heldout not found - the build must check every document against the protected suite" 2
+} elseif ($Task -eq "pack") {
+    Add-Report "INFO 1e: not needed for packing (the v2 text was checked against the suite in EXP-036)"
 } else {
     Add-Report "WARN 1e: corpora\frontier\v1\shards\heldout not found - the suite check will say NOT CHECKED"
 }
@@ -159,18 +178,22 @@ try {
 }
 
 # --- 3) download with fingerprint check (one extra retry; downloads resume) -----------
-Add-Report ""
-Add-Report "=== download started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') (about 5.1 GB; progress is printed once a minute) ==="
-$code = (Invoke-Logged "$python -u scripts\fetch_sangraha_slice.py --pins $pins").Code
-if ($code -eq 1) {
-    Add-Report "=== download attempt 1 did not finish (exit 1); retrying once in 2 minutes - it resumes ==="
-    Start-Sleep -Seconds 120
+if ($Task -eq "pack") {
+    Add-Report "SKIP 3: no download needed (packing reads the v2 corpus already on this PC)"
+} else {
+    Add-Report ""
+    Add-Report "=== download started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') (about 5.1 GB; progress is printed once a minute) ==="
     $code = (Invoke-Logged "$python -u scripts\fetch_sangraha_slice.py --pins $pins").Code
+    if ($code -eq 1) {
+        Add-Report "=== download attempt 1 did not finish (exit 1); retrying once in 2 minutes - it resumes ==="
+        Start-Sleep -Seconds 120
+        $code = (Invoke-Logged "$python -u scripts\fetch_sangraha_slice.py --pins $pins").Code
+    }
+    Add-Report "=== download finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | exit code: $code ==="
+    if ($code -eq 2) { Stop-Night "the download did not start (disk space or pin file problem; see the lines above)" 2 }
+    if ($code -ne 0) { Stop-Night "the download did not complete; run the same line again tomorrow - it resumes" 1 }
+    Add-Report "PASS 3: all files downloaded and their SHA-256 fingerprints match the pins"
 }
-Add-Report "=== download finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | exit code: $code ==="
-if ($code -eq 2) { Stop-Night "the download did not start (disk space or pin file problem; see the lines above)" 2 }
-if ($code -ne 0) { Stop-Night "the download did not complete; run the same line again tomorrow - it resumes" 1 }
-Add-Report "PASS 3: all files downloaded and their SHA-256 fingerprints match the pins"
 
 # --- 4) inspection or calibration (measures only; filters nothing), or the v2 build ------------------
 Add-Report ""
