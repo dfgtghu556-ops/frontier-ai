@@ -517,6 +517,15 @@ comes next. They also update the table in §3.
     in the wrong language file) are listed for a later experiment. **Next: the founder decides
     whether v2-slice1 is accepted (proposed D-045: type "approve D-045"). Only after that: record
     D-045 in DECISIONS.md. No training on v2 without its own approved plan.**
+  - **D-045 accepted (founder: "approve D-045", 2026-09-30).** FrontierCorpus v2-slice1 =
+    the EXP-036 build (2,298,196 docs, 2,796,048,213 tokens, 0 suite hits); identity =
+    `evals/results/EXP-036/manifest.json` (sha256 `73487435…`). Text on the founder's laptop
+    only; rebuildable byte-identically from the pinned inputs. Recorded in DECISIONS.md, ROADMAP
+    update block, `lab/registry.json`. **Next (critical path): step 10 GPU bring-up plan. It
+    needs the GPU collaborator's `out\gpu_env\REPORT.txt` (GPU_COLLABORATOR_START_HERE.md §3,
+    `scripts/gpu_env_report.py`); the founder was asked to get it. The plan must say how v2
+    reaches the GPU machine (rebuild from pinned inputs there vs copy) and needs founder
+    approval before any GPU run.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

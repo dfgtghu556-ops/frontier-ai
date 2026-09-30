@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "7d32d5c30e9059e5eef55f5b1a03fdabb389e00012d3eecababa23aafd5d41ad",
+  "source_digest": "0f03c1d1863dc47e5687b157973e39727c178f1a9c0519090d4f7f84ae459234",
   "sources": {
     "EXPERIMENTS.md": "31124f297b39e8983c51e7850076485cd889a409d8bbd774b08c6dc2ea777087",
-    "DECISIONS.md": "09bd64fc4c4029b1bdf15366c78ca2d92b04948f0afc6580553e1bedbeeb7ec7",
+    "DECISIONS.md": "8c64a2ba88381c284dee8885ffefe6d267fb866e5e22b1de5724346972078561",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "c94ca3822618f7314f35f23dc4b31be00702cebef77960422a3a1e8b390f4b75",
+    "lab/registry.json": "fbcbd926715aafc1aacafb890e9584462dd4dfc95928cffdcae70741d91df76a",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -314,8 +314,9 @@
   ],
   "current_work": [
     {
-      "title": "Data scale-up phase 1: FrontierCorpus v2-slice1 built (EXP-036 complete); acceptance awaits the founder (proposed D-045)",
+      "title": "FrontierCorpus v2-slice1 accepted (D-045): 2,796,048,213 tokens; next plan needs founder approval",
       "evidence": [
+        "D-045",
         "EXP-036",
         "EXP-035",
         "EXP-034",
@@ -327,7 +328,7 @@
         "src/frontier_ai/corpus/slice_build.py",
         "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "EXP-036 PC night 2026-09-29/30 (3 h 43 min, results commit 47eae55): 13/13 files built, suite CHECKED with 0 hits in the output, 2,298,196 of 2,332,236 docs kept (96.54% of characters), exact token count 2,796,048,213 for this slice only (frozen tokenizer). One REVIEW line (Assamese empty_after_cleaning 6.50%) is a label shift: non-Indian Latin-script Bible texts removed by the foreign-line rule before the script gate. Founder decides acceptance (proposed D-045); no training on v2 without a separate approved plan"
+      "note": "Founder accepted the EXP-036 build as FrontierCorpus v2-slice1 (\"approve D-045\", 2026-09-30): 13 languages, 2,298,196 documents, 2,796,048,213 tokens (exact, frozen tokenizer, this slice only), 0 suite hits. Text on the founder's laptop only; identity = evals/results/EXP-036/manifest.json. No training on v2 without its own approved plan; step 10 waits for the GPU collaborator's report and a plan"
     }
   ],
   "experiments": [
@@ -1217,6 +1218,21 @@
       ],
       "line": 1435,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1435"
+    },
+    {
+      "id": "D-045",
+      "title": "FrontierCorpus v2-slice1 (the EXP-036 build) is accepted as the first v2 corpus",
+      "date": "2026-09-30",
+      "status": "accepted (founder decision 2026-09-30: \"approve D-045\"; evidence EXP-036, EXP-035, EXP-034)",
+      "category": "accepted",
+      "summary": "1. The EXP-036 build of the Sangraha Verified slice is accepted as FrontierCorpus v2-slice1 (corpus_id frontier-v2-sangraha-slice1): 13 languages, 2,298,196 documents, 5,293,085,961 characters, 2,796,048,213 tokens under Frontier Tokenizer v1 (exact count, this slice only). 2. Its identity is the committed manifest …",
+      "experiments": [
+        "EXP-034",
+        "EXP-035",
+        "EXP-036"
+      ],
+      "line": 1496,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1496"
     }
   ],
   "open_questions": [

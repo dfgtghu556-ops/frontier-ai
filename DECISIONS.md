@@ -1493,6 +1493,59 @@ second level-B source is proposed.
 
 ---
 
+## D-045 — FrontierCorpus v2-slice1 (the EXP-036 build) is accepted as the first v2 corpus
+**Date:** 2026-09-30 · **Status:** accepted (founder decision 2026-09-30: "approve D-045"; evidence EXP-036, EXP-035, EXP-034)
+
+**Decision:**
+1. The EXP-036 build of the Sangraha Verified slice is accepted as **FrontierCorpus v2-slice1**
+   (`corpus_id` `frontier-v2-sangraha-slice1`): 13 languages, 2,298,196 documents,
+   5,293,085,961 characters, **2,796,048,213 tokens** under Frontier Tokenizer v1 (exact count,
+   this slice only).
+2. Its identity is the committed manifest `evals/results/EXP-036/manifest.json`
+   (sha256 `734874358cddf20df98fa812f291e104211cb2d60fb8fae163a0afcb144caf39`), which pins the
+   13 output files by sha256, together with the input pins
+   (`corpora/frontier/v2/sangraha_slice1.json`, revision `8b813c3f`), config fingerprint
+   `43ce349329a98770` and code `24941a071255c303`. A file that does not match the manifest is
+   not v2-slice1.
+3. The build rules are frozen as they ran. Any change (for example the known losses below) is
+   a new pre-registered experiment and a new corpus id; this record is then superseded, not
+   edited.
+
+**Rationale:** every pre-registered completeness check passed (13/13 files; suite CHECKED;
+0 suite hits in the written text; every removal has a reason). The only REVIEW line (Assamese
+`empty_after_cleaning`, 6.50%) is a label shift: non-Indian Latin-script Bible texts lose every
+line to the foreign-line rule before the script gate, so they are counted under a different
+label; the removal itself is correct. The samples of kept documents showed no problem.
+
+**Alternatives rejected:** revising the rules before accepting (the losses found are each
+≤ 1% of a language and better handled as a separate, measured experiment); waiting for a
+larger slice (a verified 2.8 B-token corpus is useful now for data preparation and the step-10
+plan).
+
+**Consequences accepted:**
+- Known small losses stay in this version: quoted verses or translations in another script
+  are cut out of kept documents; documents in the wrong language file are removed rather than
+  moved; some bilingual dictionaries and song lyrics are removed. Candidates for a later
+  experiment (cross-file routing, keeping quoted passages, counting `script_share` and
+  `empty_after_cleaning` together, cross-file duplicates, machine-translation artefacts).
+- The text exists only on the founder's laptop (`data\frontier_v2\sangraha-slice1-v2\`,
+  git-ignored). It is not in the repository. If lost, it can be rebuilt from the pinned inputs
+  with the same code (tests show byte-identical output; about 4 h on the laptop) and checked
+  against the manifest.
+- **Accepting the corpus does not start any training.** Training on v2 needs its own approved
+  plan; step 10 still needs its GPU plan; no fixed mixing percentages (mixtures are compared by
+  experiment). The tokenizer stays frozen (D-041); a future tokenizer v2 trained on v2 text
+  needs its own approval.
+- CC-BY-4.0 attribution travels with the data (`ATTRIBUTION.txt` in the corpus folder, the
+  manifest and every report). Level-B rules of D-044 apply unchanged.
+- FrontierCorpus v1 stays as it is; earlier experiments and their records are not changed.
+
+**Revisit when:** a v3 build is proposed; an error is found in the v2-slice1 text (for example
+a suite hit found later); AI4Bharat changes the dataset's licence; or the law on training
+data changes (D-044).
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

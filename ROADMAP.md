@@ -101,6 +101,12 @@
   filtering (wrong-script text, duplicates, overlap with the protected suite, estimated tokens).
   Next after EXP-034: pre-register the v2 cleaning thresholds from those numbers, add the
   memory-bounded near-duplicate stage and PII scrubbing, then build and count tokens exactly.
+- **Update (2026-09-30):** EXP-034 (measure), EXP-035 (calibrate) and EXP-036 (build) are
+  complete, and the founder accepted the result as **FrontierCorpus v2-slice1** (**D-045**):
+  13 languages, 2,298,196 documents, **2,796,048,213 tokens** (exact count with the frozen
+  tokenizer, this slice only), 0 protected-suite hits. The text stays on the founder's laptop;
+  the manifest is `evals/results/EXP-036/manifest.json`. No training on v2 starts without its
+  own approved plan; step 10 still waits for the GPU collaborator's report and a plan.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and
