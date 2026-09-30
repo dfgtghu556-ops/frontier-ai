@@ -1,7 +1,7 @@
 {
   "schema": "frontier-lab-registry-v1",
   "purpose": "The few facts the Lab OS dashboard needs that are not machine-readable elsewhere in the repository: the status of each MASTER_CONTEXT section 37 step, the compute we have, and the key documents. Everything else in the dashboard is derived automatically from repository files by scripts/export_lab_state.py. Every entry here is cross-checked by tests/test_lab_state.py: step titles must equal MASTER_CONTEXT section 37, cited experiments/decisions must exist, a 'complete' step may only cite complete experiments and accepted decisions, and cited files must exist.",
-  "updated": "2026-09-30",
+  "updated": "2026-10-01",
   "roadmap_steps": [
     {
       "step": 1,
@@ -117,14 +117,15 @@
       "status": "current",
       "evidence": [
         "D-043",
-        "EXP-038"
+        "EXP-038",
+        "EXP-039"
       ],
       "evidence_files": [
+        "evals/results/EXP-038/summary.json",
         "scripts/gpu_bringup.py",
-        "scripts/run_kaggle_exp038.ps1",
-        "GPU_COLLABORATOR_START_HERE.md"
+        "scripts/run_kaggle_exp038.ps1"
       ],
-      "note": "EXP-038 approved and implemented; the Kaggle T4 run has not happened yet"
+      "note": "EXP-038 ran on a Kaggle T4: 3 of 4 correctness checks pass, CPU = GPU failed narrowly; EXP-039 proposed"
     },
     {
       "step": 11,
@@ -241,21 +242,19 @@
   ],
   "current_work": [
     {
-      "title": "EXP-038 approved and implemented: step 10 GPU bring-up on one free Kaggle T4, waiting for the founder to launch it",
+      "title": "EXP-038 complete (first GPU training, one Kaggle T4); CPU = GPU check failed narrowly; EXP-039 proposed, needs \"approve EXP-039\"",
       "evidence": [
         "EXP-038",
-        "D-046",
-        "D-043",
-        "EXP-037"
+        "EXP-039",
+        "D-046"
       ],
       "evidence_files": [
-        "scripts/gpu_bringup.py",
-        "scripts/run_kaggle_exp038.ps1",
-        "scripts/kaggle/exp038_kernel.py",
-        "src/frontier_ai/engine/trainer.py",
+        "evals/results/EXP-038/summary.json",
+        "evals/results/EXP-038/SUMMARY.txt",
+        "evals/results/EXP-038/samples.jsonl",
         "docs/compute_options_and_costs.md"
       ],
-      "note": "Founder approved EXP-038 (2026-09-30). Built: exact-resume trainer fix (the batch generator + fp16 scaler state are now checkpointed; a real bug found by the new test), scripts/gpu_bringup.py (Parts 0-3, CPU smoke-tested), and a one-line PowerShell runner that uploads hi.bin as a private Kaggle dataset, launches a private one-T4 kernel at the pinned commit, waits, and commits only evals/results/EXP-038/. No GPU result exists yet; Kaggle API details NOT VERIFIED until the first run. Cap 6 GPU-hours; no distributed training, no spending."
+      "note": "EXP-038 ran on one Kaggle T4 in 74.1 min (commit 57a53ef, results 740fc16). Correctness: fp16 vs fp32 PASS (1.35%), resume PASS (identical), compile PASS (0.98%), CPU = GPU FAIL (1.81e-3 > 1e-3 tolerance). Speed, fp16 + compile: 69,127 tokens/s at 32 M params (22% MFU), 17,870 at 139 M (26% MFU). First real-data run: 32 M model, 168 M Hindi tokens in 48.6 min, validation 10.590 -> 1.923 nats/token (0.586 bits per byte, not comparable to earlier models); samples fluent-looking but factually wrong, no quality claim. EXP-039 (float64 CPU vs GPU, pass <= 1e-8) is proposed to settle the failed check before step 11; step 10 closes only after it."
     }
   ],
   "baseline_model": {

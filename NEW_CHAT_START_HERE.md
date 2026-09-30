@@ -575,6 +575,15 @@ comes next. They also update the table in §3.
     `evals/results/EXP-038/`). **No GPU result yet. Next: the founder creates a Kaggle API token
     (Kaggle → Settings → API; never pasted into chat) and runs the line; then I record EXP-038
     from the committed results.**
+  - **EXP-038 complete (Kaggle T4, 2026-09-30; results `740fc16`, recorded 2026-10-01).** The
+    first GPU training run: 74.1 min, commit `57a53ef`. fp16, resume and compile checks PASS;
+    **CPU = GPU FAILED** (1.81e-3 > 1e-3). fp16 + compile: 69,127 tokens/s at 32 M (22% MFU),
+    17,870 at 139 M (26%). A 32 M Hindi model reached 1.923 nats/token (0.586 bits per byte) in
+    48.6 min; its samples are fluent-looking, factually wrong, and support no quality claim. The
+    runner's push was rejected once because I pushed a doc during the run; the founder ran
+    `git pull --rebase` and pushed. **EXP-039 proposed** (float64 CPU vs GPU, ≤ 1e-8, plus a
+    runner push fix). **Next: the founder types "approve EXP-039"; no code before that.** The
+    friend's GPU (RTX 3050, 4 GB) awaits his `REPORT.txt`.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

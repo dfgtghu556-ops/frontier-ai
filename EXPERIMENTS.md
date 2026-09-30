@@ -2839,3 +2839,119 @@ same script, later), any spending.
   first run on the founder's account.
 
 **Status:** approved — code ready; waiting for the founder to launch the Kaggle run.
+
+**Results (Kaggle run 2026-09-30, results commit `740fc16`; checked in the sandbox 2026-10-01).**
+All numbers below are copied from `evals/results/EXP-038/summary.json`.
+- **Where it ran:** a private Kaggle script session on commit `57a53ef`, 74.1 minutes, well
+  under the 6 GPU-hour cap. It used a Tesla T4 (14.56 GB usable), driver 580.159.04, PyTorch
+  2.10.0+cu128, Python 3.12.13. Kaggle attached **two** T4s (`device_count` 2); only the first
+  was used, as planned. PyTorch reports `bf16_supported: true` on this sm75 card, but the T4 has
+  no bf16 tensor cores, so fp16 stays the plan for T4s.
+- **Part 0:** the sha256 of `hi.bin` matches the EXP-037 manifest (`9e9c7a4b…`); the model and
+  trainer tests passed on Kaggle (40 passed).
+- **Part 1, correctness (pre-registered tolerances):**
+
+  | Check | Result | Measured | Tolerance |
+  |---|---|---|---|
+  | 1. CPU = GPU (S, fp32, 50 steps) | **FAIL** | max per-step loss difference 1.81e-3 | ≤ 1e-3 |
+  | 2. fp16 vs fp32 (M, 300 steps) | PASS | final val 3.9879 (fp32) vs 4.0416 (fp16): 1.35%; 0 of 300 steps skipped | ≤ 2%; ≤ 5% skipped |
+  | 3. Resume in a fresh process (M, fp32, deterministic) | PASS | steps 101–200 identical (difference 0.0) | ≤ 1e-5 |
+  | 4. `torch.compile` vs eager (M, fp16) | PASS | final val 4.0206 vs 4.0600: 0.98% | ≤ 2% |
+
+  Check 1 failed by a factor of 1.8. The script records only the largest difference, not the
+  step it happened at. The other evidence (identical resume, fp16 and compile agreement,
+  falling validation loss) is consistent with floating-point rounding differences between the
+  CPU and GPU maths libraries that grow over training steps, but **that is an interpretation,
+  not a measurement**. The pre-registered result stands as FAIL, and the tolerance is not
+  changed after the fact. EXP-039 (below) is proposed to settle it.
+- **Part 2, speed and memory** (100 timed steps after warm-up; largest power-of-two batch
+  that fit; MFU = tokens/s × (6·N + 12·layers·width·context) ÷ data-sheet peak, 65 TFLOP/s fp16
+  and 8.1 fp32):
+
+  | Model (params) | Precision | Batch | Tokens/s | Step ms | Peak GB | MFU |
+  |---|---|---|---|---|---|---|
+  | S (5,276,800) | fp32 | 64 | 66,521 | 123 | 4.56 | 26.6% |
+  | S | fp16 | 64 | 98,069 | 84 | 3.91 | 4.9% |
+  | S | fp16 + compile | 64 | 233,820 | 35 | 1.84 | 11.6% |
+  | M (31,709,568) | fp32 | 16 | 14,146 | 579 | 6.92 | 36.3% |
+  | M | fp16 | 32 | 40,802 | 402 | 10.57 | 13.1% |
+  | M | fp16 + compile | 64 | 69,127 | 474 | 11.11 | 22.1% |
+  | L (139,315,968) | fp32 | 8 | 3,401 | 2,409 | 13.02 | 39.6% |
+  | L | fp16 | 8 | 13,088 | 626 | 10.00 | 19.0% |
+  | L | fp16 + compile | 16 | 17,870 | 917 | 11.79 | 26.0% |
+
+  fp32 MFU is measured against the much lower fp32 peak, so the fastest setting at every size
+  is fp16 + compile: 3.5× (S), 4.9× (M) and 5.3× (L) the fp32 tokens/s. Compile also lowered
+  memory enough to double the batch for M and L. The 25% MFU assumed in
+  `docs/compute_options_and_costs.md` is close to the measured 22% (M) and 26% (L) for one T4.
+- **Part 3, first real-data run** (model M, fp16 + compile because check 4 passed; batch 32 ×
+  context 512 = 16,384 tokens per step; lr 1e-3, warm-up 200):
+  - 10,252 steps = 167,968,768 tokens (86% of one pass over the Hindi training split), in 48.6
+    minutes (57,592 tokens/s including the evaluations). The run stopped at the pre-set time
+    cap, not at the end of the data.
+  - Validation loss **10.590 → 1.923 nats/token**; **0.586 bits per byte** (exact byte counts
+    from `hi.meta.json`). It fell at every 500-step evaluation except two small upticks (7,000:
+    2.017 after 2.007; 10,000: 1.934 after 1.925), which is within the noise of 50 evaluation
+    batches. No NaN or infinite loss; the fp16 scaler skipped 1 step.
+  - This bits-per-byte number is **not comparable** to earlier models (different data,
+    tokenizer and split) or to published models (different data and evaluation).
+  - The 5 samples (`samples.jsonl`, for a look only; no quality claim): the model writes
+    fluent-looking Hindi sentences in a news style, but they carry wrong facts (it says both
+    Delhi and Bhopal are the capital of India) and repeat themselves. That is expected of a 32 M
+    model after 49 minutes of training.
+- **Engineering found during the build:** the trainer did not restore the batch generator and
+  the fp16 scaler on resume (fixed in `41fe338`; check 3 above confirms the fix on a GPU). The
+  runner's final push was rejected once because the branch had moved while the GPU ran; the
+  founder pulled with `--rebase` and pushed, and nothing was lost.
+
+**Status:** complete — 3 of 4 correctness checks pass; check 1 (CPU = GPU) FAILED its tolerance (1.81e-3 > 1e-3), follow-up EXP-039 proposed; speed, memory and the first real-data run are recorded.
+
+### EXP-039 — Step 10 follow-up: is the CPU-vs-GPU gap of EXP-038 rounding or a real difference?
+**Date:** 2026-10-01 · **Status:** proposed (needs the founder's "approve EXP-039" before any code)
+
+**Purpose (why this serves the mission):** EXP-038 check 1 failed: over 50 steps, the losses of
+the same model on the CPU and on the T4 differed by up to 1.81e-3 (tolerance 1e-3). Before
+step 11 spends GPU time on scaling experiments, we must know whether the GPU computes **the
+same function** as the tested CPU code (differences then come only from rounding), or whether
+something really differs. The other three checks passed, so rounding is the likely explanation,
+but it is not yet measured.
+
+**Method.** The EXP-038 check 1 setup is kept exactly (model S, the same seed, batches and
+learning-rate schedule, 50 steps, math attention, deterministic mode), with two changes:
+- **Part A: float64 on both devices.** The model, optimizer state and loss run in 64-bit
+  floats on the CPU and on the T4. Rounding error in 64-bit is about 10⁹ times smaller than in
+  32-bit, so if the gap comes from rounding it shrinks to about 1e-11 (a rough estimate from the
+  measured fp32 gap), while a real difference in the computation (a different operation, a bug
+  in a GPU code path) would still show at 1e-4 or more.
+  **Pre-registered pass:** every one of the 50 steps differs by ≤ 1e-8.
+- **Part B: the per-step curve in float32 (numbers only).** The same run in fp32, now recording
+  the difference at **every** step, including step 1 (before any weight update, so it is pure
+  forward-pass rounding). This shows whether the gap starts tiny and grows.
+
+**What each outcome means (fixed now):**
+- **Part A passes:** the GPU path computes the same function; the EXP-038 gap is rounding
+  growth. EXP-038 check 1 stays recorded as FAIL. I would then propose a decision (D-047) to
+  close step 10 and to use the float64 comparison (≤ 1e-8) for future device checks, with fp32
+  differences recorded as numbers only.
+- **Part A fails:** a real difference exists. No step-11 training until it is found and fixed,
+  with a new pre-registered check.
+
+**Where it runs:** Kaggle, one T4, through the same one-line runner; about 15 GPU-minutes
+expected (NOT VERIFIED); hard cap 1 GPU-hour. The private dataset from EXP-038 is reused (the
+sha256 check still runs); no new upload.
+
+**Code to be built after approval** (tested in the sandbox on CPU):
+- a `--part cpu-gpu-diagnostic` mode in `scripts/gpu_bringup.py` for Parts A and B (float64
+  via `model.double()` inside the existing trainer, which keeps the optimizer's references);
+- `scripts/run_kaggle_exp038.ps1` generalised with `-Exp EXP-039` (its own state, kernel
+  `frontier-exp039` and kernel template); plus a fix for the push collision seen in EXP-038: if
+  the push is rejected, it pulls with `--rebase` once and pushes again, and still commits only
+  `evals/results/<EXP>/`.
+
+**Committed evidence:** `evals/results/EXP-039/summary.json` and `SUMMARY.txt` (per-step
+differences for Parts A and B, plus the environment record).
+
+**Not in scope:** step 11 scaling experiments, changing any EXP-038 result or tolerance, the
+collaborator's GPU, multi-GPU work, any spending.
+
+**Status:** proposed — founder approval needed before any code.

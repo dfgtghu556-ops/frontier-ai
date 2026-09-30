@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "66f5b99007e0f17a525d867afb7e9aef15d4f54fa7bdc0fb5a570e7f486e4984",
+  "source_digest": "52c5a7234c1625116c8c97171c053ababce2c43214979ffeafec7378b4dfedab",
   "sources": {
-    "EXPERIMENTS.md": "28a241164f08b982ddae5fb2f6d6c10f0ab2118a5336cefad8d9633e3854a897",
+    "EXPERIMENTS.md": "b6c22b2c8c362407310d901024091476628e89b7d208d0d8bb88d3de660354e7",
     "DECISIONS.md": "9526efcabf6f7b7b791ce12b6c884d726cc1c1117bc55e2c97bdeefc36635494",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "bcad51c07551148eedfa1e86faa0f05d02817d24d70891303ea36eaa79de25c0",
+    "lab/registry.json": "d9344ffe8f798f003a26a3d2182bc5d7effd97ee810918b7e3cc1f1ed66a6f6c",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -25,7 +25,8 @@
     "evals/results/EXP-034/summary.json": "03483a0e46b0a82cd6fc72d920f6afdeb5cc3abfbffd43da559d7caabd56bc47",
     "evals/results/EXP-035/summary.json": "6caa19255b6065ccf8f6fdcaada17a57e5e433d502174a3e6e576231f562ceb3",
     "evals/results/EXP-036/summary.json": "233543d25b385e76bdd5e04c8886a7bd51db5469a3f23d16643eba378172ec9a",
-    "evals/results/EXP-037/summary.json": "2cb837ca390f283daf1375ae8334c1c946b1a5fa714b300e3c3d0cfafb9c9f55"
+    "evals/results/EXP-037/summary.json": "2cb837ca390f283daf1375ae8334c1c946b1a5fa714b300e3c3d0cfafb9c9f55",
+    "evals/results/EXP-038/summary.json": "d611ea1aa18165669f301968610d6aafae7574b65f1d57a7d479a9e4ff1b2241"
   },
   "roadmap": [
     {
@@ -177,17 +178,19 @@
       "status": "current",
       "evidence": [
         "D-043",
-        "EXP-038"
+        "EXP-038",
+        "EXP-039"
       ],
       "evidence_files": [
+        "evals/results/EXP-038/summary.json",
         "scripts/gpu_bringup.py",
-        "scripts/run_kaggle_exp038.ps1",
-        "GPU_COLLABORATOR_START_HERE.md"
+        "scripts/run_kaggle_exp038.ps1"
       ],
-      "note": "EXP-038 approved and implemented; the Kaggle T4 run has not happened yet",
+      "note": "EXP-038 ran on a Kaggle T4: 3 of 4 correctness checks pass, CPU = GPU failed narrowly; EXP-039 proposed",
       "evidence_links": [
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1386",
-        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2733"
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2733",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2909"
       ]
     },
     {
@@ -319,21 +322,19 @@
   ],
   "current_work": [
     {
-      "title": "EXP-038 approved and implemented: step 10 GPU bring-up on one free Kaggle T4, waiting for the founder to launch it",
+      "title": "EXP-038 complete (first GPU training, one Kaggle T4); CPU = GPU check failed narrowly; EXP-039 proposed, needs \"approve EXP-039\"",
       "evidence": [
         "EXP-038",
-        "D-046",
-        "D-043",
-        "EXP-037"
+        "EXP-039",
+        "D-046"
       ],
       "evidence_files": [
-        "scripts/gpu_bringup.py",
-        "scripts/run_kaggle_exp038.ps1",
-        "scripts/kaggle/exp038_kernel.py",
-        "src/frontier_ai/engine/trainer.py",
+        "evals/results/EXP-038/summary.json",
+        "evals/results/EXP-038/SUMMARY.txt",
+        "evals/results/EXP-038/samples.jsonl",
         "docs/compute_options_and_costs.md"
       ],
-      "note": "Founder approved EXP-038 (2026-09-30). Built: exact-resume trainer fix (the batch generator + fp16 scaler state are now checkpointed; a real bug found by the new test), scripts/gpu_bringup.py (Parts 0-3, CPU smoke-tested), and a one-line PowerShell runner that uploads hi.bin as a private Kaggle dataset, launches a private one-T4 kernel at the pinned commit, waits, and commits only evals/results/EXP-038/. No GPU result exists yet; Kaggle API details NOT VERIFIED until the first run. Cap 6 GPU-hours; no distributed training, no spending."
+      "note": "EXP-038 ran on one Kaggle T4 in 74.1 min (commit 57a53ef, results 740fc16). Correctness: fp16 vs fp32 PASS (1.35%), resume PASS (identical), compile PASS (0.98%), CPU = GPU FAIL (1.81e-3 > 1e-3 tolerance). Speed, fp16 + compile: 69,127 tokens/s at 32 M params (22% MFU), 17,870 at 139 M (26% MFU). First real-data run: 32 M model, 168 M Hindi tokens in 48.6 min, validation 10.590 -> 1.923 nats/token (0.586 bits per byte, not comparable to earlier models); samples fluent-looking but factually wrong, no quality claim. EXP-039 (float64 CPU vs GPU, pass <= 1e-8) is proposed to settle the failed check before step 11; step 10 closes only after it."
     }
   ],
   "experiments": [
@@ -715,8 +716,8 @@
       "id": "EXP-038",
       "title": "Step 10: first GPU training bring-up (free Kaggle T4): correctness, speed and memory, and a first real-data run",
       "date": "2026-09-30",
-      "status": "approved — code ready; waiting for the founder to launch the Kaggle run.",
-      "category": "planned",
+      "status": "complete — 3 of 4 correctness checks pass; check 1 (CPU = GPU) FAILED its tolerance (1.81e-3 > 1e-3), follow-up EXP-039 proposed; speed, memory and the first …",
+      "category": "complete",
       "step": null,
       "summary": "every model so far was trained on a CPU. Before any serious model (step 12), the training code must be shown to run correctly on a GPU, and we must measure its speed and memory, because every later cost estimate depends on those numbers (ROADMAP stage 4: \"measure, don't assume\"). The mixed precision, torch.compile and …",
       "decisions": [
@@ -725,6 +726,20 @@
       ],
       "line": 2733,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2733"
+    },
+    {
+      "id": "EXP-039",
+      "title": "Step 10 follow-up: is the CPU-vs-GPU gap of EXP-038 rounding or a real difference?",
+      "date": "2026-10-01",
+      "status": "proposed — founder approval needed before any code.",
+      "category": "planned",
+      "step": null,
+      "summary": "EXP-038 check 1 failed: over 50 steps, the losses of the same model on the CPU and on the T4 differed by up to 1.81e-3 (tolerance 1e-3). Before step 11 spends GPU time on scaling experiments, we must know whether the GPU computes the same function as the tested CPU code (differences then come only from rounding), or …",
+      "decisions": [
+        "D-047"
+      ],
+      "line": 2909,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2909"
     }
   ],
   "experiment_numbers_not_in_log": [

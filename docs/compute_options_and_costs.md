@@ -35,6 +35,11 @@ could not be checked is marked NOT VERIFIED.
 **Assumptions:**
 - An H100 does 989 TFLOP/s peak (bf16). We assume 35% of that is actually used.
 - 2 × T4 do 2 × 65 TFLOP/s peak (fp16). We assume 25% is used.
+  **Measured (EXP-038, 2026-09-30, one T4, fp16 + `torch.compile`):** 22% MFU for a 32 M model
+  (context 512, 69,127 tokens/s) and 26% for a 139 M model (context 1,024, 17,870 tokens/s).
+  So the 25% assumption holds for one T4. Using both T4s at once needs multi-GPU code (step 13),
+  which we don't have yet; with one T4, the 139 M model would need about 43.5 hours for 2.8 B
+  tokens (2.8 B ÷ 17,870 tokens/s), so the Kaggle column below assumes two GPUs we can't use yet.
 - Rent is $2.0–3.5 per H100-hour, at ₹88 per $ (the exchange rate is NOT VERIFIED). IndiaAI rate: ₹92 per hour.
 
 These are final-run costs only. Real projects also spend compute on experiments and failed runs.
@@ -75,3 +80,7 @@ To become "the best model in India" we would have to beat models of that scale. 
   3. Use that record to qualify for IndiaAI compute, grants, TRC or partners.
 
   We should not claim anything we have not measured along the way.
+- **Update (2026-10-01):** EXP-038 measured one Kaggle T4 (see the "Measured" note in §3): the
+  25% MFU assumption is confirmed at 22–26% for fp16 + compile. With one T4 and no multi-GPU code,
+  30 free hours a week train about 7.5 B tokens at 32 M parameters or about 1.9 B tokens at
+  139 M parameters (measured tokens/s × 108,000 seconds). Larger models were not measured.

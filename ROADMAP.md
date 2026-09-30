@@ -112,6 +112,15 @@
   and 13 per-language token files with a fixed 0.5% validation split (2,783,830,088 train +
   14,516,321 validation tokens; all checks passed). The founder accepted both as **D-046**.
   Still no training: step 10 needs a GPU plan and its own approval.
+- **Update (2026-10-01): step 10 has started.** **EXP-038** (approved 2026-09-30) ran on one
+  free Kaggle T4 in 74 minutes: the first GPU training in the project. 3 of 4 pre-registered
+  correctness checks pass (fp16, exact checkpoint resume, `torch.compile`). The CPU = GPU check
+  **failed** its tolerance (1.81e-3 > 1e-3); **EXP-039** (float64 comparison) is proposed to
+  settle whether that is rounding. Measured on one T4 with fp16 + compile: 69,127 tokens/s at
+  32 M parameters and 17,870 at 139 M (22–26% MFU, close to the 25% assumed). A 32 M model
+  trained on 168 M Hindi tokens reached 1.923 nats/token (0.586 bits per byte) on the Hindi
+  validation split; its samples are fluent-looking but factually wrong, and no quality claim is
+  made. Step 10 closes only after EXP-039.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and
