@@ -533,6 +533,14 @@ comes next. They also update the table in §3.
     bypassed). Part 2: PC night packing v2-slice1 → per-language `.bin` (uint16, one
     `<|endoftext|>` per doc) with a 0.5% validation split by sha256(record id); check: train +
     val − docs = EXP-036 exact tokens. **Founder must type "approve EXP-037" before any code.**
+  - **EXP-037 approved ("approve EXP-037", 2026-09-30) and built.** Tokenizer v2 frozen in
+    `tokenizers/frontier-tokenizer-v2/` (gates pass; loader `load_frontier_tokenizer_v2()`;
+    training text must use `encode_ordinary`, never `encode`). Packer
+    `src/frontier_ai/corpus/pack.py` + `scripts/pack_sangraha_v2.py`; PC runner
+    `scripts/run_pack_night.ps1` (no download; token files go to
+    `data\frontier_v2\sangraha-slice1-v2-tok2\`, only `evals/results/EXP-037/` is committed).
+    **Next: the founder runs `powershell -ExecutionPolicy Bypass -File scripts\run_pack_night.ps1`
+    overnight and pastes NIGHT_REPORT.txt; then record the result and propose D-046.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

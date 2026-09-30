@@ -238,7 +238,7 @@
   ],
   "current_work": [
     {
-      "title": "FrontierCorpus v2-slice1 accepted (D-045); EXP-037 (tokenizer v2 special tokens + packed training files) proposed",
+      "title": "EXP-037 approved and built: Frontier Tokenizer v2 frozen; packing v2-slice1 into training files is the next PC night run",
       "evidence": [
         "EXP-037",
         "D-045",
@@ -247,12 +247,13 @@
         "D-044"
       ],
       "evidence_files": [
-        "evals/results/EXP-036/SUMMARY.txt",
-        "evals/results/EXP-036/manifest.json",
-        "src/frontier_ai/corpus/slice_build.py",
-        "corpora/frontier/v2/sangraha_slice1.json"
+        "tokenizers/frontier-tokenizer-v2/FREEZE.json",
+        "src/frontier_ai/corpus/pack.py",
+        "scripts/pack_sangraha_v2.py",
+        "scripts/run_pack_night.ps1",
+        "evals/results/EXP-036/manifest.json"
       ],
-      "note": "Founder accepted the EXP-036 build as FrontierCorpus v2-slice1 (\"approve D-045\", 2026-09-30): 13 languages, 2,298,196 documents, 2,796,048,213 tokens (exact, frozen tokenizer, this slice only), 0 suite hits. Text on the founder's laptop only; identity = evals/results/EXP-036/manifest.json. No training on v2 without its own approved plan; step 10 waits for the GPU collaborator's report and a plan. Meanwhile EXP-037 is proposed (Frontier Tokenizer v2 = v1 + <|endoftext|>, <|pad|>, 126 reserved ids; pack v2-slice1 into per-language .bin files with a 0.5% validation split); needs \"approve EXP-037\" before any code"
+      "note": "Founder approved EXP-037 (\"approve EXP-037\", 2026-09-30). Part 1 done in the sandbox: Frontier Tokenizer v2 = v1 merges + <|endoftext|> (32768), <|pad|> (32769), 126 reserved ids (vocab 32,896), frozen with gates A-E passing; 1,074 texts encode identically to v1 with encode_ordinary. Part 2 built and tested, not yet run: the PC packs FrontierCorpus v2-slice1 (D-045) into per-language uint16 .bin files with a 0.5% validation split by sha256(record id); every pre-registered check stops the run if it fails. Runtime NOT VERIFIED (sandbox-based estimate about 40 min - 2 h 20 min on the laptop); disk about 5.6 GB. Next: founder runs scripts\\run_pack_night.ps1 overnight; then D-046. No training on v2 without its own approved plan; step 10 still waits for the GPU collaborator's report."
     }
   ],
   "baseline_model": {

@@ -429,6 +429,16 @@ def main(argv: list[str] | None = None) -> int:
                         break
     if not ok:
         return 1
+    if args.max_docs is None and not args.only:
+        got = (sum(f["docs"] for f in run["files"]), sum(f["source_tokens_v1"] for f in run["files"]))
+        want = (manifest["totals"]["docs"], manifest["totals"]["tokens"])
+        if got != want:
+            print(
+                f"[pack] STOP: all files give {got} (docs, tokens); the manifest totals are {want}",
+                file=sys.stderr,
+            )
+            return 1
+        run["totals_equal_manifest"] = True
     run["complete"] = (
         args.max_docs is None
         and not args.only

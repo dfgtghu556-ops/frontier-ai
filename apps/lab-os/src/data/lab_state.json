@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "e6b389350b437094fc909a0963dfdaed5dafc620b0a6d25b500b0ba8963ef983",
+  "source_digest": "44ee944672ebad19a4f8e4cd7b0812a9823f686c95a6c6f3c8a9475945d18b2c",
   "sources": {
-    "EXPERIMENTS.md": "4f8ec4decd58e5b92f16f4ed3ea25f92fd86951df03e17192847639de29ac767",
+    "EXPERIMENTS.md": "e8efbfb29e54a6e1324d42df133e63dbc692cc77162360c154f525825d8f5bea",
     "DECISIONS.md": "8c64a2ba88381c284dee8885ffefe6d267fb866e5e22b1de5724346972078561",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "ff2e6b415f065671a4474ca1205b81664a4cd97de1da4064b04442730e794229",
+    "lab/registry.json": "a7040a90dbbdba0292079c57fef334bce44de4b701a2a8d26118541de9b1c127",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -314,7 +314,7 @@
   ],
   "current_work": [
     {
-      "title": "FrontierCorpus v2-slice1 accepted (D-045); EXP-037 (tokenizer v2 special tokens + packed training files) proposed",
+      "title": "EXP-037 approved and built: Frontier Tokenizer v2 frozen; packing v2-slice1 into training files is the next PC night run",
       "evidence": [
         "EXP-037",
         "D-045",
@@ -323,12 +323,13 @@
         "D-044"
       ],
       "evidence_files": [
-        "evals/results/EXP-036/SUMMARY.txt",
-        "evals/results/EXP-036/manifest.json",
-        "src/frontier_ai/corpus/slice_build.py",
-        "corpora/frontier/v2/sangraha_slice1.json"
+        "tokenizers/frontier-tokenizer-v2/FREEZE.json",
+        "src/frontier_ai/corpus/pack.py",
+        "scripts/pack_sangraha_v2.py",
+        "scripts/run_pack_night.ps1",
+        "evals/results/EXP-036/manifest.json"
       ],
-      "note": "Founder accepted the EXP-036 build as FrontierCorpus v2-slice1 (\"approve D-045\", 2026-09-30): 13 languages, 2,298,196 documents, 2,796,048,213 tokens (exact, frozen tokenizer, this slice only), 0 suite hits. Text on the founder's laptop only; identity = evals/results/EXP-036/manifest.json. No training on v2 without its own approved plan; step 10 waits for the GPU collaborator's report and a plan. Meanwhile EXP-037 is proposed (Frontier Tokenizer v2 = v1 + <|endoftext|>, <|pad|>, 126 reserved ids; pack v2-slice1 into per-language .bin files with a 0.5% validation split); needs \"approve EXP-037\" before any code"
+      "note": "Founder approved EXP-037 (\"approve EXP-037\", 2026-09-30). Part 1 done in the sandbox: Frontier Tokenizer v2 = v1 merges + <|endoftext|> (32768), <|pad|> (32769), 126 reserved ids (vocab 32,896), frozen with gates A-E passing; 1,074 texts encode identically to v1 with encode_ordinary. Part 2 built and tested, not yet run: the PC packs FrontierCorpus v2-slice1 (D-045) into per-language uint16 .bin files with a 0.5% validation split by sha256(record id); every pre-registered check stops the run if it fails. Runtime NOT VERIFIED (sandbox-based estimate about 40 min - 2 h 20 min on the laptop); disk about 5.6 GB. Next: founder runs scripts\\run_pack_night.ps1 overnight; then D-046. No training on v2 without its own approved plan; step 10 still waits for the GPU collaborator's report."
     }
   ],
   "experiments": [
@@ -694,7 +695,7 @@
       "id": "EXP-037",
       "title": "Make FrontierCorpus v2-slice1 training-ready: Frontier Tokenizer v2 (special tokens only) and packed token files",
       "date": "2026-09-30",
-      "status": "proposed — founder approval needed before any code.",
+      "status": "approved and built — Frontier Tokenizer v2 frozen in the sandbox (all gates pass); packing code ready; the PC night run is next.",
       "category": "planned",
       "step": null,
       "summary": "v2-slice1 (D-045) is clean text, but a model cannot train on it yet. Two things are missing, and both are needed whichever GPU is used for step 10 (the collaborator's card or a rented one): (1) a document-boundary token. Frontier Tokenizer v1 has no special tokens (D-041, consequence b), so documents would run into …",

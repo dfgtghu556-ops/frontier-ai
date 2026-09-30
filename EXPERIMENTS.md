@@ -2642,3 +2642,29 @@ EXP-036 build, which also tokenized everything, took 3 h 43 min in total).
 v2-slice1 text, mixing ratios, a retrained tokenizer.
 
 **Status:** proposed — founder approval needed before any code.
+
+**Status:** approved and built — Frontier Tokenizer v2 frozen in the sandbox (all gates pass); packing code ready; the PC night run is next.
+- Approved by the founder ("approve EXP-037", 2026-09-30). Code in `99a0cd5` and the commit after it.
+- **Part 1 done (sandbox):** `tokenizers/frontier-tokenizer-v2/` frozen by
+  `scripts/freeze_tokenizer_v2.py`; vocab 32,896 = the 32,768 v1 ids + `<|endoftext|>` (32768),
+  `<|pad|>` (32769) and `<|reserved_0..125|>` (32770–32895). Merges and pre-tokenizer are v1's.
+  Gates A–E pass: 1,074 texts (v1 golden samples, EXP-035 and EXP-036 samples, 4 adversarial
+  strings with literal special-token strings) encode identically to v1 with `encode_ordinary`;
+  every special encodes/decodes as itself; lossless round trip. Re-running the freeze script
+  gives a byte-identical artifact (dir_sha256 `87bd6d31ae8723c2…`; tested); it refuses to
+  overwrite an existing freeze. v1 is unchanged.
+- **Part 2 built, not yet run:** `src/frontier_ai/corpus/pack.py` + `scripts/pack_sangraha_v2.py`,
+  started on the PC by `scripts/run_pack_night.ps1` (`run_data_night.ps1 -Task pack`, no
+  download). Every pre-registered check stops the run if it fails: input sha256 = EXP-036
+  manifest (whose own sha256 must be the D-045 one); every document's v2 count = its EXP-036
+  v1 count (so v2 = v1 is checked on all 2.3 M documents, not only samples); train + val − docs
+  = the EXP-036 count per file and 2,796,048,213 in total; an independent re-read of each file
+  (one `<|endoftext|>` per document, no other special id, both splits end with it); sampled
+  documents decode to their exact text; record ids unique (so none can be in both splits).
+  Split identical on a rerun and output byte-identical across runs and across 1 vs 2 workers:
+  shown in tests (`tests/test_pack.py`, 11 tests); the PC run records a sha256 of the
+  validation id list per file for later comparison.
+- **Runtime estimate (NOT VERIFIED):** in the sandbox, packing took 17%–63% of the time the
+  EXP-036 build code needed for the same synthetic documents (best and worst case for word
+  caching). Scaled to the PC's 3 h 43 min build, that is roughly 40 min – 2 h 20 min. Disk:
+  exactly 2 bytes per token = 5,596,692,818 bytes ≈ 5.6 GB; the script checks free space first.

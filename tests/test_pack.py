@@ -228,6 +228,7 @@ def _cli_fixture(tmp_path: Path, v1) -> tuple[Path, Path, str]:
         "complete": True,
         "source": {"revision": "r", "license_id": "CC-BY-4.0", "attribution": "test"},
         "files": files,
+        "totals": {"docs": sum(f["docs"] for f in files), "tokens": sum(f["tokens"] for f in files)},
     }
     mpath = tmp_path / "manifest.json"
     mpath.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
@@ -262,6 +263,7 @@ def test_cli_end_to_end_reuse_and_refusals(tmp_path, v1):
     summary = json.loads((tmp_path / "ra" / "summary.json").read_text(encoding="utf-8"))
     assert summary["complete"] is False  # not the D-045 manifest
     assert summary["input"]["manifest_is_d045"] is False
+    assert summary["totals_equal_manifest"] is True
     assert summary["totals"]["docs"] == 370
     assert summary["totals"]["tokens"] - 370 == summary["totals"]["source_tokens_v1"]
     man = json.loads((tmp_path / "ra" / "manifest.json").read_text(encoding="utf-8"))
