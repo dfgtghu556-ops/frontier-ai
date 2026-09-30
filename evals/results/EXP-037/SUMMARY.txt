@@ -1,0 +1,26 @@
+EXP-037: FrontierCorpus v2-slice1 packed for training with frontier-tokenizer-v2 (frozen, EXP-037)
+complete: True   workers: 2   started 2026-09-30 17:02:52   finished 2026-09-30 19:38:04
+input: frontier-v2-sangraha-slice1 (manifest sha256 734874358cddf20d..., D-045 match: True)
+split: validation = sha256(record id) in the lowest 5000 ppm (0.50% of documents)
+
+lang        docs  val docs    train tokens   val tokens  EXP-036 tokens  check    min
+as       104,386       529     155,108,306      731,415     155,735,335     OK    9.9
+bn       149,458       790     200,991,341    1,126,883     201,968,766     OK   18.5
+en       348,394     1,727     476,579,709    2,478,452     478,709,767     OK   15.2
+gu       149,466       773     200,828,610    1,093,737     201,772,881     OK   19.7
+hi       171,199       889     196,159,928      999,092     196,987,821     OK   13.8
+kn       173,555       873     165,406,826      823,729     166,057,000     OK   29.9
+ml       173,825       878     140,315,042      702,425     140,843,642     OK   37.8
+mr       174,485       869     180,317,701      860,857     181,004,073     OK   18.4
+or       188,737       886     187,704,674      980,068     188,496,005     OK   19.1
+pa       149,398       746     203,046,650    1,063,292     203,960,544     OK   10.4
+ta       149,525       786     160,474,332      821,678     161,146,485     OK   30.9
+te       174,147       892     195,144,749    1,110,009     196,080,611     OK   34.6
+ur       191,621     1,022     321,752,220    1,724,684     323,285,283     OK   12.0
+all    2,298,196    11,660   2,783,830,088   14,516,321   2,796,048,213
+
+check = train tokens + val tokens - documents == EXP-036 exact count
+(one <|endoftext|> per document).
+Every document's count was also compared with its EXP-036 count, every file was re-read from disk
+(one <|endoftext|> per document, no other special id, both splits end with <|endoftext|>), and
+sampled documents were decoded back to their exact text. Token files stay on this machine.

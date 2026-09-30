@@ -1,0 +1,682 @@
+{
+  "schema": "frontier-pack-v1",
+  "exp_id": "EXP-037",
+  "input": {
+    "corpus_id": "frontier-v2-sangraha-slice1",
+    "manifest": "evals/results/EXP-036/manifest.json",
+    "manifest_sha256": "734874358cddf20df98fa812f291e104211cb2d60fb8fae163a0afcb144caf39",
+    "manifest_is_d045": true,
+    "revision": "8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8",
+    "license_id": "CC-BY-4.0",
+    "attribution": "Sangraha (AI4Bharat): Khan et al. 2024, IndicLLMSuite: A Blueprint for Creating Pre-training and Fine-Tuning Datasets for Indian Languages, ACL 2024 (arXiv:2403.06350). CC-BY-4.0."
+  },
+  "tokenizer": {
+    "name": "frontier-tokenizer-v2 (frozen, EXP-037)",
+    "dir_sha256_16": "87bd6d31ae8723c2",
+    "vocab_size": 32896,
+    "endoftext_id": 32768,
+    "encoding": "encode_ordinary (special-token strings in text stay text)"
+  },
+  "val_ppm": 5000,
+  "code_sha256_16": "4c7423ce3d388ad7",
+  "max_docs_per_file": null,
+  "workers": 2,
+  "data_out": "data\\frontier_v2\\sangraha-slice1-v2-tok2",
+  "machine": {
+    "platform": "Windows-10-10.0.17763-SP0",
+    "python": "3.13.15",
+    "cpu_count": 4
+  },
+  "started_at": "2026-09-30 17:02:52",
+  "files": [
+    {
+      "input": "as.jsonl.gz",
+      "output": {
+        "path": "as.bin",
+        "meta": "as.meta.json",
+        "sha256": "2ae573581f8fedafd928f11dcc062ef143f169112e47ff65e5e67c45b5905834",
+        "bytes": 311679442,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 104386,
+      "source_tokens_v1": 155735335,
+      "tokens": 155839721,
+      "splits": {
+        "train": {
+          "docs": 103857,
+          "tokens": 155108306,
+          "bytes": 767424917,
+          "chars": 291148529
+        },
+        "val": {
+          "docs": 529,
+          "tokens": 731415,
+          "bytes": 3617399,
+          "chars": 1376141
+        }
+      },
+      "val_ids_sha256": "b1058915cc28ba049cc586c00ed72346132733cb98216080362a452c2020499a",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "155108306 + 731415 - 104386 == 155735335",
+        "file_scan": {
+          "tokens_scanned": 155839721,
+          "endoftext": 104386,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 120
+      },
+      "max_docs": null,
+      "seconds": 591.3,
+      "language": "as",
+      "source_id": "sangraha-verified-asm-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "d9cf155ae4de4302a6db2ac6"
+    },
+    {
+      "input": "bn.jsonl.gz",
+      "output": {
+        "path": "bn.bin",
+        "meta": "bn.meta.json",
+        "sha256": "a3b0a1b527af314fa95b3bcdf0a92d894b2bd6dd4b8f8f0df4698732c1adba78",
+        "bytes": 404236448,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 149458,
+      "source_tokens_v1": 201968766,
+      "tokens": 202118224,
+      "splits": {
+        "train": {
+          "docs": 148668,
+          "tokens": 200991341,
+          "bytes": 995476790,
+          "chars": 375482494
+        },
+        "val": {
+          "docs": 790,
+          "tokens": 1126883,
+          "bytes": 5623184,
+          "chars": 2118414
+        }
+      },
+      "val_ids_sha256": "ea0e75bdbdae2bc8c0480ef5c3bcf8b82feb96077c3a9d2729c08abaa7d2c395",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "200991341 + 1126883 - 149458 == 201968766",
+        "file_scan": {
+          "tokens_scanned": 202118224,
+          "endoftext": 149458,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 129
+      },
+      "max_docs": null,
+      "seconds": 1112.4,
+      "language": "bn",
+      "source_id": "sangraha-verified-ben-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "4b056c73b0d010eb2e97cf8d"
+    },
+    {
+      "input": "en.jsonl.gz",
+      "output": {
+        "path": "en.bin",
+        "meta": "en.meta.json",
+        "sha256": "b99f46874888652f83b53549419908066da1b554ca66ad84bfdab3f6993bce72",
+        "bytes": 958116322,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 348394,
+      "source_tokens_v1": 478709767,
+      "tokens": 479058161,
+      "splits": {
+        "train": {
+          "docs": 346667,
+          "tokens": 476579709,
+          "bytes": 920852528,
+          "chars": 915530459
+        },
+        "val": {
+          "docs": 1727,
+          "tokens": 2478452,
+          "bytes": 4794218,
+          "chars": 4760691
+        }
+      },
+      "val_ids_sha256": "0baa22bc9af881b06cb9941b0a40bd7e343d63e33337aa720df940825b587cbc",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "476579709 + 2478452 - 348394 == 478709767",
+        "file_scan": {
+          "tokens_scanned": 479058161,
+          "endoftext": 348394,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 169
+      },
+      "max_docs": null,
+      "seconds": 912.9,
+      "language": "en",
+      "source_id": "sangraha-verified-eng-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "e723bcbc742d0c1014f9d6e6"
+    },
+    {
+      "input": "gu.jsonl.gz",
+      "output": {
+        "path": "gu.bin",
+        "meta": "gu.meta.json",
+        "sha256": "d5df922000d05d5ca4e84cee2d21175d0868f7183dad9bc1041c4ee136420eb2",
+        "bytes": 403844694,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 149466,
+      "source_tokens_v1": 201772881,
+      "tokens": 201922347,
+      "splits": {
+        "train": {
+          "docs": 148693,
+          "tokens": 200828610,
+          "bytes": 918046480,
+          "chars": 355451864
+        },
+        "val": {
+          "docs": 773,
+          "tokens": 1093737,
+          "bytes": 5009284,
+          "chars": 1939706
+        }
+      },
+      "val_ids_sha256": "64c4803c2780fb31cd0278a465cd9c71d0a03f712feb98cca21fb918ab985c13",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "200828610 + 1093737 - 149466 == 201772881",
+        "file_scan": {
+          "tokens_scanned": 201922347,
+          "endoftext": 149466,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 129
+      },
+      "max_docs": null,
+      "seconds": 1179.2,
+      "language": "gu",
+      "source_id": "sangraha-verified-guj-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "2df6b6ef21ab784a6bf8e0d3"
+    },
+    {
+      "input": "hi.jsonl.gz",
+      "output": {
+        "path": "hi.bin",
+        "meta": "hi.meta.json",
+        "sha256": "9e9c7a4b28dbfa0eb32cbc07608a51c461d6df4f40423b357d789bb85a5b4592",
+        "bytes": 394318040,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 171199,
+      "source_tokens_v1": 196987821,
+      "tokens": 197159020,
+      "splits": {
+        "train": {
+          "docs": 170310,
+          "tokens": 196159928,
+          "bytes": 930478949,
+          "chars": 365018986
+        },
+        "val": {
+          "docs": 889,
+          "tokens": 999092,
+          "bytes": 4732595,
+          "chars": 1856472
+        }
+      },
+      "val_ids_sha256": "4a2a4858c33e7fc80682438b333e4943051a74c9005e0eb24279803fded6653f",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "196159928 + 999092 - 171199 == 196987821",
+        "file_scan": {
+          "tokens_scanned": 197159020,
+          "endoftext": 171199,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 134
+      },
+      "max_docs": null,
+      "seconds": 825.4,
+      "language": "hi",
+      "source_id": "sangraha-verified-hin-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "4978780dd6a4c54b5890ed9e"
+    },
+    {
+      "input": "kn.jsonl.gz",
+      "output": {
+        "path": "kn.bin",
+        "meta": "kn.meta.json",
+        "sha256": "e1146bce310630d7bd63a8dc2da03c7a6f5f08c9a25e15a1b949eedfdfdb8b45",
+        "bytes": 332461110,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 173555,
+      "source_tokens_v1": 166057000,
+      "tokens": 166230555,
+      "splits": {
+        "train": {
+          "docs": 172682,
+          "tokens": 165406826,
+          "bytes": 924010278,
+          "chars": 344893727
+        },
+        "val": {
+          "docs": 873,
+          "tokens": 823729,
+          "bytes": 4612223,
+          "chars": 1721173
+        }
+      },
+      "val_ids_sha256": "f63b037adc878d35b20b544db13979252c48be645a4c5698a7b01ba9f9461ccf",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "165406826 + 823729 - 173555 == 166057000",
+        "file_scan": {
+          "tokens_scanned": 166230555,
+          "endoftext": 173555,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 134
+      },
+      "max_docs": null,
+      "seconds": 1792.1,
+      "language": "kn",
+      "source_id": "sangraha-verified-kan-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "ead58fdddf67d35269ae2a14"
+    },
+    {
+      "input": "ml.jsonl.gz",
+      "output": {
+        "path": "ml.bin",
+        "meta": "ml.meta.json",
+        "sha256": "853e4c1f58e187726bf35f972ed65ca37ff2ac3cd2d7f52671a93e92816ca7dc",
+        "bytes": 282034934,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 173825,
+      "source_tokens_v1": 140843642,
+      "tokens": 141017467,
+      "splits": {
+        "train": {
+          "docs": 172947,
+          "tokens": 140315042,
+          "bytes": 854356303,
+          "chars": 311995014
+        },
+        "val": {
+          "docs": 878,
+          "tokens": 702425,
+          "bytes": 4262816,
+          "chars": 1556699
+        }
+      },
+      "val_ids_sha256": "debbb7f2c31b652d9c3c3ce2d7cd505e1e3b522a1f99cbd9d2757982b7c3645e",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "140315042 + 702425 - 173825 == 140843642",
+        "file_scan": {
+          "tokens_scanned": 141017467,
+          "endoftext": 173825,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 134
+      },
+      "max_docs": null,
+      "seconds": 2270.6,
+      "language": "ml",
+      "source_id": "sangraha-verified-mal-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "1133f75badb78c6368997c57"
+    },
+    {
+      "input": "mr.jsonl.gz",
+      "output": {
+        "path": "mr.bin",
+        "meta": "mr.meta.json",
+        "sha256": "aae469daafdd35fd65de09562201e946c5c3b22db2b35a3ae889abc2a322890f",
+        "bytes": 362357116,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 174485,
+      "source_tokens_v1": 181004073,
+      "tokens": 181178558,
+      "splits": {
+        "train": {
+          "docs": 173616,
+          "tokens": 180317701,
+          "bytes": 978975082,
+          "chars": 371217503
+        },
+        "val": {
+          "docs": 869,
+          "tokens": 860857,
+          "bytes": 4644361,
+          "chars": 1765028
+        }
+      },
+      "val_ids_sha256": "222509ed8021c790523c7a32fbfb05b67da9701f4a1c541f2a8ebdb32a9cb1c7",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "180317701 + 860857 - 174485 == 181004073",
+        "file_scan": {
+          "tokens_scanned": 181178558,
+          "endoftext": 174485,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 134
+      },
+      "max_docs": null,
+      "seconds": 1103.6,
+      "language": "mr",
+      "source_id": "sangraha-verified-mar-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "355d8a8623ca287c5fb8e1aa"
+    },
+    {
+      "input": "or.jsonl.gz",
+      "output": {
+        "path": "or.bin",
+        "meta": "or.meta.json",
+        "sha256": "c3813b53123108232e02946aeaa5b03566d1b628ab5747f5ea51380ea16ca569",
+        "bytes": 377369484,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 188737,
+      "source_tokens_v1": 188496005,
+      "tokens": 188684742,
+      "splits": {
+        "train": {
+          "docs": 187851,
+          "tokens": 187704674,
+          "bytes": 929278341,
+          "chars": 350399389
+        },
+        "val": {
+          "docs": 886,
+          "tokens": 980068,
+          "bytes": 4867457,
+          "chars": 1833985
+        }
+      },
+      "val_ids_sha256": "7d4a70fa9ce0d67e6c8d9565eeda1e00b57bc220ca1839ec8ec331bd884d7cde",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "187704674 + 980068 - 188737 == 188496005",
+        "file_scan": {
+          "tokens_scanned": 188684742,
+          "endoftext": 188737,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 137
+      },
+      "max_docs": null,
+      "seconds": 1144.1,
+      "language": "or",
+      "source_id": "sangraha-verified-ori-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "518677f837fa692522b22fc5"
+    },
+    {
+      "input": "pa.jsonl.gz",
+      "output": {
+        "path": "pa.bin",
+        "meta": "pa.meta.json",
+        "sha256": "6e390187039f78f524adfd2385dde8b5a86153b335f531362b4335c9c0f41b54",
+        "bytes": 408219884,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 149398,
+      "source_tokens_v1": 203960544,
+      "tokens": 204109942,
+      "splits": {
+        "train": {
+          "docs": 148652,
+          "tokens": 203046650,
+          "bytes": 901254847,
+          "chars": 356526796
+        },
+        "val": {
+          "docs": 746,
+          "tokens": 1063292,
+          "bytes": 4723391,
+          "chars": 1869821
+        }
+      },
+      "val_ids_sha256": "0f38b203f4fce627d3729b7aeb330e4759752a8972a5ec6f7e51b2d425dde0c0",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "203046650 + 1063292 - 149398 == 203960544",
+        "file_scan": {
+          "tokens_scanned": 204109942,
+          "endoftext": 149398,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 129
+      },
+      "max_docs": null,
+      "seconds": 622.2,
+      "language": "pa",
+      "source_id": "sangraha-verified-pan-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "80e015bf27c6e2200fb6d5c8"
+    },
+    {
+      "input": "ta.jsonl.gz",
+      "output": {
+        "path": "ta.bin",
+        "meta": "ta.meta.json",
+        "sha256": "519dc525fc98ec7994ba650d1a41ac29d309f9b5f2c052493c5126d8430ac6d1",
+        "bytes": 322592020,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 149525,
+      "source_tokens_v1": 161146485,
+      "tokens": 161296010,
+      "splits": {
+        "train": {
+          "docs": 148739,
+          "tokens": 160474332,
+          "bytes": 989007267,
+          "chars": 365443211
+        },
+        "val": {
+          "docs": 786,
+          "tokens": 821678,
+          "bytes": 5055397,
+          "chars": 1868845
+        }
+      },
+      "val_ids_sha256": "0f4189d198afbfe995cf4a4532e320ae0abb8841edd56718c479bdaf99b2eb0c",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "160474332 + 821678 - 149525 == 161146485",
+        "file_scan": {
+          "tokens_scanned": 161296010,
+          "endoftext": 149525,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 129
+      },
+      "max_docs": null,
+      "seconds": 1852.8,
+      "language": "ta",
+      "source_id": "sangraha-verified-tam-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "7828c43b918cc0474acc71a9"
+    },
+    {
+      "input": "te.jsonl.gz",
+      "output": {
+        "path": "te.bin",
+        "meta": "te.meta.json",
+        "sha256": "6abce926afab0c120350644aa72ddc8a8cd07f21b7bee20aa8e47da8950188c1",
+        "bytes": 392509516,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 174147,
+      "source_tokens_v1": 196080611,
+      "tokens": 196254758,
+      "splits": {
+        "train": {
+          "docs": 173255,
+          "tokens": 195144749,
+          "bytes": 922820925,
+          "chars": 345792319
+        },
+        "val": {
+          "docs": 892,
+          "tokens": 1110009,
+          "bytes": 5304915,
+          "chars": 1984709
+        }
+      },
+      "val_ids_sha256": "747d1bdc1639b4c1f32144ecce158db475da7d1c11c08134ce6178dedd6614c5",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "195144749 + 1110009 - 174147 == 196080611",
+        "file_scan": {
+          "tokens_scanned": 196254758,
+          "endoftext": 174147,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 134
+      },
+      "max_docs": null,
+      "seconds": 2073.4,
+      "language": "te",
+      "source_id": "sangraha-verified-tel-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "79f13cecd211c765b977fe87"
+    },
+    {
+      "input": "ur.jsonl.gz",
+      "output": {
+        "path": "ur.bin",
+        "meta": "ur.meta.json",
+        "sha256": "eb62821b31d10da5ff5db063d4f6b1b9455fb3e12ffa59cce0dce7c5da04b097",
+        "bytes": 646953808,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 191621,
+      "source_tokens_v1": 323285283,
+      "tokens": 323476904,
+      "splits": {
+        "train": {
+          "docs": 190599,
+          "tokens": 321752220,
+          "bytes": 912159342,
+          "chars": 516778243
+        },
+        "val": {
+          "docs": 1022,
+          "tokens": 1724684,
+          "bytes": 4863417,
+          "chars": 2755743
+        }
+      },
+      "val_ids_sha256": "1541b1c3e6bd6e1a289a013f991f91ab53e3922fab0418970fe5fc33dd460195",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "321752220 + 1724684 - 191621 == 323285283",
+        "file_scan": {
+          "tokens_scanned": 323476904,
+          "endoftext": 191621,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 138
+      },
+      "max_docs": null,
+      "seconds": 717.8,
+      "language": "ur",
+      "source_id": "sangraha-verified-urd-data-0",
+      "input_sha256_verified": true,
+      "pack_key": "d66b38152de9392574a36fd0"
+    }
+  ],
+  "reused_files": [],
+  "complete": true,
+  "totals_equal_manifest": true,
+  "finished_at": "2026-09-30 19:38:04",
+  "totals": {
+    "docs": 2298196,
+    "tokens": 2798346409,
+    "train_tokens": 2783830088,
+    "val_tokens": 14516321,
+    "val_docs": 11660,
+    "source_tokens_v1": 2796048213
+  }
+}
