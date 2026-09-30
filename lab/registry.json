@@ -238,20 +238,20 @@
   ],
   "current_work": [
     {
-      "title": "D-046 accepted: Frontier Tokenizer v2 + EXP-037 packed files are the v2 training input; next is the step-10 GPU bring-up plan",
+      "title": "Step 10 GPU bring-up proposed as EXP-038 (free Kaggle T4); needs \"approve EXP-038\"",
       "evidence": [
+        "EXP-038",
         "D-046",
-        "EXP-037",
-        "D-045",
-        "EXP-036"
+        "D-043",
+        "EXP-037"
       ],
       "evidence_files": [
-        "evals/results/EXP-037/manifest.json",
-        "tokenizers/frontier-tokenizer-v2/FREEZE.json",
         "docs/compute_options_and_costs.md",
+        "evals/results/EXP-037/manifest.json",
+        "src/frontier_ai/engine/trainer.py",
         "GPU_COLLABORATOR_START_HERE.md"
       ],
-      "note": "Founder accepted D-046 (\"approve D-046\", 2026-09-30): Frontier Tokenizer v2 for all training on v2 data (v1 stays frozen); the EXP-037 packed files (2,783,830,088 train + 14,516,321 validation tokens; manifest evals/results/EXP-037/manifest.json) are the canonical v2-slice1 training input; the validation split is never trained on. No training has started. Next: step-10 GPU bring-up plan (needs founder approval). Compute options and cost estimates for the founder are in docs/compute_options_and_costs.md (free: Kaggle 2xT4 ~30 h/week, TPU Research Cloud by application, the GPU collaborator's machine; subsidised: IndiaAI portal if eligible). The GPU collaborator's REPORT.txt is still awaited."
+      "note": "D-046 accepted. The founder has a Kaggle account (phone verification pending). EXP-038 is proposed (end of EXPERIMENTS.md): first GPU bring-up on one free Kaggle T4, launched from the laptop by one PowerShell line via the Kaggle API; Part 1 correctness (CPU=GPU, fp16 vs fp32, checkpoint resume, torch.compile) with pre-registered tolerances; Part 2 speed/memory/MFU for three bring-up sizes (~5 M, ~32 M, ~139 M params; not chosen model sizes); Part 3 a first real-data run of the ~32 M model on the Hindi packed file (<= 90 min). Cap 6 GPU-hours; no distributed training, no spending. No code before \"approve EXP-038\". The GPU collaborator's REPORT.txt is still awaited (same script can run there later)."
     }
   ],
   "baseline_model": {

@@ -2729,3 +2729,96 @@ validation split fixed and never trained on. Accepting it starts no training.
 
 **Status:** complete (13/13 files packed; all pre-registered checks pass; 2,796,048,213 tokens + 2,298,196 end-of-text markers)
 D-046 is the founder's decision (proposed). No training on v2 without its own approved plan.
+
+### EXP-038 — Step 10: first GPU training bring-up (free Kaggle T4): correctness, speed and memory, and a first real-data run
+**Date:** 2026-09-30 · **Status:** proposed (needs the founder's "approve EXP-038" before any code)
+
+**Purpose (why this serves the mission):** every model so far was trained on a CPU. Before any
+serious model (step 12), the training code must be shown to run **correctly** on a GPU, and we
+must **measure** its speed and memory, because every later cost estimate depends on those numbers
+(ROADMAP stage 4: "measure, don't assume"). The mixed precision, `torch.compile` and GPU
+checkpointing paths in `src/frontier_ai/engine/trainer.py` are written but have never run on a
+GPU. The GPU is Kaggle's free NVIDIA T4 (16 GB), which the founder can use now
+(`docs/compute_options_and_costs.md`). This does not wait for the collaborator's report, and the
+same script can later run on his GPU. **This is bring-up, not a serious model.**
+
+**Where it runs:** one private Kaggle script session, started from the founder's laptop by one
+typed PowerShell line through the Kaggle API (a token he creates once; it stays on his PC and is
+never put in the repo or the chat).
+- The session runs on Kaggle's servers, so the laptop does **not** have to stay on.
+- A second typed line the next day downloads the small results, commits
+  `evals/results/EXP-038/` only and pushes.
+- **One T4, single-GPU only** (no distributed training; that is step 13).
+- Hard limit 6 GPU-hours of the ~30 free hours a week. Expected about 2.5–3 h (NOT VERIFIED).
+
+**Data:** only the Hindi file of the EXP-037 packed data (`hi.bin`, 197,159,020 tokens ≈ 394 MB,
+plus `hi.meta.json`), uploaded once as a **private** Kaggle dataset with the CC-BY-4.0
+attribution.
+- Its sha256 is checked against `evals/results/EXP-037/manifest.json` on the laptop before the
+  upload, and again on Kaggle before training; any mismatch stops the run.
+- One language only, so **no mixing ratio is chosen**.
+- The validation split (D-046) is used only for evaluation.
+
+**Model:** the D-043 architecture (the EXP-B baseline: learned positions, SwiGLU, RMSNorm, tied
+embeddings) with Frontier Tokenizer v2 (vocab 32,896). Three bring-up sizes, used only to measure
+the system; none is a chosen model size:
+- **S** = 4 layers × 128 wide, context 128 (the EXP-B model, about 5.3 M parameters);
+- **M** = 8 × 384, context 512 (about 32 M);
+- **L** = 12 × 768, context 1,024 (about 139 M).
+
+**Part 0 — environment (recorded):** GPU name and memory, compute capability, driver, CUDA and
+PyTorch versions. The repository's model and trainer tests must pass on the Kaggle image before
+anything else runs.
+
+**Part 1 — correctness (pre-registered pass/fail; any failure is reported, and later parts still
+run so the evidence is complete):**
+1. **CPU = GPU.** Model S, fp32, the same seed and the same batches, 50 steps on Kaggle's CPU and
+   on the T4. Pass if every step's training loss differs by ≤ 1e-3.
+2. **Mixed precision is safe.** Model M, 300 steps, fp32 vs fp16 autocast with GradScaler (T4 has
+   no bf16). Pass if the final validation loss differs by ≤ 2% (relative), no loss is NaN or
+   infinite, and ≤ 5% of steps are skipped by the scaler.
+3. **Checkpoint and resume.** Model M, fp32, deterministic mode: 200 steps straight, and 100 steps
+   → save → load in a fresh process → 100 more. Pass if the losses of steps 101–200 differ by
+   ≤ 1e-5.
+4. **`torch.compile`.** Model M, fp16, 300 steps with and without compile. Pass if the final
+   validation loss differs by ≤ 2%. If compile does not work on the T4, that is recorded (not a
+   failure of the run); eager mode is then used.
+
+**Part 2 — measurement (numbers only, no pass/fail):** for S, M and L in fp32 and fp16 (and fp16 +
+compile where it works), 100 timed steps after warm-up with the largest power-of-two batch that
+fits. Recorded:
+- tokens/second, step time and peak GPU memory;
+- model FLOPs utilisation (MFU), against the T4's 65 TFLOP/s fp16 peak (8.1 fp32).
+
+These numbers replace the assumed 25% in `docs/compute_options_and_costs.md`.
+
+**Part 3 — first real-data run:** model M, fp16, on the Hindi training split. It trains for one
+pass (≈196 M tokens) or 90 minutes, whichever comes first, and evaluates on the Hindi validation
+split every 500 steps (bits per byte from the exact byte counts in `hi.meta.json`).
+- Checks: no NaN or infinite loss; the final validation loss is below the first one; the
+  validation loss curve, bits per byte and tokens/second are recorded.
+- 5 fixed Hindi prompts are completed by the model and saved. They are for a look only: no
+  quality claim is made from them.
+- This bits-per-byte figure is **not comparable** to earlier models (different data, tokenizer
+  and split).
+
+**Committed evidence:** `evals/results/EXP-038/`: `summary.json`, `SUMMARY.txt`, `samples.jsonl`
+(model outputs only, no corpus text), and the environment record. Checkpoints stay on Kaggle and
+are not published.
+
+**Code to be built after approval** (tested in the sandbox on CPU; the Kaggle parts cannot be
+tested here):
+- `scripts/gpu_bringup.py` (Parts 0–3, device-agnostic, also runnable on the collaborator's GPU);
+- a small Kaggle script that clones this branch at a pinned commit, installs it without changing
+  Kaggle's PyTorch, and runs `gpu_bringup.py`;
+- `scripts/run_kaggle_exp038.ps1`, which checks the file hash, creates or updates the private
+  dataset, pushes the script session and later fetches, checks and publishes the results.
+
+The Kaggle API details (token type, how a T4 is requested) come from its documentation and are
+**NOT VERIFIED** against the founder's account until the first run.
+
+**Not in scope:** a serious or long training run (step 12), choosing a model size or a data mix
+(step 11 and later), multi-GPU or distributed training (step 13), the collaborator's GPU (the
+same script, later), any spending.
+
+**Status:** proposed — founder approval needed before any code.

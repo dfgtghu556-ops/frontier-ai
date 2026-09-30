@@ -556,6 +556,13 @@ comes next. They also update the table in §3.
     reach for a personal budget). **Next: the founder creates a Kaggle account and verifies his
     phone (free GPU access); then I write the step-10 bring-up plan for Kaggle (and/or the
     collaborator's GPU) for approval. No GPU run before that approval.**
+  - **EXP-038 proposed (2026-09-30; end of EXPERIMENTS.md): step 10 GPU bring-up on one free
+    Kaggle T4.** The founder logged into Kaggle (phone verification still needed for GPUs).
+    Launch/fetch from the laptop via the Kaggle API (token stays on his PC); data = EXP-037
+    `hi.bin` only (private Kaggle dataset, sha256-checked); Parts: 0 env, 1 correctness with
+    pre-registered tolerances, 2 speed/memory/MFU for S/M/L bring-up sizes, 3 first real-data
+    run (M on Hindi, ≤ 90 min). Cap 6 GPU-h. **Founder must type "approve EXP-038" before any
+    code.** Kaggle API details are NOT VERIFIED until the first run.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
