@@ -132,6 +132,16 @@ Everything should pass (one test is skipped on purpose); it takes a few minutes.
 
 ## 4. What happens after setup
 
+> **Update 2026-09-30 (read this first).** Since this page was written the project moved on: a
+> larger Hindi + 12-language training set now exists (EXP-036/037, packed with Frontier
+> Tokenizer v2), and the first GPU bring-up (EXP-038) is being run on a free Kaggle T4 GPU.
+> Your GPU is **not** part of EXP-038. The data table below describes the old v1 files; what
+> your machine would run, and with which data, will be a separate plan written for your GPU
+> after your `REPORT.txt` arrives, and nothing runs before the founder approves it. The known
+> hardware so far (from the founder, not yet measured): NVIDIA GeForce RTX 3050 with 4 GB
+> of GPU memory and a 12th-gen Intel i5. With 4 GB the plan will use small models only.
+
+
 1. The founder shares your report in the project chat; the step-10 plan (what to run, how
    long, what it measures) is written for **your** GPU and approved by the founder.
 2. **Data.** The research data is small (a few tens of MB) but deliberately not in git. The
