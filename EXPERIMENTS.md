@@ -2668,3 +2668,64 @@ v2-slice1 text, mixing ratios, a retrained tokenizer.
   EXP-036 build code needed for the same synthetic documents (best and worst case for word
   caching). Scaled to the PC's 3 h 43 min build, that is roughly 40 min – 2 h 20 min. Disk:
   exactly 2 bytes per token = 5,596,692,818 bytes ≈ 5.6 GB; the script checks free space first.
+
+**Results (PC night run 2026-09-30, results commit `3925cd7`; checked in the sandbox 2026-09-30):**
+Laptop (Windows 10, Python 3.13.15, 2 workers), 17:02:52 → 19:38:04 = **2 h 35 min**, complete,
+no file reused. Packer code `4c7423ce3d388ad7` (= `src/frontier_ai/corpus/pack.py` as committed in
+`99a0cd5`), tokenizer `87bd6d31ae8723c2` (frontier-tokenizer-v2), input manifest sha256 = the
+D-045 one. Evidence: `evals/results/EXP-037/{summary.json,SUMMARY.txt,manifest.json}`.
+
+| lang | docs | val docs | train tokens | val tokens | min |
+|---|---|---|---|---|---|
+| as | 104,386 | 529 | 155,108,306 | 731,415 | 9.9 |
+| bn | 149,458 | 790 | 200,991,341 | 1,126,883 | 18.5 |
+| en | 348,394 | 1,727 | 476,579,709 | 2,478,452 | 15.2 |
+| gu | 149,466 | 773 | 200,828,610 | 1,093,737 | 19.7 |
+| hi | 171,199 | 889 | 196,159,928 | 999,092 | 13.8 |
+| kn | 173,555 | 873 | 165,406,826 | 823,729 | 29.9 |
+| ml | 173,825 | 878 | 140,315,042 | 702,425 | 37.8 |
+| mr | 174,485 | 869 | 180,317,701 | 860,857 | 18.4 |
+| or | 188,737 | 886 | 187,704,674 | 980,068 | 19.1 |
+| pa | 149,398 | 746 | 203,046,650 | 1,063,292 | 10.4 |
+| ta | 149,525 | 786 | 160,474,332 | 821,678 | 30.9 |
+| te | 174,147 | 892 | 195,144,749 | 1,110,009 | 34.6 |
+| ur | 191,621 | 1,022 | 321,752,220 | 1,724,684 | 12.0 |
+| **all** | **2,298,196** | **11,660 (0.507%)** | **2,783,830,088** | **14,516,321** | 270 worker-min |
+
+Token counts include one `<|endoftext|>` per document (2,798,346,409 in total).
+
+Pre-registered checks, recomputed from `summary.json` (not only read from the report):
+- **Input identity: PASS.** Manifest sha256 `73487435…caf39` (D-045). All 13 input files were
+  re-hashed on the PC and matched it.
+- **Token identity: PASS** for all 13 files: train + val − docs = the EXP-036 exact count;
+  in total 2,798,346,409 − 2,298,196 = **2,796,048,213**, equal to the manifest; documents and
+  characters per file also equal the manifest.
+- **v2 = v1 on ordinary text: PASS on every document.** Each document's v2 `encode_ordinary`
+  count equalled its recorded EXP-036 (v1) count (the run stops at the first difference).
+- **File re-read: PASS.** Every file is exactly 2 bytes per token (5,596,692,818 bytes in
+  total); `<|endoftext|>` count = documents; 0 other special ids; both splits end with
+  `<|endoftext|>`.
+- **Exact decoding: PASS** on 1,750 sampled documents (the first 100 of each file + every
+  5,000th).
+- **No record id in both splits: PASS** (record ids unique in every file).
+- **Split and bytes identical on a rerun:** shown in tests (`tests/test_pack.py`); the PC ran
+  once. The sha256 of each file's validation id list is recorded for later comparison.
+- Validation share per language 0.469%–0.533% (target 0.5%; the rule depends only on the id).
+
+**Runtime vs estimate:** 2 h 35 min, about 15 min above the upper end of the sandbox-based
+estimate (40 min – 2 h 20 min). The Dravidian-script files were the slowest (ml 37.8, te 34.6,
+ta 30.9, kn 29.9 min), consistent with more distinct words (fewer cache hits).
+
+**Limits (unchanged from EXP-036):** validation documents are random documents of the same
+languages and sources, so validation loss measures in-distribution fit only; the protected
+held-out suite stays the benchmark. Near-duplicates were removed within each file, not across
+files. The token files exist only on the founder's laptop (5.6 GB); `manifest.json` gives the
+sha256 of each so a copy or a rebuild elsewhere can be verified.
+
+**Proposed decision (founder):** D-046: Frontier Tokenizer v2 is the tokenizer for all training
+on v2 data (v1 stays frozen for reproducing EXP-029–033), and the EXP-037 packed files
+(`evals/results/EXP-037/manifest.json`) are the canonical training input for v2-slice1, with the
+validation split fixed and never trained on. Accepting it starts no training.
+
+**Status:** complete (13/13 files packed; all pre-registered checks pass; 2,796,048,213 tokens + 2,298,196 end-of-text markers)
+D-046 is the founder's decision (proposed). No training on v2 without its own approved plan.

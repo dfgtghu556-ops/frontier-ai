@@ -541,6 +541,13 @@ comes next. They also update the table in §3.
     `data\frontier_v2\sangraha-slice1-v2-tok2\`, only `evals/results/EXP-037/` is committed).
     **Next: the founder runs `powershell -ExecutionPolicy Bypass -File scripts\run_pack_night.ps1`
     overnight and pastes NIGHT_REPORT.txt; then record the result and propose D-046.**
+  - **EXP-037 complete (PC night 2026-09-30, 2 h 35 min, `3925cd7`; recorded in EXPERIMENTS.md).**
+    All pre-registered checks pass: 2,783,830,088 train + 14,516,321 validation tokens
+    (11,660 validation docs), train + val − docs = 2,796,048,213 = EXP-036; token files
+    (5.6 GB) on the founder's laptop only, identity = `evals/results/EXP-037/manifest.json`.
+    **Next: founder decides D-046 ("approve D-046": tokenizer v2 for all v2 training, packed
+    files canonical, validation split never trained on). Then step 10 GPU plan (still waits for
+    the GPU collaborator's REPORT.txt).**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
