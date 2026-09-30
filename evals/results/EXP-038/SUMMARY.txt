@@ -1,0 +1,32 @@
+EXP-038: GPU training bring-up (step 10)
+complete: True   started 2026-09-30 17:26:54   finished 2026-09-30 18:41:01   elapsed 74.1 min
+device: Tesla T4 (14.56 GB)   torch 2.10.0+cu128   CUDA 12.8   python 3.12.13
+
+Part 0 - environment
+  data file sha256 matches EXP-037 manifest: PASS
+  model/trainer tests: PASS (40 passed in 14.34s)
+
+Part 1 - correctness (pre-registered tolerances)
+  1. CPU = GPU (fp32): FAIL  max |loss diff| 1.81e-03 over 50 steps (tolerance 0.001)
+  2. fp16 vs fp32: PASS  final val 3.9879 (fp32) vs 4.0416 (fp16), 1.35% apart; 0 of 300 steps skipped
+  3. checkpoint resume: PASS  steps 101-200: max |loss diff| 0.00e+00 (tolerance 1e-05)
+  4. torch.compile vs eager: PASS  final val 4.0206 (eager) vs 4.0600 (compiled), 0.98% apart
+
+Part 2 - speed and memory (100 timed steps after warm-up)
+  model       params       precision  batch    tokens/s  step ms  peak GB    MFU  status
+  S        5,276,800            fp32     64      66,521      123     4.56  26.6%  ok
+  S        5,276,800            fp16     64      98,069       84     3.91   4.9%  ok
+  S        5,276,800  fp16 + compile     64     233,820       35     1.84  11.6%  ok
+  M       31,709,568            fp32     16      14,146      579     6.92  36.3%  ok
+  M       31,709,568            fp16     32      40,802      402    10.57  13.1%  ok
+  M       31,709,568  fp16 + compile     64      69,127      474    11.11  22.1%  ok
+  L      139,315,968            fp32      8       3,401     2409    13.02  39.6%  ok
+  L      139,315,968            fp16      8      13,088      626    10.00  19.0%  ok
+  L      139,315,968  fp16 + compile     16      17,870      917    11.79  26.0%  ok
+
+Part 3 - first real-data run (model M, Hindi training split)
+  steps 10,252 x 16,384 tokens = 167,968,768 tokens (86% of one pass) in 48.6 min (57,592 tokens/s incl. evals)
+  validation loss 10.590 -> 1.923 nats/token; 0.586 bits per byte (not comparable to earlier models)
+  no NaN/inf: PASS   final below initial: PASS   fp16 skipped steps: 1
+  validation curve (step: loss): 500: 3.132, 1000: 2.697, 1500: 2.487, 2000: 2.360, 2500: 2.291, 3000: 2.226, 3500: 2.167, 4000: 2.142, 4500: 2.118, 5000: 2.106, 5500: 2.064, 6000: 2.020, 6500: 2.007, 7000: 2.017, 7500: 1.985, 8000: 1.981, 8500: 1.948, 9000: 1.939, 9500: 1.925, 10000: 1.934, 10252: 1.923
+  5 sample completions are in samples.jsonl (for a look only; no quality claim).
