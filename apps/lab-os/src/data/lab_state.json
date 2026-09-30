@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "0f03c1d1863dc47e5687b157973e39727c178f1a9c0519090d4f7f84ae459234",
+  "source_digest": "e6b389350b437094fc909a0963dfdaed5dafc620b0a6d25b500b0ba8963ef983",
   "sources": {
-    "EXPERIMENTS.md": "31124f297b39e8983c51e7850076485cd889a409d8bbd774b08c6dc2ea777087",
+    "EXPERIMENTS.md": "4f8ec4decd58e5b92f16f4ed3ea25f92fd86951df03e17192847639de29ac767",
     "DECISIONS.md": "8c64a2ba88381c284dee8885ffefe6d267fb866e5e22b1de5724346972078561",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "fbcbd926715aafc1aacafb890e9584462dd4dfc95928cffdcae70741d91df76a",
+    "lab/registry.json": "ff2e6b415f065671a4474ca1205b81664a4cd97de1da4064b04442730e794229",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -314,12 +314,12 @@
   ],
   "current_work": [
     {
-      "title": "FrontierCorpus v2-slice1 accepted (D-045): 2,796,048,213 tokens; next plan needs founder approval",
+      "title": "FrontierCorpus v2-slice1 accepted (D-045); EXP-037 (tokenizer v2 special tokens + packed training files) proposed",
       "evidence": [
+        "EXP-037",
         "D-045",
         "EXP-036",
-        "EXP-035",
-        "EXP-034",
+        "D-041",
         "D-044"
       ],
       "evidence_files": [
@@ -328,7 +328,7 @@
         "src/frontier_ai/corpus/slice_build.py",
         "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "Founder accepted the EXP-036 build as FrontierCorpus v2-slice1 (\"approve D-045\", 2026-09-30): 13 languages, 2,298,196 documents, 2,796,048,213 tokens (exact, frozen tokenizer, this slice only), 0 suite hits. Text on the founder's laptop only; identity = evals/results/EXP-036/manifest.json. No training on v2 without its own approved plan; step 10 waits for the GPU collaborator's report and a plan"
+      "note": "Founder accepted the EXP-036 build as FrontierCorpus v2-slice1 (\"approve D-045\", 2026-09-30): 13 languages, 2,298,196 documents, 2,796,048,213 tokens (exact, frozen tokenizer, this slice only), 0 suite hits. Text on the founder's laptop only; identity = evals/results/EXP-036/manifest.json. No training on v2 without its own approved plan; step 10 waits for the GPU collaborator's report and a plan. Meanwhile EXP-037 is proposed (Frontier Tokenizer v2 = v1 + <|endoftext|>, <|pad|>, 126 reserved ids; pack v2-slice1 into per-language .bin files with a 0.5% validation split); needs \"approve EXP-037\" before any code"
     }
   ],
   "experiments": [
@@ -689,6 +689,22 @@
       ],
       "line": 2371,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2371"
+    },
+    {
+      "id": "EXP-037",
+      "title": "Make FrontierCorpus v2-slice1 training-ready: Frontier Tokenizer v2 (special tokens only) and packed token files",
+      "date": "2026-09-30",
+      "status": "proposed — founder approval needed before any code.",
+      "category": "planned",
+      "step": null,
+      "summary": "v2-slice1 (D-045) is clean text, but a model cannot train on it yet. Two things are missing, and both are needed whichever GPU is used for step 10 (the collaborator's card or a rented one): (1) a document-boundary token. Frontier Tokenizer v1 has no special tokens (D-041, consequence b), so documents would run into …",
+      "decisions": [
+        "D-041",
+        "D-045",
+        "D-046"
+      ],
+      "line": 2587,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2587"
     }
   ],
   "experiment_numbers_not_in_log": [

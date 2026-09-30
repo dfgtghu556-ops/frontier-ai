@@ -2583,3 +2583,62 @@ its own approved plan (and step 10 still needs a GPU plan).
 **Status:** complete (13/13 files built; 0 suite hits in the output; 2,796,048,213 tokens)
 Suite check CHECKED; the exact token count is for this slice only. Acceptance of v2 is the
 founder's decision (proposed D-045).
+
+### EXP-037 — Make FrontierCorpus v2-slice1 training-ready: Frontier Tokenizer v2 (special tokens only) and packed token files
+**Date:** 2026-09-30 · **Status:** proposed (needs the founder's "approve EXP-037" before any code)
+
+**Purpose (why this serves the mission):** v2-slice1 (D-045) is clean text, but a model cannot
+train on it yet. Two things are missing, and both are needed whichever GPU is used for step 10
+(the collaborator's card or a rented one): (1) **a document-boundary token.** Frontier Tokenizer
+v1 has no special tokens (D-041, consequence b), so documents would run into each other and the
+model would learn false links between unrelated texts; D-041 already says such tokens must
+arrive as `frontier-tokenizer-v2` with appended ids ≥ 32768; (2) **token files in the training
+format** (`.bin` + `.meta.json`, read by `TokenDataset`) with a validation split to watch
+training. Doing this now, while step 10 waits for the GPU report, means the first GPU run can
+start as soon as its plan is approved.
+
+**Part 1 — Frontier Tokenizer v2 = v1 plus special tokens, nothing else.**
+- Same merges, same pre-tokenizer, same 32,768 ordinary ids. Appended: `<|endoftext|>` (32768),
+  `<|pad|>` (32769) and 126 reserved slots `<|reserved_0|>`…`<|reserved_125|>`, so the vocabulary
+  is 32,896 = 257 × 128 (a multiple of 128 is efficient on GPUs). Reserved slots keep model
+  shapes stable when later stages need chat tokens; giving a slot a meaning is still a recorded
+  change.
+- **Ordinary text must encode exactly as in v1** (every id identical) — so every earlier token
+  count and result stays valid. Checked on the protected suite texts, the EXP-036 samples and
+  the v1 corpus.
+- **Special tokens are never created from raw text.** A web page that contains the characters
+  `<|endoftext|>` is encoded as ordinary text; the special id is only inserted by the packing
+  code. (The current tokenizer code would match special strings inside text, so this is tested.)
+- Frozen like v1 (`tokenizers/frontier-tokenizer-v2/`, own FREEZE record, verifying loader); v1
+  stays unchanged. Recorded as a decision (D-046) after the result.
+
+**Part 2 — pack v2-slice1 into training files (PC, one unattended night).**
+- Input: the 13 files of v2-slice1; each must match its sha256 in
+  `evals/results/EXP-036/manifest.json`, or the script stops.
+- Validation split: a document goes to validation when the first bytes of sha256(its record
+  id) put it in the lowest 0.5% (about 11,500 documents, about 14 M tokens). Deterministic and
+  independent of file order. Near-duplicates were already removed within each file (EXP-036),
+  so validation documents have no near-copy in training within the same language.
+- Output (PC only, git-ignored): one `<lang>.bin` + `<lang>.meta.json` per language (uint16;
+  `train || val`; exact bytes and characters per split for bits-per-byte), each document
+  followed by one `<|endoftext|>`. **One file per language, so no mixing ratio is chosen here**
+  (mixtures stay a later, measured comparison).
+- Committed evidence: `evals/results/EXP-037/summary.json` + `SUMMARY.txt` (counts, sha256 of
+  every output file). No text, no token files.
+
+**Pre-registered checks (fixed before any result):**
+- Per language: training tokens + validation tokens − number of documents = the EXP-036 exact
+  count (2,796,048,213 in total). Any difference fails the run.
+- Every document ends with exactly one `<|endoftext|>`; no other special id appears; decoding a
+  sample of documents gives back the exact text.
+- No record id is in both splits; the split is identical on a second run.
+- Tokenizer v2 = v1 on all ordinary text (above); files byte-identical across two runs.
+
+**Runtime and disk: NOT VERIFIED.** Output is about 2 bytes per token ≈ 5.6 GB; the script
+checks free space first. Runtime will be measured in the sandbox before the night run (the
+EXP-036 build, which also tokenized everything, took 3 h 43 min in total).
+
+**Not in scope:** any training (needs the step-10 plan and its own approval), any change to the
+v2-slice1 text, mixing ratios, a retrained tokenizer.
+
+**Status:** proposed — founder approval needed before any code.

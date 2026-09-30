@@ -238,12 +238,12 @@
   ],
   "current_work": [
     {
-      "title": "FrontierCorpus v2-slice1 accepted (D-045): 2,796,048,213 tokens; next plan needs founder approval",
+      "title": "FrontierCorpus v2-slice1 accepted (D-045); EXP-037 (tokenizer v2 special tokens + packed training files) proposed",
       "evidence": [
+        "EXP-037",
         "D-045",
         "EXP-036",
-        "EXP-035",
-        "EXP-034",
+        "D-041",
         "D-044"
       ],
       "evidence_files": [
@@ -252,7 +252,7 @@
         "src/frontier_ai/corpus/slice_build.py",
         "corpora/frontier/v2/sangraha_slice1.json"
       ],
-      "note": "Founder accepted the EXP-036 build as FrontierCorpus v2-slice1 (\"approve D-045\", 2026-09-30): 13 languages, 2,298,196 documents, 2,796,048,213 tokens (exact, frozen tokenizer, this slice only), 0 suite hits. Text on the founder's laptop only; identity = evals/results/EXP-036/manifest.json. No training on v2 without its own approved plan; step 10 waits for the GPU collaborator's report and a plan"
+      "note": "Founder accepted the EXP-036 build as FrontierCorpus v2-slice1 (\"approve D-045\", 2026-09-30): 13 languages, 2,298,196 documents, 2,796,048,213 tokens (exact, frozen tokenizer, this slice only), 0 suite hits. Text on the founder's laptop only; identity = evals/results/EXP-036/manifest.json. No training on v2 without its own approved plan; step 10 waits for the GPU collaborator's report and a plan. Meanwhile EXP-037 is proposed (Frontier Tokenizer v2 = v1 + <|endoftext|>, <|pad|>, 126 reserved ids; pack v2-slice1 into per-language .bin files with a 0.5% validation split); needs \"approve EXP-037\" before any code"
     }
   ],
   "baseline_model": {

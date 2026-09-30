@@ -526,6 +526,13 @@ comes next. They also update the table in §3.
     `scripts/gpu_env_report.py`); the founder was asked to get it. The plan must say how v2
     reaches the GPU machine (rebuild from pinned inputs there vs copy) and needs founder
     approval before any GPU run.**
+  - **EXP-037 proposed (2026-09-30, while the GPU report is awaited; end of EXPERIMENTS.md).**
+    Part 1: Frontier Tokenizer v2 = v1 merges unchanged + `<|endoftext|>` (32768), `<|pad|>`
+    (32769), 126 reserved ids → vocab 32,896; ordinary text must encode exactly as v1; special
+    ids never created from raw text (current `iter_segments` would match them — must be
+    bypassed). Part 2: PC night packing v2-slice1 → per-language `.bin` (uint16, one
+    `<|endoftext|>` per doc) with a 0.5% validation split by sha256(record id); check: train +
+    val − docs = EXP-036 exact tokens. **Founder must type "approve EXP-037" before any code.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
