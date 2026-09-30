@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "d38419a594005ef3a78dcde5ec282dc7f1dbe97717f5f25a773543a7306034cc",
+  "source_digest": "ae313846a489d4ca62e62a6e2176acc09a19acf888cdbc546964fc48a5944657",
   "sources": {
     "EXPERIMENTS.md": "7a9aecd6d8e44f6c0d06f2eef45656017090de2cb3beca8ea8ef61fe32960e78",
     "DECISIONS.md": "9526efcabf6f7b7b791ce12b6c884d726cc1c1117bc55e2c97bdeefc36635494",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "4c180196ac759c09f45e18d6f81e3d61286d86a275bf4fa1d68e5695dc271187",
+    "lab/registry.json": "b395983dfb5dc20784084714272579939946c968e4e0703a025113d12b6e4890",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -328,7 +328,7 @@
         "src/frontier_ai/engine/trainer.py",
         "GPU_COLLABORATOR_START_HERE.md"
       ],
-      "note": "D-046 accepted. The founder has a Kaggle account (phone verification pending). EXP-038 is proposed (end of EXPERIMENTS.md): first GPU bring-up on one free Kaggle T4, launched from the laptop by one PowerShell line via the Kaggle API; Part 1 correctness (CPU=GPU, fp16 vs fp32, checkpoint resume, torch.compile) with pre-registered tolerances; Part 2 speed/memory/MFU for three bring-up sizes (~5 M, ~32 M, ~139 M params; not chosen model sizes); Part 3 a first real-data run of the ~32 M model on the Hindi packed file (<= 90 min). Cap 6 GPU-hours; no distributed training, no spending. No code before \"approve EXP-038\". The GPU collaborator's REPORT.txt is still awaited (same script can run there later)."
+      "note": "D-046 accepted. The founder has a Kaggle account with a verified phone (2026-09-30). EXP-038 is proposed (end of EXPERIMENTS.md): first GPU bring-up on one free Kaggle T4, launched from the laptop by one PowerShell line via the Kaggle API; Part 1 correctness (CPU=GPU, fp16 vs fp32, checkpoint resume, torch.compile) with pre-registered tolerances; Part 2 speed/memory/MFU for three bring-up sizes (~5 M, ~32 M, ~139 M params; not chosen model sizes); Part 3 a first real-data run of the ~32 M model on the Hindi packed file (<= 90 min). Cap 6 GPU-hours; no distributed training, no spending. No code before \"approve EXP-038\". The GPU collaborator's REPORT.txt is still awaited (same script can run there later)."
     }
   ],
   "experiments": [

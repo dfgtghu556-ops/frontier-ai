@@ -251,7 +251,7 @@
         "src/frontier_ai/engine/trainer.py",
         "GPU_COLLABORATOR_START_HERE.md"
       ],
-      "note": "D-046 accepted. The founder has a Kaggle account (phone verification pending). EXP-038 is proposed (end of EXPERIMENTS.md): first GPU bring-up on one free Kaggle T4, launched from the laptop by one PowerShell line via the Kaggle API; Part 1 correctness (CPU=GPU, fp16 vs fp32, checkpoint resume, torch.compile) with pre-registered tolerances; Part 2 speed/memory/MFU for three bring-up sizes (~5 M, ~32 M, ~139 M params; not chosen model sizes); Part 3 a first real-data run of the ~32 M model on the Hindi packed file (<= 90 min). Cap 6 GPU-hours; no distributed training, no spending. No code before \"approve EXP-038\". The GPU collaborator's REPORT.txt is still awaited (same script can run there later)."
+      "note": "D-046 accepted. The founder has a Kaggle account with a verified phone (2026-09-30). EXP-038 is proposed (end of EXPERIMENTS.md): first GPU bring-up on one free Kaggle T4, launched from the laptop by one PowerShell line via the Kaggle API; Part 1 correctness (CPU=GPU, fp16 vs fp32, checkpoint resume, torch.compile) with pre-registered tolerances; Part 2 speed/memory/MFU for three bring-up sizes (~5 M, ~32 M, ~139 M params; not chosen model sizes); Part 3 a first real-data run of the ~32 M model on the Hindi packed file (<= 90 min). Cap 6 GPU-hours; no distributed training, no spending. No code before \"approve EXP-038\". The GPU collaborator's REPORT.txt is still awaited (same script can run there later)."
     }
   ],
   "baseline_model": {

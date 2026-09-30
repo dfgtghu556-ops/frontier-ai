@@ -563,6 +563,9 @@ comes next. They also update the table in §3.
     pre-registered tolerances, 2 speed/memory/MFU for S/M/L bring-up sizes, 3 first real-data
     run (M on Hindi, ≤ 90 min). Cap 6 GPU-h. **Founder must type "approve EXP-038" before any
     code.** Kaggle API details are NOT VERIFIED until the first run.
+  - **Founder verified his Kaggle phone (2026-09-30)** and asked how GPUs work. He was given a
+    5-minute read-only GPU check (new notebook → GPU T4 → `!nvidia-smi`, then stop the session);
+    not a project run. EXP-038 still needs "approve EXP-038" before any code.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
