@@ -387,6 +387,11 @@ def part0(args: argparse.Namespace, rep: Report, data_path: Path) -> bool:
                 timeout=30,
             )
             env["driver"] = q.stdout.strip().splitlines()[0] if q.stdout.strip() else None
+    with contextlib.suppress(Exception):
+        head = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, timeout=30
+        )
+        env["code_commit"] = head.stdout.strip() or None
     rep.data["environment"] = env
     p0: dict[str, Any] = {}
     rep.data["parts"]["part0"] = p0
@@ -666,16 +671,20 @@ def part2(
                     batch_size=batch,
                     max_steps=warm + plan["bench_steps"],
                 )
+                failure = None
                 try:
                     if gpu:
                         torch.cuda.reset_peak_memory_stats()
                     out = run_fit(cfg, ds)
                 except Exception as exc:  # noqa: BLE001
+                    failure = ("oom" if _is_oom(exc) else "error", _err(exc))
+                if failure is not None:
+                    # outside the except block, so the traceback (and the tensors it holds) is released
                     reset_backend()
-                    if _is_oom(exc):
+                    if failure[0] == "oom":
                         row["status"] = f"out of memory at batch {batch}"
                         continue
-                    row["status"] = f"error: {_err(exc)}"
+                    row["status"] = f"error: {failure[1]}"
                     break
                 tokens_per_step = batch * sizes[name]["block_size"]
                 recs = [
