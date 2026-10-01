@@ -598,6 +598,12 @@ comes next. They also update the table in §3.
     new GPU; fp16 + compile T4 default; EXP-038 throughput for step-11 planning. **Next: the
     founder types "approve D-047"; then I write the step-11 plan for approval (no training
     before).**
+  - **D-047 accepted ("approve D-047", 2026-10-01): step 10 complete.** **EXP-040 proposed**
+    (end of EXPERIMENTS.md): step 11 phase 1 on one Kaggle T4, all 13 languages (natural
+    proportion, not a chosen mix), EXP-038 M shape, baseline vs RoPE + GQA-2 × learning rates
+    {5e-4, 1e-3, 2e-3, 4e-3}, plus seed 2 at the 2 best baseline learning rates; equal-weight mean
+    bits per byte over 13 languages; adoption only if BETTER at both learning rates. A 5.6 GB
+    private dataset upload is needed. **Next: "approve EXP-040"; no code before that.**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

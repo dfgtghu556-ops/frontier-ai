@@ -3002,3 +3002,111 @@ All numbers below are copied from `evals/results/EXP-039/summary.json`.
     test, because ordinary rounding alone can exceed it.
 
 **Status:** complete — Part A PASS (float64 CPU = GPU within 5.51e-10 ≤ 1e-8); Part B recorded (float32 1.807e-3); D-047 proposed to close step 10.
+
+### EXP-040 — Step 11, phase 1: learning rate and the RoPE + GQA-2 question at GPU scale, on all 13 languages
+**Date:** 2026-10-01 · **Status:** proposed (needs the founder's "approve EXP-040" before any code)
+
+**Purpose (why this serves the mission):** step 11 has to tell us how big a model our data and
+compute can support, which decides the size of the first serious model (step 12). Before a
+scaling ladder (phase 2) is worth its GPU hours, two settings that every run in it shares have to
+be measured at GPU scale:
+- **the learning rate**: D-043 point 4 says the toy-scale optimum is not carried over, and
+  EXP-038 used 1e-3 without testing;
+- **the architecture**: D-043 point 2 makes RoPE + GQA-2 (rotary positions, 2 key-value
+  heads) the first question at GPU scale. It was better in every comparison at toy scale but
+  not decisively (EXP-033).
+
+Running the ladder first and changing these afterwards would waste it. This is phase 1 of 2. It
+does not pick a model size.
+
+**Plan for step 11 (for orientation; only phase 1 is asked for now):**
+- **Phase 1, EXP-040 (this proposal):** learning rate + RoPE + GQA-2 at one size. About 7 GPU-hours.
+- **Phase 2, EXP-041 (later, its own approval):** a compute-optimal ladder in the style of
+  Chinchilla's IsoFLOP profiles (Hoffmann et al., 2022): about 3 compute budgets × 4–5 model sizes,
+  each run with its own learning-rate schedule. It estimates the best tokens-per-parameter for
+  **our** data and, from that, which model size the 2.78 B training tokens support. This meets
+  the Stage 4 exit criterion ("at least one scaling-law sanity plot from runs we performed").
+  About 15–25 GPU-hours over one or two weeks (NOT VERIFIED).
+- Then a decision record on the step-12 model size, justified by those measurements (MASTER_CONTEXT
+  §22: no arbitrary target size).
+
+**Where it runs:** one private Kaggle session on one T4, through the same runner (`-Exp
+EXP-040`). Hard cap **9 GPU-hours** (sessions end at 12 h), out of about 30 free hours a week.
+Expected about 7 hours (NOT VERIFIED). Each run's result is saved as soon as it ends, so a cut-off
+session still leaves the finished runs.
+
+**Data:** all 13 EXP-037 files (D-046; 2,783,830,088 training tokens, 5,596,692,818 bytes),
+uploaded once from the laptop as a new **private** Kaggle dataset. Every file's sha256 is checked
+against the manifest on the laptop and again on Kaggle.
+- **Sampling:** each training sequence comes from a language chosen in proportion to its
+  training tokens (English 17.1%, Urdu 11.6%, the other 11 languages 5.0–7.3% each), which is the
+  same as reading the whole corpus uniformly. This is the corpus as it is, used as a neutral
+  reference for this comparison only; it is **not** a chosen data mix. Mixtures are compared in
+  their own experiment later.
+- Validation splits (D-046) are used only for evaluation.
+
+**Models** (D-047 settings: fp16 + GradScaler + `torch.compile`; the EXP-038 M shape: 8 layers ×
+384 wide, 6 query heads, context 512, SwiGLU, RMSNorm, tied embeddings, vocab 32,896):
+- **baseline** = D-043 (learned positions, 6 key-value heads): 31,709,568 parameters;
+- **candidate** = RoPE + GQA-2 (rotary positions, 2 key-value heads): 29,940,096 parameters.
+  It is 5.6% smaller, and that is part of the package being tested, as in EXP-033.
+
+**Training (identical for every run):** 100 M tokens per run (6,104 steps × 32 sequences × 512
+tokens, about 30 minutes each on the T4 by EXP-038's speed, NOT VERIFIED); warm-up 200 steps,
+cosine decay to 10% of the peak, AdamW (betas 0.9/0.95, weight decay 0.1), gradient clipping
+1.0. The batch order depends only on the seed, so both architectures see the same data.
+
+**Grid:**
+- **Grid A:** 2 architectures × 4 peak learning rates {5e-4, 1e-3, 2e-3, 4e-3} × seed 1 = 8 runs.
+- **Grid B:** seed 2 for both architectures at the **two learning rates where the baseline did
+  best in grid A** = 4 runs.
+
+That is 12 runs in total; grid A runs first.
+
+**Measurements:**
+- Primary: final validation bits per byte, **mean over the 13 languages with equal weight**
+  (each language's full validation split, exact byte counts). Equal weight is used because the
+  goal is all Indian languages, not the largest ones.
+- Also recorded: the token-weighted mean, per-language bits per byte (English included), the
+  validation curve every 1,000 steps, tokens/s, peak memory, skipped fp16 steps and the GPU
+  time per run.
+
+**Part 0 (before any run):**
+- the environment record; all 13 sha256 checks; the model and trainer tests;
+- the D-047 float64 CPU = GPU check (≤ 1e-8 per step, 50 steps) for the **RoPE + GQA-2** maths,
+  which has never run on a GPU. If that check fails, the candidate runs are skipped, the
+  baseline runs still go ahead, and the failure is reported.
+
+**Pre-registered rules (fixed before any result):**
+1. **Learning rate:** each architecture's step-11 learning rate at this size is the one with the
+   lowest primary metric in grid A. If that is 5e-4 or 4e-3 (the edge of the range), the
+   optimum may lie outside the range: this is reported, and phase 2 widens the range.
+2. **Seed noise:** the noise is the largest |seed 1 − seed 2| of the primary metric over the 4
+   (architecture, learning rate) pairs of grid B.
+3. **Architecture:** at each grid-B learning rate, the difference is baseline mean minus
+   candidate mean over the 2 seeds. It counts as BETTER for the candidate if the difference is
+   larger than the noise, WORSE if it is below −noise, and otherwise NO DETECTABLE DIFFERENCE.
+   **RoPE + GQA-2 is adopted for phase 2 only if it is BETTER at both learning rates**;
+   otherwise the D-043 baseline stays. Either way, a decision record follows.
+4. **Stability:** a run with a NaN or infinite loss, or with more than 5% of steps skipped by the
+   fp16 scaler, counts as failed at that learning rate and is reported.
+
+**Code to be built after approval** (tested in the sandbox on CPU):
+- a multi-file token dataset that samples languages in proportion to their training tokens,
+  is deterministic per seed and reports per-language validation;
+- `scripts/gpu_lr_arch.py` (Part 0, grids A and B, results after every run; reuses the
+  `gpu_bringup.py` helpers);
+- a kernel template, and `scripts/run_kaggle_exp038.ps1` extended with `-Exp EXP-040` and the
+  13-file dataset (one upload of about 5.6 GB from the laptop, sha256-checked first).
+
+**Committed evidence:** `evals/results/EXP-040/summary.json` and `SUMMARY.txt` (every run's
+settings, curves, per-language bits per byte, the verdicts of rules 1–4, and the environment).
+Checkpoints stay on Kaggle.
+
+**Not in scope:** choosing a model size or a data mix, the phase-2 ladder, other architecture
+changes (MoE, MLA, qk-norm and so on; still deferred by D-043), multi-GPU training, the protected
+held-out suite (its text is on the laptop, in v1 tokens), English, math or coding benchmarks (none
+exist in the repository yet; MASTER_CONTEXT §22 lists them as later measurements), and any
+spending.
+
+**Status:** proposed — founder approval needed before any code.

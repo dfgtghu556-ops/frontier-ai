@@ -114,7 +114,7 @@
     {
       "step": 10,
       "title": "Bring up actual GPU training.",
-      "status": "current",
+      "status": "complete",
       "evidence": [
         "D-043",
         "EXP-038",
@@ -126,15 +126,18 @@
         "evals/results/EXP-039/summary.json",
         "scripts/gpu_bringup.py"
       ],
-      "note": "EXP-038 + EXP-039 done (GPU path verified in float64, speed measured); D-047 proposed to close step 10"
+      "note": "single GPU (Kaggle T4): verified in float64, fp16/resume/compile pass, speed and memory measured"
     },
     {
       "step": 11,
       "title": "Run scaling experiments.",
-      "status": "not_started",
-      "evidence": [],
+      "status": "current",
+      "evidence": [
+        "D-047",
+        "EXP-040"
+      ],
       "evidence_files": [],
-      "note": ""
+      "note": "phase 1 (EXP-040: learning rate + RoPE/GQA-2) proposed; phase 2 IsoFLOP ladder later"
     },
     {
       "step": 12,
@@ -243,20 +246,21 @@
   ],
   "current_work": [
     {
-      "title": "EXP-039 PASS (float64 CPU = GPU); D-047 proposed to close step 10, needs \"approve D-047\"",
+      "title": "D-047 accepted: step 10 complete. Step 11 phase 1 proposed as EXP-040 (learning rate + RoPE/GQA-2 on all 13 languages); needs \"approve EXP-040\"",
       "evidence": [
-        "EXP-039",
-        "EXP-038",
         "D-047",
-        "D-043"
+        "EXP-040",
+        "D-043",
+        "EXP-038",
+        "EXP-039"
       ],
       "evidence_files": [
-        "evals/results/EXP-039/summary.json",
-        "evals/results/EXP-039/SUMMARY.txt",
         "evals/results/EXP-038/summary.json",
+        "evals/results/EXP-039/summary.json",
+        "evals/results/EXP-037/manifest.json",
         "docs/compute_options_and_costs.md"
       ],
-      "note": "EXP-039 ran on a Kaggle T4 in 3.1 min (commit e1df707, results d038f2a). Part A float64 CPU vs GPU: max per-step difference 5.51e-10 <= 1e-8, PASS. Part B float32: 1.807e-3, reproducing EXP-038. The gap is rounding amplified by training (both precisions start growing at steps 39-40); EXP-038 check 1 stays FAIL. D-047 (proposed): step 10 complete for single-GPU training; float64 method for future device checks; fp16 + compile as the T4 default; EXP-038 throughput as step-11 planning numbers. Step 11 needs its own plan after D-047."
+      "note": "D-047 accepted 2026-10-01: single-GPU training verified (float64 CPU = GPU, fp16, resume, compile) and measured; fp16 + compile is the T4 default; every new GPU type first runs the float64 check. EXP-040 (proposed, end of EXPERIMENTS.md): one Kaggle T4 session (cap 9 GPU-h, about 7 expected), all 13 languages sampled in natural proportion (not a chosen mix), the EXP-038 M shape: baseline (D-043) vs RoPE + GQA-2, 4 learning rates x seed 1, plus seed 2 at the two best baseline learning rates; pre-registered rules for the learning rate, seed noise and adoption (BETTER at both learning rates). Phase 2 (EXP-041, IsoFLOP ladder) later, with its own approval. No code before \"approve EXP-040\"."
     }
   ],
   "baseline_model": {

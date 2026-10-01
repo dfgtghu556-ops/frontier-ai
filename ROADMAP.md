@@ -127,6 +127,12 @@
   training. **D-047** is proposed to close step 10 (single GPU), make fp16 + compile the T4
   default and use the float64 check for every new GPU type. Step 11 (scaling experiments) gets
   its own plan after D-047.
+- **Update (2026-10-01, D-047 accepted): step 10 is complete** for single-GPU training (Kaggle
+  T4): verified in float64, with fp16, resume and compile passing and speed and memory measured.
+  **Step 11 has started:** phase 1, **EXP-040** (proposed), measures the learning rate and the
+  RoPE + GQA-2 question at GPU scale on all 13 languages. Phase 2 (EXP-041, a compute-optimal
+  IsoFLOP ladder) then estimates which model size our 2.78 B training tokens support. No model
+  size is chosen before those measurements.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

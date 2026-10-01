@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "426e2c1aa8dfb053eae9db5ebbcd8297260e27b520378ad16e4a666536bd3de3",
+  "source_digest": "d80e6e8e5d1f2ac0395271a19e18b5cc93cd7e9400d0b07817a131c76ae15936",
   "sources": {
-    "EXPERIMENTS.md": "a8812e5fb5d53f0a07f04c7e08bd272f5739e0d05c07fd8aa3d7516deb1b5261",
-    "DECISIONS.md": "9704b78f6de4929cc6a36b7dfe9856e41efed0af422c597a7a4c6ed51ab61b8c",
+    "EXPERIMENTS.md": "e0c59b6de7127150344b6c216128605bf2c691b68958aab0a634f88291609db6",
+    "DECISIONS.md": "87be4fa3ee6a73914460c07a4dc912c2ef616b6f477256cb8b61a5d0ae2b2dc2",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "402e8036d87d9a1f9c58b67c9f4978951a0100573376d29a06691a59dcef4faa",
+    "lab/registry.json": "4a5a6939d36303d9876d50abea267f6b8c43e0e946b0b08e3b96c076288f5efa",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -176,7 +176,7 @@
     {
       "step": 10,
       "title": "Bring up actual GPU training.",
-      "status": "current",
+      "status": "complete",
       "evidence": [
         "D-043",
         "EXP-038",
@@ -188,7 +188,7 @@
         "evals/results/EXP-039/summary.json",
         "scripts/gpu_bringup.py"
       ],
-      "note": "EXP-038 + EXP-039 done (GPU path verified in float64, speed measured); D-047 proposed to close step 10",
+      "note": "single GPU (Kaggle T4): verified in float64, fp16/resume/compile pass, speed and memory measured",
       "evidence_links": [
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1386",
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2733",
@@ -199,11 +199,17 @@
     {
       "step": 11,
       "title": "Run scaling experiments.",
-      "status": "not_started",
-      "evidence": [],
+      "status": "current",
+      "evidence": [
+        "D-047",
+        "EXP-040"
+      ],
       "evidence_files": [],
-      "note": "",
-      "evidence_links": []
+      "note": "phase 1 (EXP-040: learning rate + RoPE/GQA-2) proposed; phase 2 IsoFLOP ladder later",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1597",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3006"
+      ]
     },
     {
       "step": 12,
@@ -325,20 +331,21 @@
   ],
   "current_work": [
     {
-      "title": "EXP-039 PASS (float64 CPU = GPU); D-047 proposed to close step 10, needs \"approve D-047\"",
+      "title": "D-047 accepted: step 10 complete. Step 11 phase 1 proposed as EXP-040 (learning rate + RoPE/GQA-2 on all 13 languages); needs \"approve EXP-040\"",
       "evidence": [
-        "EXP-039",
-        "EXP-038",
         "D-047",
-        "D-043"
+        "EXP-040",
+        "D-043",
+        "EXP-038",
+        "EXP-039"
       ],
       "evidence_files": [
-        "evals/results/EXP-039/summary.json",
-        "evals/results/EXP-039/SUMMARY.txt",
         "evals/results/EXP-038/summary.json",
+        "evals/results/EXP-039/summary.json",
+        "evals/results/EXP-037/manifest.json",
         "docs/compute_options_and_costs.md"
       ],
-      "note": "EXP-039 ran on a Kaggle T4 in 3.1 min (commit e1df707, results d038f2a). Part A float64 CPU vs GPU: max per-step difference 5.51e-10 <= 1e-8, PASS. Part B float32: 1.807e-3, reproducing EXP-038. The gap is rounding amplified by training (both precisions start growing at steps 39-40); EXP-038 check 1 stays FAIL. D-047 (proposed): step 10 complete for single-GPU training; float64 method for future device checks; fp16 + compile as the T4 default; EXP-038 throughput as step-11 planning numbers. Step 11 needs its own plan after D-047."
+      "note": "D-047 accepted 2026-10-01: single-GPU training verified (float64 CPU = GPU, fp16, resume, compile) and measured; fp16 + compile is the T4 default; every new GPU type first runs the float64 check. EXP-040 (proposed, end of EXPERIMENTS.md): one Kaggle T4 session (cap 9 GPU-h, about 7 expected), all 13 languages sampled in natural proportion (not a chosen mix), the EXP-038 M shape: baseline (D-043) vs RoPE + GQA-2, 4 learning rates x seed 1, plus seed 2 at the two best baseline learning rates; pre-registered rules for the learning rate, seed noise and adoption (BETTER at both learning rates). Phase 2 (EXP-041, IsoFLOP ladder) later, with its own approval. No code before \"approve EXP-040\"."
     }
   ],
   "experiments": [
@@ -744,6 +751,22 @@
       ],
       "line": 2909,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2909"
+    },
+    {
+      "id": "EXP-040",
+      "title": "Step 11, phase 1: learning rate and the RoPE + GQA-2 question at GPU scale, on all 13 languages",
+      "date": "2026-10-01",
+      "status": "proposed — founder approval needed before any code.",
+      "category": "planned",
+      "step": null,
+      "summary": "step 11 has to tell us how big a model our data and compute can support, which decides the size of the first serious model (step 12). Before a scaling ladder (phase 2) is worth its GPU hours, two settings that every run in it shares have to be measured at GPU scale:",
+      "decisions": [
+        "D-043",
+        "D-046",
+        "D-047"
+      ],
+      "line": 3006,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3006"
     }
   ],
   "experiment_numbers_not_in_log": [
@@ -1308,9 +1331,9 @@
       "id": "D-047",
       "title": "Step 10 is complete: single-GPU training is verified and measured; fp16 + compile is the T4 default; device checks compare in float64",
       "date": "2026-10-01",
-      "status": "proposed (needs the founder's \"approve D-047\"; evidence EXP-038, EXP-039)",
-      "category": "proposed",
-      "summary": "",
+      "status": "accepted (founder decision 2026-10-01: \"approve D-047\"; evidence EXP-038, EXP-039)",
+      "category": "accepted",
+      "summary": "1. Step 10 (GPU training bring-up) is complete for single-GPU training. On a Kaggle T4: - the GPU computes the same function as the tested CPU code (EXP-039 Part A: float64 CPU vs GPU within 5.51e-10 over 50 steps, tolerance 1e-8); - fp16 autocast with GradScaler, exact checkpoint resume in a fresh process and …",
       "experiments": [
         "EXP-038",
         "EXP-039"

@@ -1595,9 +1595,9 @@ found in the packed files; or a model needs more reserved special tokens than th
 ---
 
 ## D-047 — Step 10 is complete: single-GPU training is verified and measured; fp16 + compile is the T4 default; device checks compare in float64
-**Date:** 2026-10-01 · **Status:** proposed (needs the founder's "approve D-047"; evidence EXP-038, EXP-039)
+**Date:** 2026-10-01 · **Status:** accepted (founder decision 2026-10-01: "approve D-047"; evidence EXP-038, EXP-039)
 
-**Decision (proposed):**
+**Decision:**
 1. **Step 10 (GPU training bring-up) is complete for single-GPU training.** On a Kaggle T4:
    - the GPU computes the same function as the tested CPU code (EXP-039 Part A: float64 CPU vs
      GPU within 5.51e-10 over 50 steps, tolerance 1e-8);
