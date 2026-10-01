@@ -605,6 +605,15 @@ comes next. They also update the table in §3.
     bits per byte over 13 languages; adoption only if BETTER at both learning rates. A 5.6 GB
     private dataset upload is needed. **Next: "approve EXP-040"; no code before that.**
 
+  - **EXP-040 approved ("approve EXP-040", 2026-10-01) and built:** `src/frontier_ai/data/multi.py`
+    (13 languages sampled in proportion to their tokens), `scripts/gpu_lr_arch.py` (Part 0 with
+    the float64 check for RoPE + GQA-2, grids A and B, per-language validation, rules 1–4),
+    `scripts/kaggle/exp040_kernel.py`, `scripts/run_kaggle_exp040.ps1` (`-Exp EXP-040` in the
+    EXP-038 runner; one private 5.6 GB upload `frontier-v2-tok2-13lang`), tests in
+    `tests/test_gpu_lr_arch.py`. **Next: the founder runs**
+    `powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp040.ps1`; results come back to
+    `evals/results/EXP-040/`. Don't push while that runner is going.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

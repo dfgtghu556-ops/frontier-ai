@@ -133,6 +133,8 @@
   RoPE + GQA-2 question at GPU scale on all 13 languages. Phase 2 (EXP-041, a compute-optimal
   IsoFLOP ladder) then estimates which model size our 2.78 B training tokens support. No model
   size is chosen before those measurements.
+- **Update (2026-10-01, later):** EXP-040 approved and built; it waits for the founder's
+  Kaggle run (one 5.6 GB private upload, then about 7 GPU-hours, at most 9).
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

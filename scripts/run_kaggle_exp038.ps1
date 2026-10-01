@@ -30,6 +30,12 @@
 # scripts\run_kaggle_exp039.ps1): its own state folder out\kaggle\EXP-039, its own kernel
 # <username>/frontier-exp039 from scripts\kaggle\exp039_kernel.py, the SAME private dataset (no new
 # upload; the fingerprint is still checked) and the Kaggle username remembered from EXP-038.
+# EXP-040 (step 11 phase 1: learning rate + RoPE/GQA-2 on all 13 languages; scripts\run_kaggle_exp040.ps1)
+# also reuses it with -Exp EXP-040, but needs ALL 13 EXP-037 token files: each one's fingerprint is
+# checked against the manifest, they are staged with hard links (no 5.6 GB copy; a plain copy only
+# if hard links are impossible) and uploaded ONCE as a second PRIVATE dataset
+# <username>/frontier-v2-tok2-13lang (about 5.6 GB; the upload time depends on the internet line).
+# Its kernel has a hard limit of 9 GPU-hours, so the runner waits up to 11 hours.
 # If the final push is rejected because the branch moved meanwhile (seen once in EXP-038), it pulls
 # with --rebase once and pushes again; the results commit still touches only evals/results/<EXP>/.
 #
@@ -40,7 +46,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039")][string]$Exp = "EXP-038", [switch]$Relaunch)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040")][string]$Exp = "EXP-038", [switch]$Relaunch)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -62,6 +68,22 @@ $kernelSlug = "frontier-$expSlug"
 $userFile = "out\kaggle\username.txt"
 $pollSeconds = 600
 $maxWaitHours = 9
+# which token files go into the private dataset (EXP-038/039: Hindi only; EXP-040: all 13 languages)
+$dataFiles = @("hi.bin", "hi.meta.json")
+$datasetSubtitle = "Hindi training tokens for the frontier-ai project (EXP-037)"
+$datasetText = "Hindi part of FrontierCorpus v2-slice1"
+$uploadSize = "about 400 MB"
+$expectedRun = "EXP-038 took about 80 minutes, EXP-039 should be shorter"
+if ($Exp -eq "EXP-040") {
+    $datasetSlug = "frontier-v2-tok2-13lang"
+    $dataFiles = @()
+    foreach ($f in (Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json).files) { $dataFiles += @($f.path, $f.meta) }
+    $datasetSubtitle = "13-language training tokens for the frontier-ai project (EXP-037)"
+    $datasetText = "All 13 language files of FrontierCorpus v2-slice1"
+    $uploadSize = "about 5.6 GB"
+    $expectedRun = "EXP-040 is expected to take about 7 hours, at most 9"
+    $maxWaitHours = 11
+}
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
 $report = New-Object System.Collections.Generic.List[string]
@@ -134,13 +156,18 @@ if ($launching) {
 }
 
 if (-not $state.dataset_ready) {
-    foreach ($f in @("$dataDir\hi.bin", "$dataDir\hi.meta.json")) {
-        if (-not (Test-Path $f)) { Stop-Run "missing $f - the EXP-037 token files must be on this PC" 2 }
+    foreach ($f in $dataFiles) {
+        if (-not (Test-Path "$dataDir\$f")) { Stop-Run "missing $dataDir\$f - the EXP-037 token files must be on this PC" 2 }
     }
-    $expected = ((Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json).files | Where-Object { $_.path -eq "hi.bin" }).sha256
-    $actual = (Get-FileHash -Algorithm SHA256 "$dataDir\hi.bin").Hash
-    if ($actual -ine $expected) { Stop-Run "hi.bin fingerprint $actual does not match the EXP-037 manifest ($expected)" 2 }
-    Add-Report "PASS 1e: hi.bin matches its EXP-037 fingerprint"
+    $manifestFiles = (Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json).files
+    $bins = @($dataFiles | Where-Object { $_ -like "*.bin" })
+    foreach ($b in $bins) {
+        $expected = ($manifestFiles | Where-Object { $_.path -eq $b }).sha256
+        Write-Host "  checking the fingerprint of $b ..."
+        $actual = (Get-FileHash -Algorithm SHA256 "$dataDir\$b").Hash
+        if ($actual -ine $expected) { Stop-Run "$b fingerprint $actual does not match the EXP-037 manifest ($expected)" 2 }
+    }
+    Add-Report "PASS 1e: $($bins.Count) token file(s) match their EXP-037 fingerprints ($($bins -join ', '))"
 }
 
 # --- 2) Kaggle access ------------------------------------------------------------------------
@@ -191,27 +218,35 @@ if (-not $state.dataset_ready) {
     if ($r.Code -ne 0 -or -not (($r.Lines -join " ") -match "ready")) {
         $stage = "$outDir\dataset"
         New-Item -ItemType Directory -Force $stage | Out-Null
-        Copy-Item "$dataDir\hi.bin" "$stage\hi.bin" -Force
-        Copy-Item "$dataDir\hi.meta.json" "$stage\hi.meta.json" -Force
+        foreach ($f in $dataFiles) {
+            $src = Join-Path (Get-Location) "$dataDir\$f"
+            $dst = Join-Path (Get-Location) "$stage\$f"
+            if ((Test-Path $dst) -and ((Get-Item $dst).Length -eq (Get-Item $src).Length)) { continue }
+            # a hard link costs no disk space and no time; copy only if links are impossible here
+            try { New-Item -ItemType HardLink -Path $dst -Target $src -ErrorAction Stop | Out-Null }
+            catch { Copy-Item $src $dst -Force }
+        }
         $meta = [ordered]@{
             title = $datasetSlug
             id = $datasetId
             licenses = @(@{ name = "other" })
-            subtitle = "Hindi training tokens for the frontier-ai project (EXP-037)"
-            description = "Hindi part of FrontierCorpus v2-slice1 (from AI4Bharat Sangraha Verified, CC BY 4.0), tokenized with frontier-tokenizer-v2. Private working copy for EXP-038. Source: https://huggingface.co/datasets/ai4bharat/sangraha"
+            subtitle = $datasetSubtitle
+            description = "$datasetText (from AI4Bharat Sangraha Verified, CC BY 4.0), tokenized with frontier-tokenizer-v2. Private working copy for $Exp. Source: https://huggingface.co/datasets/ai4bharat/sangraha"
         }
         Write-Ascii "$stage\dataset-metadata.json" ($meta | ConvertTo-Json -Depth 5)
         Add-Report ""
-        Add-Report "=== uploading hi.bin (about 400 MB) as PRIVATE dataset $datasetId - $(Get-Date -Format 'HH:mm:ss') ==="
+        Add-Report "=== uploading $($dataFiles.Count) files ($uploadSize) as PRIVATE dataset $datasetId - $(Get-Date -Format 'HH:mm:ss') ==="
         $r = Invoke-Logged "$kaggle datasets create -p $stage"
         if ($r.Code -ne 0) { Stop-Run "the dataset upload failed (see the lines above); run this line again to retry" 1 }
         $ready = $false
-        for ($i = 0; $i -lt 60 -and -not $ready; $i++) {
+        $readyChecks = 60  # every 30 seconds: 30 minutes (EXP-040's 5.6 GB: 90 minutes)
+        if ($Exp -eq "EXP-040") { $readyChecks = 180 }
+        for ($i = 0; $i -lt $readyChecks -and -not $ready; $i++) {
             Start-Sleep -Seconds 30
             $r = Invoke-Logged "$kaggle datasets status $datasetId"
             $ready = ($r.Code -eq 0) -and (($r.Lines -join " ") -match "ready")
         }
-        if (-not $ready) { Stop-Run "Kaggle has not finished processing the dataset after 30 minutes; run this line again later" 1 }
+        if (-not $ready) { Stop-Run "Kaggle has not finished processing the dataset after $($readyChecks / 2) minutes; run this line again later" 1 }
     }
     $state.dataset_ready = $true
     Save-State $state
@@ -256,7 +291,7 @@ try {
     & powercfg /change hibernate-timeout-ac 0
 } catch { }
 Add-Report ""
-Add-Report "=== waiting for the GPU run (checks every 10 minutes; EXP-038 took about 80 minutes, EXP-039 should be shorter). Leave the PC on and online. ==="
+Add-Report "=== waiting for the GPU run (checks every 10 minutes; $expectedRun). Leave the PC on and online. ==="
 $deadline = (Get-Date).AddHours($maxWaitHours)
 $status = ""
 while ($true) {

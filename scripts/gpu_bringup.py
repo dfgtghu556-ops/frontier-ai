@@ -144,16 +144,15 @@ def sha256_file(path: Path) -> str:
 
 
 def make_cfg(size: dict[str, int], data_path: Path, out_dir: Path, **train: Any) -> ExperimentConfig:
-    """The D-043 architecture (EXP-B baseline) at a bring-up size, Frontier Tokenizer v2 vocab."""
-    model = ModelConfig(
-        vocab_size=32896,
-        dropout=0.0,
-        norm="rmsnorm",
-        ffn="swiglu",
-        pos="learned",
-        tie_embeddings=True,
-        **size,
+    """The D-043 architecture (EXP-B baseline) at a bring-up size, Frontier Tokenizer v2 vocab.
+
+    `size` may also override architecture fields (EXP-040: ``pos="rope"``, ``n_kv_head=2``).
+    """
+    model_kw: dict[str, Any] = dict(
+        vocab_size=32896, dropout=0.0, norm="rmsnorm", ffn="swiglu", pos="learned", tie_embeddings=True
     )
+    model_kw.update(size)
+    model = ModelConfig(**model_kw)
     optim = OptimConfig(
         lr=train.pop("lr", 3e-3),
         warmup_steps=train.pop("warmup_steps", 20),
@@ -162,6 +161,7 @@ def make_cfg(size: dict[str, int], data_path: Path, out_dir: Path, **train: Any)
         grad_clip=1.0,
     )
     batch = train.pop("batch_size", 16)
+    data_seed = train.pop("data_seed", 1337)
     base = dict(
         out_dir=str(out_dir),
         accum_steps=1,
@@ -179,7 +179,7 @@ def make_cfg(size: dict[str, int], data_path: Path, out_dir: Path, **train: Any)
     base.update(train)
     return ExperimentConfig(
         model=model,
-        data=DataConfig(path=str(data_path), batch_size=batch, seed=1337),
+        data=DataConfig(path=str(data_path), batch_size=batch, seed=data_seed),
         optim=optim,
         train=TrainConfig(**base),
     )
@@ -394,7 +394,8 @@ def render_text(d: dict[str, Any]) -> str:
 
 
 # ------------------------------------------------------------------ parts --
-def part0(args: argparse.Namespace, rep: Report, data_path: Path) -> bool:
+def environment_record() -> dict[str, Any]:
+    """Python, PyTorch, CUDA, GPU and the code commit (no host or user names)."""
     env: dict[str, Any] = {
         "python": platform.python_version(),
         "platform": platform.platform(),
@@ -425,6 +426,33 @@ def part0(args: argparse.Namespace, rep: Report, data_path: Path) -> bool:
             ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, timeout=30
         )
         env["code_commit"] = head.stdout.strip() or None
+    return env
+
+
+def run_repo_tests() -> tuple[bool, str]:
+    """The model/trainer tests on this machine; returns (passed, last summary line)."""
+    cmd = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-q",
+        "-o",
+        "addopts=",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_model.py",
+        "tests/test_engine.py",
+        "tests/test_train_smoke.py",
+    ]
+    res = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=1800)
+    tail = [ln for ln in res.stdout.strip().splitlines() if ln.strip()]
+    if res.returncode != 0:
+        print(res.stdout[-4000:], res.stderr[-2000:], flush=True)
+    return res.returncode == 0, (tail[-1] if tail else res.stderr.strip()[-200:])
+
+
+def part0(args: argparse.Namespace, rep: Report, data_path: Path) -> bool:
+    env = environment_record()
     rep.data["environment"] = env
     p0: dict[str, Any] = {}
     rep.data["parts"]["part0"] = p0
@@ -457,25 +485,8 @@ def part0(args: argparse.Namespace, rep: Report, data_path: Path) -> bool:
     if args.skip_tests:
         p0["tests_pass"], p0["tests_line"] = None, "skipped"
     else:
-        cmd = [
-            sys.executable,
-            "-m",
-            "pytest",
-            "-q",
-            "-o",
-            "addopts=",
-            "-p",
-            "no:cacheprovider",
-            "tests/test_model.py",
-            "tests/test_engine.py",
-            "tests/test_train_smoke.py",
-        ]
-        res = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=1800)
-        tail = [ln for ln in res.stdout.strip().splitlines() if ln.strip()]
-        p0["tests_pass"] = res.returncode == 0
-        p0["tests_line"] = tail[-1] if tail else res.stderr.strip()[-200:]
-        if res.returncode != 0:
-            print(res.stdout[-4000:], res.stderr[-2000:], flush=True)
+        p0["tests_pass"], p0["tests_line"] = run_repo_tests()
+        if not p0["tests_pass"]:
             rep.data["stopped"] = "the model/trainer tests failed on this machine"
             rep.save()
             return False

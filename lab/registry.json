@@ -136,8 +136,11 @@
         "D-047",
         "EXP-040"
       ],
-      "evidence_files": [],
-      "note": "phase 1 (EXP-040: learning rate + RoPE/GQA-2) proposed; phase 2 IsoFLOP ladder later"
+      "evidence_files": [
+        "scripts/gpu_lr_arch.py",
+        "src/frontier_ai/data/multi.py"
+      ],
+      "note": "phase 1 (EXP-040: learning rate + RoPE/GQA-2) approved and built, waiting for the Kaggle run; phase 2 IsoFLOP ladder later"
     },
     {
       "step": 12,
@@ -246,7 +249,7 @@
   ],
   "current_work": [
     {
-      "title": "D-047 accepted: step 10 complete. Step 11 phase 1 proposed as EXP-040 (learning rate + RoPE/GQA-2 on all 13 languages); needs \"approve EXP-040\"",
+      "title": "EXP-040 approved and built (step 11 phase 1: learning rate + RoPE/GQA-2 on all 13 languages); waiting for the founder's Kaggle run",
       "evidence": [
         "D-047",
         "EXP-040",
@@ -258,9 +261,11 @@
         "evals/results/EXP-038/summary.json",
         "evals/results/EXP-039/summary.json",
         "evals/results/EXP-037/manifest.json",
-        "docs/compute_options_and_costs.md"
+        "docs/compute_options_and_costs.md",
+        "scripts/gpu_lr_arch.py",
+        "scripts/run_kaggle_exp040.ps1"
       ],
-      "note": "D-047 accepted 2026-10-01: single-GPU training verified (float64 CPU = GPU, fp16, resume, compile) and measured; fp16 + compile is the T4 default; every new GPU type first runs the float64 check. EXP-040 (proposed, end of EXPERIMENTS.md): one Kaggle T4 session (cap 9 GPU-h, about 7 expected), all 13 languages sampled in natural proportion (not a chosen mix), the EXP-038 M shape: baseline (D-043) vs RoPE + GQA-2, 4 learning rates x seed 1, plus seed 2 at the two best baseline learning rates; pre-registered rules for the learning rate, seed noise and adoption (BETTER at both learning rates). Phase 2 (EXP-041, IsoFLOP ladder) later, with its own approval. No code before \"approve EXP-040\"."
+      "note": "EXP-040 approved 2026-10-01 (\"approve EXP-040\") and built: multi-language dataset, scripts/gpu_lr_arch.py, Kaggle kernel and runner (-Exp EXP-040; one 5.6 GB private upload). Next: the founder runs scripts\\run_kaggle_exp040.ps1. D-047 accepted 2026-10-01: single-GPU training verified (float64 CPU = GPU, fp16, resume, compile) and measured; fp16 + compile is the T4 default; every new GPU type first runs the float64 check. EXP-040 (proposed, end of EXPERIMENTS.md): one Kaggle T4 session (cap 9 GPU-h, about 7 expected), all 13 languages sampled in natural proportion (not a chosen mix), the EXP-038 M shape: baseline (D-043) vs RoPE + GQA-2, 4 learning rates x seed 1, plus seed 2 at the two best baseline learning rates; pre-registered rules for the learning rate, seed noise and adoption (BETTER at both learning rates). Phase 2 (EXP-041, IsoFLOP ladder) later, with its own approval. "
     }
   ],
   "baseline_model": {

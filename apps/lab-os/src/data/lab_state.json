@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "d80e6e8e5d1f2ac0395271a19e18b5cc93cd7e9400d0b07817a131c76ae15936",
+  "source_digest": "a785581ba9a744062732663131ca9c587f40030eacb369a7693edc87154a5b2a",
   "sources": {
-    "EXPERIMENTS.md": "e0c59b6de7127150344b6c216128605bf2c691b68958aab0a634f88291609db6",
+    "EXPERIMENTS.md": "93d299af4fee25f510984681dbcf1678a924e53c822472e9b3e0603f231253c6",
     "DECISIONS.md": "87be4fa3ee6a73914460c07a4dc912c2ef616b6f477256cb8b61a5d0ae2b2dc2",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "4a5a6939d36303d9876d50abea267f6b8c43e0e946b0b08e3b96c076288f5efa",
+    "lab/registry.json": "9290c0cba378a2680149bd2b752312709b220dc55c16a8ffc3b6b0d8c1167c9d",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -204,8 +204,11 @@
         "D-047",
         "EXP-040"
       ],
-      "evidence_files": [],
-      "note": "phase 1 (EXP-040: learning rate + RoPE/GQA-2) proposed; phase 2 IsoFLOP ladder later",
+      "evidence_files": [
+        "scripts/gpu_lr_arch.py",
+        "src/frontier_ai/data/multi.py"
+      ],
+      "note": "phase 1 (EXP-040: learning rate + RoPE/GQA-2) approved and built, waiting for the Kaggle run; phase 2 IsoFLOP ladder later",
       "evidence_links": [
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1597",
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3006"
@@ -331,7 +334,7 @@
   ],
   "current_work": [
     {
-      "title": "D-047 accepted: step 10 complete. Step 11 phase 1 proposed as EXP-040 (learning rate + RoPE/GQA-2 on all 13 languages); needs \"approve EXP-040\"",
+      "title": "EXP-040 approved and built (step 11 phase 1: learning rate + RoPE/GQA-2 on all 13 languages); waiting for the founder's Kaggle run",
       "evidence": [
         "D-047",
         "EXP-040",
@@ -343,9 +346,11 @@
         "evals/results/EXP-038/summary.json",
         "evals/results/EXP-039/summary.json",
         "evals/results/EXP-037/manifest.json",
-        "docs/compute_options_and_costs.md"
+        "docs/compute_options_and_costs.md",
+        "scripts/gpu_lr_arch.py",
+        "scripts/run_kaggle_exp040.ps1"
       ],
-      "note": "D-047 accepted 2026-10-01: single-GPU training verified (float64 CPU = GPU, fp16, resume, compile) and measured; fp16 + compile is the T4 default; every new GPU type first runs the float64 check. EXP-040 (proposed, end of EXPERIMENTS.md): one Kaggle T4 session (cap 9 GPU-h, about 7 expected), all 13 languages sampled in natural proportion (not a chosen mix), the EXP-038 M shape: baseline (D-043) vs RoPE + GQA-2, 4 learning rates x seed 1, plus seed 2 at the two best baseline learning rates; pre-registered rules for the learning rate, seed noise and adoption (BETTER at both learning rates). Phase 2 (EXP-041, IsoFLOP ladder) later, with its own approval. No code before \"approve EXP-040\"."
+      "note": "EXP-040 approved 2026-10-01 (\"approve EXP-040\") and built: multi-language dataset, scripts/gpu_lr_arch.py, Kaggle kernel and runner (-Exp EXP-040; one 5.6 GB private upload). Next: the founder runs scripts\\run_kaggle_exp040.ps1. D-047 accepted 2026-10-01: single-GPU training verified (float64 CPU = GPU, fp16, resume, compile) and measured; fp16 + compile is the T4 default; every new GPU type first runs the float64 check. EXP-040 (proposed, end of EXPERIMENTS.md): one Kaggle T4 session (cap 9 GPU-h, about 7 expected), all 13 languages sampled in natural proportion (not a chosen mix), the EXP-038 M shape: baseline (D-043) vs RoPE + GQA-2, 4 learning rates x seed 1, plus seed 2 at the two best baseline learning rates; pre-registered rules for the learning rate, seed noise and adoption (BETTER at both learning rates). Phase 2 (EXP-041, IsoFLOP ladder) later, with its own approval. "
     }
   ],
   "experiments": [
@@ -756,7 +761,7 @@
       "id": "EXP-040",
       "title": "Step 11, phase 1: learning rate and the RoPE + GQA-2 question at GPU scale, on all 13 languages",
       "date": "2026-10-01",
-      "status": "proposed — founder approval needed before any code.",
+      "status": "approved — code ready; waiting for the founder to launch the Kaggle run.",
       "category": "planned",
       "step": null,
       "summary": "step 11 has to tell us how big a model our data and compute can support, which decides the size of the first serious model (step 12). Before a scaling ladder (phase 2) is worth its GPU hours, two settings that every run in it shares have to be measured at GPU scale:",

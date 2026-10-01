@@ -3110,3 +3110,31 @@ exist in the repository yet; MASTER_CONTEXT §22 lists them as later measurement
 spending.
 
 **Status:** proposed — founder approval needed before any code.
+
+**Approved and built (2026-10-01):** the founder typed "approve EXP-040". Code as listed above,
+no change to the pre-registered plan or rules:
+- `src/frontier_ai/data/multi.py`: `MultiTokenDataset` (each sequence's language drawn in
+  proportion to its training tokens, deterministic per seed, the Trainer's interface; per-language
+  files in `.parts`) and `full_split_loss` (a whole validation split in non-overlapping windows).
+- `scripts/gpu_lr_arch.py`: Part 0 (environment, all 13 sha256 checks, tests, the float64 CPU =
+  GPU check for RoPE + GQA-2), grids A and B, the full per-language validation after every run
+  (on the uncompiled model; bits per byte from each file's exact byte count), the primary metric
+  (equal-weight mean of 13), the token-weighted mean, a pooled corpus figure, curves, tokens/s,
+  peak memory, skipped steps; `summary.json` + `SUMMARY.txt` rewritten after every run; a run is
+  started only if it still fits the 9-hour budget (otherwise "skipped (time budget)"); rules 1–4
+  evaluated at the end ("not decided" if grid B is incomplete; the baseline then stays).
+- `scripts/gpu_bringup.py`: `make_cfg` accepts architecture overrides and a data seed; the
+  environment record and the test run are now shared functions. EXP-038/039 behaviour unchanged.
+- `scripts/kaggle/exp040_kernel.py`, `scripts/run_kaggle_exp040.ps1` and `-Exp EXP-040` in
+  `scripts/run_kaggle_exp038.ps1`: the 13 bin + meta files from the manifest, every fingerprint
+  checked on the laptop, staged with hard links (copy only as a fallback), one upload as the
+  private dataset `frontier-v2-tok2-13lang`, up to 90 minutes for Kaggle to process it, up to 11
+  hours of waiting for the kernel.
+- Tests: `tests/test_gpu_lr_arch.py` (dataset sums, sampling proportions, determinism, the rules,
+  a CPU smoke run of all 12 runs on three tiny language files, the missing-file stop, the
+  pre-registered plan and parameter counts) and EXP-040 checks in `tests/test_kaggle_exp038.py`.
+  The CPU smoke numbers are not results.
+
+Upload time for 5.6 GB from the laptop and the GPU time per run: NOT VERIFIED until the run.
+
+**Status:** approved — code ready; waiting for the founder to launch the Kaggle run.
