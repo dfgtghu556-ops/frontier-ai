@@ -118,14 +118,15 @@
       "evidence": [
         "D-043",
         "EXP-038",
-        "EXP-039"
+        "EXP-039",
+        "D-047"
       ],
       "evidence_files": [
         "evals/results/EXP-038/summary.json",
-        "scripts/gpu_bringup.py",
-        "scripts/run_kaggle_exp038.ps1"
+        "evals/results/EXP-039/summary.json",
+        "scripts/gpu_bringup.py"
       ],
-      "note": "EXP-038 ran on a Kaggle T4: 3 of 4 correctness checks pass, CPU = GPU failed narrowly; EXP-039 approved and built, launch pending"
+      "note": "EXP-038 + EXP-039 done (GPU path verified in float64, speed measured); D-047 proposed to close step 10"
     },
     {
       "step": 11,
@@ -242,20 +243,20 @@
   ],
   "current_work": [
     {
-      "title": "EXP-039 approved and built (float64 CPU vs GPU check); waiting for the founder to launch it on Kaggle",
+      "title": "EXP-039 PASS (float64 CPU = GPU); D-047 proposed to close step 10, needs \"approve D-047\"",
       "evidence": [
-        "EXP-038",
         "EXP-039",
-        "D-046"
+        "EXP-038",
+        "D-047",
+        "D-043"
       ],
       "evidence_files": [
+        "evals/results/EXP-039/summary.json",
+        "evals/results/EXP-039/SUMMARY.txt",
         "evals/results/EXP-038/summary.json",
-        "scripts/gpu_bringup.py",
-        "scripts/run_kaggle_exp039.ps1",
-        "scripts/kaggle/exp039_kernel.py",
         "docs/compute_options_and_costs.md"
       ],
-      "note": "EXP-038 ran on one Kaggle T4 in 74.1 min (commit 57a53ef, results 740fc16). Correctness: fp16 vs fp32 PASS (1.35%), resume PASS (identical), compile PASS (0.98%), CPU = GPU FAIL (1.81e-3 > 1e-3 tolerance). Speed, fp16 + compile: 69,127 tokens/s at 32 M params (22% MFU), 17,870 at 139 M (26% MFU). First real-data run: 32 M model, 168 M Hindi tokens in 48.6 min, validation 10.590 -> 1.923 nats/token (0.586 bits per byte, not comparable to earlier models); samples fluent-looking but factually wrong, no quality claim. EXP-039 (float64 CPU vs GPU, pass <= 1e-8) was approved 2026-10-01 and built (exact per-step losses via a forward hook; norms and loss now stay float64 in a float64 model); the founder launches it with scripts/run_kaggle_exp039.ps1. Step 10 closes only after it."
+      "note": "EXP-039 ran on a Kaggle T4 in 3.1 min (commit e1df707, results d038f2a). Part A float64 CPU vs GPU: max per-step difference 5.51e-10 <= 1e-8, PASS. Part B float32: 1.807e-3, reproducing EXP-038. The gap is rounding amplified by training (both precisions start growing at steps 39-40); EXP-038 check 1 stays FAIL. D-047 (proposed): step 10 complete for single-GPU training; float64 method for future device checks; fp16 + compile as the T4 default; EXP-038 throughput as step-11 planning numbers. Step 11 needs its own plan after D-047."
     }
   ],
   "baseline_model": {

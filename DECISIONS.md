@@ -1594,6 +1594,61 @@ found in the packed files; or a model needs more reserved special tokens than th
 
 ---
 
+## D-047 — Step 10 is complete: single-GPU training is verified and measured; fp16 + compile is the T4 default; device checks compare in float64
+**Date:** 2026-10-01 · **Status:** proposed (needs the founder's "approve D-047"; evidence EXP-038, EXP-039)
+
+**Decision (proposed):**
+1. **Step 10 (GPU training bring-up) is complete for single-GPU training.** On a Kaggle T4:
+   - the GPU computes the same function as the tested CPU code (EXP-039 Part A: float64 CPU vs
+     GPU within 5.51e-10 over 50 steps, tolerance 1e-8);
+   - fp16 autocast with GradScaler, exact checkpoint resume in a fresh process and
+     `torch.compile` passed their pre-registered checks (EXP-038);
+   - speed and memory are measured (EXP-038 Part 2), and a first real-data run trained cleanly
+     (EXP-038 Part 3).
+2. **EXP-038 check 1 stays recorded as FAIL.** EXP-039 shows that the gap (1.81e-3) is
+   floating-point rounding amplified by training, not a computation difference. No result is
+   rewritten.
+3. **Method for device checks from now on:** to show that two devices compute the same thing,
+   compare exact per-step losses (not the 5-decimal log values) in **float64**, passing at
+   ≤ 1e-8 per step over 50 steps (`scripts/gpu_bringup.py --part cpu-gpu-diagnostic`). Float32
+   cross-device differences are recorded as numbers only, never as pass/fail. This check is run
+   once on every new GPU type before that GPU trains anything for a result.
+4. **Default training settings on a T4:** fp16 autocast + GradScaler + `torch.compile`, the
+   fastest measured setting at every size, with all of its checks passed. bf16 is not used on a
+   T4 (no bf16 tensor cores). On GPUs that have bf16 (for example an RTX 3050 or an H100), bf16
+   needs its own pre-registered check before use.
+5. **Planning numbers for step 11 on one Kaggle T4** (EXP-038 Part 2, fp16 + compile):
+   69,127 tokens/s at 31.7 M parameters (context 512) and 17,870 at 139.3 M (context 1,024); MFU
+   22–26%. Only one GPU is used until multi-GPU training is built and validated (step 13).
+
+**Rationale:** the purpose of step 10 is a training stack that is correct and measured on a GPU
+before any GPU time is spent on scaling experiments. Every correctness question now has a
+measured answer. The float64 check separates "computes something different" from "rounds
+differently", which an fp32 tolerance cannot do over many training steps.
+
+**Alternatives rejected:**
+- loosening EXP-038's fp32 tolerance after seeing the result (it would rewrite a pre-registered
+  outcome);
+- dropping the CPU-vs-GPU check (it is the only test that the GPU kernels compute what the
+  tested CPU code computes);
+- running step 11 on bf16 hardware without a bf16 check.
+
+**Consequences accepted:**
+- Step 11 (scaling experiments) can be planned. It needs its own pre-registered plan and
+  approval. The first architecture candidate is RoPE + GQA-2 (D-043); sizes, data and budgets
+  are chosen in that plan, with no fixed model sizes.
+- Kaggle sessions end after at most 12 hours and their disk is temporary. Runs longer than one
+  session need the checkpoint saved to a private Kaggle output or dataset and resumed in the
+  next session; the resume path is verified (EXP-038 check 3), the storage step is not built yet.
+- Kaggle attaches two T4s, but only one is used until step 13.
+- The friend's RTX 3050 (4 GB), or any other GPU, first runs the float64 check (point 3).
+
+**Revisit when:** a new GPU type, a new PyTorch major version, or a change in the model's maths
+(attention kernel, norm, loss) is introduced, which means re-running the float64 check; or when
+step 13 adds multi-GPU training.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "97830f7233cf24dfc76d19a2774b35c348518fd74e4b3e1fdccd7f976823b9a0",
+  "source_digest": "426e2c1aa8dfb053eae9db5ebbcd8297260e27b520378ad16e4a666536bd3de3",
   "sources": {
-    "EXPERIMENTS.md": "56a3d5f5c689581a6e42194abe339f9f5a417214e106ef11a31e8e0155cc9046",
-    "DECISIONS.md": "9526efcabf6f7b7b791ce12b6c884d726cc1c1117bc55e2c97bdeefc36635494",
+    "EXPERIMENTS.md": "a8812e5fb5d53f0a07f04c7e08bd272f5739e0d05c07fd8aa3d7516deb1b5261",
+    "DECISIONS.md": "9704b78f6de4929cc6a36b7dfe9856e41efed0af422c597a7a4c6ed51ab61b8c",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "626f4f2921328435d44172cb9637024d4bf92542926d6d6e2ddcf8276032cee9",
+    "lab/registry.json": "402e8036d87d9a1f9c58b67c9f4978951a0100573376d29a06691a59dcef4faa",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -26,7 +26,8 @@
     "evals/results/EXP-035/summary.json": "6caa19255b6065ccf8f6fdcaada17a57e5e433d502174a3e6e576231f562ceb3",
     "evals/results/EXP-036/summary.json": "233543d25b385e76bdd5e04c8886a7bd51db5469a3f23d16643eba378172ec9a",
     "evals/results/EXP-037/summary.json": "2cb837ca390f283daf1375ae8334c1c946b1a5fa714b300e3c3d0cfafb9c9f55",
-    "evals/results/EXP-038/summary.json": "d611ea1aa18165669f301968610d6aafae7574b65f1d57a7d479a9e4ff1b2241"
+    "evals/results/EXP-038/summary.json": "d611ea1aa18165669f301968610d6aafae7574b65f1d57a7d479a9e4ff1b2241",
+    "evals/results/EXP-039/summary.json": "64fb0b4655e790d2838fc296cc25028add65755a101afdeac987e93fab34eec7"
   },
   "roadmap": [
     {
@@ -179,18 +180,20 @@
       "evidence": [
         "D-043",
         "EXP-038",
-        "EXP-039"
+        "EXP-039",
+        "D-047"
       ],
       "evidence_files": [
         "evals/results/EXP-038/summary.json",
-        "scripts/gpu_bringup.py",
-        "scripts/run_kaggle_exp038.ps1"
+        "evals/results/EXP-039/summary.json",
+        "scripts/gpu_bringup.py"
       ],
-      "note": "EXP-038 ran on a Kaggle T4: 3 of 4 correctness checks pass, CPU = GPU failed narrowly; EXP-039 approved and built, launch pending",
+      "note": "EXP-038 + EXP-039 done (GPU path verified in float64, speed measured); D-047 proposed to close step 10",
       "evidence_links": [
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1386",
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2733",
-        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2909"
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L2909",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1597"
       ]
     },
     {
@@ -322,20 +325,20 @@
   ],
   "current_work": [
     {
-      "title": "EXP-039 approved and built (float64 CPU vs GPU check); waiting for the founder to launch it on Kaggle",
+      "title": "EXP-039 PASS (float64 CPU = GPU); D-047 proposed to close step 10, needs \"approve D-047\"",
       "evidence": [
-        "EXP-038",
         "EXP-039",
-        "D-046"
+        "EXP-038",
+        "D-047",
+        "D-043"
       ],
       "evidence_files": [
+        "evals/results/EXP-039/summary.json",
+        "evals/results/EXP-039/SUMMARY.txt",
         "evals/results/EXP-038/summary.json",
-        "scripts/gpu_bringup.py",
-        "scripts/run_kaggle_exp039.ps1",
-        "scripts/kaggle/exp039_kernel.py",
         "docs/compute_options_and_costs.md"
       ],
-      "note": "EXP-038 ran on one Kaggle T4 in 74.1 min (commit 57a53ef, results 740fc16). Correctness: fp16 vs fp32 PASS (1.35%), resume PASS (identical), compile PASS (0.98%), CPU = GPU FAIL (1.81e-3 > 1e-3 tolerance). Speed, fp16 + compile: 69,127 tokens/s at 32 M params (22% MFU), 17,870 at 139 M (26% MFU). First real-data run: 32 M model, 168 M Hindi tokens in 48.6 min, validation 10.590 -> 1.923 nats/token (0.586 bits per byte, not comparable to earlier models); samples fluent-looking but factually wrong, no quality claim. EXP-039 (float64 CPU vs GPU, pass <= 1e-8) was approved 2026-10-01 and built (exact per-step losses via a forward hook; norms and loss now stay float64 in a float64 model); the founder launches it with scripts/run_kaggle_exp039.ps1. Step 10 closes only after it."
+      "note": "EXP-039 ran on a Kaggle T4 in 3.1 min (commit e1df707, results d038f2a). Part A float64 CPU vs GPU: max per-step difference 5.51e-10 <= 1e-8, PASS. Part B float32: 1.807e-3, reproducing EXP-038. The gap is rounding amplified by training (both precisions start growing at steps 39-40); EXP-038 check 1 stays FAIL. D-047 (proposed): step 10 complete for single-GPU training; float64 method for future device checks; fp16 + compile as the T4 default; EXP-038 throughput as step-11 planning numbers. Step 11 needs its own plan after D-047."
     }
   ],
   "experiments": [
@@ -732,8 +735,8 @@
       "id": "EXP-039",
       "title": "Step 10 follow-up: is the CPU-vs-GPU gap of EXP-038 rounding or a real difference?",
       "date": "2026-10-01",
-      "status": "approved — code ready; waiting for the founder to launch the Kaggle run.",
-      "category": "planned",
+      "status": "complete — Part A PASS (float64 CPU = GPU within 5.51e-10 ≤ 1e-8); Part B recorded (float32 1.807e-3); D-047 proposed to close step 10.",
+      "category": "complete",
       "step": null,
       "summary": "EXP-038 check 1 failed: over 50 steps, the losses of the same model on the CPU and on the T4 differed by up to 1.81e-3 (tolerance 1e-3). Before step 11 spends GPU time on scaling experiments, we must know whether the GPU computes the same function as the tested CPU code (differences then come only from rounding), or …",
       "decisions": [
@@ -1300,6 +1303,20 @@
       ],
       "line": 1549,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1549"
+    },
+    {
+      "id": "D-047",
+      "title": "Step 10 is complete: single-GPU training is verified and measured; fp16 + compile is the T4 default; device checks compare in float64",
+      "date": "2026-10-01",
+      "status": "proposed (needs the founder's \"approve D-047\"; evidence EXP-038, EXP-039)",
+      "category": "proposed",
+      "summary": "",
+      "experiments": [
+        "EXP-038",
+        "EXP-039"
+      ],
+      "line": 1597,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1597"
     }
   ],
   "open_questions": [

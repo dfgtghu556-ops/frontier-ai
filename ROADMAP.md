@@ -121,6 +121,12 @@
   trained on 168 M Hindi tokens reached 1.923 nats/token (0.586 bits per byte) on the Hindi
   validation split; its samples are fluent-looking but factually wrong, and no quality claim is
   made. Step 10 closes only after EXP-039.
+- **Update (2026-10-01, later):** **EXP-039** passed: in float64 the CPU and the T4 agree to
+  5.51e-10 per step (tolerance 1e-8), so the GPU computes the same function as the tested CPU
+  code, and EXP-038's float32 gap (1.81e-3, still recorded as FAIL) is rounding amplified by
+  training. **D-047** is proposed to close step 10 (single GPU), make fp16 + compile the T4
+  default and use the float64 check for every new GPU type. Step 11 (scaling experiments) gets
+  its own plan after D-047.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

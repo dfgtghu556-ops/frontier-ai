@@ -2975,3 +2975,30 @@ collaborator's GPU, multi-GPU work, any spending.
   about 1e-6, and without a GPU the verdict is recorded as n/a, never PASS.
 
 **Status:** approved — code ready; waiting for the founder to launch the Kaggle run.
+
+**Results (Kaggle run 2026-10-01, results commit `d038f2a`; checked in the sandbox 2026-10-01).**
+All numbers below are copied from `evals/results/EXP-039/summary.json`.
+- **Where it ran:** private Kaggle script session on commit `e1df707`, Tesla T4, PyTorch
+  2.10.0+cu128; 3.1 minutes of the 1 GPU-hour cap. Part 0: `hi.bin` sha256 matches; the
+  model/trainer tests passed on Kaggle (40 passed).
+- **Part A, float64 (pre-registered pass ≤ 1e-8 at every step): PASS.** Both devices ran in
+  float64 (recorded dtypes float64 / float64). The largest per-step difference was **5.51e-10**
+  (step 50). Step 1 (before any update): 1.78e-15. Through step 38 every difference was
+  ≤ 2.7e-15 (12 of 50 steps exactly 0); then it grew: 5.8e-13 at step 39, 2.2e-12 at 40,
+  6.7e-11 at 45, 5.5e-10 at 50.
+- **Part B, float32 (numbers only):** largest difference **1.807e-3** (step 50), which reproduces
+  EXP-038's 1.81e-3. Step 1: exactly 0. Through step 39 every difference was ≤ 5.7e-6; then
+  1.1e-4 at step 40, 1.4e-4 at 45, 1.8e-3 at 50.
+- **Reading (what the numbers support):**
+  - In float64 the CPU and the T4 agree to 5.5e-10, about 3 million times closer than in
+    float32 (1.8e-3). A real difference in what the GPU computes would not shrink like this, so
+    the GPU path computes the same function as the tested CPU code. EXP-038's check 1 gap is
+    rounding that the training run amplifies.
+  - The amplification starts at almost the same point (steps 39–40) in both precisions. That
+    points to a sensitive phase of this particular training run, not to the device. Which
+    property of the run causes it was not measured.
+  - EXP-038's check 1 stays recorded as FAIL against its pre-registered 1e-3 tolerance.
+    Lesson: an fp32 step-by-step tolerance over 50 training steps was too tight to be a useful
+    test, because ordinary rounding alone can exceed it.
+
+**Status:** complete — Part A PASS (float64 CPU = GPU within 5.51e-10 ≤ 1e-8); Part B recorded (float32 1.807e-3); D-047 proposed to close step 10.

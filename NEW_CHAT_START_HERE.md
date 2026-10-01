@@ -591,6 +591,13 @@ comes next. They also update the table in §3.
     `scripts/run_kaggle_exp039.ps1` (same dataset, remembered username, push retry with
     `pull --rebase`). **Next: the founder runs `git pull` then that line; then I record EXP-039
     and, if Part A passes, propose D-047 to close step 10.**
+  - **EXP-039 complete (Kaggle T4, 2026-10-01; results `d038f2a`).** Part A float64 CPU vs GPU
+    PASS: 5.51e-10 ≤ 1e-8 (step 1: 1.8e-15; growth from step 39). Part B float32 1.807e-3
+    (reproduces EXP-038; growth from step 40). The push retry was not needed. **D-047 proposed**
+    (DECISIONS.md): step 10 complete for single-GPU training; float64 device check for every
+    new GPU; fp16 + compile T4 default; EXP-038 throughput for step-11 planning. **Next: the
+    founder types "approve D-047"; then I write the step-11 plan for approval (no training
+    before).**
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
