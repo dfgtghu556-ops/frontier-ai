@@ -614,6 +614,13 @@ comes next. They also update the table in §3.
     `powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp040.ps1`; results come back to
     `evals/results/EXP-040/`. Don't push while that runner is going.
 
+  - **EXP-040 ran (2026-10-02, results `7c6e5e2`):** baseline learning rate **1e-3** (rule 1);
+    the float64 check for RoPE + GQA-2 **failed** 1e-8 (1.739e-07 at step 50; steps 1–27 agreed
+    to ≤ 1.8e-15, then grew), so the candidate was not tested and the D-043 baseline stays.
+    **EXP-041 proposed** (one-step non-compounding float64 check, then the 6 missing candidate
+    runs only if it passes). The IsoFLOP ladder takes the next free number. **Next: "approve
+    EXP-041"; no code before that.**
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

@@ -3138,3 +3138,121 @@ no change to the pre-registered plan or rules:
 Upload time for 5.6 GB from the laptop and the GPU time per run: NOT VERIFIED until the run.
 
 **Status:** approved — code ready; waiting for the founder to launch the Kaggle run.
+
+**Results (2026-10-02; the founder's Kaggle run, code `6f53b00`, results commit `7c6e5e2`,
+`evals/results/EXP-040/`):** one Kaggle T4 session, Tesla T4, torch 2.10.0+cu128. The 5.6 GB
+upload plus Kaggle's processing took about 31 minutes (22:39 → kernel launched 23:10, laptop
+clock). The script ran for 178.1 minutes, within the 9-hour cap.
+
+*Part 0:* 13 of 13 sha256 checks pass; tests pass (40 passed). **The float64 CPU = GPU check
+for RoPE + GQA-2 FAILED its pre-registered tolerance: max |loss difference| 1.739e-07 at step 50
+(tolerance 1e-8).** Following the plan, all 6 candidate runs were skipped and the baseline runs
+went ahead. `complete: false` in the summary means exactly this.
+
+What the per-step numbers show (recorded in `summary.json`; this is an observation, not a new
+verdict): steps 1–27 agree to the last digits (differences 0 to 1.8e-15, the size of one
+rounding step of a float64 number near 10). From step 28 the difference grows by roughly 1.5×
+per step: 4.5e-12 at step 30, 9.7e-10 at step 39, 1.7e-07 at step 50. EXP-039's baseline check
+had the same shape but started growing later (step 38) and reached only 5.5e-10. A wrong formula
+on the GPU would show up from the first steps; this pattern looks like a last-digit rounding
+difference being amplified by training, the effect EXP-039 already described. **That is an
+interpretation, not a measurement.** This check also differed from EXP-039's in two ways at
+once (the architecture AND the data: 13 languages instead of Hindi), so the earlier divergence
+cannot be pinned on RoPE + GQA-2. The 50-step criterion mixes two things, "does the GPU compute
+the same function" and "how fast does this training run amplify tiny differences", and we cannot
+tell them apart with it.
+
+*Baseline runs (D-043 architecture, 31,709,568 parameters, 100,007,936 tokens each):*
+
+| run | grid | mean bpb (13 languages, equal weight) | token-weighted | minutes | tokens/s | fp16 steps skipped |
+|---|---|---|---|---|---|---|
+| lr 5e-4, seed 1 | A | 0.9439 | 1.0626 | 29.8 | 60,178 | 0 |
+| lr 1e-3, seed 1 | A | **0.9213** | 1.0387 | 29.3 | 61,241 | 0 |
+| lr 2e-3, seed 1 | A | 0.9548 | 1.0777 | 29.2 | 61,467 | 0 |
+| lr 4e-3, seed 1 | A | 1.0195 | 1.1531 | 28.5 | 62,939 | 1 |
+| lr 5e-4, seed 2 | B | 0.9503 | 1.0694 | 29.2 | 61,393 | 1 |
+| lr 1e-3, seed 2 | B | **0.9388** | 1.0572 | 29.3 | 61,310 | 0 |
+
+Peak GPU memory was 5.81 GB in every run, and no run failed (rule 4). The per-language table is
+in `SUMMARY.txt`. Bits per byte can be compared between runs, **not between languages**: in UTF-8
+English needs 1 byte per letter, Urdu's script 2 and the other Indian scripts 3, so English's
+higher number (1.83–2.07) does not mean the model is worse at English.
+
+*Pre-registered rules:*
+1. **Learning rate, baseline: 1e-3** (lowest in grid A, not at the edge of the range). It is also
+   the lowest in seed 2 (0.9388 vs 0.9503 at 5e-4). RoPE + GQA-2: not measured.
+2. **Seed noise: not computable** as defined (it needs the 4 grid-B pairs). Observation only: the
+   two baseline seed gaps are 0.0064 (lr 5e-4) and 0.0175 (lr 1e-3). That is as large as the gap
+   between the two best learning rates (seed means 0.9301 vs 0.9471), so single-seed differences
+   of about 0.02 at this scale are not reliable.
+3. **RoPE + GQA-2: NOT TESTED; the D-043 baseline stays** until the question is answered.
+4. **No failed runs.**
+
+What this gives step 11: a measured learning rate (1e-3) and a measured seed noise scale for the
+baseline at 32 M parameters / 100 M tokens, real T4 costs for 13-language training (about 29
+minutes and 5.8 GB per run; 61k tokens/s including evaluations), and a working 13-language
+pipeline on Kaggle. Still open: the architecture question, and a device check that separates the
+GPU's maths from the run's amplification. Follow-up proposed as EXP-041 below. The IsoFLOP ladder,
+called "EXP-041" in the plan above, moves to the next free number.
+
+**Status:** complete — baseline learning rate 1e-3 measured (rule 1); the float64 device check for RoPE + GQA-2 FAILED its 1e-8 tolerance (1.739e-07 at step 50), so the candidate was not tested and the baseline stays (rule 3); no failed runs (rule 4); seed noise not computable as pre-registered.
+
+### EXP-041 — Follow-up to EXP-040: a device check that does not compound, then the RoPE + GQA-2 runs
+**Date:** 2026-10-02 · **Status:** proposed (needs the founder's "approve EXP-041" before any code)
+
+**Purpose (why this serves the mission):** step 11 still has to settle the architecture before
+the scaling ladder spends 15–25 GPU-hours on it. EXP-040 could not test RoPE + GQA-2 because its
+float64 check failed. The step-by-step numbers suggest amplified rounding, not wrong maths, but
+that is unproven, and the 50-step check cannot tell the two apart. This experiment answers the
+maths question directly. Only if the maths passes does it run the 6 missing candidate runs, so
+EXP-040's pre-registered comparison can be finished. **The EXP-040 result itself is not
+changed.**
+
+**Where it runs:** one private Kaggle T4 session through the same runner (`-Exp EXP-041`), with
+the 13-language dataset that is already uploaded (no new upload). Hard cap **5 GPU-hours**;
+about 3.8 expected (6 × 29.5 + 1 × 29.3 minutes measured in EXP-040, plus checks; NOT VERIFIED).
+
+**Part A — the maths check (pre-registered gate):** the S-shape models of the EXP-040 check, on the
+same 13-language data, in float64.
+- Train 50 steps on the CPU and keep the parameters before steps 1, 11, 21, 31, 41 and 50.
+- For each of those 6 states, load **identical** parameters on the CPU and on the GPU, feed the
+  **identical** batch and compute the loss and every gradient once on each device. Nothing is
+  carried from one step to the next, so nothing can be amplified.
+- **Pass:** at all 6 states, |loss difference| ≤ 1e-12 and ‖gradient difference‖ / ‖gradient‖
+  ≤ 1e-10. Float64 rounding is about 1e-16, and EXP-039/EXP-040 measured ≤ 1.8e-15 on losses near
+  10 before any amplification. A real formula difference (a wrong rotation, wrong head grouping)
+  would show up at 1e-3 or larger. Both limits leave a margin of 10,000 or more on both sides.
+- Run for **both** architectures. The baseline is the control: **if the baseline fails Part A,
+  the check itself is wrong and the experiment stops** without candidate runs.
+- **Reported, not a gate:** the EXP-040-style 50-step trajectory for the baseline on the
+  13-language data. This shows whether the baseline would also have "failed" 1e-8 on this data,
+  i.e. whether the old criterion depends on the data.
+
+**Part B — only if RoPE + GQA-2 passes Part A:** the 6 candidate runs EXP-040 skipped, exactly as
+pre-registered there (lr 5e-4, 1e-3, 2e-3, 4e-3 with seed 1; 5e-4 and 1e-3 with seed 2; same
+data order, settings and evaluation). Plus **one baseline control run** (lr 1e-3, seed 1), to
+measure how much a rerun in another session differs (reported, not a gate). EXP-040's rules 1–4
+are then evaluated **unchanged** on the 12 runs: 6 baseline runs from EXP-040 and 6 candidate runs
+from here. The baseline runs from EXP-040 are reused because the baseline code path is unchanged
+since `6f53b00`.
+
+**If Part A fails for RoPE + GQA-2 (and passes for the baseline):** a real GPU/CPU difference in
+the RoPE or GQA code is found. It is reported, the candidate stays untested, and the next step is
+a code investigation, not more GPU runs.
+
+**Decision afterwards:** if Part A behaves as expected, a short decision record (D-048) will
+propose replacing D-047's "≤ 1e-8 over 50 steps" device check with Part A's non-compounding
+check, with the trajectory kept as a reported diagnostic. That needs the founder's decision; it
+is not decided by this experiment. Then the architecture decision follows from rule 3.
+
+**Code to be built after approval** (tested on CPU in the sandbox): a `--part` switch in
+`scripts/gpu_lr_arch.py` (one-step check, trajectory diagnostic, candidate-only runs and a
+control run, merging with `evals/results/EXP-040/summary.json`), `scripts/kaggle/exp041_kernel.py`,
+`scripts/run_kaggle_exp041.ps1` (`-Exp EXP-041`, reusing the dataset), and tests.
+
+**Committed evidence:** `evals/results/EXP-041/summary.json` and `SUMMARY.txt`.
+
+**Not in scope:** changing EXP-040's verdicts or rules, the IsoFLOP ladder, other architecture
+changes, bf16, multiple GPUs, and any spending.
+
+**Status:** proposed — founder approval needed before any code.

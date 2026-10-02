@@ -135,6 +135,10 @@
   size is chosen before those measurements.
 - **Update (2026-10-01, later):** EXP-040 approved and built; it waits for the founder's
   Kaggle run (one 5.6 GB private upload, then about 7 GPU-hours, at most 9).
+- **Update (2026-10-02):** EXP-040 measured the baseline's learning rate at GPU scale (1e-3) on
+  all 13 languages. RoPE + GQA-2 was not tested, because its float64 device check missed the
+  pre-registered tolerance. Follow-up EXP-041 is proposed to separate GPU maths from amplified
+  rounding; the scaling ladder comes after it.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and
