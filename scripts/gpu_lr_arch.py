@@ -939,6 +939,10 @@ def ladder_analysis(runs: list[dict[str, Any]], setup: dict[str, Any]) -> dict[s
             ds = np.log10([p[3] for p in pts])
             fit["d_opt"] = float(10 ** np.interp(math.log10(fit["n_opt"]), ns, ds))
             fit["tokens_per_non_embedding_param"] = fit["d_opt"] / fit["n_opt"]
+            # total parameters at N_opt, interpolated the same way (rule 2 reports both ratios)
+            ts = np.log10([setup["sizes"][p[2]]["n_params"] for p in pts])
+            fit["n_opt_total"] = float(10 ** np.interp(math.log10(fit["n_opt"]), ns, ts))
+            fit["tokens_per_total_param"] = fit["d_opt"] / fit["n_opt_total"]
         out["budgets"].append(fit)
     out["growth_law"] = ladder_fit.growth_law(out["budgets"], LADDER_TOKENS_AVAILABLE)
     out["parametric"] = ladder_fit.fit_parametric(
@@ -1111,7 +1115,11 @@ def _ladder_analysis_lines(a: dict[str, Any]) -> list[str]:
             lines.append(
                 f"  1. {b['name']} (C = {b['C']:.0e}): N_opt {_fmt_n(b['n_opt'])} non-embedding,"
                 f" D_opt {b['d_opt'] / 1e6:.0f} M tokens"
-                f" ({b['tokens_per_non_embedding_param']:.1f} per non-embedding param),"
+                f" ({b['tokens_per_non_embedding_param']:.1f} per non-embedding param,"
+            )
+            lines.append(
+                f"     {b['tokens_per_total_param']:.1f} per parameter counting embeddings:"
+                f" N_opt total {_fmt_n(b['n_opt_total'])}),"
             )
             lines.append(f"     bracketed: {b['bracketed']}{why}")
             lo, hi = b["flat_region"]

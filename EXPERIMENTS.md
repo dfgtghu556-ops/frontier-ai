@@ -3471,3 +3471,41 @@ context length, other architecture changes, more than one seed per point, multip
 any spending.
 
 **Status:** proposed — founder approval needed before any code.
+
+**Approved and built (2026-10-02):** the founder typed "approve EXP-042". Built as proposed, with
+no change to the sizes, budgets, learning rates, limits or rules:
+- `scripts/gpu_lr_arch.py --part ladder`: each launch is one session. It reads the earlier
+  sessions from `--prev-dir` (default `evals/results/EXP-042`; a session made with a different
+  plan is refused) and writes `session-<n>/summary.json` + `SUMMARY.txt`; each summary lists every
+  run so far.
+  - Part 0 as in EXP-041 (environment, 13 sha256 checks, tests), then the one-step float64 check
+    for the D-048 architecture; if it fails, that session runs nothing.
+  - Runs go in plan order (C1, then C2, then C3). C2/C3 runs of a size wait until all three of its
+    C1 learning rates were tried; s5 waits for s4. A size with no successful C1 run is reported as
+    "not run" for C2/C3, so the ladder can still finish.
+  - Time budget: a run starts only if 1.15 × its FLOPs ÷ the measured FLOP rate of that size
+    (else of the slowest size measured so far) fits before the session limit, which is
+    min(9 hours, 25 − hours used by the earlier sessions). A crashed run (not a failed one) is
+    retried in the next session.
+  - When nothing is left, the final session's summary carries the analysis (rules 1–5).
+- `scripts/ladder_fit.py` (numpy only): the parabola fit with the bracketing rule and the flat
+  region, the power-law fits, the growth law with the 2.78 B-token projection and its
+  leave-one-budget-out range, and the parametric fit (grid over α and β, non-negative least
+  squares for E, A, B). D_opt and the total-parameter count at N_opt are interpolated in log-log
+  between the measured sizes.
+- `scripts/kaggle/exp042_kernel.py` (9 GPU-hours per session, 25 in total),
+  `scripts/run_kaggle_exp042.ps1` and `-Exp EXP-042` in `scripts/run_kaggle_exp038.ps1`: the same
+  private 13-language dataset (fingerprints checked again, nothing uploaded), waiting up to 11
+  hours, a fresh download folder per launched commit, committing only the new
+  `evals/results/EXP-042/session-<n>/` files. After a successful push it forgets the launched
+  commit, so the same line launches the next session.
+- Tests (`tests/test_ladder.py`, `tests/test_kaggle_exp038.py`): the fits recover planted answers
+  on synthetic data (minimum, flat region, exponents, the projection's closed form, the parametric
+  constants); the full-size plan matches the table above (parameters, 16,384 tokens per step, 20
+  runs, s2 at C3 ≈ 1.24 B tokens); the analysis finds a planted optimum in all three budgets; a CPU
+  smoke ladder over two sessions (5 runs, then the other 15, no run twice, the analysis at the
+  end) and a third launch that does nothing; the 25-hour cap; the refusal of a mismatched
+  session; static runner and kernel checks. The CPU smoke numbers are not results.
+- The plot (rule 6) is made in the sandbox from the final committed summary.
+
+**Status:** approved — code ready; waiting for the founder to launch the Kaggle run.

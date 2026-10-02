@@ -161,6 +161,48 @@ def test_best_lr_waits_for_c1_and_blocks_a_size_with_no_good_run():
     assert plan["C3-s5"]["lr"] is None  # s5 follows s4, which has not finished C1
 
 
+def test_analysis_on_synthetic_runs_finds_the_planted_optimum():
+    import gpu_lr_arch as g
+
+    s = g.ladder_setup(False)
+    opt = {"C1": 2.0e6, "C2": 5.0e6, "C3": 1.5e7}  # planted N_opt (non-embedding) per budget
+    runs = []
+    for budget, c, window in s["budgets"]:
+        for size in window:
+            sz = s["sizes"][size]
+            lrs = g.LADDER_LRS if budget == "C1" else [1e-3]
+            for lr in lrs:
+                steps = max(1, round(c / sz["flops_per_token"] / s["tokens_per_step"]))
+                bpb = (
+                    1.0
+                    + 0.2 * (math.log10(sz["n_non_embedding"] / opt[budget])) ** 2
+                    + (0 if lr == 1e-3 else 0.05)
+                )
+                runs.append({
+                    "name": g.ladder_run_name(budget, size, lr), "budget": budget, "size": size, "lr": lr,
+                    "status": "done", "failed": False, "attempted": True, "bpb_mean": bpb,
+                    "tokens": steps * s["tokens_per_step"], "tokens_per_s": 1.0, "minutes": 1.0,
+                })  # fmt: skip
+    plan = g.ladder_plan(runs, s)
+    assert all(p["lr"] == 1e-3 for p in plan if p["budget"] != "C1")
+    assert next(p for p in plan if p["size"] == "s5")["lr"] == 1e-3  # from s4
+    a = g.ladder_analysis(runs, s)
+    assert all(v == {"lr": 1e-3, "edge_of_range": False} for v in a["best_lr"].values())
+    for b in a["budgets"]:
+        assert b["bracketed"] is True and b["n_opt"] == pytest.approx(opt[b["name"]], rel=1e-6)
+        assert (
+            b["n_opt"] < b["n_opt_total"]
+            and b["tokens_per_total_param"] < b["tokens_per_non_embedding_param"]
+        )
+        assert b["d_opt"] > 0
+    gl = a["growth_law"]
+    assert gl["computable"] and gl["bracketed_budgets"] == ["C1", "C2", "C3"]
+    assert gl["projection"]["computable"] and "leave_one_out_n_opt" in gl["projection"]
+    text = g.render_ladder({"exp_id": "EXP-042", "session": 3, "complete": True, "started_at": "-",
+                            "runs": runs, "analysis": a, "setup": s})  # fmt: skip
+    assert "EXTRAPOLATION" in text and "per parameter counting embeddings" in text
+
+
 # ---------------------------------------------------------------- CPU smoke over two sessions
 
 

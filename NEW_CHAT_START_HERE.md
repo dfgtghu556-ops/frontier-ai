@@ -639,6 +639,13 @@ comes next. They also update the table in §3.
     float64 check. **EXP-042 proposed** (IsoFLOP ladder: 3 budgets × 4 sizes, about 20 GPU-h over
     about 3 Kaggle sessions; no size chosen). **Next: "approve EXP-042"; no code before that.**
 
+  - **EXP-042 approved and built ("approve EXP-042", 2026-10-02):** `scripts/gpu_lr_arch.py --part
+    ladder` (one Kaggle session per launch, at most 9 GPU-h, 25 in total; resumes from
+    `evals/results/EXP-042/session-*/`), `scripts/ladder_fit.py`, `scripts/kaggle/exp042_kernel.py`,
+    `scripts/run_kaggle_exp042.ps1` (same dataset, no upload). **Next: the founder runs**
+    `powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp042.ps1`, **and the same line
+    again for each later session (about 3).** Don't push while a session runs.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

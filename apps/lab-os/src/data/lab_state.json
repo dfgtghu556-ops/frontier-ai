@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "0ec36e5ff33d787a849144d4e02963ad30e1d92160dc62bf0413002febfb874b",
+  "source_digest": "99c78f9cab283b3ed00d1a6c2bb34300c5f335d92d0d81a07ed07a77deca833c",
   "sources": {
-    "EXPERIMENTS.md": "5f1385ea2c475f4d9c5d285c2fe26518c097533c9b2077246c2dbb4de11c4df0",
+    "EXPERIMENTS.md": "b4eef7f404ca6cddb757d70f8c3d6078be2265966848cc1843c1a40e23fa2f36",
     "DECISIONS.md": "8c6db7624c1769f0f894235c89297997829ab6c5b69b966c117e64b8ae90720c",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "078a939cf0ec0a315b12208c6a8b9f69083e05f4e71f742ff9d97c79fb1ac06c",
+    "lab/registry.json": "8744f11a0c6656be216bdd4954c9867412b0494364f47a5f0a855e59ac5c8ec9",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -344,20 +344,22 @@
   ],
   "current_work": [
     {
-      "title": "D-048 accepted (RoPE + GQA-2 for phase 2; one-step device check). Step 11 phase 2 proposed as EXP-042 (IsoFLOP ladder); needs \"approve EXP-042\"",
+      "title": "EXP-042 approved and built (IsoFLOP ladder, multi-session Kaggle runner); waiting for the founder to launch session 1",
       "evidence": [
-        "D-048",
         "EXP-042",
+        "D-048",
         "EXP-041",
         "EXP-040",
         "D-047"
       ],
       "evidence_files": [
-        "evals/results/EXP-041/summary.json",
-        "evals/results/EXP-040/summary.json",
-        "scripts/gpu_lr_arch.py"
+        "scripts/gpu_lr_arch.py",
+        "scripts/ladder_fit.py",
+        "scripts/kaggle/exp042_kernel.py",
+        "scripts/run_kaggle_exp042.ps1",
+        "evals/results/EXP-041/summary.json"
       ],
-      "note": "D-048 accepted 2026-10-02 (\"approve D-048\"): RoPE + GQA-2 replaces the D-043 baseline (supersedes D-043 points 1-2); lr 1e-3 is the centre of phase-2 sweeps; device checks pass on the one-step float64 check (amends D-047 point 3). EXP-042 (proposed, end of EXPERIMENTS.md): Chinchilla-style IsoFLOP ladder, budgets 1e16 / 3e16 / 1e17 FLOPs, sizes s1-s5 (0.5-59 M non-embedding parameters, depth = width/64), 4 sizes per budget, lr sweep {5e-4, 1e-3, 2e-3} at the smallest budget, one seed; pre-registered parabola fits (bracketing rule, flat region within 0.0174), growth law N_opt ~ C^a, an explicitly labelled extrapolation to our 2.78 B tokens; about 19-21 GPU-h (NOT VERIFIED), cap 25, about 3 Kaggle sessions, no new upload. Does not choose the step-12 size. No code before \"approve EXP-042\"."
+      "note": "EXP-042 approved 2026-10-02 (\"approve EXP-042\") and built as proposed: gpu_lr_arch.py --part ladder (one session per launch, resumes from evals/results/EXP-042/session-*/, 9 GPU-h per session, 25 in total), ladder_fit.py (numpy fits), kernel + runner (-Exp EXP-042; same 13-language dataset, no upload; forgets the launched commit after a successful push so the same line starts the next session). CPU tests only; no GPU result yet. Next: the founder runs powershell -ExecutionPolicy Bypass -File scripts\\run_kaggle_exp042.ps1 (about 3 sessions). Does not choose the step-12 size."
     }
   ],
   "experiments": [
@@ -800,7 +802,7 @@
       "id": "EXP-042",
       "title": "Step 11, phase 2: a compute-optimal ladder (IsoFLOP profiles) on all 13 languages",
       "date": "2026-10-02",
-      "status": "proposed — founder approval needed before any code.",
+      "status": "approved — code ready; waiting for the founder to launch the Kaggle run.",
       "category": "planned",
       "step": null,
       "summary": "the first serious model (step 12) has to be the right size for our data and compute: too big and it is starved of data, too small and it wastes the corpus. MASTER_CONTEXT §22 forbids picking a size by fashion. This experiment measures, on our corpus, how the best model size and the best number of training tokens grow …",
