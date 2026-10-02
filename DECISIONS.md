@@ -1647,6 +1647,81 @@ differently", which an fp32 tolerance cannot do over many training steps.
 (attention kernel, norm, loss) is introduced, which means re-running the float64 check; or when
 step 13 adds multi-GPU training.
 
+
+---
+
+## D-048 — RoPE + GQA-2 replaces the D-043 baseline for step 11 phase 2; device checks pass on a one-step float64 comparison
+**Date:** 2026-10-02 · **Status:** proposed (needs the founder's "approve D-048"; evidence EXP-040, EXP-041)
+
+**Decision (proposed):**
+1. **Architecture.** From step 11 phase 2 on, the architecture is the D-043 one with two
+   changes: **rotary positions (RoPE)** instead of learned positions, and **2 key-value heads
+   (GQA-2)**. SwiGLU (ffn_mult 4), RMSNorm, tied embeddings and the vocabulary (32,896, D-046)
+   stay. This supersedes D-043 points 1 and 2. D-043 points 3 (GELU and LayerNorm dropped) and 4
+   (re-sweep the learning rate at each scale) stay in force.
+   - The tested setups were 4 query heads with 2 key-value heads (EXP-033, CPU) and 6 query heads
+     with 2 key-value heads (EXP-041, GPU). The phase-2 plan must state how many key-value heads
+     each ladder size uses. Its default proposal is 2 at every size, as tested; any other grouping
+     needs its own justification there.
+2. **Learning rate.** At about 30 M parameters and 100 M tokens, the best peak learning rate is
+   **1e-3** for both architectures (EXP-040/041 rule 1). Phase 2 uses it as the centre of a
+   learning-rate sweep at each size. It is not a fixed value for other sizes.
+3. **Device checks (amends D-047 point 3).** "Two devices compute the same function" is tested
+   with the **one-step float64 check**. Take the parameters and batches before steps 1, 11, 21,
+   31, 41 and 50 of a 50-step float64 CPU run. From each, compute one loss and one gradient on
+   both devices. Pass: |loss difference| ≤ 1e-12 and relative gradient difference ≤ 1e-10 at
+   every state (`scripts/gpu_lr_arch.py --part followup`, function `one_step_check`). The
+   architecture already in use runs alongside as the control. The 50-step float64 trajectory is
+   still recorded, but **as a number only, not as pass/fail**. As before, the check runs once on
+   every new GPU type and for every change to the model's maths, before that run counts for a
+   result.
+4. **Records stay as they are.** EXP-038 check 1 and EXP-040's float64 check stay recorded as FAIL
+   under their pre-registered criteria. Their later explanations (EXP-039, EXP-041) are added
+   next to them; nothing is rewritten.
+
+**Rationale:**
+- The adoption rule was fixed before any result: BETTER than the seed noise at both grid-B
+  learning rates. RoPE + GQA-2 met it (+0.0385 and +0.0645 bits per byte against noise 0.0174).
+  It was also lower in all 13 languages in all 6 paired runs, 5.6% smaller, about 3% faster, and
+  has a 3× smaller key-value cache for generation, which matters when serving many users.
+- At toy scale (EXP-033) it had narrowly missed the same rule, and D-043 asked for exactly this
+  re-test at a scale where the evidence can be decisive.
+- Both parts are standard in current open models, so the choice does not make our models
+  unusual. Our evidence for them is our own measurement, though, not their popularity.
+- The 50-step trajectory mixes two things: whether the device computes the same function, and
+  how much a given training run amplifies rounding. The same baseline drifted to 5.5e-10 on Hindi
+  (EXP-039) but stayed within 5.3e-15 on the 13-language data (EXP-041). RoPE + GQA-2 drifted to
+  1.7e-7 (EXP-040), yet agreed to ≤ 2.7e-15 at the very same states when nothing could compound
+  (EXP-041). The one-step check measures only the device question, with a margin of more than
+  10,000× on both sides: rounding is about 1e-15, while a real formula error would be about 1e-3
+  or larger, and a change of one part in a million in one weight matrix already fails it (test
+  in `tests/test_gpu_lr_arch.py`).
+
+**Alternatives rejected:**
+- Keeping the D-043 baseline until a larger-scale re-test: rejected. The pre-registered rule is
+  met, and the phase-2 ladder is itself the larger-scale test.
+- Testing RoPE and GQA-2 separately before phase 2: rejected for now. The package is what was
+  tested and adopted, and splitting it costs about 4 more GPU-hours for a question that does not
+  change the phase-2 plan. It can be asked later if the ladder shows a problem.
+- Keeping the 50-step trajectory as the pass/fail check: rejected. It failed a correct
+  implementation (EXP-040) because of how training behaves, not because of the device.
+- Loosening the trajectory tolerance instead: rejected. Any fixed tolerance would depend on the
+  data and the architecture.
+
+**Consequences accepted:**
+- Step 11 phase 1 is complete. Phase 2 (EXP-042, the IsoFLOP ladder, about 15–25 GPU-hours, NOT
+  VERIFIED) uses this architecture and needs its own pre-registered plan and approval.
+- The evidence covers one size (about 30 M parameters), 100 M tokens, 13 languages in natural
+  proportions and one GPU type. Whether the gain holds at larger sizes is still unknown; the
+  ladder will show it.
+- Which of the two parts gives the gain is not known.
+- The float64 check verifies the maths, not the fp16 kernels; fp16 behaviour is judged by the
+  runs' own stability (skipped steps, NaN/inf) as before.
+
+**Revisit when:** the phase-2 ladder shows the advantage shrinking or reversing with size;
+long-context work (step 12 or later) needs a different position method; a new attention kernel
+or model maths is introduced (re-run the one-step check); or a new GPU type is used.
+
 ---
 
 ## Open items to decide later (not yet decisions)

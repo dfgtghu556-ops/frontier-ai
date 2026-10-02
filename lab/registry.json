@@ -1,7 +1,7 @@
 {
   "schema": "frontier-lab-registry-v1",
   "purpose": "The few facts the Lab OS dashboard needs that are not machine-readable elsewhere in the repository: the status of each MASTER_CONTEXT section 37 step, the compute we have, and the key documents. Everything else in the dashboard is derived automatically from repository files by scripts/export_lab_state.py. Every entry here is cross-checked by tests/test_lab_state.py: step titles must equal MASTER_CONTEXT section 37, cited experiments/decisions must exist, a 'complete' step may only cite complete experiments and accepted decisions, and cited files must exist.",
-  "updated": "2026-10-01",
+  "updated": "2026-10-02",
   "roadmap_steps": [
     {
       "step": 1,
@@ -134,14 +134,17 @@
       "status": "current",
       "evidence": [
         "D-047",
-        "EXP-040"
+        "EXP-040",
+        "EXP-041",
+        "D-048"
       ],
       "evidence_files": [
         "evals/results/EXP-040/summary.json",
+        "evals/results/EXP-041/summary.json",
         "scripts/gpu_lr_arch.py",
         "src/frontier_ai/data/multi.py"
       ],
-      "note": "phase 1 EXP-040 ran: baseline learning rate 1e-3 measured; RoPE/GQA-2 untested (float64 check failed 1.7e-7 > 1e-8); follow-up EXP-041 approved and built, waiting for the Kaggle run; IsoFLOP ladder later"
+      "note": "phase 1 done (EXP-040 + EXP-041): learning rate 1e-3; RoPE + GQA-2 BETTER at both learning rates (adopted for phase 2 by the pre-registered rule; D-048 proposed); phase 2 IsoFLOP ladder (EXP-042) next, with its own approval"
     },
     {
       "step": 12,
@@ -250,21 +253,20 @@
   ],
   "current_work": [
     {
-      "title": "EXP-041 approved and built (one-step float64 device check, then the RoPE/GQA-2 runs); waiting for the founder's Kaggle run",
+      "title": "EXP-041 done: RoPE + GQA-2 passes the one-step float64 check and is BETTER at both learning rates. D-048 proposed (adopt it for phase 2; new device-check method); needs \"approve D-048\"",
       "evidence": [
-        "EXP-040",
         "EXP-041",
+        "EXP-040",
+        "D-048",
         "D-047",
-        "D-043",
-        "EXP-039"
+        "D-043"
       ],
       "evidence_files": [
+        "evals/results/EXP-041/summary.json",
         "evals/results/EXP-040/summary.json",
-        "scripts/gpu_lr_arch.py",
-        "scripts/run_kaggle_exp041.ps1",
-        "scripts/kaggle/exp041_kernel.py"
+        "scripts/gpu_lr_arch.py"
       ],
-      "note": "EXP-040 (Kaggle T4, 178 min, 6 of 12 runs): baseline (D-043, 32 M parameters, 100 M tokens per run) best at lr 1e-3 in both seeds (13-language mean 0.9213 / 0.9388 bits per byte); seed gaps 0.0064 and 0.0175; no failed runs. The float64 CPU = GPU check for RoPE + GQA-2 failed (1.739e-07 > 1e-8 at step 50), so its 6 runs were skipped and the baseline stays. Steps 1-27 agreed to <= 1.8e-15, then the gap grew ~1.5x per step: looks like amplified rounding, unproven. EXP-041 (proposed, end of EXPERIMENTS.md): a non-compounding one-step float64 check for both architectures (baseline = control), then, only if RoPE + GQA-2 passes, its 6 missing runs + 1 baseline control, EXP-040 rules unchanged; cap 5 GPU-h, no new upload. EXP-041 approved 2026-10-02 (\"approve EXP-041\") and built (gpu_lr_arch.py --part followup, kernel, runner -Exp EXP-041; no new upload). Next: the founder runs scripts\\run_kaggle_exp041.ps1."
+      "note": "EXP-041 (Kaggle T4, 207 min, complete): Part A one-step float64 CPU vs GPU PASS for both architectures (<= 2.7e-15; limits 1e-12 / 1e-10); baseline 50-step trajectory on 13-language data 5.3e-15 (reported only). RoPE + GQA-2 (29.9 M parameters) vs the D-043 baseline (31.7 M), 100 M tokens per run: lower 13-language bits per byte in all 6 paired runs and all 13 languages; at lr 1e-3 0.8706 / 0.8605 vs 0.9213 / 0.9388; rule 3 BETTER at both learning rates (+0.0385, +0.0645; noise 0.0174) -> adopted for phase 2; best learning rate 1e-3 for both; control rerun -0.0016. D-048 (proposed, DECISIONS.md): adopt RoPE + GQA-2 (supersedes D-043 points 1-2), lr 1e-3 as the centre of phase-2 sweeps, device checks pass on the one-step float64 check (amends D-047 point 3). Next: \"approve D-048\", then the EXP-042 IsoFLOP ladder proposal (own approval)."
     }
   ],
   "baseline_model": {

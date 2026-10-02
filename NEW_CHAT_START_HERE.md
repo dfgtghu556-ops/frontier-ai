@@ -628,6 +628,12 @@ comes next. They also update the table in §3.
     (same 13-language dataset, no upload). **Next: the founder runs**
     `powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp041.ps1`. Don't push while it runs.
 
+  - **EXP-041 ran (2026-10-02, results `6ee0bd5`, complete):** one-step float64 check PASS for
+    both architectures (≤ 2.7e-15); RoPE + GQA-2 BETTER at both learning rates (+0.0385, +0.0645
+    bits per byte; noise 0.0174), lower in all 13 languages; lr 1e-3 for both. **D-048 proposed**
+    (adopt RoPE + GQA-2 for phase 2; device checks pass on the one-step check). The IsoFLOP ladder
+    is now EXP-042. **Next: "approve D-048"; then propose EXP-042.**
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

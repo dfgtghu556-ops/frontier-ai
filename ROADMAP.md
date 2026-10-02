@@ -141,6 +141,10 @@
   rounding; the scaling ladder comes after it.
 - **Update (2026-10-02, later):** EXP-041 approved and built; it waits for the founder's Kaggle
   run (about 4 GPU-hours, at most 5, no new upload).
+- **Update (2026-10-02, EXP-041 done): step 11 phase 1 is complete.** The GPU computes the same
+  RoPE + GQA-2 maths as the CPU, and at about 30 M parameters RoPE + GQA-2 beat the baseline by
+  about 7% in bits per byte, in every language, by the pre-registered rule. D-048 (proposed)
+  adopts it for the scaling ladder (phase 2, EXP-042, its own approval).
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

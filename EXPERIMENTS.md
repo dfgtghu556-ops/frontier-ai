@@ -3283,3 +3283,68 @@ no change to the plan, limits or rules:
   numbers are not results.
 
 **Status:** approved — code ready; waiting for the founder to launch the Kaggle run.
+
+**Results (2026-10-02; the founder's Kaggle run, code `f0738fe`, results commit `6ee0bd5`,
+`evals/results/EXP-041/`):** one Kaggle T4 session, Tesla T4, torch 2.10.0+cu128. The script ran
+for 207.1 minutes (cap 5 hours). `complete: true`. The laptop runner was stopped once by accident
+(Ctrl+C) and started again. The GPU kernel was not affected: it had already been launched and the
+restarted runner only waited for it.
+
+*Part A, the pre-registered gate: PASS for both architectures.*
+
+| architecture | max \|loss difference\| | max relative gradient difference | states |
+|---|---|---|---|
+| baseline (the control) | 8.9e-16 | 1.8e-15 | before steps 1, 11, 21, 31, 41, 50 |
+| RoPE + GQA-2 | 1.8e-15 | 2.7e-15 | the same |
+
+The limits were 1e-12 and 1e-10. Both architectures agree to about the size of one float64
+rounding step, including at steps 31, 41 and 50, where EXP-040's trajectory had already drifted
+apart. **The GPU computes the same RoPE + GQA-2 function as the CPU code.**
+
+*Reported, not a gate:* the baseline's 50-step float64 trajectory on the 13-language data stayed
+within 5.3e-15 (on Hindi in EXP-039 it reached 5.5e-10). So whether a 50-step trajectory drifts
+depends on the architecture and the data; it says nothing about the device. This supports
+EXP-040's interpretation (rounding amplified by training). **EXP-040's FAIL stays recorded as
+it is.**
+
+*Part B: the 6 RoPE + GQA-2 runs (29,940,096 parameters, 100,007,936 tokens each, the same seeds
+and therefore the same batches as EXP-040's baseline runs).*
+
+| lr | seed | baseline (EXP-040) | RoPE + GQA-2 | baseline − candidate | languages where the candidate is lower |
+|---|---|---|---|---|---|
+| 5e-4 | 1 | 0.9439 | 0.9114 | +0.0326 | 13 of 13 |
+| 1e-3 | 1 | 0.9213 | **0.8706** | +0.0507 | 13 of 13 |
+| 2e-3 | 1 | 0.9548 | 0.8801 | +0.0748 | 13 of 13 |
+| 4e-3 | 1 | 1.0195 | 0.9715 | +0.0480 | 13 of 13 |
+| 5e-4 | 2 | 0.9503 | 0.9059 | +0.0444 | 13 of 13 |
+| 1e-3 | 2 | 0.9388 | **0.8605** | +0.0783 | 13 of 13 |
+
+The values are the 13-language mean validation bits per byte, equal weight. Peak memory was 5.78 GB.
+Speed was 61,946–64,628 tokens/s (the baseline: 60,178–62,939), 28.1–29.2 minutes per run. One
+fp16 step was skipped at lr 4e-3; there were no failed runs.
+
+*Control run (baseline lr 1e-3, seed 1, rerun in this session):* 0.9197 vs 0.9213 in EXP-040, a
+difference of −0.0016. That is about a tenth of the seed noise, so combining EXP-040's baseline
+runs with this session's runs is sound.
+
+*Pre-registered rules (EXP-040's, unchanged):*
+1. **Learning rate: 1e-3 for both architectures** (not at the edge of the range).
+2. **Seed noise: 0.0174** bits per byte (the largest seed gap: the baseline at lr 1e-3; the
+   candidate's gaps were 0.0055 and 0.0101).
+3. **At lr 5e-4: BETTER** (+0.0385 over 2 seeds, noise 0.0174). **At lr 1e-3: BETTER** (+0.0645).
+   **RoPE + GQA-2 is BETTER at both learning rates → adopted for phase 2.**
+4. **No failed runs.**
+
+**What this does and does not show:**
+- It does show that at 30 M parameters and 100 M tokens on our 13-language corpus, RoPE + GQA-2 is
+  better than the D-043 baseline by about 7% in bits per byte at the best learning rate. It was
+  lower in every language and in every one of the 6 paired runs, while being 5.6% smaller and
+  about 3% faster. Its key-value cache for generation is 3× smaller.
+- It does not show which of the two parts gives the gain (they were tested as one package, as
+  pre-registered). It does not show that the gain holds at larger sizes: that is what the phase-2
+  ladder runs on, and it can show otherwise. The float64 check verifies the maths, not the fp16
+  kernels; the fp16 runs above trained without failures.
+- The decision record that rule 3 requires is proposed as D-048. The IsoFLOP ladder becomes
+  EXP-042 and needs its own approval after D-048.
+
+**Status:** complete — Part A PASS for both architectures (≤ 2.7e-15 against limits 1e-12 / 1e-10); RoPE + GQA-2 BETTER at both grid-B learning rates (+0.0385 and +0.0645 bits per byte, noise 0.0174) and adopted for phase 2 by rule 3; learning rate 1e-3 for both; no failed runs; D-048 proposed.
