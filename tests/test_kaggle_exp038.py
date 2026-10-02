@@ -37,12 +37,15 @@ def test_runner_commits_only_the_exp038_results_folder():
     text = _ps1()
     assert '$resultsPrefix = "evals/results/$Exp/"' in text
     assert (
-        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041")][string]$Exp = "EXP-038", [switch]$Relaunch)'
-        in text
+        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042")][string]$Exp = "EXP-038",'
+        " [switch]$Relaunch)" in text
     )
     assert "git add $resultsPrefix" in text
     assert re.findall(r'Invoke-Logged "(git add[^"]*)"', text) == ["git add $resultsPrefix"]
-    assert "scripts\\publish_eval_results.py --exp-id $Exp --src $resultDir" in text
+    assert "scripts\\publish_eval_results.py --exp-id $Exp --src $publishSrc" in text
+    assert (
+        "$publishSrc = $resultDir" in text
+    )  # EXP-042 keeps $publishSrc = <output>\EXP-042 (session-<n> kept)
 
 
 def test_token_is_hidden_and_kept_out_of_the_repository():
@@ -153,8 +156,8 @@ def test_exp039_wrapper_reuses_the_runner_and_the_dataset():
     # only EXP-040 (all 13 languages) switches to another dataset
     assert text.count("$datasetSlug = ") == 2
     assert (
-        'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041") {\n    $datasetSlug = "frontier-v2-tok2-13lang"'
-        in text
+        'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042") {\n'
+        '    $datasetSlug = "frontier-v2-tok2-13lang"' in text
     )
     assert '$dataFiles = @("hi.bin", "hi.meta.json")' in text
 
@@ -228,7 +231,7 @@ def test_exp041_wrapper_reuses_the_13_language_dataset():
     wrapper = PS1_041.read_text(encoding="ascii")
     assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-041" -Relaunch:$Relaunch' in wrapper
     text = _ps1()
-    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041") {' in text  # same slug and files: no new upload
+    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042") {' in text  # no new upload
     assert 'if ($Exp -eq "EXP-041") {\n    $expectedRun' in text and "$maxWaitHours = 7" in text
 
 
@@ -256,4 +259,64 @@ def test_exp041_kernel_runs_the_followup_within_five_gpu_hours():
     for flag in flags:
         assert flag in helptext, flag
     res = subprocess.run([sys.executable, str(KERNEL_041)], capture_output=True, text=True, timeout=60)
+    assert res.returncode != 0 and "placeholder" in (res.stderr + res.stdout)
+
+
+# ------------------------------------------------------------------------------------ EXP-042 --
+PS1_042 = ROOT / "scripts" / "run_kaggle_exp042.ps1"
+KERNEL_042 = ROOT / "scripts" / "kaggle" / "exp042_kernel.py"
+
+
+def test_exp042_wrapper_reuses_the_13_language_dataset_and_waits_long_enough():
+    wrapper = PS1_042.read_text(encoding="ascii")
+    assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-042" -Relaunch:$Relaunch' in wrapper
+    text = _ps1()
+    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042") {' in text
+    block = text[text.index('if ($Exp -eq "EXP-042") {\n    $expectedRun') :]
+    assert "$maxWaitHours = 11" in block.split("}")[0]  # 9-hour kernel + queueing and download
+
+
+def test_exp042_runner_publishes_one_session_and_then_forgets_the_commit():
+    text = _ps1()
+    # a fresh download folder per launched commit: an older session can never be picked up
+    assert '$outputDir = "$outDir\\output-$($state.pinned_commit.Substring(0, 7))"' in text
+    assert 'Get-ChildItem "$outputDir\\$Exp" -Directory -Filter "session-*"' in text
+    assert "expected one" in text and "$resultDir = $sessions[0].FullName" in text
+    # the session folder keeps its name: <output>\EXP-042\session-<n> -> evals/results/EXP-042/session-<n>
+    assert text.index("$publishSrc = $resultDir") < text.index("if ($sessions.Count -eq 1)")
+    # the commit is forgotten only AFTER the push succeeded, so a failed push is retried, not relaunched
+    push_ok = text.index('Add-Report "PASS 6d: pushed to origin/$branch"')
+    forget = text.index('$state.pinned_commit = ""')
+    assert push_ok < forget and text.count('$state.pinned_commit = ""') == 1
+    assert "run the same line again (session $($summary.session + 1))" in text
+    # still only new files under evals/results/EXP-042/ may be committed
+    assert '$bad = @($changed | Where-Object { -not $_.StartsWith("?? $resultsPrefix") })' in text
+
+
+def test_exp042_kernel_runs_one_ladder_session_within_nine_gpu_hours():
+    tree = ast.parse(KERNEL_042.read_text(encoding="ascii"))
+    consts = {
+        n.targets[0].id: (n.value.args[0].value if isinstance(n.value, ast.Call) else n.value.value)
+        for n in tree.body
+        if isinstance(n, ast.Assign) and isinstance(n.value, (ast.Constant, ast.Call))
+    }
+    assert consts["COMMIT"] == "__PINNED_COMMIT__" and float(consts["MAX_HOURS"]) <= 9.0
+    assert float(consts["TOTAL_CAP_HOURS"]) == 25.0
+    assert consts["OUT"] == "/kaggle/working/EXP-042" and str(consts["SCRATCH"]).startswith("/tmp/")
+    assert consts["PREVIOUS_DIR"] == "evals/results/EXP-042"
+    text = KERNEL_042.read_text(encoding="ascii")
+    assert '"--part",\n        "ladder"' in text and '"EXP-042"' in text
+    flags = set(re.findall(r'"(--[a-z-]+)"', text)) - {"--quiet", "--no-deps"}
+    assert flags == {
+        "--data-dir", "--out", "--scratch", "--exp-id", "--max-hours", "--part", "--prev-dir", "--total-cap-hours",
+    }  # fmt: skip
+    helptext = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "gpu_lr_arch.py"), "--help"],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    ).stdout
+    for flag in flags:
+        assert flag in helptext, flag
+    res = subprocess.run([sys.executable, str(KERNEL_042)], capture_output=True, text=True, timeout=60)
     assert res.returncode != 0 and "placeholder" in (res.stderr + res.stdout)

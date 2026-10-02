@@ -56,6 +56,7 @@ from typing import Any  # noqa: E402
 SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 
+import numpy as np  # noqa: E402
 import torch  # noqa: E402
 
 import gpu_bringup as gb  # noqa: E402
@@ -245,7 +246,8 @@ class Report:
             json.dumps(self.data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
         )
         tmp.replace(self.out / "summary.json")
-        (self.out / "SUMMARY.txt").write_text(render_text(self.data), encoding="utf-8", newline="\n")
+        text = render_ladder(self.data) if self.data.get("part") == "ladder" else render_text(self.data)
+        (self.out / "SUMMARY.txt").write_text(text, encoding="utf-8", newline="\n")
 
 
 # ------------------------------------------------------------------ part 0 --
@@ -465,8 +467,20 @@ def one_run(
     lr: float,
     seed: int,
     grid: str,
+    *,
+    model: dict | None = None,
+    steps: int | None = None,
+    micro_batch: int | None = None,
+    accum: int = 1,
+    eval_interval: int | None = None,
+    name: str | None = None,
 ) -> dict[str, Any]:
-    name = run_name(arch, lr, seed)
+    """Train one run and score every language's full validation split.
+
+    The keyword arguments (EXP-042) replace the EXP-040 defaults: a full model dict instead of
+    `shape` + ARCHS[arch], the number of steps, the micro-batch and gradient-accumulation steps.
+    """
+    name = name or run_name(arch, lr, seed)
     out_dir = Path(args.scratch) / name
     r: dict[str, Any] = {
         "name": name,
@@ -478,21 +492,23 @@ def one_run(
     }
     gpu = torch.cuda.is_available()
     cfg = gb.make_cfg(
-        {**shape, **ARCHS[arch]},
+        model if model is not None else {**shape, **ARCHS[arch]},
         ds.path,
         out_dir,
-        max_steps=plan["steps"],
-        batch_size=plan["batch"],
+        max_steps=steps if steps is not None else plan["steps"],
+        batch_size=micro_batch if micro_batch is not None else plan["batch"],
+        accum_steps=accum,
         lr=lr,
         warmup_steps=plan["warmup"],
         precision="fp16" if gpu else "fp32",  # CPU only in --smoke
         compile=gpu,
         seed=seed,
         data_seed=seed,
-        eval_interval=plan["eval_interval"],
+        eval_interval=eval_interval if eval_interval is not None else plan["eval_interval"],
         eval_iters=plan["eval_iters"],
         log_interval=50,
     )
+    block = cfg.model.block_size
     cfg.optim.min_lr_ratio = plan["min_lr_ratio"]
     if out_dir.exists():
         shutil.rmtree(out_dir)
@@ -520,9 +536,7 @@ def one_run(
     nats: dict[str, float] = {}
     total_bits, total_bytes = 0.0, 0
     for lang, part in ds.parts.items():
-        loss, _n_pred = full_split_loss(
-            model, part, shape["block_size"], plan["eval_batch"], trainer.device, "val", amp
-        )
+        loss, _n_pred = full_split_loss(model, part, block, plan["eval_batch"], trainer.device, "val", amp)
         tpb = part.tokens_per_byte("val")
         nats[lang] = loss
         bpb[lang] = loss / math.log(2) * tpb
@@ -764,6 +778,430 @@ def run_followup(
     )
 
 
+# ================================================================== EXP-042 ==
+# Step 11 phase 2: the IsoFLOP ladder (pre-registered in EXPERIMENTS.md, EXP-042).
+LADDER_SIZES_FULL = {  # depth = width / 64, head size 64, D-048 architecture
+    "s1": (2, 128),
+    "s2": (4, 256),
+    "s3": (6, 384),
+    "s4": (8, 512),
+    "s5": (10, 640),
+}
+LADDER_SIZES_SMOKE = {"s1": (1, 16), "s2": (2, 32), "s3": (3, 48), "s4": (4, 64), "s5": (5, 80)}
+LADDER_BUDGETS_FULL = [
+    ("C1", 1e16, ["s1", "s2", "s3", "s4"]),
+    ("C2", 3e16, ["s1", "s2", "s3", "s4"]),
+    ("C3", 1e17, ["s2", "s3", "s4", "s5"]),
+]
+LADDER_BUDGETS_SMOKE = [
+    ("C1", 1.6e10, ["s1", "s2", "s3", "s4"]),
+    ("C2", 4.8e10, ["s1", "s2", "s3", "s4"]),
+    ("C3", 1.0e11, ["s2", "s3", "s4", "s5"]),
+]
+LADDER_LRS = [5e-4, 1e-3, 2e-3]  # D-048 point 2: 1e-3 is the centre; swept at C1 only
+LADDER_LR_FROM = {"s5": "s4"}  # s5 is not in C1: it uses s4's best (pre-registered)
+LADDER_NOISE = 0.0174  # seed noise, bits per byte (EXP-040/041 rule 2)
+LADDER_TOKENS_AVAILABLE = 2_783_830_088  # EXP-037 training tokens, all 13 languages
+LADDER_SCHEMA = "frontier-ladder-v1"
+
+
+def ladder_setup(smoke: bool) -> dict[str, Any]:
+    """Model configs, FLOPs per token and batch settings of every ladder size."""
+    from frontier_ai.config import ModelConfig
+    from frontier_ai.model.gpt import GPT
+
+    sizes = LADDER_SIZES_SMOKE if smoke else LADDER_SIZES_FULL
+    head = 8 if smoke else 64
+    block = 32 if smoke else 512
+    out: dict[str, Any] = {
+        "tokens_per_step": (4 if smoke else 32) * block,
+        "block_size": block,
+        "budgets": [[n, c, w] for n, c, w in (LADDER_BUDGETS_SMOKE if smoke else LADDER_BUDGETS_FULL)],
+        "lrs": LADDER_LRS,
+        "sizes": {},
+    }
+    for name, (layers, width) in sizes.items():
+        model = {
+            "n_layer": layers,
+            "n_head": width // head,
+            "n_embd": width,
+            "block_size": block,
+            "pos": "rope",
+            "n_kv_head": 2,
+        }
+        mc = ModelConfig(
+            vocab_size=32896, dropout=0.0, norm="rmsnorm", ffn="swiglu", tie_embeddings=True, **model
+        )
+        n = GPT(mc).n_params()
+        if smoke:
+            micro, accum = (2, 2) if name == "s5" else (4, 1)  # the accumulation path is tested too
+        else:
+            micro, accum = (16, 2) if name == "s5" else (32, 1)  # s5: 16 x 2 for memory (same maths)
+        out["sizes"][name] = {
+            "model": model,
+            "n_params": n,
+            "n_non_embedding": n - 32896 * width,
+            "flops_per_token": gb.flops_per_token(mc, n),
+            "micro_batch": micro,
+            "accum": accum,
+        }
+    return out
+
+
+def ladder_run_name(budget: str, size: str, lr: float) -> str:
+    return f"{budget}-{size}-lr{lr:g}"
+
+
+def ladder_best_lrs(runs: list[dict[str, Any]], setup: dict[str, Any]) -> dict[str, Any]:
+    """Each size's best C1 learning rate; None while C1 is unfinished, "none" if no C1 run succeeded."""
+    c1 = setup["budgets"][0]
+    best: dict[str, float | None] = {}
+    for size in setup["sizes"]:
+        src = LADDER_LR_FROM.get(size, size)
+        if src not in c1[2]:
+            best[size] = None
+            continue
+        tried = [r for r in runs if r["budget"] == c1[0] and r["size"] == src and r.get("attempted")]
+        good = [r for r in tried if r.get("status") == "done" and not r.get("failed")]
+        if len(tried) < len(setup["lrs"]):
+            best[size] = None
+        elif not good:
+            best[size] = "none"
+        else:
+            best[size] = min(good, key=lambda r: r["bpb_mean"])["lr"]
+    return best
+
+
+def ladder_plan(runs: list[dict[str, Any]], setup: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every run of the ladder in its fixed order; lr = None while it still depends on C1."""
+    plan = []
+    best = ladder_best_lrs(runs, setup)
+    for i, (budget, c, window) in enumerate(setup["budgets"]):
+        for size in window:
+            lrs = setup["lrs"] if i == 0 else [best[size]]
+            for lr in lrs:
+                sz = setup["sizes"][size]
+                steps = max(1, round(c / sz["flops_per_token"] / setup["tokens_per_step"]))
+                blocked = lr == "none"  # no learning rate of this size succeeded at C1 (rule 5)
+                plan.append(
+                    {
+                        "budget": budget,
+                        "C": c,
+                        "size": size,
+                        "lr": None if blocked else lr,
+                        "blocked": blocked,
+                        "steps": steps,
+                        "name": ladder_run_name(budget, size, lr)
+                        if isinstance(lr, float)
+                        else f"{budget}-{size}",
+                    }
+                )
+    return plan
+
+
+def load_ladder_sessions(prev_dir: Path, setup: dict[str, Any], smoke: bool) -> list[dict[str, Any]]:
+    """Earlier sessions' summaries (session-1, session-2, ...); refuses ones made with another plan."""
+    sessions = []
+    for f in sorted(prev_dir.glob("session-*/summary.json"), key=lambda p: int(p.parent.name.split("-")[1])):
+        d = json.loads(f.read_text(encoding="utf-8"))
+        if (
+            d.get("schema") != LADDER_SCHEMA
+            or bool(d.get("smoke")) != smoke
+            or d.get("setup") != json.loads(json.dumps(setup))
+        ):
+            raise ValueError(f"{f} was made with a different ladder plan; it cannot be continued")
+        sessions.append(d)
+    return sessions
+
+
+def ladder_analysis(runs: list[dict[str, Any]], setup: dict[str, Any]) -> dict[str, Any]:
+    """Rules 1-5 of EXP-042 on every finished run."""
+    import ladder_fit
+
+    good = [r for r in runs if r.get("status") == "done" and not r.get("failed")]
+    out: dict[str, Any] = {"best_lr": {}, "budgets": []}
+    for size, lr in ladder_best_lrs(runs, setup).items():
+        if size in setup["budgets"][0][2]:
+            edge = lr in (setup["lrs"][0], setup["lrs"][-1])
+            out["best_lr"][size] = {"lr": lr, "edge_of_range": edge} if isinstance(lr, float) else None
+    for budget, c, window in setup["budgets"]:
+        pts = []
+        for size in window:
+            cands = [r for r in good if r["budget"] == budget and r["size"] == size]
+            if cands:
+                r = min(cands, key=lambda r: r["bpb_mean"])
+                pts.append((setup["sizes"][size]["n_non_embedding"], r["bpb_mean"], size, r["tokens"]))
+        fit = ladder_fit.fit_budget([(n, y) for n, y, _, _ in pts], LADDER_NOISE)
+        fit.update(name=budget, C=c, sizes_used=[s for _, _, s, _ in pts])
+        if fit.get("n_opt"):
+            # D_opt: tokens at the optimum, from the measured (N, tokens) pairs (log-log interpolation)
+            ns = np.log10([p[0] for p in pts])
+            ds = np.log10([p[3] for p in pts])
+            fit["d_opt"] = float(10 ** np.interp(math.log10(fit["n_opt"]), ns, ds))
+            fit["tokens_per_non_embedding_param"] = fit["d_opt"] / fit["n_opt"]
+        out["budgets"].append(fit)
+    out["growth_law"] = ladder_fit.growth_law(out["budgets"], LADDER_TOKENS_AVAILABLE)
+    out["parametric"] = ladder_fit.fit_parametric(
+        [(setup["sizes"][r["size"]]["n_non_embedding"], r["tokens"], r["bpb_mean"]) for r in good]
+    )
+    out["failed_runs"] = [r["name"] for r in runs if r.get("failed")]
+    return out
+
+
+def run_ladder(
+    args: argparse.Namespace,
+    rep: Report,
+    ds: MultiTokenDataset,
+    plan_cfg: dict,
+    check_shape: dict,
+    setup: dict[str, Any],
+    previous: list[dict[str, Any]],
+    deadline: float,
+) -> None:
+    """One session: the device check, then the next ladder runs while they fit the time budget."""
+    gb._say("Part 0: one-step float64 check, D-048 architecture")
+    states = STATES_SMOKE if args.smoke else STATES_FULL
+    rep.data["part0"]["one_step_check"] = one_step_check(args, ds, check_shape, plan_cfg, "rope_gqa2", states)
+    rep.save()
+    if rep.data["part0"]["one_step_check"].get("pass") is False:
+        rep.data["stopped"] = "the one-step float64 check failed (D-048 point 3); no runs in this session"
+        return
+    runs: list[dict[str, Any]] = rep.data["runs"]
+    for d in previous:  # each summary lists every run so far; take each run from its own session only
+        for r in d["runs"]:
+            if r.get("attempted") and r.get("session") == d["session"]:
+                runs.append(r)
+    done = {r["name"] for r in runs}
+    rate: dict[str, float] = {}  # FLOPs per second per size, measured (including evaluations)
+    for r in runs:
+        if r.get("status") == "done":
+            rate[r["size"]] = r["C_actual"] / (r["minutes"] * 60)
+    new = 0
+    while True:
+        todo = [p for p in ladder_plan(runs, setup) if p["lr"] is not None and p["name"] not in done]
+        started = False
+        for p in todo:
+            sz = setup["sizes"][p["size"]]
+            c_run = p["steps"] * setup["tokens_per_step"] * sz["flops_per_token"]
+            known = rate.get(p["size"]) or (min(rate.values()) if rate else None)
+            need = 1.15 * c_run / known if known else 0.0
+            if args.max_runs is not None and new >= args.max_runs:
+                break
+            if time.time() + need > deadline:
+                continue  # a smaller run later in the list may still fit
+            gb._say(f"ladder run {p['name']} ({p['steps']} steps)")
+            r = one_run(
+                args,
+                ds,
+                None,
+                plan_cfg,
+                "rope_gqa2",
+                p["lr"],
+                1,
+                p["budget"],
+                model=sz["model"],
+                steps=p["steps"],
+                micro_batch=sz["micro_batch"],
+                accum=sz["accum"],
+                eval_interval=max(5 if args.smoke else 250, p["steps"] // 20),
+                name=p["name"],
+            )
+            r.update(
+                budget=p["budget"],
+                C=p["C"],
+                size=p["size"],
+                session=rep.data["session"],
+                attempted=not r.get("status", "").startswith("error"),
+                C_actual=float(p["steps"] * setup["tokens_per_step"] * sz["flops_per_token"]),
+            )
+            runs.append(r)
+            done.add(p["name"])
+            if r.get("status") == "done":
+                rate[p["size"]] = r["C_actual"] / (r["minutes"] * 60)
+            new += 1
+            rep.save()
+            started = True
+            break  # re-plan: a finished C1 size may unlock its C2/C3 runs
+        if not started:
+            break
+    attempted = {r["name"] for r in runs if r.get("attempted")}
+    final = ladder_plan(runs, setup)
+    remaining = [p["name"] for p in final if not p["blocked"] and p["name"] not in attempted]
+    rep.data["remaining"] = remaining
+    rep.data["blocked"] = [p["name"] for p in final if p["blocked"]]
+    rep.data["complete"] = not remaining
+    if rep.data["complete"]:
+        rep.data["analysis"] = ladder_analysis(runs, setup)
+
+
+def _fmt_n(n: float) -> str:
+    return f"{n / 1e6:.2f} M"
+
+
+def render_ladder(d: dict[str, Any]) -> str:
+    env = d.get("environment", {})
+    smoke = " [SMOKE TEST, not a result]" if d.get("smoke") else ""
+    lines = [
+        f"{d['exp_id']} session {d.get('session')}: IsoFLOP ladder, 13 languages (step 11, phase 2){smoke}",
+        f"complete (whole ladder): {d['complete']}   started {d['started_at']}"
+        f"   finished {d.get('finished_at', '-')}   elapsed {d.get('elapsed_min', 0)} min",
+        f"GPU hours used by earlier sessions: {d.get('hours_before', 0):.2f}"
+        f"   this session's limit: {d.get('session_hours', 0):.2f} h",
+        f"device: {env.get('gpu_name', 'none')}   torch {env.get('torch', '-')}"
+        f"   CUDA {env.get('cuda', '-')}",
+    ]
+    if d.get("stopped"):
+        lines.append(f"STOPPED: {d['stopped']}")
+    p0 = d.get("part0", {})
+    if p0:
+        lines += [
+            "",
+            "Part 0",
+            f"  data: {p0.get('files_ok', '-')} of {p0.get('files_expected', '-')} files match the manifest",
+            f"  model/trainer tests: {gb._fmt_pass(p0.get('tests_pass'))} ({p0.get('tests_line', '')})",
+        ]
+        c = p0.get("one_step_check")
+        if c:
+            detail = c.get("error") or (
+                f"max |loss diff| {c['max_loss_diff']:.3e},"
+                f" max relative grad diff {c['max_grad_rel_diff']:.3e}"
+            )
+            lines.append(f"  one-step float64 CPU = GPU (D-048): {gb._fmt_pass(c.get('pass'))}  {detail}")
+    sizes = d.get("setup", {}).get("sizes", {})
+    runs = d.get("runs", [])
+    if runs:
+        lines += [
+            "",
+            "Runs (final validation bits per byte, mean of 13 languages with equal weight)",
+            f"  {'run':<20}{'sess':>5}{'non-emb N':>11}{'tokens':>9}{'mean':>8}"
+            f"{'tok/s':>9}{'min':>7}  status",
+        ]
+        for r in runs:
+            n_ne = sizes.get(r.get("size"), {}).get("n_non_embedding", 0)
+            head = f"  {r['name']:<20}{r.get('session', ''):>5}"
+            if r.get("status") == "done":
+                lines.append(
+                    head + f"{_fmt_n(n_ne):>11}{r['tokens'] / 1e6:>8.0f}M{r['bpb_mean']:>8.4f}"
+                    f"{r['tokens_per_s']:>9,.0f}{r['minutes']:>7.1f}  done"
+                )
+            else:
+                lines.append(head + f"{'':>11}{'':>9}{'-':>8}{'-':>9}{'-':>7}  {r.get('status')}")
+    if d.get("remaining"):
+        lines += ["", f"Still to run in later sessions ({len(d['remaining'])}): {', '.join(d['remaining'])}"]
+    if d.get("blocked"):
+        lines.append(f"Not run (no learning rate of that size succeeded at C1): {', '.join(d['blocked'])}")
+    a = d.get("analysis")
+    if a:
+        lines += ["", "Pre-registered analysis"] + _ladder_analysis_lines(a)
+    return "\n".join(lines) + "\n"
+
+
+def _ladder_analysis_lines(a: dict[str, Any]) -> list[str]:
+    lines = []
+    for size, v in a["best_lr"].items():
+        txt = (
+            "none succeeded"
+            if v is None
+            else f"{v['lr']:g}" + (" (EDGE of the range)" if v["edge_of_range"] else "")
+        )
+        lines.append(f"  1. best learning rate at C1, {size}: {txt}")
+    for b in a["budgets"]:
+        if b.get("n_opt"):
+            why = "" if b["bracketed"] else f" ({b.get('reason')})"
+            lines.append(
+                f"  1. {b['name']} (C = {b['C']:.0e}): N_opt {_fmt_n(b['n_opt'])} non-embedding,"
+                f" D_opt {b['d_opt'] / 1e6:.0f} M tokens"
+                f" ({b['tokens_per_non_embedding_param']:.1f} per non-embedding param),"
+            )
+            lines.append(f"     bracketed: {b['bracketed']}{why}")
+            lo, hi = b["flat_region"]
+            lines.append(
+                f"     flat region (within {LADDER_NOISE} of the minimum): {_fmt_n(lo)} - {_fmt_n(hi)}"
+            )
+        else:
+            lines.append(f"  1. {b['name']}: not bracketed ({b.get('reason')})")
+    g = a["growth_law"]
+    if g.get("computable"):
+        used = ", ".join(g["bracketed_budgets"])
+        lines.append(f"  2. N_opt ~ C^{g['a']:.3f}   D_opt ~ C^{g['b']:.3f}   (from {used})")
+        pj = g["projection"]
+        if pj.get("computable"):
+            lines.append(
+                f"  3. EXTRAPOLATION: D_opt = {pj['tokens'] / 1e9:.2f} B tokens"
+                f" at C = {pj['C_star']:.2e} FLOPs,"
+            )
+            lines.append(
+                f"     N_opt {_fmt_n(pj['n_opt_non_embedding'])} non-embedding;"
+                f" {pj['orders_of_magnitude_beyond_largest_budget']:.1f} orders of magnitude"
+                " beyond the largest budget"
+            )
+            if "leave_one_out_n_opt" in pj:
+                lo, hi = pj["leave_one_out_n_opt"]
+                lines.append(f"     leave-one-budget-out range of N_opt: {_fmt_n(lo)} - {_fmt_n(hi)}")
+        else:
+            lines.append(f"  3. not computable ({pj.get('reason')})")
+    else:
+        lines.append(f"  2./3. not computable ({g.get('reason')})")
+    pf = a["parametric"]
+    if pf.get("E") is not None:
+        lines.append(
+            f"  4. parametric fit (secondary): E {pf['E']:.3f}  A {pf['A']:.3g}  alpha {pf['alpha']:.2f}"
+            f"  B {pf['B']:.3g}  beta {pf['beta']:.2f}  rmse {pf['rmse']:.4f}  converged: {pf['converged']}"
+        )
+    else:
+        lines.append(f"  4. parametric fit: {pf.get('reason')}")
+    lines.append(f"  5. failed runs: {a['failed_runs'] or 'none'}")
+    return lines
+
+
+def main_ladder(args: argparse.Namespace, deadline: float, check_shape: dict, plan_cfg: dict) -> int:
+    """EXP-042: one session of the ladder; results in <out>/session-<n>/."""
+    setup = ladder_setup(args.smoke)
+    prev_dir = Path(args.prev_dir) if Path(args.prev_dir).is_absolute() else ROOT / args.prev_dir
+    out = Path(args.out)
+    try:
+        previous = load_ladder_sessions(prev_dir, setup, args.smoke)
+    except ValueError as exc:  # nothing is written: a session-0 file would block every later launch
+        print(f"STOPPED: {exc}", flush=True)
+        return 1
+    session = max((d["session"] for d in previous), default=0) + 1
+    hours_before = sum(d.get("elapsed_min", 0) for d in previous) / 60
+    session_hours = min(args.max_hours, args.total_cap_hours - hours_before)
+    rep = Report(out / f"session-{session}", args.exp_id, args.smoke)
+    rep.data.update(
+        schema=LADDER_SCHEMA,
+        part="ladder",
+        session=session,
+        setup=json.loads(json.dumps(setup)),
+        hours_before=hours_before,
+        session_hours=session_hours,
+        previous_sessions=[d["session"] for d in previous],
+        noise=LADDER_NOISE,
+        tokens_available=LADDER_TOKENS_AVAILABLE,
+        plan=plan_cfg,
+        precision="fp16 + GradScaler + torch.compile (D-047)",
+        primary_metric="mean of per-language validation bits per byte, equal weight",
+    )
+    deadline = min(deadline, time.time() + max(session_hours, 0) * 3600)
+    try:
+        if previous and previous[-1].get("complete"):
+            rep.data["stopped"] = f"the ladder was already completed in session {previous[-1]['session']}"
+            rep.data["complete"] = True
+        elif session_hours <= 0:
+            rep.data["stopped"] = f"the {args.total_cap_hours:g} GPU-hour cap over all sessions is used up"
+        else:
+            ds = part0(args, rep, check_shape, plan_cfg, device_check=False)
+            if ds is not None:
+                run_ladder(args, rep, ds, plan_cfg, check_shape, setup, previous, deadline)
+    except Exception as exc:  # noqa: BLE001 - keep the evidence gathered so far
+        traceback.print_exc()
+        rep.data["stopped"] = f"unexpected error: {gb._err(exc)}"
+    rep.data["finished_at"] = gb._now()
+    rep.save()
+    print(render_ladder(rep.data), flush=True)
+    return 0 if not rep.data.get("stopped") or rep.data.get("complete") else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--data-dir", required=True, help="folder with the 13 EXP-037 .bin + .meta.json files")
@@ -773,15 +1211,22 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--exp-id", default="EXP-040")
     p.add_argument(
         "--part",
-        choices=["lr-arch", "followup"],
+        choices=["lr-arch", "followup", "ladder"],
         default="lr-arch",
-        help="lr-arch = EXP-040 (default); followup = EXP-041 (needs --prev)",
+        help="lr-arch = EXP-040 (default); followup = EXP-041 (needs --prev); ladder = EXP-042",
     )
     p.add_argument(
         "--prev",
         default="evals/results/EXP-040/summary.json",
         help="followup: the EXP-040 summary whose baseline runs are reused",
     )
+    p.add_argument(
+        "--prev-dir",
+        default="evals/results/EXP-042",
+        help="ladder: folder with the earlier sessions (session-1/summary.json, ...)",
+    )
+    p.add_argument("--total-cap-hours", type=float, default=25.0, help="ladder: cap over all sessions")
+    p.add_argument("--max-runs", type=int, default=None, help=argparse.SUPPRESS)  # tests: end a session early
     p.add_argument("--max-hours", type=float, default=9.0, help="hard time budget for the whole session")
     p.add_argument("--smoke", action="store_true", help="tiny model and steps (CPU test of the script)")
     p.add_argument("--skip-tests", action="store_true", help=argparse.SUPPRESS)
@@ -793,6 +1238,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.smoke
         else (SHAPE_FULL, CHECK_SHAPE_FULL, PLAN_FULL)
     )
+    if args.part == "ladder":
+        return main_ladder(args, deadline, check_shape, plan)
     followup = args.part == "followup"
     rep = Report(Path(args.out), args.exp_id, args.smoke)
     rep.data["part"] = args.part

@@ -39,6 +39,12 @@
 # EXP-041 (the EXP-040 follow-up: one-step float64 check, then the RoPE + GQA-2 runs;
 # scripts\run_kaggle_exp041.ps1) uses -Exp EXP-041 with the SAME 13-language dataset (fingerprints
 # checked again, no new upload) and a hard limit of 5 GPU-hours, so the runner waits up to 7 hours.
+# EXP-042 (the IsoFLOP ladder; scripts\run_kaggle_exp042.ps1) uses -Exp EXP-042 with the SAME
+# 13-language dataset. It is MULTI-SESSION: each launch is one kernel of at most 9 GPU-hours that
+# writes EXP-042\session-<n>\; the runner downloads into a folder named after the launched commit,
+# publishes that session folder to evals/results/EXP-042/session-<n>/, pushes, and then forgets the
+# launched commit so that the SAME line launches the next session (which reads the earlier sessions
+# from the repository). It waits up to 11 hours per session.
 # If the final push is rejected because the branch moved meanwhile (seen once in EXP-038), it pulls
 # with --rebase once and pushes again; the results commit still touches only evals/results/<EXP>/.
 #
@@ -49,7 +55,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041")][string]$Exp = "EXP-038", [switch]$Relaunch)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042")][string]$Exp = "EXP-038", [switch]$Relaunch)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -77,7 +83,7 @@ $datasetSubtitle = "Hindi training tokens for the frontier-ai project (EXP-037)"
 $datasetText = "Hindi part of FrontierCorpus v2-slice1"
 $uploadSize = "about 400 MB"
 $expectedRun = "EXP-038 took about 80 minutes, EXP-039 should be shorter"
-if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041") {
+if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042") {
     $datasetSlug = "frontier-v2-tok2-13lang"
     $dataFiles = @()
     foreach ($f in (Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json).files) { $dataFiles += @($f.path, $f.meta) }
@@ -90,6 +96,10 @@ if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041") {
 if ($Exp -eq "EXP-041") {
     $expectedRun = "EXP-041 is expected to take about 4 hours, at most 5"
     $maxWaitHours = 7
+}
+if ($Exp -eq "EXP-042") {
+    $expectedRun = "one EXP-042 session takes at most 9 hours; the ladder needs about 3 sessions"
+    $maxWaitHours = 11
 }
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
@@ -318,10 +328,20 @@ while ($true) {
 Add-Report "=== kernel finished with status: $status - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ==="
 
 $outputDir = "$outDir\output"
+# EXP-042 has one launch per session: a fresh download folder per launched commit, so an older
+# session's files can never be mistaken for this one's
+if ($Exp -eq "EXP-042") { $outputDir = "$outDir\output-$($state.pinned_commit.Substring(0, 7))" }
 New-Item -ItemType Directory -Force $outputDir | Out-Null
 $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force"
 if ($r.Code -ne 0) { Stop-Run "downloading the kernel output failed; run this line again" 1 }
 $resultDir = "$outputDir\$Exp"
+$publishSrc = $resultDir
+if ($Exp -eq "EXP-042") {
+    # the kernel writes EXP-042\session-<n>\; exactly one session folder is expected
+    $sessions = @(Get-ChildItem "$outputDir\$Exp" -Directory -Filter "session-*" -ErrorAction SilentlyContinue)
+    if ($sessions.Count -gt 1) { Stop-Run "the kernel output has $($sessions.Count) session folders; expected one" 1 }
+    if ($sessions.Count -eq 1) { $resultDir = $sessions[0].FullName }
+}
 $summaryPath = "$resultDir\summary.json"
 if (-not (Test-Path $summaryPath)) {
     Add-Report "FAIL 5a: the kernel left no summary.json. Last 60 lines of the kernel log:"
@@ -342,7 +362,7 @@ Add-Report "-----------------------"
 Add-Report ""
 
 # --- 6) publish, check, commit and push ONLY evals/results/<EXP>/ ----------------------------
-$r = Invoke-Logged "$python -u scripts\publish_eval_results.py --exp-id $Exp --src $resultDir"
+$r = Invoke-Logged "$python -u scripts\publish_eval_results.py --exp-id $Exp --src $publishSrc"
 if ($r.Code -ne 0) { Stop-Run "publishing failed (exit $($r.Code))" 1 }
 Add-Report "PASS 6a: published to $resultsPrefix"
 
@@ -395,6 +415,18 @@ if ($r.Code -ne 0) {
     exit 1
 }
 Add-Report "PASS 6d: pushed to origin/$branch"
+if ($Exp -eq "EXP-042") {
+    # this session is safely on GitHub: forget its commit, so the same line launches the next session
+    $state.pinned_commit = ""
+    Save-State $state
+    Add-Report ""
+    if ($summary.complete) {
+        Add-Report "LADDER: COMPLETE after session $($summary.session) - no more sessions are needed."
+    } else {
+        Add-Report "LADDER: NOT finished yet - $(@($summary.remaining).Count) runs are left for the next session."
+        Add-Report "NEXT: after pasting this report into the Arena chat, run the same line again (session $($summary.session + 1))."
+    }
+}
 Add-Report ""
 Add-Report "RESULT: COMPLETE - finished $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'). Paste this report into the Arena chat."
 Save-Report
