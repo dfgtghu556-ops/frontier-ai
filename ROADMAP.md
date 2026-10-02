@@ -139,6 +139,8 @@
   all 13 languages. RoPE + GQA-2 was not tested, because its float64 device check missed the
   pre-registered tolerance. Follow-up EXP-041 is proposed to separate GPU maths from amplified
   rounding; the scaling ladder comes after it.
+- **Update (2026-10-02, later):** EXP-041 approved and built; it waits for the founder's Kaggle
+  run (about 4 GPU-hours, at most 5, no new upload).
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

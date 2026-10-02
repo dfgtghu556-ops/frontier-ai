@@ -20,6 +20,18 @@ still leaves every finished run.
 * Rules 1-4 (learning rate, seed noise, architecture verdict, stability) are evaluated exactly as
   pre-registered and written into the summary.
 
+``--part followup`` (EXP-041) re-asks EXP-040's architecture question without changing EXP-040:
+* Part A (gate): a one-step float64 check for BOTH architectures. Parameter states are taken from
+  a 50-step CPU run (before steps 1, 11, 21, 31, 41, 50); at each, identical parameters and the
+  identical batch give one loss and one gradient on the CPU and on the GPU. Nothing carries over
+  between steps, so nothing is amplified. Pass: |loss diff| <= 1e-12 and
+  ||grad diff|| / ||grad|| <= 1e-10 at every state. The baseline is the control: if it fails,
+  the check is wrong and the experiment stops. The EXP-040-style 50-step trajectory of the
+  baseline on this data is reported (not a gate).
+* Part B (only if RoPE + GQA-2 passes Part A): its 6 runs EXP-040 skipped, then one baseline
+  control run (lr 1e-3, seed 1). EXP-040's rules 1-4 are evaluated unchanged on EXP-040's 6
+  baseline runs (read from ``--prev``) plus these 6 candidate runs.
+
 Data: the languages are sampled in proportion to their training tokens (the corpus as it is; not
 a chosen mixture), see ``frontier_ai.data.multi``. ``--smoke`` shrinks everything for a CPU test.
 """
@@ -83,6 +95,12 @@ PLAN_SMOKE = {
 }
 TOL_FP64 = 1e-8
 MAX_SKIPPED = 0.05
+# EXP-041 Part A (pre-registered): one step from identical states, nothing compounds
+TOL_ONE_STEP_LOSS = 1e-12
+TOL_ONE_STEP_GRAD = 1e-10
+STATES_FULL = [1, 11, 21, 31, 41, 50]  # "before step k" of the 50-step CPU run
+STATES_SMOKE = [1, 3, 6]
+CONTROL = ("baseline", 1e-3, 1)  # EXP-041 Part B: one baseline rerun, reported (not a gate)
 
 
 def run_name(arch: str, lr: float, seed: int) -> str:
@@ -92,7 +110,13 @@ def run_name(arch: str, lr: float, seed: int) -> str:
 def render_text(d: dict[str, Any]) -> str:
     env = d.get("environment", {})
     lines = [
-        f"{d['exp_id']}: learning rate and RoPE + GQA-2 at GPU scale, 13 languages (step 11, phase 1)"
+        (
+            f"{d['exp_id']}: follow-up to {d.get('previous', {}).get('exp_id', 'EXP-040')}"
+            " - one-step device check, then the RoPE + GQA-2 runs (step 11)"
+            if d.get("part") == "followup"
+            else f"{d['exp_id']}: learning rate and RoPE + GQA-2 at GPU scale, 13 languages"
+            " (step 11, phase 1)"
+        )
         + (" [SMOKE TEST, not a result]" if d.get("smoke") else ""),
         f"complete: {d['complete']}   started {d['started_at']}   finished {d.get('finished_at', '-')}"
         f"   elapsed {d.get('elapsed_min', 0)} min",
@@ -114,6 +138,29 @@ def render_text(d: dict[str, Any]) -> str:
         if c:
             detail = c.get("error") or f"max |loss diff| {c['max_abs_diff']:.3e} over {c['steps']} steps"
             lines.append(f"  float64 CPU = GPU, RoPE + GQA-2: {gb._fmt_pass(c.get('pass'))}  {detail}")
+    pa = d.get("part_a")
+    if pa:
+        lines += [
+            "",
+            "Part A: one-step float64 check, CPU vs GPU from identical states (pre-registered gate)",
+            f"  pass = |loss diff| <= {TOL_ONE_STEP_LOSS:g} and |grad diff|/|grad| <= {TOL_ONE_STEP_GRAD:g}"
+            " at every state",
+        ]
+        for arch, c in pa.items():
+            if c.get("error"):
+                lines.append(f"  {arch:<10} {gb._fmt_pass(c.get('pass'))}  {c['error']}")
+            else:
+                lines.append(
+                    f"  {arch:<10} {gb._fmt_pass(c.get('pass'))}  max |loss diff| {c['max_loss_diff']:.3e}"
+                    f"   max relative grad diff {c['max_grad_rel_diff']:.3e}   states {c['states']}"
+                )
+    t = d.get("trajectory_baseline")
+    if t:
+        detail = t.get("error") or (
+            f"max |loss diff| {t['max_abs_diff']:.3e} over {t['steps']} steps"
+            f" (the EXP-040 criterion {TOL_FP64:g} would say: {gb._fmt_pass(t.get('pass'))})"
+        )
+        lines.append(f"  reported, not a gate - baseline 50-step float64 trajectory on this data: {detail}")
     runs = d.get("runs", [])
     if runs:
         langs = d.get("languages", [])
@@ -121,12 +168,18 @@ def render_text(d: dict[str, Any]) -> str:
             "",
             f"Runs (final validation bits per byte; mean = {len(langs)} languages with equal weight,"
             " tok-w = weighted by validation tokens)",
-            f"  {'run':<26}{'grid':>5}{'mean':>8}{'tok-w':>8}{'tok/s':>9}{'min':>6}  status",
         ]
+        if any(r.get("source") for r in runs):
+            lines.append(
+                f"  runs marked * were measured in {d.get('previous', {}).get('exp_id', 'the earlier run')}"
+            )
+        lines.append(f"  {'run':<26}{'grid':>5}{'mean':>8}{'tok-w':>8}{'tok/s':>9}{'min':>6}  status")
         for r in runs:
             if r.get("status") == "done":
+                star = "*" if r.get("source") else ""
                 lines.append(
-                    f"  {r['name']:<26}{r['grid']:>5}{r['bpb_mean']:>8.4f}{r['bpb_token_weighted']:>8.4f}"
+                    f"  {r['name'] + star:<26}{r['grid']:>5}{r['bpb_mean']:>8.4f}"
+                    f"{r['bpb_token_weighted']:>8.4f}"
                     f"{r['tokens_per_s']:>9,.0f}{r['minutes']:>6.1f}  done"
                 )
             else:
@@ -142,6 +195,17 @@ def render_text(d: dict[str, Any]) -> str:
             ]
             for r in done:
                 lines.append("  " + f"{r['name']:<26}" + "".join(f"{r['bpb'][x]:>7.3f}" for x in langs))
+    ctl = d.get("control")
+    if ctl:
+        if ctl.get("status") == "done":
+            lines += [
+                "",
+                f"Control run (reported, not a gate): {ctl['name']}  mean {ctl['bpb_mean']:.4f}"
+                f"  vs {ctl.get('previous_bpb_mean', float('nan')):.4f} in the earlier session"
+                f"  (difference {ctl.get('difference_vs_previous', float('nan')):+.4f})",
+            ]
+        else:
+            lines += ["", f"Control run: {ctl['name']}  {ctl.get('status')}"]
     rules = d.get("rules")
     if rules:
         lines += ["", "Pre-registered rules"]
@@ -185,7 +249,9 @@ class Report:
 
 
 # ------------------------------------------------------------------ part 0 --
-def part0(args: argparse.Namespace, rep: Report, check_shape: dict, plan: dict) -> MultiTokenDataset | None:
+def part0(
+    args: argparse.Namespace, rep: Report, check_shape: dict, plan: dict, device_check: bool = True
+) -> MultiTokenDataset | None:
     rep.data["environment"] = gb.environment_record()
     p0: dict[str, Any] = {}
     rep.data["part0"] = p0
@@ -225,43 +291,168 @@ def part0(args: argparse.Namespace, rep: Report, check_shape: dict, plan: dict) 
     rep.data["languages"] = ds.names
     rep.data["sampling_weights"] = {n: round(float(w), 6) for n, w in zip(ds.names, ds.weights("train"))}
     rep.save()
-    # D-047: the float64 device check for maths that has never run on a GPU (RoPE + GQA-2)
+    if device_check:  # EXP-040: the D-047 check for maths that has never run on a GPU (RoPE + GQA-2)
+        p0["fp64_check"] = trajectory_check(args, ds, check_shape, plan, "rope_gqa2")
+        rep.save()
+    return ds
+
+
+# ----------------------------------------------------------- device checks --
+def _check_cfg(
+    args: argparse.Namespace, ds: MultiTokenDataset, check_shape: dict, plan: dict, arch: str, d: str
+):
+    # the check shape (EXP-038 "S") has 4 query heads: the baseline is full multi-head attention
+    # there (as in EXP-039), the candidate keeps 2 key-value heads
+    over = dict(ARCHS[arch])
+    if arch == "baseline":
+        over["n_kv_head"] = check_shape["n_head"]
+    return gb.make_cfg(
+        {**check_shape, **over},
+        ds.path,
+        Path(args.scratch) / f"fp64-{arch}-{d}",
+        max_steps=plan["check_steps"],
+        device=d,
+        precision="fp32",
+        deterministic=True,
+        eval_iters=2,
+    )
+
+
+def trajectory_check(
+    args: argparse.Namespace, ds: MultiTokenDataset, check_shape: dict, plan: dict, arch: str
+) -> dict[str, Any]:
+    """D-047 / EXP-040: train 50 steps in float64 on the CPU and on the GPU, compare every loss."""
     gpu = torch.cuda.is_available()
     dev = "cuda" if gpu else "cpu"
     try:
         n = plan["check_steps"]
         runs = {}
         for d in ("cpu", dev):
-            cfg = gb.make_cfg(
-                {**check_shape, **ARCHS["rope_gqa2"]},
-                ds.path,
-                Path(args.scratch) / f"fp64-{d}",
-                max_steps=n,
-                device=d,
-                precision="fp32",
-                deterministic=True,
-                eval_iters=2,
-            )
-            runs[d], dtype = gb.exact_losses(cfg, ds, fp64=True)
+            runs[d], dtype = gb.exact_losses(_check_cfg(args, ds, check_shape, plan, arch, d), ds, fp64=True)
             if dtype != "float64":
                 raise RuntimeError(f"model ran in {dtype}, not float64")
         diffs = [abs(a - b) for a, b in zip(runs["cpu"], runs[dev])]
         if len(diffs) != n:
             raise RuntimeError(f"expected {n} losses per run")
-        p0["fp64_check"] = {
+        out = {
             "pass": (max(diffs) <= TOL_FP64) if gpu else None,
             "steps": n,
             "max_abs_diff": max(diffs),
             "diffs": diffs,
             "tolerance": TOL_FP64,
             "devices": ["cpu", dev],
-            "arch": "rope_gqa2",
+            "arch": arch,
         }
     except Exception as exc:  # noqa: BLE001
-        p0["fp64_check"] = {"pass": False, "error": gb._err(exc)}
+        out = {"pass": False, "error": gb._err(exc), "arch": arch}
     shutil.rmtree(Path(args.scratch), ignore_errors=True)
-    rep.save()
-    return ds
+    return out
+
+
+def capture_states(
+    cfg, ds: MultiTokenDataset, wanted: list[int]
+) -> list[tuple[int, dict, torch.Tensor, torch.Tensor]]:
+    """Train on the CPU in float64 and keep (parameters, batch) at the START of the wanted steps."""
+    out = Path(cfg.train.out_dir)
+    if out.exists():
+        shutil.rmtree(out)
+    caps: list[tuple[int, dict, torch.Tensor, torch.Tensor]] = []
+    count = 0
+
+    def pre(module, inputs, kwargs):
+        nonlocal count
+        if not (torch.is_grad_enabled() and module.training):
+            return
+        count += 1  # accum_steps = 1: one training forward = one optimizer step
+        if count in wanted:
+            x = inputs[0]
+            y = kwargs["targets"] if "targets" in kwargs else inputs[1]
+            state = {k: v.detach().clone() for k, v in module.state_dict().items()}
+            caps.append((count, state, x.detach().clone(), y.detach().clone()))
+
+    with gb.math_attention(True):
+        trainer = Trainer(cfg, ds)
+        trainer.model.double()
+        handle = trainer.model.register_forward_pre_hook(pre, with_kwargs=True)
+        try:
+            trainer.fit()
+        finally:
+            handle.remove()
+    del trainer
+    gb.reset_backend()
+    shutil.rmtree(out, ignore_errors=True)
+    return caps
+
+
+def _loss_and_grad(model: torch.nn.Module, state: dict, x: torch.Tensor, y: torch.Tensor, device: str):
+    model.load_state_dict(state)
+    model.zero_grad(set_to_none=True)
+    with gb.math_attention(True):
+        loss = model(x.to(device), targets=y.to(device)).loss
+        loss.backward()
+    grad = torch.cat([p.grad.detach().reshape(-1).to("cpu") for p in model.parameters()])
+    return float(loss.detach()), grad
+
+
+def one_step_check(
+    args: argparse.Namespace,
+    ds: MultiTokenDataset,
+    check_shape: dict,
+    plan: dict,
+    arch: str,
+    states: list[int],
+) -> dict[str, Any]:
+    """EXP-041 Part A: CPU vs GPU, one loss + gradient from identical parameters and batch."""
+    from frontier_ai.model.gpt import GPT
+
+    gpu = torch.cuda.is_available()
+    dev = "cuda" if gpu else "cpu"
+    try:
+        cfg = _check_cfg(args, ds, check_shape, plan, arch, "cpu")
+        caps = capture_states(cfg, ds, states)
+        if [c[0] for c in caps] != states:
+            raise RuntimeError(f"captured states {[c[0] for c in caps]}, expected {states}")
+        models = {}
+        for d in ("cpu", dev):
+            m = GPT(cfg.model).double().to(d)
+            m.train()
+            models[d] = m
+        if str(next(models[dev].parameters()).dtype) != "torch.float64":
+            raise RuntimeError("the GPU model is not float64")
+        rows = []
+        for step, state, x, y in caps:
+            lc, gc = _loss_and_grad(models["cpu"], state, x, y, "cpu")
+            lg, gg = _loss_and_grad(models[dev], state, x, y, dev)
+            rows.append(
+                {
+                    "state": step,
+                    "loss_cpu": lc,
+                    "loss_gpu": lg,
+                    "loss_diff": abs(lc - lg),
+                    "grad_rel_diff": float((gc - gg).norm() / gc.norm()),
+                    "grad_norm": float(gc.norm()),
+                }
+            )
+        max_l = max(r["loss_diff"] for r in rows)
+        max_g = max(r["grad_rel_diff"] for r in rows)
+        ok = max_l <= TOL_ONE_STEP_LOSS and max_g <= TOL_ONE_STEP_GRAD
+        out = {
+            "pass": ok if gpu else None,  # CPU vs CPU (smoke) is not a result
+            "arch": arch,
+            "devices": ["cpu", dev],
+            "states": states,
+            "max_loss_diff": max_l,
+            "max_grad_rel_diff": max_g,
+            "tolerance_loss": TOL_ONE_STEP_LOSS,
+            "tolerance_grad_rel": TOL_ONE_STEP_GRAD,
+            "rows": rows,
+        }
+        del models
+    except Exception as exc:  # noqa: BLE001 - a crash is a failed check, recorded
+        out = {"pass": False, "error": gb._err(exc), "arch": arch}
+    gb.reset_backend()
+    shutil.rmtree(Path(args.scratch), ignore_errors=True)
+    return out
 
 
 # -------------------------------------------------------------------- runs --
@@ -415,6 +606,164 @@ def evaluate_rules(runs: list[dict[str, Any]], candidate_ok: bool) -> dict[str, 
     return rules
 
 
+class RunQueue:
+    """Starts runs one after another while they still fit the session's time budget."""
+
+    def __init__(
+        self,
+        args: argparse.Namespace,
+        ds: MultiTokenDataset,
+        shape: dict,
+        plan: dict,
+        rep: Report,
+        deadline: float,
+    ) -> None:
+        self.args, self.ds, self.shape, self.plan, self.rep, self.deadline = (
+            args,
+            ds,
+            shape,
+            plan,
+            rep,
+            deadline,
+        )
+        self.last_minutes: float | None = None
+
+    def go(
+        self,
+        arch: str,
+        lr: float,
+        seed: int,
+        grid: str,
+        skip_reason: str | None = None,
+        name: str | None = None,
+    ) -> dict[str, Any]:
+        stub = {"name": name or run_name(arch, lr, seed), "grid": grid, "arch": arch, "lr": lr, "seed": seed}
+        if skip_reason:
+            return {**stub, "status": f"skipped ({skip_reason})"}
+        if time.time() + 1.1 * (self.last_minutes or 0) * 60 > self.deadline:
+            return {**stub, "status": "skipped (time budget)"}
+        gb._say(f"run {stub['name']} (grid {grid})")
+        r = one_run(self.args, self.ds, self.shape, self.plan, arch, lr, seed, grid)
+        r["name"] = stub["name"]
+        if r.get("minutes"):
+            self.last_minutes = r["minutes"]
+        return r
+
+
+def run_grid(
+    args: argparse.Namespace, rep: Report, ds: MultiTokenDataset, shape: dict, plan: dict, deadline: float
+) -> None:
+    """EXP-040: Part 0's trajectory check gates the candidate; grids A and B; rules 1-4."""
+    candidate_ok = rep.data["part0"]["fp64_check"].get("pass") is not False
+    runs: list[dict[str, Any]] = rep.data["runs"]
+    q = RunQueue(args, ds, shape, plan, rep, deadline)
+
+    def go(arch: str, lr: float, seed: int, grid: str) -> None:
+        skip = "float64 check failed" if arch == "rope_gqa2" and not candidate_ok else None
+        runs.append(q.go(arch, lr, seed, grid, skip))
+        rep.save()
+
+    for lr in LRS:
+        for arch in ARCHS:
+            go(arch, lr, 1, "A")
+    base = [r for r in runs if r["arch"] == "baseline" and r.get("status") == "done" and not r.get("failed")]
+    best_two = sorted(base, key=lambda r: r["bpb_mean"])[:2]
+    rep.data["grid_b_lrs"] = sorted(r["lr"] for r in best_two)
+    for lr in rep.data["grid_b_lrs"]:
+        for arch in ARCHS:
+            go(arch, lr, 2, "B")
+    rep.data["rules"] = evaluate_rules(runs, candidate_ok)
+    rep.data["complete"] = len(runs) == 12 and all(r.get("status") == "done" for r in runs)
+
+
+def load_previous(path: Path, shape: dict, plan: dict, smoke: bool) -> dict[str, Any]:
+    """The EXP-040 summary whose baseline runs EXP-041 reuses; refuses a mismatched one."""
+    prev = json.loads(path.read_text(encoding="utf-8"))
+    problems = []
+    if prev.get("schema") != SCHEMA:
+        problems.append(f"schema {prev.get('schema')!r}")
+    if bool(prev.get("smoke")) != smoke:
+        problems.append("smoke flag differs")
+    if prev.get("plan", {}).get("shape") != shape:
+        problems.append("model shape differs")
+    if prev.get("plan", {}).get("steps", {}).get("steps") != plan["steps"]:
+        problems.append("steps per run differ")
+    if prev.get("plan", {}).get("steps", {}).get("batch") != plan["batch"]:
+        problems.append("batch differs")
+    if len(prev.get("grid_b_lrs", [])) != 2:
+        problems.append("grid B learning rates missing")
+    if problems:
+        raise ValueError(f"{path} cannot be combined with this run: " + "; ".join(problems))
+    return prev
+
+
+def run_followup(
+    args: argparse.Namespace,
+    rep: Report,
+    ds: MultiTokenDataset,
+    shape: dict,
+    check_shape: dict,
+    plan: dict,
+    deadline: float,
+    prev: dict[str, Any],
+) -> None:
+    """EXP-041: Part A (one-step check, both architectures), then Part B if the candidate passes."""
+    states = STATES_SMOKE if args.smoke else STATES_FULL
+    pa: dict[str, Any] = {}
+    rep.data["part_a"] = pa
+    for arch in ARCHS:  # the baseline (the control) first
+        gb._say(f"Part A: one-step float64 check, {arch}")
+        pa[arch] = one_step_check(args, ds, check_shape, plan, arch, states)
+        rep.save()
+    gb._say("reported: baseline 50-step float64 trajectory on this data")
+    rep.data["trajectory_baseline"] = trajectory_check(args, ds, check_shape, plan, "baseline")
+    rep.save()
+    base_ok = pa["baseline"].get("pass") is not False
+    cand_ok = pa["rope_gqa2"].get("pass") is not False
+    prev_id = prev.get("exp_id", "previous")
+    prev_base = [dict(r, source=prev_id) for r in prev["runs"] if r.get("arch") == "baseline"]
+    runs: list[dict[str, Any]] = rep.data["runs"]
+    runs.extend(prev_base)
+    q = RunQueue(args, ds, shape, plan, rep, deadline)
+    if not base_ok:
+        rep.data["stopped"] = (
+            "the BASELINE failed Part A: the check itself is wrong; no candidate runs (pre-registered)"
+        )
+        skip = "Part A failed for the baseline (control)"
+    elif not cand_ok:
+        skip = "Part A failed for RoPE + GQA-2"
+    else:
+        skip = None
+    plan_runs = [(lr, 1, "A") for lr in LRS] + [(lr, 2, "B") for lr in prev["grid_b_lrs"]]
+    for lr, seed, grid in plan_runs:
+        runs.append(q.go("rope_gqa2", lr, seed, grid, skip))
+        rep.save()
+    arch, lr, seed = CONTROL
+    ctl = q.go(arch, lr, seed, "ctl", skip, name=run_name(arch, lr, seed) + "-control")
+    before = next(
+        (r for r in prev_base if r["name"] == run_name(arch, lr, seed) and r.get("status") == "done"), None
+    )
+    if ctl.get("status") == "done" and before:
+        ctl["previous_bpb_mean"] = before["bpb_mean"]
+        ctl["difference_vs_previous"] = ctl["bpb_mean"] - before["bpb_mean"]
+    rep.data["control"] = ctl
+    rep.data["rules"] = evaluate_rules(runs, base_ok and cand_ok)
+    if not base_ok:
+        rep.data["rules"]["rule3_adopt"] = "NOT TESTED (the baseline control failed Part A; baseline stays)"
+    elif not cand_ok:
+        rep.data["rules"]["rule3_adopt"] = (
+            "NOT TESTED (RoPE + GQA-2 failed the one-step check; baseline stays)"
+        )
+    new = [r for r in runs if not r.get("source")]
+    rep.data["complete"] = (
+        base_ok
+        and cand_ok
+        and len(new) == 6
+        and all(r.get("status") == "done" for r in new)
+        and ctl.get("status") == "done"
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--data-dir", required=True, help="folder with the 13 EXP-037 .bin + .meta.json files")
@@ -422,6 +771,17 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", default="out/gpu/EXP-040")
     p.add_argument("--scratch", default="out/gpu/EXP-040-scratch")
     p.add_argument("--exp-id", default="EXP-040")
+    p.add_argument(
+        "--part",
+        choices=["lr-arch", "followup"],
+        default="lr-arch",
+        help="lr-arch = EXP-040 (default); followup = EXP-041 (needs --prev)",
+    )
+    p.add_argument(
+        "--prev",
+        default="evals/results/EXP-040/summary.json",
+        help="followup: the EXP-040 summary whose baseline runs are reused",
+    )
     p.add_argument("--max-hours", type=float, default=9.0, help="hard time budget for the whole session")
     p.add_argument("--smoke", action="store_true", help="tiny model and steps (CPU test of the script)")
     p.add_argument("--skip-tests", action="store_true", help=argparse.SUPPRESS)
@@ -433,7 +793,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.smoke
         else (SHAPE_FULL, CHECK_SHAPE_FULL, PLAN_FULL)
     )
+    followup = args.part == "followup"
     rep = Report(Path(args.out), args.exp_id, args.smoke)
+    rep.data["part"] = args.part
     rep.data["plan"] = {
         "shape": shape,
         "archs": ARCHS,
@@ -445,63 +807,27 @@ def main(argv: list[str] | None = None) -> int:
         "primary_metric": "mean of per-language validation bits per byte, equal weight",
     }
     try:
-        ds = part0(args, rep, check_shape, plan)
+        prev = None
+        if followup:
+            prev_path = Path(args.prev) if Path(args.prev).is_absolute() else ROOT / args.prev
+            prev = load_previous(prev_path, shape, plan, args.smoke)
+            rep.data["previous"] = {
+                "exp_id": prev.get("exp_id"),
+                "file": args.prev,
+                "code_commit": prev.get("environment", {}).get("code_commit"),
+                "grid_b_lrs": prev["grid_b_lrs"],
+            }
+            rep.data["grid_b_lrs"] = prev["grid_b_lrs"]
+        ds = part0(args, rep, check_shape, plan, device_check=not followup)
         if ds is None:
             rep.data["finished_at"] = gb._now()
             rep.save()
             print(render_text(rep.data), flush=True)
             return 1
-        candidate_ok = rep.data["part0"]["fp64_check"].get("pass") is not False
-        runs: list[dict[str, Any]] = rep.data["runs"]
-        last_minutes = None
-
-        def go(arch: str, lr: float, seed: int, grid: str) -> None:
-            nonlocal last_minutes
-            if arch == "rope_gqa2" and not candidate_ok:
-                runs.append(
-                    {
-                        "name": run_name(arch, lr, seed),
-                        "grid": grid,
-                        "arch": arch,
-                        "lr": lr,
-                        "seed": seed,
-                        "status": "skipped (float64 check failed)",
-                    }
-                )
-                return
-            need = 1.1 * (last_minutes or 0) * 60
-            if time.time() + need > deadline:
-                runs.append(
-                    {
-                        "name": run_name(arch, lr, seed),
-                        "grid": grid,
-                        "arch": arch,
-                        "lr": lr,
-                        "seed": seed,
-                        "status": "skipped (time budget)",
-                    }
-                )
-                return
-            gb._say(f"run {run_name(arch, lr, seed)} (grid {grid})")
-            r = one_run(args, ds, shape, plan, arch, lr, seed, grid)
-            if r.get("minutes"):
-                last_minutes = r["minutes"]
-            runs.append(r)
-            rep.save()
-
-        for lr in LRS:
-            for arch in ARCHS:
-                go(arch, lr, 1, "A")
-        base = [
-            r for r in runs if r["arch"] == "baseline" and r.get("status") == "done" and not r.get("failed")
-        ]
-        best_two = sorted(base, key=lambda r: r["bpb_mean"])[:2]
-        rep.data["grid_b_lrs"] = sorted(r["lr"] for r in best_two)
-        for lr in rep.data["grid_b_lrs"]:
-            for arch in ARCHS:
-                go(arch, lr, 2, "B")
-        rep.data["rules"] = evaluate_rules(runs, candidate_ok)
-        rep.data["complete"] = len(runs) == 12 and all(r.get("status") == "done" for r in runs)
+        if followup:
+            run_followup(args, rep, ds, shape, check_shape, plan, deadline, prev)
+        else:
+            run_grid(args, rep, ds, shape, plan, deadline)
     except Exception as exc:  # noqa: BLE001 - keep the evidence gathered so far
         traceback.print_exc()
         rep.data["stopped"] = f"unexpected error: {gb._err(exc)}"

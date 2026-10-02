@@ -36,6 +36,9 @@
 # if hard links are impossible) and uploaded ONCE as a second PRIVATE dataset
 # <username>/frontier-v2-tok2-13lang (about 5.6 GB; the upload time depends on the internet line).
 # Its kernel has a hard limit of 9 GPU-hours, so the runner waits up to 11 hours.
+# EXP-041 (the EXP-040 follow-up: one-step float64 check, then the RoPE + GQA-2 runs;
+# scripts\run_kaggle_exp041.ps1) uses -Exp EXP-041 with the SAME 13-language dataset (fingerprints
+# checked again, no new upload) and a hard limit of 5 GPU-hours, so the runner waits up to 7 hours.
 # If the final push is rejected because the branch moved meanwhile (seen once in EXP-038), it pulls
 # with --rebase once and pushes again; the results commit still touches only evals/results/<EXP>/.
 #
@@ -46,7 +49,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040")][string]$Exp = "EXP-038", [switch]$Relaunch)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041")][string]$Exp = "EXP-038", [switch]$Relaunch)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -74,7 +77,7 @@ $datasetSubtitle = "Hindi training tokens for the frontier-ai project (EXP-037)"
 $datasetText = "Hindi part of FrontierCorpus v2-slice1"
 $uploadSize = "about 400 MB"
 $expectedRun = "EXP-038 took about 80 minutes, EXP-039 should be shorter"
-if ($Exp -eq "EXP-040") {
+if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041") {
     $datasetSlug = "frontier-v2-tok2-13lang"
     $dataFiles = @()
     foreach ($f in (Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json).files) { $dataFiles += @($f.path, $f.meta) }
@@ -83,6 +86,10 @@ if ($Exp -eq "EXP-040") {
     $uploadSize = "about 5.6 GB"
     $expectedRun = "EXP-040 is expected to take about 7 hours, at most 9"
     $maxWaitHours = 11
+}
+if ($Exp -eq "EXP-041") {
+    $expectedRun = "EXP-041 is expected to take about 4 hours, at most 5"
+    $maxWaitHours = 7
 }
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
@@ -240,7 +247,7 @@ if (-not $state.dataset_ready) {
         if ($r.Code -ne 0) { Stop-Run "the dataset upload failed (see the lines above); run this line again to retry" 1 }
         $ready = $false
         $readyChecks = 60  # every 30 seconds: 30 minutes (EXP-040's 5.6 GB: 90 minutes)
-        if ($Exp -eq "EXP-040") { $readyChecks = 180 }
+        if ($dataFiles.Count -gt 2) { $readyChecks = 180 }
         for ($i = 0; $i -lt $readyChecks -and -not $ready; $i++) {
             Start-Sleep -Seconds 30
             $r = Invoke-Logged "$kaggle datasets status $datasetId"

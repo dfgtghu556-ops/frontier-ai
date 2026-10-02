@@ -3256,3 +3256,30 @@ control run, merging with `evals/results/EXP-040/summary.json`), `scripts/kaggle
 changes, bf16, multiple GPUs, and any spending.
 
 **Status:** proposed — founder approval needed before any code.
+
+**Approved and built (2026-10-02):** the founder typed "approve EXP-041". Built as proposed, with
+no change to the plan, limits or rules:
+- `scripts/gpu_lr_arch.py --part followup`:
+  - Part A: `one_step_check` keeps the parameters and batch before steps 1, 11, 21, 31, 41 and 50 of
+    a float64 CPU run and computes one loss and gradient from each on the CPU and on the GPU (pass:
+    ≤ 1e-12 and ≤ 1e-10 relative at every state). The baseline runs first, as the control, then
+    RoPE + GQA-2.
+  - The baseline's 50-step trajectory is reported, not used as a gate.
+  - Part B runs only if both pass: the 6 candidate runs at the same seeds, so the batches are the
+    same as EXP-040's baseline runs, then the control run (lr 1e-3, seed 1).
+  - Rules 1–4 are computed from the code of EXP-040, unchanged, on EXP-040's 6 baseline runs, read
+    from the committed `evals/results/EXP-040/summary.json`; a summary that does not match is
+    refused.
+- The default mode (EXP-040) behaves as before; its trajectory check became a shared function.
+- On the S check shape (4 query heads), the baseline has 4 key-value heads (plain multi-head
+  attention, as in EXP-039), and the candidate keeps 2.
+- `scripts/kaggle/exp041_kernel.py` (cap 5 GPU-hours), `scripts/run_kaggle_exp041.ps1` and
+  `-Exp EXP-041` in `scripts/run_kaggle_exp038.ps1`: the same private 13-language dataset (the
+  fingerprints are checked again, nothing is uploaded), waiting up to 7 hours.
+- Tests: identical states give identical CPU results. A change of one part in a million in a
+  single weight matrix exceeds both limits, so the check can see a real difference. A CPU smoke
+  run of the whole follow-up (it reuses a smoke EXP-040 summary), the refusal of a mismatched
+  summary, the real EXP-040 summary being accepted, and static runner/kernel checks. The CPU smoke
+  numbers are not results.
+
+**Status:** approved — code ready; waiting for the founder to launch the Kaggle run.

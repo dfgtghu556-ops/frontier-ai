@@ -621,6 +621,13 @@ comes next. They also update the table in §3.
     runs only if it passes). The IsoFLOP ladder takes the next free number. **Next: "approve
     EXP-041"; no code before that.**
 
+  - **EXP-041 approved ("approve EXP-041", 2026-10-02) and built:** `scripts/gpu_lr_arch.py
+    --part followup` (Part A one-step float64 check for both architectures, baseline = control;
+    Part B the 6 candidate runs + 1 baseline control only if both pass; EXP-040 rules unchanged on
+    EXP-040's baseline runs), `scripts/kaggle/exp041_kernel.py`, `scripts/run_kaggle_exp041.ps1`
+    (same 13-language dataset, no upload). **Next: the founder runs**
+    `powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp041.ps1`. Don't push while it runs.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

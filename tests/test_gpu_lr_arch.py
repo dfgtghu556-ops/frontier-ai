@@ -262,3 +262,126 @@ def test_full_plan_is_the_preregistered_one():
         cfg = g.gb.make_cfg({**shape, **kw}, Path("x.bin"), Path("o"))
         counts[arch] = GPT(cfg.model).n_params()
     assert counts == {"baseline": 31_709_568, "rope_gqa2": 29_940_096}
+
+
+# ------------------------------------------------------------------------------------ EXP-041 --
+def test_one_step_comparison_is_exact_for_identical_states_and_sees_a_tiny_change():
+    import gpu_lr_arch as g
+    from frontier_ai.model.gpt import GPT
+
+    cfg = g.gb.make_cfg({**g.CHECK_SHAPE_SMOKE, **g.ARCHS["rope_gqa2"]}, Path("x.bin"), Path("o"))
+    torch.manual_seed(0)
+    a = GPT(cfg.model).double().train()
+    b = GPT(cfg.model).double().train()  # different random init: overwritten by the state
+    state = {k: v.clone() for k, v in a.state_dict().items()}
+    x = torch.randint(0, 32896, (2, 16))
+    y = torch.randint(0, 32896, (2, 16))
+    la, ga = g._loss_and_grad(a, state, x, y, "cpu")
+    lb, gb_ = g._loss_and_grad(b, state, x, y, "cpu")
+    assert la == lb and torch.equal(ga, gb_)
+    bad = dict(state)
+    key = next(k for k in state if k.endswith("q_proj.weight") or k.endswith("qkv.weight") or "attn" in k)
+    bad[key] = state[key] * (1 + 1e-6)
+    lc, gc = g._loss_and_grad(b, bad, x, y, "cpu")
+    # even a change of one part in a million in one weight matrix fails the check
+    assert float((ga - gc).norm() / ga.norm()) > 10 * g.TOL_ONE_STEP_GRAD
+    assert abs(la - lc) > g.TOL_ONE_STEP_LOSS
+    assert (g.TOL_ONE_STEP_LOSS, g.TOL_ONE_STEP_GRAD) == (1e-12, 1e-10)
+    assert g.STATES_FULL == [1, 11, 21, 31, 41, 50] and g.CONTROL == ("baseline", 1e-3, 1)
+
+
+def test_followup_smoke_reuses_the_baseline_runs_and_runs_the_candidate(langs, tmp_path):
+    prev = tmp_path / "EXP-040"
+    common = ["--smoke", "--skip-tests", "--data-dir", str(langs), "--manifest", str(langs / "manifest.json")]
+    res = _run([*common, "--out", str(prev), "--scratch", str(tmp_path / "s1")])
+    assert res.returncode == 0, res.stdout[-3000:] + res.stderr[-3000:]
+    out = tmp_path / "EXP-041"
+    res = _run(
+        [
+            *common,
+            "--part",
+            "followup",
+            "--prev",
+            str(prev / "summary.json"),
+            "--exp-id",
+            "EXP-041",
+            "--out",
+            str(out),
+            "--scratch",
+            str(tmp_path / "s2"),
+        ]
+    )
+    assert res.returncode == 0, res.stdout[-3000:] + res.stderr[-3000:]
+    s = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+    p = json.loads((prev / "summary.json").read_text(encoding="utf-8"))
+    assert s["part"] == "followup" and s["complete"] is True and s["previous"]["exp_id"] == "EXP-040"
+    assert "fp64_check" not in s["part0"]  # the EXP-040 gate is not re-run as a gate
+    for arch in ("baseline", "rope_gqa2"):
+        a = s["part_a"][arch]
+        assert a["pass"] is None and a["states"] == [1, 3, 6]  # CPU vs CPU: not a result
+        assert a["max_loss_diff"] == 0.0 and a["max_grad_rel_diff"] == 0.0 and len(a["rows"]) == 3
+    assert s["trajectory_baseline"]["arch"] == "baseline" and s["trajectory_baseline"]["max_abs_diff"] == 0.0
+    runs = s["runs"]
+    old = [r for r in runs if r.get("source") == "EXP-040"]
+    new = [r for r in runs if not r.get("source")]
+    assert [r["name"] for r in old] == [r["name"] for r in p["runs"] if r["arch"] == "baseline"]
+    assert all(
+        r["bpb_mean"] == q["bpb_mean"] for r, q in zip(old, [x for x in p["runs"] if x["arch"] == "baseline"])
+    )
+    assert [(r["arch"], r["lr"], r["seed"], r["grid"]) for r in new] == [
+        ("rope_gqa2", lr, 1, "A") for lr in (5e-4, 1e-3, 2e-3, 4e-3)
+    ] + [("rope_gqa2", lr, 2, "B") for lr in p["grid_b_lrs"]]
+    assert all(r["status"] == "done" for r in new)
+    # the same seed gives the same data order, so the candidate is compared on identical batches
+    ctl = s["control"]
+    assert ctl["name"] == "baseline-lr0.001-s1-control" and ctl["status"] == "done"
+    assert math.isclose(ctl["difference_vs_previous"], ctl["bpb_mean"] - ctl["previous_bpb_mean"])
+    assert s["rules"]["rule2_noise"] is not None and s["rules"]["rule3_adopt"] in (
+        "YES",
+        "NO (baseline stays)",
+    )
+    text = (out / "SUMMARY.txt").read_text(encoding="utf-8")
+    assert (
+        "Part A: one-step float64 check" in text and "Control run" in text and "measured in EXP-040" in text
+    )
+
+
+def test_followup_refuses_a_previous_summary_that_does_not_match(langs, tmp_path):
+    bad = tmp_path / "prev.json"
+    bad.write_text(
+        json.dumps({"schema": "frontier-lr-arch-v1", "smoke": False, "plan": {}, "runs": []}),
+        encoding="utf-8",
+    )
+    out = tmp_path / "out"
+    res = _run(
+        [
+            "--smoke",
+            "--skip-tests",
+            "--data-dir",
+            str(langs),
+            "--manifest",
+            str(langs / "manifest.json"),
+            "--part",
+            "followup",
+            "--prev",
+            str(bad),
+            "--out",
+            str(out),
+            "--scratch",
+            str(tmp_path / "s"),
+        ]
+    )
+    assert res.returncode == 1
+    s = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+    assert "cannot be combined" in s["stopped"] and s["runs"] == []
+
+
+def test_the_real_exp040_summary_is_accepted_as_previous():
+    import gpu_lr_arch as g
+
+    prev = g.load_previous(
+        ROOT / "evals/results/EXP-040/summary.json", g.SHAPE_FULL, g.PLAN_FULL, smoke=False
+    )
+    assert prev["grid_b_lrs"] == [0.0005, 0.001]
+    base = [r for r in prev["runs"] if r["arch"] == "baseline"]
+    assert len(base) == 6 and all(r["status"] == "done" for r in base)

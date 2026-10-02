@@ -37,7 +37,7 @@ def test_runner_commits_only_the_exp038_results_folder():
     text = _ps1()
     assert '$resultsPrefix = "evals/results/$Exp/"' in text
     assert (
-        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040")][string]$Exp = "EXP-038", [switch]$Relaunch)'
+        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041")][string]$Exp = "EXP-038", [switch]$Relaunch)'
         in text
     )
     assert "git add $resultsPrefix" in text
@@ -152,7 +152,10 @@ def test_exp039_wrapper_reuses_the_runner_and_the_dataset():
     assert "out\\kaggle\\EXP-038\\state.json" in text and '$userFile = "out\\kaggle\\username.txt"' in text
     # only EXP-040 (all 13 languages) switches to another dataset
     assert text.count("$datasetSlug = ") == 2
-    assert 'if ($Exp -eq "EXP-040") {\n    $datasetSlug = "frontier-v2-tok2-13lang"' in text
+    assert (
+        'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041") {\n    $datasetSlug = "frontier-v2-tok2-13lang"'
+        in text
+    )
     assert '$dataFiles = @("hi.bin", "hi.meta.json")' in text
 
 
@@ -187,7 +190,7 @@ def test_exp040_wrapper_and_the_13_file_dataset():
     # staged with hard links (no 5.6 GB copy), plain copy only as a fallback; nothing deleted
     assert "New-Item -ItemType HardLink -Path $dst -Target $src -ErrorAction Stop" in text
     assert "catch { Copy-Item $src $dst -Force }" in text and "Remove-Item" not in text
-    assert 'if ($Exp -eq "EXP-040") { $readyChecks = 180 }' in text  # 90 minutes of dataset processing
+    assert "if ($dataFiles.Count -gt 2) { $readyChecks = 180 }" in text  # 90 minutes of dataset processing
     assert "$maxWaitHours = 11" in text  # 9 GPU-hours cap + queue time
 
 
@@ -213,4 +216,44 @@ def test_exp040_kernel_runs_the_lr_arch_script_within_nine_gpu_hours():
     for flag in flags:
         assert flag in helptext, flag
     res = subprocess.run([sys.executable, str(KERNEL_040)], capture_output=True, text=True, timeout=60)
+    assert res.returncode != 0 and "placeholder" in (res.stderr + res.stdout)
+
+
+# ------------------------------------------------------------------------------------ EXP-041 --
+PS1_041 = ROOT / "scripts" / "run_kaggle_exp041.ps1"
+KERNEL_041 = ROOT / "scripts" / "kaggle" / "exp041_kernel.py"
+
+
+def test_exp041_wrapper_reuses_the_13_language_dataset():
+    wrapper = PS1_041.read_text(encoding="ascii")
+    assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-041" -Relaunch:$Relaunch' in wrapper
+    text = _ps1()
+    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041") {' in text  # same slug and files: no new upload
+    assert 'if ($Exp -eq "EXP-041") {\n    $expectedRun' in text and "$maxWaitHours = 7" in text
+
+
+def test_exp041_kernel_runs_the_followup_within_five_gpu_hours():
+    tree = ast.parse(KERNEL_041.read_text(encoding="ascii"))
+    consts = {
+        n.targets[0].id: (n.value.args[0].value if isinstance(n.value, ast.Call) else n.value.value)
+        for n in tree.body
+        if isinstance(n, ast.Assign) and isinstance(n.value, (ast.Constant, ast.Call))
+    }
+    assert consts["COMMIT"] == "__PINNED_COMMIT__" and float(consts["MAX_HOURS"]) <= 5.0
+    assert consts["OUT"] == "/kaggle/working/EXP-041" and str(consts["SCRATCH"]).startswith("/tmp/")
+    assert consts["PREVIOUS"] == "evals/results/EXP-040/summary.json"
+    assert (ROOT / str(consts["PREVIOUS"])).exists()
+    text = KERNEL_041.read_text(encoding="ascii")
+    assert '"--part",\n        "followup"' in text and '"EXP-041"' in text
+    flags = set(re.findall(r'"(--[a-z-]+)"', text)) - {"--quiet", "--no-deps"}
+    assert flags == {"--data-dir", "--out", "--scratch", "--exp-id", "--max-hours", "--part", "--prev"}
+    helptext = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "gpu_lr_arch.py"), "--help"],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    ).stdout
+    for flag in flags:
+        assert flag in helptext, flag
+    res = subprocess.run([sys.executable, str(KERNEL_041)], capture_output=True, text=True, timeout=60)
     assert res.returncode != 0 and "placeholder" in (res.stderr + res.stdout)

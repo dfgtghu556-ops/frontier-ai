@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "7cbe0d02a5c01793b1d1603c358c0440b5b60814b6b94167bef0530b7d0a529e",
+  "source_digest": "d1c5a2b6a43ae7ab781f5f1bbaf9c4bc81e96e1455e5a06669434167f9abe19e",
   "sources": {
-    "EXPERIMENTS.md": "789d8ccee793b17bc8acf8cb428024eeec66e59ca88b7b5b765c0e2bd1a1b4dc",
+    "EXPERIMENTS.md": "1e08e0082ddaed512c16fc461b4d4c8242e1b43971c4bbefc9e1bee8d02d4d16",
     "DECISIONS.md": "87be4fa3ee6a73914460c07a4dc912c2ef616b6f477256cb8b61a5d0ae2b2dc2",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "d90d0120756be292a456d31ba6e92a7104120a7e9f72057ff98e660e5b87cc56",
+    "lab/registry.json": "d78b6655e607a57755c13926777fac89b0555859a97f5ba222e628d744cba199",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -210,7 +210,7 @@
         "scripts/gpu_lr_arch.py",
         "src/frontier_ai/data/multi.py"
       ],
-      "note": "phase 1 EXP-040 ran: baseline learning rate 1e-3 measured; RoPE/GQA-2 untested (float64 check failed 1.7e-7 > 1e-8); follow-up EXP-041 proposed; IsoFLOP ladder later",
+      "note": "phase 1 EXP-040 ran: baseline learning rate 1e-3 measured; RoPE/GQA-2 untested (float64 check failed 1.7e-7 > 1e-8); follow-up EXP-041 approved and built, waiting for the Kaggle run; IsoFLOP ladder later",
       "evidence_links": [
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1597",
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3006"
@@ -336,7 +336,7 @@
   ],
   "current_work": [
     {
-      "title": "EXP-040 done: baseline learning rate 1e-3 measured; RoPE/GQA-2 not tested (float64 check failed its 1e-8 tolerance). Follow-up EXP-041 proposed; needs \"approve EXP-041\"",
+      "title": "EXP-041 approved and built (one-step float64 device check, then the RoPE/GQA-2 runs); waiting for the founder's Kaggle run",
       "evidence": [
         "EXP-040",
         "EXP-041",
@@ -346,11 +346,11 @@
       ],
       "evidence_files": [
         "evals/results/EXP-040/summary.json",
-        "evals/results/EXP-039/summary.json",
         "scripts/gpu_lr_arch.py",
-        "scripts/run_kaggle_exp040.ps1"
+        "scripts/run_kaggle_exp041.ps1",
+        "scripts/kaggle/exp041_kernel.py"
       ],
-      "note": "EXP-040 (Kaggle T4, 178 min, 6 of 12 runs): baseline (D-043, 32 M parameters, 100 M tokens per run) best at lr 1e-3 in both seeds (13-language mean 0.9213 / 0.9388 bits per byte); seed gaps 0.0064 and 0.0175; no failed runs. The float64 CPU = GPU check for RoPE + GQA-2 failed (1.739e-07 > 1e-8 at step 50), so its 6 runs were skipped and the baseline stays. Steps 1-27 agreed to <= 1.8e-15, then the gap grew ~1.5x per step: looks like amplified rounding, unproven. EXP-041 (proposed, end of EXPERIMENTS.md): a non-compounding one-step float64 check for both architectures (baseline = control), then, only if RoPE + GQA-2 passes, its 6 missing runs + 1 baseline control, EXP-040 rules unchanged; cap 5 GPU-h, no new upload. No code before \"approve EXP-041\"."
+      "note": "EXP-040 (Kaggle T4, 178 min, 6 of 12 runs): baseline (D-043, 32 M parameters, 100 M tokens per run) best at lr 1e-3 in both seeds (13-language mean 0.9213 / 0.9388 bits per byte); seed gaps 0.0064 and 0.0175; no failed runs. The float64 CPU = GPU check for RoPE + GQA-2 failed (1.739e-07 > 1e-8 at step 50), so its 6 runs were skipped and the baseline stays. Steps 1-27 agreed to <= 1.8e-15, then the gap grew ~1.5x per step: looks like amplified rounding, unproven. EXP-041 (proposed, end of EXPERIMENTS.md): a non-compounding one-step float64 check for both architectures (baseline = control), then, only if RoPE + GQA-2 passes, its 6 missing runs + 1 baseline control, EXP-040 rules unchanged; cap 5 GPU-h, no new upload. EXP-041 approved 2026-10-02 (\"approve EXP-041\") and built (gpu_lr_arch.py --part followup, kernel, runner -Exp EXP-041; no new upload). Next: the founder runs scripts\\run_kaggle_exp041.ps1."
     }
   ],
   "experiments": [
@@ -777,7 +777,7 @@
       "id": "EXP-041",
       "title": "Follow-up to EXP-040: a device check that does not compound, then the RoPE + GQA-2 runs",
       "date": "2026-10-02",
-      "status": "proposed — founder approval needed before any code.",
+      "status": "approved — code ready; waiting for the founder to launch the Kaggle run.",
       "category": "planned",
       "step": null,
       "summary": "step 11 still has to settle the architecture before the scaling ladder spends 15–25 GPU-hours on it. EXP-040 could not test RoPE + GQA-2 because its float64 check failed. The step-by-step numbers suggest amplified rounding, not wrong maths, but that is unproven, and the 50-step check cannot tell the two apart. This …",
