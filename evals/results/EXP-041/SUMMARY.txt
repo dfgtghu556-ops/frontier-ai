@@ -1,0 +1,55 @@
+EXP-041: follow-up to EXP-040 - one-step device check, then the RoPE + GQA-2 runs (step 11)
+complete: True   started 2026-10-02 03:30:19   finished 2026-10-02 06:57:26   elapsed 207.1 min
+device: Tesla T4   torch 2.10.0+cu128   CUDA 12.8
+
+Part 0
+  data: 13 of 13 files match the manifest (sha256 checked: True)
+  model/trainer tests: PASS (40 passed in 14.38s)
+
+Part A: one-step float64 check, CPU vs GPU from identical states (pre-registered gate)
+  pass = |loss diff| <= 1e-12 and |grad diff|/|grad| <= 1e-10 at every state
+  baseline   PASS  max |loss diff| 8.882e-16   max relative grad diff 1.779e-15   states [1, 11, 21, 31, 41, 50]
+  rope_gqa2  PASS  max |loss diff| 1.776e-15   max relative grad diff 2.654e-15   states [1, 11, 21, 31, 41, 50]
+  reported, not a gate - baseline 50-step float64 trajectory on this data: max |loss diff| 5.329e-15 over 50 steps (the EXP-040 criterion 1e-08 would say: PASS)
+
+Runs (final validation bits per byte; mean = 13 languages with equal weight, tok-w = weighted by validation tokens)
+  runs marked * were measured in EXP-040
+  run                        grid    mean   tok-w    tok/s   min  status
+  baseline-lr0.0005-s1*         A  0.9439  1.0626   60,178  29.8  done
+  baseline-lr0.001-s1*          A  0.9213  1.0387   61,241  29.3  done
+  baseline-lr0.002-s1*          A  0.9548  1.0777   61,467  29.2  done
+  baseline-lr0.004-s1*          A  1.0195  1.1531   62,939  28.5  done
+  baseline-lr0.0005-s2*         B  0.9503  1.0694   61,393  29.2  done
+  baseline-lr0.001-s2*          B  0.9388  1.0572   61,310  29.3  done
+  rope_gqa2-lr0.0005-s1         A  0.9114  1.0236   61,946  29.2  done
+  rope_gqa2-lr0.001-s1          A  0.8706  0.9799   63,450  28.5  done
+  rope_gqa2-lr0.002-s1          A  0.8801  0.9907   63,602  28.5  done
+  rope_gqa2-lr0.004-s1          A  0.9715  1.0953   64,628  28.1  done
+  rope_gqa2-lr0.0005-s2         B  0.9059  1.0176   63,387  28.6  done
+  rope_gqa2-lr0.001-s2          B  0.8605  0.9682   63,530  28.5  done
+
+  per-language bits per byte:
+  run                            as     bn     en     gu     hi     kn     ml     mr     or     pa     ta     te     ur
+  baseline-lr0.0005-s1        0.894  0.853  1.867  0.947  0.836  0.796  0.732  0.799  0.854  0.874  0.712  0.865  1.242
+  baseline-lr0.001-s1         0.875  0.834  1.832  0.924  0.817  0.772  0.709  0.775  0.832  0.855  0.690  0.843  1.220
+  baseline-lr0.002-s1         0.905  0.866  1.915  0.959  0.847  0.799  0.735  0.808  0.861  0.882  0.714  0.868  1.254
+  baseline-lr0.004-s1         0.959  0.923  2.069  1.015  0.903  0.855  0.785  0.866  0.914  0.940  0.760  0.924  1.339
+  baseline-lr0.0005-s2        0.900  0.859  1.878  0.954  0.842  0.803  0.738  0.804  0.859  0.879  0.719  0.870  1.248
+  baseline-lr0.001-s2         0.890  0.850  1.859  0.944  0.836  0.790  0.724  0.793  0.848  0.869  0.707  0.856  1.239
+  rope_gqa2-lr0.0005-s1       0.869  0.830  1.786  0.923  0.811  0.770  0.706  0.771  0.827  0.846  0.688  0.832  1.188
+  rope_gqa2-lr0.001-s1        0.829  0.791  1.718  0.879  0.773  0.731  0.670  0.732  0.789  0.813  0.652  0.795  1.145
+  rope_gqa2-lr0.002-s1        0.839  0.801  1.737  0.888  0.781  0.738  0.675  0.738  0.798  0.821  0.659  0.806  1.159
+  rope_gqa2-lr0.004-s1        0.919  0.882  1.939  0.974  0.861  0.815  0.751  0.823  0.875  0.899  0.731  0.886  1.274
+  rope_gqa2-lr0.0005-s2       0.862  0.822  1.778  0.918  0.808  0.765  0.702  0.766  0.824  0.840  0.687  0.827  1.178
+  rope_gqa2-lr0.001-s2        0.820  0.782  1.694  0.870  0.766  0.723  0.659  0.721  0.782  0.803  0.646  0.787  1.134
+
+Control run (reported, not a gate): baseline-lr0.001-s1-control  mean 0.9197  vs 0.9213 in the earlier session  (difference -0.0016)
+
+Pre-registered rules
+  1. best learning rate, baseline: 0.001
+  1. best learning rate, rope_gqa2: 0.001
+  2. seed noise: 0.0174 bits per byte
+  3. at lr 0.0005: BETTER (baseline 0.9471 - candidate 0.9086 = +0.0385; noise 0.0174)
+  3. at lr 0.001: BETTER (baseline 0.9301 - candidate 0.8655 = +0.0645; noise 0.0174)
+  3. RoPE + GQA-2 adopted for phase 2: YES
+  4. failed runs (NaN/inf or > 5% skipped steps): none
