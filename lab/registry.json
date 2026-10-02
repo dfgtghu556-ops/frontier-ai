@@ -136,7 +136,8 @@
         "D-047",
         "EXP-040",
         "EXP-041",
-        "D-048"
+        "D-048",
+        "EXP-042"
       ],
       "evidence_files": [
         "evals/results/EXP-040/summary.json",
@@ -144,7 +145,7 @@
         "scripts/gpu_lr_arch.py",
         "src/frontier_ai/data/multi.py"
       ],
-      "note": "phase 1 done (EXP-040 + EXP-041): learning rate 1e-3; RoPE + GQA-2 BETTER at both learning rates (adopted for phase 2 by the pre-registered rule; D-048 proposed); phase 2 IsoFLOP ladder (EXP-042) next, with its own approval"
+      "note": "phase 1 done (EXP-040 + EXP-041; D-048 accepted: RoPE + GQA-2, lr 1e-3 centre); phase 2 IsoFLOP ladder EXP-042 proposed (about 20 GPU-h over about 3 Kaggle sessions)"
     },
     {
       "step": 12,
@@ -253,20 +254,20 @@
   ],
   "current_work": [
     {
-      "title": "EXP-041 done: RoPE + GQA-2 passes the one-step float64 check and is BETTER at both learning rates. D-048 proposed (adopt it for phase 2; new device-check method); needs \"approve D-048\"",
+      "title": "D-048 accepted (RoPE + GQA-2 for phase 2; one-step device check). Step 11 phase 2 proposed as EXP-042 (IsoFLOP ladder); needs \"approve EXP-042\"",
       "evidence": [
+        "D-048",
+        "EXP-042",
         "EXP-041",
         "EXP-040",
-        "D-048",
-        "D-047",
-        "D-043"
+        "D-047"
       ],
       "evidence_files": [
         "evals/results/EXP-041/summary.json",
         "evals/results/EXP-040/summary.json",
         "scripts/gpu_lr_arch.py"
       ],
-      "note": "EXP-041 (Kaggle T4, 207 min, complete): Part A one-step float64 CPU vs GPU PASS for both architectures (<= 2.7e-15; limits 1e-12 / 1e-10); baseline 50-step trajectory on 13-language data 5.3e-15 (reported only). RoPE + GQA-2 (29.9 M parameters) vs the D-043 baseline (31.7 M), 100 M tokens per run: lower 13-language bits per byte in all 6 paired runs and all 13 languages; at lr 1e-3 0.8706 / 0.8605 vs 0.9213 / 0.9388; rule 3 BETTER at both learning rates (+0.0385, +0.0645; noise 0.0174) -> adopted for phase 2; best learning rate 1e-3 for both; control rerun -0.0016. D-048 (proposed, DECISIONS.md): adopt RoPE + GQA-2 (supersedes D-043 points 1-2), lr 1e-3 as the centre of phase-2 sweeps, device checks pass on the one-step float64 check (amends D-047 point 3). Next: \"approve D-048\", then the EXP-042 IsoFLOP ladder proposal (own approval)."
+      "note": "D-048 accepted 2026-10-02 (\"approve D-048\"): RoPE + GQA-2 replaces the D-043 baseline (supersedes D-043 points 1-2); lr 1e-3 is the centre of phase-2 sweeps; device checks pass on the one-step float64 check (amends D-047 point 3). EXP-042 (proposed, end of EXPERIMENTS.md): Chinchilla-style IsoFLOP ladder, budgets 1e16 / 3e16 / 1e17 FLOPs, sizes s1-s5 (0.5-59 M non-embedding parameters, depth = width/64), 4 sizes per budget, lr sweep {5e-4, 1e-3, 2e-3} at the smallest budget, one seed; pre-registered parabola fits (bracketing rule, flat region within 0.0174), growth law N_opt ~ C^a, an explicitly labelled extrapolation to our 2.78 B tokens; about 19-21 GPU-h (NOT VERIFIED), cap 25, about 3 Kaggle sessions, no new upload. Does not choose the step-12 size. No code before \"approve EXP-042\"."
     }
   ],
   "baseline_model": {

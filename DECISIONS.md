@@ -1651,9 +1651,9 @@ step 13 adds multi-GPU training.
 ---
 
 ## D-048 — RoPE + GQA-2 replaces the D-043 baseline for step 11 phase 2; device checks pass on a one-step float64 comparison
-**Date:** 2026-10-02 · **Status:** proposed (needs the founder's "approve D-048"; evidence EXP-040, EXP-041)
+**Date:** 2026-10-02 · **Status:** accepted (founder decision 2026-10-02: "approve D-048"; evidence EXP-040, EXP-041)
 
-**Decision (proposed):**
+**Decision:**
 1. **Architecture.** From step 11 phase 2 on, the architecture is the D-043 one with two
    changes: **rotary positions (RoPE)** instead of learned positions, and **2 key-value heads
    (GQA-2)**. SwiGLU (ffn_mult 4), RMSNorm, tied embeddings and the vocabulary (32,896, D-046)

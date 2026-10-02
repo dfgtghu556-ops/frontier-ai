@@ -3348,3 +3348,126 @@ runs with this session's runs is sound.
   EXP-042 and needs its own approval after D-048.
 
 **Status:** complete — Part A PASS for both architectures (≤ 2.7e-15 against limits 1e-12 / 1e-10); RoPE + GQA-2 BETTER at both grid-B learning rates (+0.0385 and +0.0645 bits per byte, noise 0.0174) and adopted for phase 2 by rule 3; learning rate 1e-3 for both; no failed runs; D-048 proposed.
+
+### EXP-042 — Step 11, phase 2: a compute-optimal ladder (IsoFLOP profiles) on all 13 languages
+**Date:** 2026-10-02 · **Status:** proposed (needs the founder's "approve EXP-042" before any code)
+
+**Purpose (why this serves the mission):** the first serious model (step 12) has to be the right
+size for our data and compute: too big and it is starved of data, too small and it wastes the
+corpus. MASTER_CONTEXT §22 forbids picking a size by fashion. This experiment measures, on **our**
+corpus, how the best model size and the best number of training tokens grow with compute. That
+growth law is what a size decision can rest on. It also meets the Stage 4 exit criterion: "at
+least one scaling-law sanity plot from runs we performed". It does **not** choose the step-12
+size; a decision record does that afterwards.
+
+**Method:** the IsoFLOP approach of Hoffmann et al. (2022, "Chinchilla"):
+- Fix a compute budget C. Train several model sizes, each for exactly the number of tokens that
+  spends C.
+- Find the size with the lowest validation loss at that budget.
+- Repeat at three budgets and fit how that best size grows with C.
+
+**Architecture:** D-048. RoPE, 2 key-value heads, SwiGLU, RMSNorm, tied embeddings, vocab 32,896,
+context 512, head size 64. The sizes form one family, with depth = width / 64:
+
+| size | layers × width (heads) | parameters | non-embedding parameters | training FLOPs per token |
+|---|---|---|---|---|
+| s1 | 2 × 128 (2) | 4.74 M | 0.52 M | 30 M |
+| s2 | 4 × 256 (4) | 12.36 M | 3.93 M | 80 M |
+| s3 | 6 × 384 (6) | 25.61 M | 12.98 M | 168 M |
+| s4 | 8 × 512 (8) | 47.26 M | 30.42 M | 309 M |
+| s5 | 10 × 640 (10) | 80.05 M | 59.00 M | 520 M |
+
+These were computed with the repository's model code. FLOPs per token = 6 × parameters + 12 ×
+layers × width × context, the formula already used for EXP-038's utilisation figures. The fits
+use **non-embedding parameters** (Kaplan et al., 2020): with a 32,896-word vocabulary, embeddings
+are most of a small model, and they cost no compute per token except through the output layer,
+which the FLOP count includes. Total parameters are reported next to them.
+
+**Budgets and runs** (one seed each). Each budget uses a window of 4 sizes. The windows were placed
+around the size that the Chinchilla rule of thumb (about 20 tokens per parameter) would predict,
+only so that the true optimum is likely to fall inside; that rule is **not** assumed in the
+result.
+
+| budget C | sizes | tokens per run | runs |
+|---|---|---|---|
+| C1 = 1e16 FLOPs | s1–s4 | 333 M (s1) … 32 M (s4) | 4 sizes × 3 learning rates = 12 |
+| C2 = 3e16 FLOPs | s1–s4 | 1.0 B (s1) … 97 M (s4) | 4 |
+| C3 = 1e17 FLOPs | s2–s5 | 1.24 B (s2) … 192 M (s5) | 4 |
+
+- **Learning rate (D-048 point 2: 1e-3 is the centre of a sweep at each size):** at C1, every
+  size runs at 5e-4, 1e-3 and 2e-3, and each size's best is used at C2 and C3. s5 is not in C1,
+  so it uses s4's best (written down now, before any result). If a size's best is at the edge
+  (5e-4 or 2e-3), this is reported.
+- **Identical for every run:** 16,384 tokens per step (32 × 512; s5 as 16 × 2 accumulation steps
+  for memory, which is the same maths); warm-up 200 steps; cosine decay to 10% over each run's own
+  length; AdamW (0.9, 0.95; weight decay 0.1); clipping 1.0; fp16 + GradScaler + `torch.compile`
+  (D-047).
+- **Data:** the 13 languages in natural proportion, as in EXP-040/041; the same validation
+  splits. The longest run reads 1.24 B of the 2.78 B training tokens, so no text is repeated.
+- **Seed:** 1. The seed-noise scale is known from EXP-040/041: up to 0.0174 bits per byte at 100 M
+  tokens.
+
+**Measurement:** each run's final validation bits per byte, as the mean of the 13 languages with
+equal weight (full validation splits, as in EXP-040). The token-weighted mean, the per-language
+values, curves, tokens/s, memory and skipped steps are also recorded.
+
+**Pre-registered analysis (fixed before any result):**
+1. **Best size per budget:** fit a parabola to bits per byte against log(non-embedding
+   parameters), using each size's best learning rate. Its minimum is N_opt(C), and D_opt(C) is
+   the matching token count. A budget counts as **bracketed** only if the minimum lies strictly
+   inside the window and the lowest measured point is not at an edge. Otherwise it is reported as
+   "not bracketed" and left out of rule 2 (no extra runs in this experiment).
+   - Also reported: the **flat region**, i.e. the sizes whose fitted value is within the seed
+     noise (0.0174) of the minimum, because near the optimum the curve is flat.
+2. **Growth law:** fit N_opt ∝ C^a and D_opt ∝ C^b over the bracketed budgets. At least 2 are
+   needed, otherwise "not computable"; with 3, the leftover error is reported. Reported values: a
+   and b (Chinchilla found about 0.5 and 0.5, Kaplan about 0.73 and 0.27) and the tokens per
+   parameter at each budget, both non-embedding and total.
+3. **What our 2.78 B tokens support:** the budget at which D_opt equals 2.78 B, and N_opt there,
+   with a low–high range from leaving out one budget at a time. **This is an extrapolation about
+   1–1.5 orders of magnitude beyond the largest measured budget and is labelled as such.** It is
+   an input to the step-12 decision, not the decision.
+4. **Secondary (reported, never a gate):** a fit of loss = E + A / N^α + B / D^β over all runs
+   (Chinchilla's approach 3), with numpy only. If it does not converge, that is reported.
+5. **Stability:** a run with a NaN or infinite loss, or with more than 5% skipped fp16 steps,
+   counts as failed. A budget still gets a fit if at least 3 of its 4 sizes succeeded.
+6. **The plot:** bits per byte against non-embedding parameters, one curve per budget, plus the
+   N_opt line. It is made in the sandbox from the committed summary.
+
+**Part 0 (every session):** the environment record, the 13 sha256 checks, the tests, and the
+one-step float64 check for the D-048 architecture (D-048 point 3; minutes). If the check fails,
+that session stops.
+
+**Where it runs, cost and time:**
+- **Where:** private Kaggle T4 sessions (single GPU, D-047) on the uploaded 13-language dataset,
+  so nothing is uploaded again. The runner is `-Exp EXP-042`.
+- **Sessions:** the runs do not fit in one 9-hour session, so the script works through them in
+  order (C1, then C2, then C3) and stops a session when the next run would pass its 9-hour cap.
+  The longest single run (s2 at C3) is about 3.6 hours (NOT VERIFIED), so no run spans two
+  sessions. Each session's results are committed in their own folder, and nothing published is
+  overwritten. The next session reads the earlier results from the repository and continues.
+  The founder types the same line again for each session, about **3 sessions** in total.
+- **Estimated GPU time:** about 19–21 GPU-hours. It is estimated from the measured speed at 30 M
+  parameters (EXP-040/041: about 63,000 tokens/s). The other sizes' speeds are **NOT VERIFIED**;
+  the smallest models probably use the GPU less efficiently. **Hard cap: 25 GPU-hours** over all
+  sessions, enforced by the script.
+- **Quota:** Kaggle's free quota is about 30 GPU-hours a week. About 7 hours were used this week
+  by EXP-040/041, so the last session may have to wait for the weekly reset (the reset day is
+  NOT VERIFIED). ₹0.
+
+**Code to be built after approval** (tested on CPU):
+- `scripts/gpu_lr_arch.py --part ladder`: the plan above; resumable across sessions; time-budget
+  aware; the analysis with numpy.
+- A kernel template and `-Exp EXP-042` in the runner: a new kernel version for each session,
+  and committing only that session's results folder.
+- Tests, including a CPU smoke run of a whole tiny ladder over 2 "sessions" and the fits on
+  synthetic data with a known answer.
+
+**Committed evidence:** `evals/results/EXP-042/session-*/summary.json` and `SUMMARY.txt`; the
+final session's summary carries the full analysis. The plot goes in the same folder.
+
+**Not in scope:** choosing the step-12 size (a decision record after this), data mixtures,
+context length, other architecture changes, more than one seed per point, multiple GPUs, and
+any spending.
+
+**Status:** proposed — founder approval needed before any code.

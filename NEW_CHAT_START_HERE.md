@@ -634,6 +634,11 @@ comes next. They also update the table in §3.
     (adopt RoPE + GQA-2 for phase 2; device checks pass on the one-step check). The IsoFLOP ladder
     is now EXP-042. **Next: "approve D-048"; then propose EXP-042.**
 
+  - **D-048 accepted ("approve D-048", 2026-10-02):** RoPE + GQA-2 is the architecture from
+    phase 2 on; lr 1e-3 is the centre of each size's sweep; device checks pass on the one-step
+    float64 check. **EXP-042 proposed** (IsoFLOP ladder: 3 budgets × 4 sizes, about 20 GPU-h over
+    about 3 Kaggle sessions; no size chosen). **Next: "approve EXP-042"; no code before that.**
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```

@@ -145,6 +145,9 @@
   RoPE + GQA-2 maths as the CPU, and at about 30 M parameters RoPE + GQA-2 beat the baseline by
   about 7% in bits per byte, in every language, by the pre-registered rule. D-048 (proposed)
   adopts it for the scaling ladder (phase 2, EXP-042, its own approval).
+- **Update (2026-10-02, D-048 accepted):** phase 2, **EXP-042** (proposed), is a compute-optimal
+  IsoFLOP ladder (3 budgets × 4 sizes, about 20 free Kaggle GPU-hours). It measures how the best
+  model size grows with compute on our corpus, which is the evidence for the step-12 size decision.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and
