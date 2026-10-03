@@ -1725,7 +1725,7 @@ or model maths is introduced (re-run the one-step check); or a new GPU type is u
 ---
 
 ## D-049 — Step-12 model size: 14 layers × 896 (about 190 M parameters), one pass over all 2.78 B training tokens
-**Date:** 2026-10-03 · **Status:** proposed (needs the founder's "approve D-049"; evidence EXP-042)
+**Date:** 2026-10-03 · **Status:** accepted (founder decision 2026-10-03: "approve D-049"; evidence EXP-042)
 
 **Decision (proposed):**
 1. **Size.** The first serious base model (roadmap step 12) uses the EXP-042 family (D-048

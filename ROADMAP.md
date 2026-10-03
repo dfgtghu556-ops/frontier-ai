@@ -155,6 +155,11 @@
   200–300 M parameters, with a wide range (an extrapolation). **D-049 (proposed)** sets the
   step-12 model at 14 layers × 896 (about 190 M parameters), one pass over all tokens; the step-12
   training plan (EXP-043) follows after approval.
+- **Update (2026-10-03, D-049 accepted): step 12 has started.** **EXP-043** (proposed) trains the
+  14 × 896 model (about 190 M parameters) on one Kaggle T4: a one-session learning-rate check,
+  then one true pass over all 2.78 B tokens across about 9 sessions (about 85 free GPU-hours,
+  about 3 weeks). Its new pieces are a one-pass sampler and checkpoints carried between Kaggle
+  sessions.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

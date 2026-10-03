@@ -3598,3 +3598,141 @@ throughput and memory curve (EXP-038, EXP-042) and a scaling-law plot from our o
 step-12 size itself is decided separately (D-049, proposed).
 
 **Status:** complete — all 20 runs done, none failed; all 3 budgets bracketed; N_opt ∝ C^0.75 (non-embedding; post-hoc with total parameters C^0.48), D_opt ∝ C^0.51; extrapolation for 2.78 B tokens: 311 M non-embedding (range 37 M – 4.6 B; post-hoc 206 M total); 15.98 GPU-hours; D-049 proposed.
+
+**Correction note (2026-10-03, added after the results; nothing above is changed):** the
+proposal says that the longest run "reads 1.24 B of the 2.78 B training tokens, so no text is
+repeated". That is not exact. `MultiTokenDataset.get_batch` draws each 512-token window at a
+random offset, with replacement, so windows can repeat or overlap within a run. Drawing 1.24 B
+tokens this way from 2.78 B covers about 36% of the corpus at least once. That makes about 19% of
+the tokens processed by C3-s2 repeats, and less for every other run. At under one epoch this
+should matter little: Muennighoff et al. (2023) find a few repetitions nearly as good as fresh
+data. The laws count the tokens processed, as pre-registered, and the results stand. For step 12
+it matters more: one "pass" of random windows would show only about 63% of the corpus.
+EXP-043 therefore proposes a true one-pass sampler.
+
+### EXP-043 — Step 12: train the first serious Frontier base model (14 × 896, about 190 M parameters, D-049)
+**Date:** 2026-10-03 · **Status:** proposed (needs the founder's "approve EXP-043" before any code)
+
+**Purpose (why this serves the mission):** this is the first model trained on our whole verified
+corpus at the size our own scaling evidence supports (D-049). It tests the whole pipeline at a
+scale 34× beyond anything trained so far: tokenizer, 13-language data, architecture, GPU stack,
+multi-session training and evaluation. Everything later (more data, larger models, post-training)
+builds on a pipeline that has done this once, end to end. It is a **research base model**: it
+should write fairly fluent short text in our languages; it will not follow instructions or reason
+(D-049).
+
+**Fixed by D-048/D-049 (not re-decided here):** 14 layers × width 896, 14 query heads, 2 key-value
+heads, head size 64, RoPE, SwiGLU, RMSNorm, tied embeddings, vocabulary 32,896, context 512;
+190.06 M parameters (160.59 M non-embedding); one pass over the 13 EXP-037 language files in
+natural proportions. fp16 + GradScaler + `torch.compile` on one Kaggle T4 (D-047).
+
+**1. A true one-pass sampler (new code).** The 2,783,830,088 training tokens are cut into
+5,437,162 non-overlapping 512-token windows (each with its next-token targets). They are shuffled
+once with a fixed seed, across all 13 files, and read in that order: batch i is windows 32·i to
+32·i + 31. That gives **169,911 steps of 16,384 tokens (2,783,821,824 tokens, every window exactly
+once)**; the last 10 windows, which do not fill a batch, are dropped. Natural proportions follow
+automatically. The position in the order is the step number, so resuming is exact. Validation
+stays as in EXP-040–042 (full validation splits, unchanged).
+
+**2. Learning-rate check (one Kaggle session, before the main run).** EXP-042 showed the best
+learning rate falling with size (1e-3 at 13 M non-embedding parameters, 5e-4 at 30 M), so 1e-3
+is not reused blindly.
+- Three runs of 6,104 steps (100 M tokens, the first 100 M of the one-pass order, identical for
+  all three) at **2.5e-4, 5e-4 and 1e-3**: the centre is the best size-30 M value; one step down
+  and one up. Warm-up 1,000 steps; cosine decay to 10% over each run's own length; seed 1;
+  16,384 tokens per step.
+- **Pre-registered rule:**
+  - The learning rate with the lowest final validation bits per byte (mean of 13 languages) is
+    chosen. If a lower learning rate is within 0.0174 (the seed noise) of the best, the lower one
+    is chosen instead: the main run is 28× longer, and longer runs favour lower learning rates
+    and are less likely to diverge.
+  - If the chosen value is at an edge of the grid, one more run is made one step further out
+    (1.25e-4 or 2e-3) and the rule is applied to all four. At most one extension.
+  - A run with NaN/inf or more than 5% skipped fp16 steps cannot be chosen.
+- **Warm-up:** 1,000 steps (16 M tokens, 0.6% of the main run) instead of the ladder's 200,
+  because this model is 2.4× larger than any trained so far. The check runs use the same warm-up,
+  so the chosen learning rate is tested with it.
+
+**3. Main run (about 9 Kaggle sessions):** 169,911 steps at the chosen learning rate, warm-up
+1,000 steps, cosine decay to 10% over all 169,911 steps, AdamW (0.9, 0.95; weight decay 0.1),
+clipping 1.0, seed 1.
+- **Memory:** the micro-batch is 16 × 2 accumulation steps if the measured peak memory is below
+  14.5 GB in Part 0, otherwise 8 × 4. Both are 32 sequences per step, the same maths.
+- **Carrying the run across sessions:** each session stops at its time budget, saves a checkpoint
+  (model, optimizer, fp16 scaler, step; about 2.3 GB) into the Kaggle output, and records its
+  sha256 in `session-<n>/summary.json`, which is committed. The next session gets that output as
+  an input through Kaggle's `kernel_sources`. Two kernels, `frontier-exp043-a` and `-b`,
+  alternate, each reading the other's latest output, so no kernel reads itself. A session refuses
+  to train unless the checkpoint it finds has exactly the sha256 of the last committed session. A
+  periodic checkpoint every 5,000 steps guards against a session that is killed early.
+- **Monitoring:** a sampled validation loss every 1,000 steps (the curve), the full 13-language
+  validation bits per byte at the end of each session, tokens/s, memory and skipped steps.
+- **Stop rules** (the session stops, keeps its last good checkpoint, and reports; continuing then
+  needs a decision):
+  - a NaN or infinite loss;
+  - more than 5% skipped steps in any 2,000-step window;
+  - a sampled validation loss more than 0.1 nats above the best so far, at 3 evaluations in a row.
+
+**4. At the end (last session):** the full validation bits per byte per language, the mean with
+equal weight, the token-weighted mean and the pooled value; text samples for reading (3 fixed
+prompts per language, greedy and temperature 0.8, `samples.jsonl`; not scored); a weights-only
+file `model_final.pt` (fp32, about 760 MB) with its config and sha256.
+
+**Pre-registered checks on the final model:**
+1. **Sanity (gate):** the mean bits per byte must be lower than the best EXP-042 run (C3-s3,
+   0.7736) by more than 0.0174, because this run uses 34× more compute. If not, the result is not
+   used for anything until it is explained.
+2. **Does the scaling evidence predict it? (reported, not a gate):** the result is compared with
+   the secondary parametric fit's prediction for this size at 2.78 B tokens, **0.683 bits per
+   byte** (EXP-042 post-hoc, `posthoc.json`). It counts as "consistent" if within ±0.03. The new
+   sampler (more unique text) and the re-tuned learning rate could both make it a little better.
+3. **Every language (reported):** each language's bits per byte against C3-s3's; all 13 are
+   expected to be lower.
+
+**Part 0 (every session):** environment record; the 13 sha256 checks; the tests; the one-step
+float64 check for the D-048 architecture (D-048 point 3); from the second main-run session on, the
+checkpoint sha256 check.
+
+**Where it runs, cost and time:**
+- **Where:** private Kaggle T4 kernels, single GPU (D-047), the 13-language dataset already
+  uploaded. The runner is `-Exp EXP-043`; the founder types the same line once per session, as in
+  EXP-042.
+- **Estimated GPU time** (from EXP-042's measured 1.27e13 FLOPs per second; NOT VERIFIED at this
+  size): learning-rate check about 8 hours (one session); main run about 74 hours (about 9
+  sessions); about 85 GPU-hours in total. **Hard cap: 100 GPU-hours** over all sessions,
+  enforced by the script.
+- **Quota:** Kaggle's free quota is about 30 GPU-hours a week (NOT VERIFIED for this account), so
+  this takes about **3 weeks** of calendar time. ₹0.
+- **Downloads to the PC:** only the small result files each session (`kaggle kernels output
+  --file-pattern`; if this CLI version does not support it, the full output, about 2.3 GB, is
+  downloaded instead and that is reported), plus `model_final.pt` once at the end, into `out/`
+  (not committed to git).
+- **NOT VERIFIED on the founder's account:** the `kernel_sources` chaining, where Kaggle mounts
+  another kernel's output, and the output size limit. Both are first used in main-run session 2.
+  If the chain fails there, the session stops at Part 0 after a few minutes, the earlier
+  checkpoint stays safe in the other kernel's output, and nothing is lost but those minutes.
+
+**Code to be built after approval** (tested on CPU in the sandbox):
+- The one-pass sampler in `src/frontier_ai/data/multi.py`, with exact resume.
+- `scripts/gpu_pretrain.py`, reusing EXP-040–042's Part 0, one-step check, run and report code:
+  `--part lrcheck` and `--part main`, multi-session, time-budget aware, checkpoint chain and
+  sha256 checks, stop rules, final evaluation and samples.
+- `scripts/kaggle/exp043_kernel.py`, `scripts/run_kaggle_exp043.ps1` and `-Exp EXP-043` in the
+  runner: the alternating kernels with `kernel_sources`, the results-only download, the one-time
+  model download.
+- Tests:
+  - the sampler covers every window exactly once and resumes exactly;
+  - a CPU smoke of the whole thing with a tiny model: the learning-rate check, then a main run
+    over 3 "sessions" passing the checkpoint through a folder that stands in for Kaggle's input;
+  - the sha256 refusal;
+  - the stop rules;
+  - static runner and kernel checks.
+
+**Committed evidence:** `evals/results/EXP-043/session-*/summary.json` and `SUMMARY.txt`, and at
+the end `samples.jsonl`. Checkpoints and `model_final.pt` are not committed (too large); their
+sha256 values are.
+
+**Not in scope:** more data, longer context, other sizes, more than one seed, instruction tuning
+or any post-training, multiple GPUs, publishing the model, and any spending.
+
+**Status:** proposed — founder approval needed before any code.

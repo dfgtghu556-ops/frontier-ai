@@ -155,12 +155,13 @@
       "status": "current",
       "evidence": [
         "D-049",
+        "EXP-043",
         "EXP-042"
       ],
       "evidence_files": [
         "evals/results/EXP-042/posthoc.json"
       ],
-      "note": "D-049 proposed: 14 layers x 896 (190 M parameters), one pass over all 2.78 B tokens; needs \"approve D-049\"; then the EXP-043 plan"
+      "note": "D-049 accepted 2026-10-03 (14 x 896, 190 M parameters, one pass over 2.78 B tokens); EXP-043 proposed (lr check + about 9-session main run, about 85 GPU-h); needs \"approve EXP-043\""
     },
     {
       "step": 13,
@@ -261,20 +262,21 @@
   ],
   "current_work": [
     {
-      "title": "EXP-042 complete (IsoFLOP ladder); D-049 proposed: step-12 model 14 x 896 (190 M parameters); needs \"approve D-049\"",
+      "title": "D-049 accepted (step-12 model 14 x 896, 190 M parameters); EXP-043 proposed (train it on one Kaggle T4); needs \"approve EXP-043\"",
       "evidence": [
+        "EXP-043",
         "D-049",
         "EXP-042",
         "D-048",
         "D-047"
       ],
       "evidence_files": [
-        "evals/results/EXP-042/session-3/summary.json",
         "evals/results/EXP-042/posthoc.json",
-        "evals/results/EXP-042/isoflop.svg",
-        "scripts/plot_ladder.py"
+        "evals/results/EXP-042/session-3/summary.json",
+        "src/frontier_ai/data/multi.py",
+        "scripts/gpu_lr_arch.py"
       ],
-      "note": "EXP-042 ran in 3 free Kaggle sessions (15.98 GPU-h), 20 runs, none failed, all 3 budgets bracketed. Pre-registered: N_opt ~ C^0.752 (non-embedding), D_opt ~ C^0.513, extrapolation for 2.78 B tokens 311 M non-embedding (leave-one-out 37 M - 4.6 B). Post-hoc (labelled): with total parameters N_opt ~ C^0.485 (a+b = 1.00 vs 1.27; Pearce & Song 2024), 206 M total; the family member spending C* on 2.78 B tokens lies between 14x896 (190 M) and 16x1024 (273 M). D-049 (proposed) picks 14x896, one pass over all tokens, about 74 T4-hours (NOT VERIFIED at this size). Learning rate, multi-session resume and evaluation go into EXP-043 after approval."
+      "note": "D-049 accepted 2026-10-03 (\"approve D-049\"). EXP-043 (proposed, end of EXPERIMENTS.md): a true one-pass sampler (5,437,162 windows of 512, 169,911 steps of 16,384 tokens; today's sampler draws random windows with replacement, see the correction note under EXP-042); a learning-rate check {2.5e-4, 5e-4, 1e-3} x 100 M tokens with a pre-registered rule; the main run across about 9 Kaggle sessions with sha256-checked checkpoints passed between alternating kernels via kernel_sources (NOT VERIFIED on the account); sanity gate: beat EXP-042 C3-s3 (0.7736) by > 0.0174; reported: secondary-fit prediction 0.683. About 85 GPU-h (NOT VERIFIED), cap 100, about 3 weeks, Rs 0. No code before \"approve EXP-043\"."
     }
   ],
   "baseline_model": {

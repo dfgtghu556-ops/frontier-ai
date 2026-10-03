@@ -654,6 +654,14 @@ comes next. They also update the table in §3.
     Step 11 complete. **D-049 proposed:** step-12 model 14 × 896 (190 M parameters), one pass
     over all 2.78 B tokens. **Next: "approve D-049"; then propose EXP-043 (step-12 plan).**
 
+  - **D-049 accepted ("approve D-049", 2026-10-03):** the step-12 model is 14 × 896 (190 M
+    parameters), one pass over all 2.78 B tokens. Found while planning: `MultiTokenDataset` samples
+    random windows with replacement (a correction note was added under EXP-042). **EXP-043
+    proposed** (end of EXPERIMENTS.md): a one-pass sampler, a learning-rate check {2.5e-4, 5e-4,
+    1e-3} × 100 M tokens, then the 169,911-step main run over about 9 Kaggle sessions with
+    checkpoints chained through `kernel_sources` (kernels -a/-b); about 85 GPU-h, cap 100.
+    **Next: "approve EXP-043"; no code before that.**
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```
