@@ -1,0 +1,99 @@
+{
+  "label": "POST-HOC checks, not pre-registered (EXP-042 Results block); the pre-registered analysis is in the final session's summary.json",
+  "total_parameter_growth_law": {
+    "a_total": 0.48483105327932025,
+    "b": 0.5131436375991903,
+    "a_total_plus_b": 0.9979746908785105,
+    "a_non_embedding_plus_b": 1.265028144557332,
+    "residuals_log10": [
+      0.02977677559144709,
+      -0.05694776439130855,
+      0.02717098879986235
+    ],
+    "C_star": 3.773398903295671e+18,
+    "n_opt_total_at_C_star": 205688542.23207378,
+    "leave_one_out_n_opt_total": [
+      48297421.16876399,
+      1275700118.813028
+    ],
+    "tokens_per_total_param_at_C_star": 13.534201068229978
+  },
+  "family_at_C_star": {
+    "flops_per_token_needed": 1355470263.634736,
+    "nearest_below": {
+      "width": 896,
+      "layers": 14,
+      "n_params": 190064000,
+      "n_non_embedding": 160589184,
+      "flops_per_token": 1217454336.0
+    },
+    "nearest_above": {
+      "width": 1024,
+      "layers": 16,
+      "n_params": 272794624,
+      "n_non_embedding": 239109120,
+      "flops_per_token": 1737431040.0
+    }
+  },
+  "parametric_at_all_tokens": [
+    {
+      "width": 640,
+      "layers": 10,
+      "n_params": 80049280,
+      "n_non_embedding": 58995840,
+      "flops_per_token": 519617280.0,
+      "predicted_bpb_mean": 0.7006372982248984,
+      "train_flops": 1.4465262183087206e+18
+    },
+    {
+      "width": 768,
+      "layers": 12,
+      "n_params": 126733056,
+      "n_non_embedding": 101468928,
+      "flops_per_token": 817021440.0,
+      "predicted_bpb_mean": 0.6901845877346934,
+      "train_flops": 2.2744488672130867e+18
+    },
+    {
+      "width": 896,
+      "layers": 14,
+      "n_params": 190064000,
+      "n_non_embedding": 160589184,
+      "flops_per_token": 1217454336.0,
+      "predicted_bpb_mean": 0.6827235581606896,
+      "train_flops": 3.3891860113228616e+18
+    },
+    {
+      "width": 1024,
+      "layers": 16,
+      "n_params": 272794624,
+      "n_non_embedding": 239109120,
+      "flops_per_token": 1737431040.0,
+      "predicted_bpb_mean": 0.6771329323239124,
+      "train_flops": 4.836712804977132e+18
+    },
+    {
+      "width": 1152,
+      "layers": 18,
+      "n_params": 377677440,
+      "n_non_embedding": 339781248,
+      "flops_per_token": 2393466624.0,
+      "predicted_bpb_mean": 0.6727890847859147,
+      "train_flops": 6.663004402514983e+18
+    },
+    {
+      "width": 1280,
+      "layers": 20,
+      "n_params": 507464960,
+      "n_non_embedding": 465358080,
+      "flops_per_token": 3202076160.0,
+      "predicted_bpb_mean": 0.6693176502982111,
+      "train_flops": 8.914035958275502e+18
+    }
+  ],
+  "t4_flops_per_s_measured": {
+    "run": "C3-s5-lr0.0005",
+    "flops_per_s": 12716518441073.535
+  },
+  "t4_hours_for_C_star": 82.42557637797036
+}

@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "99c78f9cab283b3ed00d1a6c2bb34300c5f335d92d0d81a07ed07a77deca833c",
+  "source_digest": "c7723189a25b4efcdd123d811eedaa76c1674c8d4230080dd9b78aa32b450630",
   "sources": {
-    "EXPERIMENTS.md": "b4eef7f404ca6cddb757d70f8c3d6078be2265966848cc1843c1a40e23fa2f36",
-    "DECISIONS.md": "8c6db7624c1769f0f894235c89297997829ab6c5b69b966c117e64b8ae90720c",
+    "EXPERIMENTS.md": "bd10b7dd9fa5be3451940de9e9acb6b7368e8f7ac212cbd9b16d022808b7f01c",
+    "DECISIONS.md": "29699b314cafba6a203b51dbda869db3d572f856025a3c251c549d2abf1984bc",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "8744f11a0c6656be216bdd4954c9867412b0494364f47a5f0a855e59ac5c8ec9",
+    "lab/registry.json": "03304f1b860067dfb33753817a2334532c00a9eb351c2e8942667a31679522b1",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -201,7 +201,7 @@
     {
       "step": 11,
       "title": "Run scaling experiments.",
-      "status": "current",
+      "status": "complete",
       "evidence": [
         "D-047",
         "EXP-040",
@@ -212,10 +212,12 @@
       "evidence_files": [
         "evals/results/EXP-040/summary.json",
         "evals/results/EXP-041/summary.json",
+        "evals/results/EXP-042/session-3/summary.json",
+        "evals/results/EXP-042/isoflop.svg",
         "scripts/gpu_lr_arch.py",
-        "src/frontier_ai/data/multi.py"
+        "scripts/ladder_fit.py"
       ],
-      "note": "phase 1 done (EXP-040 + EXP-041; D-048 accepted: RoPE + GQA-2, lr 1e-3 centre); phase 2 IsoFLOP ladder EXP-042 proposed (about 20 GPU-h over about 3 Kaggle sessions)",
+      "note": "phase 1: EXP-040 + EXP-041 (D-048: RoPE + GQA-2); phase 2: EXP-042 IsoFLOP ladder complete 2026-10-03 (20 runs, 3 budgets bracketed, N_opt ~ C^0.75 non-embedding / C^0.48 total post-hoc, D_opt ~ C^0.51; 2.78 B tokens -> roughly 200-300 M parameters, wide range). Stage 4 exit criteria met.",
       "evidence_links": [
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1597",
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3006",
@@ -227,11 +229,19 @@
     {
       "step": 12,
       "title": "Train the first serious Frontier base model.",
-      "status": "not_started",
-      "evidence": [],
-      "evidence_files": [],
-      "note": "",
-      "evidence_links": []
+      "status": "current",
+      "evidence": [
+        "D-049",
+        "EXP-042"
+      ],
+      "evidence_files": [
+        "evals/results/EXP-042/posthoc.json"
+      ],
+      "note": "D-049 proposed: 14 layers x 896 (190 M parameters), one pass over all 2.78 B tokens; needs \"approve D-049\"; then the EXP-043 plan",
+      "evidence_links": [
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1727",
+        "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3352"
+      ]
     },
     {
       "step": 13,
@@ -344,22 +354,20 @@
   ],
   "current_work": [
     {
-      "title": "EXP-042 approved and built (IsoFLOP ladder, multi-session Kaggle runner); waiting for the founder to launch session 1",
+      "title": "EXP-042 complete (IsoFLOP ladder); D-049 proposed: step-12 model 14 x 896 (190 M parameters); needs \"approve D-049\"",
       "evidence": [
+        "D-049",
         "EXP-042",
         "D-048",
-        "EXP-041",
-        "EXP-040",
         "D-047"
       ],
       "evidence_files": [
-        "scripts/gpu_lr_arch.py",
-        "scripts/ladder_fit.py",
-        "scripts/kaggle/exp042_kernel.py",
-        "scripts/run_kaggle_exp042.ps1",
-        "evals/results/EXP-041/summary.json"
+        "evals/results/EXP-042/session-3/summary.json",
+        "evals/results/EXP-042/posthoc.json",
+        "evals/results/EXP-042/isoflop.svg",
+        "scripts/plot_ladder.py"
       ],
-      "note": "EXP-042 approved 2026-10-02 (\"approve EXP-042\") and built as proposed: gpu_lr_arch.py --part ladder (one session per launch, resumes from evals/results/EXP-042/session-*/, 9 GPU-h per session, 25 in total), ladder_fit.py (numpy fits), kernel + runner (-Exp EXP-042; same 13-language dataset, no upload; forgets the launched commit after a successful push so the same line starts the next session). CPU tests only; no GPU result yet. Next: the founder runs powershell -ExecutionPolicy Bypass -File scripts\\run_kaggle_exp042.ps1 (about 3 sessions). Does not choose the step-12 size."
+      "note": "EXP-042 ran in 3 free Kaggle sessions (15.98 GPU-h), 20 runs, none failed, all 3 budgets bracketed. Pre-registered: N_opt ~ C^0.752 (non-embedding), D_opt ~ C^0.513, extrapolation for 2.78 B tokens 311 M non-embedding (leave-one-out 37 M - 4.6 B). Post-hoc (labelled): with total parameters N_opt ~ C^0.485 (a+b = 1.00 vs 1.27; Pearce & Song 2024), 206 M total; the family member spending C* on 2.78 B tokens lies between 14x896 (190 M) and 16x1024 (273 M). D-049 (proposed) picks 14x896, one pass over all tokens, about 74 T4-hours (NOT VERIFIED at this size). Learning rate, multi-session resume and evaluation go into EXP-043 after approval."
     }
   ],
   "experiments": [
@@ -802,13 +810,14 @@
       "id": "EXP-042",
       "title": "Step 11, phase 2: a compute-optimal ladder (IsoFLOP profiles) on all 13 languages",
       "date": "2026-10-02",
-      "status": "approved — code ready; waiting for the founder to launch the Kaggle run.",
-      "category": "planned",
+      "status": "complete — all 20 runs done, none failed; all 3 budgets bracketed; N_opt ∝ C^0.75 (non-embedding; post-hoc with total parameters C^0.48), D_opt ∝ C^0.51 …",
+      "category": "complete",
       "step": null,
       "summary": "the first serious model (step 12) has to be the right size for our data and compute: too big and it is starved of data, too small and it wastes the corpus. MASTER_CONTEXT §22 forbids picking a size by fashion. This experiment measures, on our corpus, how the best model size and the best number of training tokens grow …",
       "decisions": [
         "D-047",
-        "D-048"
+        "D-048",
+        "D-049"
       ],
       "line": 3352,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3352"
@@ -1403,6 +1412,21 @@
       ],
       "line": 1653,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1653"
+    },
+    {
+      "id": "D-049",
+      "title": "Step-12 model size: 14 layers × 896 (about 190 M parameters), one pass over all 2.78 B training tokens",
+      "date": "2026-10-03",
+      "status": "proposed (needs the founder's \"approve D-049\"; evidence EXP-042)",
+      "category": "proposed",
+      "summary": "",
+      "experiments": [
+        "EXP-037",
+        "EXP-042",
+        "EXP-043"
+      ],
+      "line": 1727,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1727"
     }
   ],
   "open_questions": [

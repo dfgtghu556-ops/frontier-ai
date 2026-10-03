@@ -295,3 +295,36 @@ def test_ladder_refuses_sessions_from_another_plan(langs, tmp_path):  # noqa: F8
     )
     assert res.returncode == 1
     assert "different ladder plan" in res.stdout
+
+
+# ---------------------------------------------------------------- rule 6 plot + post-hoc checks
+
+
+def test_plot_and_posthoc_on_the_committed_results(tmp_path):
+    import shutil
+    import xml.etree.ElementTree as ET
+
+    import plot_ladder
+
+    src = ROOT / "evals" / "results" / "EXP-042"
+    if not (src / "session-3" / "summary.json").exists():
+        pytest.skip("EXP-042 results not committed")
+    for d in src.glob("session-*"):
+        shutil.copytree(d, tmp_path / d.name)
+    assert plot_ladder.main(["--dir", str(tmp_path)]) == 0
+    ET.parse(tmp_path / "isoflop.svg")  # well-formed SVG
+    ph = json.loads((tmp_path / "posthoc.json").read_text(encoding="utf-8"))
+    assert "POST-HOC" in ph["label"]
+    t = ph["total_parameter_growth_law"]
+    assert t["a_total_plus_b"] == pytest.approx(t["a_total"] + t["b"])
+    lo, hi = t["leave_one_out_n_opt_total"]
+    assert lo <= t["n_opt_total_at_C_star"] <= hi
+    fam = ph["family_at_C_star"]
+    assert fam["nearest_below"]["flops_per_token"] <= fam["flops_per_token_needed"]
+    assert fam["nearest_above"]["flops_per_token"] >= fam["flops_per_token_needed"]
+    # the same family as the ladder: s5 (10 x 640) has the pre-registered size
+    assert ph["parametric_at_all_tokens"][0]["n_params"] == 80_049_280
+    # the committed copies are exactly what the script writes
+    for name in ("isoflop.svg", "posthoc.json"):
+        if (src / name).exists():
+            assert (src / name).read_text(encoding="utf-8") == (tmp_path / name).read_text(encoding="utf-8")

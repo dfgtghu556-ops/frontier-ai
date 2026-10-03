@@ -1724,6 +1724,82 @@ or model maths is introduced (re-run the one-step check); or a new GPU type is u
 
 ---
 
+## D-049 — Step-12 model size: 14 layers × 896 (about 190 M parameters), one pass over all 2.78 B training tokens
+**Date:** 2026-10-03 · **Status:** proposed (needs the founder's "approve D-049"; evidence EXP-042)
+
+**Decision (proposed):**
+1. **Size.** The first serious base model (roadmap step 12) uses the EXP-042 family (D-048
+   architecture: RoPE, 2 key-value heads, SwiGLU, RMSNorm, tied embeddings, vocabulary 32,896,
+   head size 64, depth = width / 64) at **14 layers × width 896** (14 query heads, 2 key-value
+   heads), context 512: **190.06 M parameters, 160.59 M of them non-embedding**. These counts come
+   from the repository's model code (`evals/results/EXP-042/posthoc.json`).
+2. **Data.** One pass over all **2,783,830,088** EXP-037 training tokens (13 languages, natural
+   proportions), with no repetition. That is about 14.6 tokens per parameter and about 3.39e18
+   training FLOPs.
+3. **Not decided here.** The learning rate, batch size and schedule details; how a run of about
+   75 GPU-hours continues across Kaggle sessions (checkpoint and resume); and the evaluation
+   plan. These go into the step-12 plan (EXP-043), which needs its own approval. EXP-042 shows the
+   best learning rate falling with size (1e-3 at 13 M non-embedding parameters, 5e-4 at 30 M), so
+   EXP-043 has to include a short pre-registered learning-rate check at this size rather than
+   reuse 1e-3.
+
+**Rationale:**
+- **Matching the model to our data and compute.** EXP-042's pre-registered D_opt law
+  (D_opt ∝ C^0.51, all three budgets bracketed) puts 2.78 B tokens at C ≈ 3.77e18 FLOPs. The
+  member of our family that spends exactly that on 2.78 B tokens lies between 14 × 896 and
+  16 × 1024. 14 × 896 is the nearest one at or below it, so it gets slightly more tokens per
+  parameter than the estimate. Near the optimum this costs little, and the model is cheaper to
+  train and to run.
+- **The three size estimates, and why the smaller ones carry more weight:**
+  - The pre-registered N_opt law gives 311 M **non-embedding** parameters (about 18 × 1152,
+    378 M total).
+  - Counting **total** parameters (post-hoc) gives 206 M.
+  - The FLOP match above gives 190–273 M.
+  - The non-embedding law fails its own consistency test (a + b = 1.27 instead of about 1). Pearce
+    & Song (2024) show that this way of counting inflates the exponent at small scale. The
+    total-parameter version passes the test (a + b = 1.00). So the evidence points to the lower
+    part of the range, while still respecting the pre-registered result: 190 M is inside its
+    leave-one-out range (37 M – 4.6 B).
+- **A flat optimum.** The secondary parametric fit (an extrapolation) predicts 0.683 bits per byte
+  for 14 × 896 and 0.673 for 18 × 1152. That gap of 0.010 is smaller than the seed noise
+  (0.0174), for about twice the compute.
+- **It fits the free GPU.** About 74 T4-hours at the speed measured in EXP-042 (NOT VERIFIED at
+  this size). That is about 9 Kaggle sessions or 2.5–3 weeks of free quota, ₹0, on one GPU (D-047).
+
+**Alternatives considered:**
+
+| option | parameters | tokens per parameter | T4-hours (est.) | predicted bits per byte (secondary fit, extrapolated) | verdict |
+|---|---|---|---|---|---|
+| 12 × 768 | 126.7 M | 22.0 | about 50 | 0.690 | rejected: below every estimate of the optimum for our data |
+| **14 × 896** | **190.1 M** | **14.6** | **about 74** | **0.683** | **proposed** |
+| 16 × 1024 | 272.8 M | 10.2 | about 106 | 0.677 | rejected: 43% more compute for a predicted gain of 0.006, inside the noise |
+| 18 × 1152 | 377.7 M | 7.4 | about 146 | 0.673 | rejected: twice the compute, rests on the inconsistent non-embedding law |
+
+- **Packing more Sangraha data first** (about 64 B verified tokens are available, and more data
+  supports a larger model): rejected for step 12. Its purpose is the first end-to-end serious
+  model on a pipeline that has been verified, not the largest possible one. More data belongs to
+  step 14 ("scale pretraining on evidence"), and the D_opt law above then gives the new size.
+- **Renting GPUs:** not without the founder's spending decision (standing rule).
+
+**Consequences accepted:**
+- Step 11 is complete. Step 12 starts with the EXP-043 plan (learning-rate check, multi-session
+  checkpoint and resume, evaluation), which needs its own approval.
+- **What a model this size can and cannot do (honest expectation, not a measurement):** it is the
+  size class of GPT-2 small/medium (124 M / 355 M). It should write fairly fluent short text and
+  complete sentences in our 13 languages. It will not follow instructions, hold a conversation or
+  reason; that needs much larger models, more data, and post-training (steps 14–18). It is a
+  research base model, and it is the first test of the whole pipeline at this scale.
+- The size rests on an extrapolation 1.6 orders of magnitude beyond the measured budgets and on
+  one seed per point. Choosing a size near the flat optimum limits the cost of being wrong.
+- Memory at this size on a T4 is NOT VERIFIED; EXP-043 measures it before training.
+
+**Revisit when:** more training tokens are packed (recompute the D_opt projection with the
+EXP-042 laws; the ladder itself needs re-running only if the data mix changes); funded GPUs
+become available; EXP-043's learning-rate check shows this size is unstable; or the context
+length changes.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

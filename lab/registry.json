@@ -1,7 +1,7 @@
 {
   "schema": "frontier-lab-registry-v1",
   "purpose": "The few facts the Lab OS dashboard needs that are not machine-readable elsewhere in the repository: the status of each MASTER_CONTEXT section 37 step, the compute we have, and the key documents. Everything else in the dashboard is derived automatically from repository files by scripts/export_lab_state.py. Every entry here is cross-checked by tests/test_lab_state.py: step titles must equal MASTER_CONTEXT section 37, cited experiments/decisions must exist, a 'complete' step may only cite complete experiments and accepted decisions, and cited files must exist.",
-  "updated": "2026-10-02",
+  "updated": "2026-10-03",
   "roadmap_steps": [
     {
       "step": 1,
@@ -131,7 +131,7 @@
     {
       "step": 11,
       "title": "Run scaling experiments.",
-      "status": "current",
+      "status": "complete",
       "evidence": [
         "D-047",
         "EXP-040",
@@ -142,18 +142,25 @@
       "evidence_files": [
         "evals/results/EXP-040/summary.json",
         "evals/results/EXP-041/summary.json",
+        "evals/results/EXP-042/session-3/summary.json",
+        "evals/results/EXP-042/isoflop.svg",
         "scripts/gpu_lr_arch.py",
-        "src/frontier_ai/data/multi.py"
+        "scripts/ladder_fit.py"
       ],
-      "note": "phase 1 done (EXP-040 + EXP-041; D-048 accepted: RoPE + GQA-2, lr 1e-3 centre); phase 2 IsoFLOP ladder EXP-042 proposed (about 20 GPU-h over about 3 Kaggle sessions)"
+      "note": "phase 1: EXP-040 + EXP-041 (D-048: RoPE + GQA-2); phase 2: EXP-042 IsoFLOP ladder complete 2026-10-03 (20 runs, 3 budgets bracketed, N_opt ~ C^0.75 non-embedding / C^0.48 total post-hoc, D_opt ~ C^0.51; 2.78 B tokens -> roughly 200-300 M parameters, wide range). Stage 4 exit criteria met."
     },
     {
       "step": 12,
       "title": "Train the first serious Frontier base model.",
-      "status": "not_started",
-      "evidence": [],
-      "evidence_files": [],
-      "note": ""
+      "status": "current",
+      "evidence": [
+        "D-049",
+        "EXP-042"
+      ],
+      "evidence_files": [
+        "evals/results/EXP-042/posthoc.json"
+      ],
+      "note": "D-049 proposed: 14 layers x 896 (190 M parameters), one pass over all 2.78 B tokens; needs \"approve D-049\"; then the EXP-043 plan"
     },
     {
       "step": 13,
@@ -254,22 +261,20 @@
   ],
   "current_work": [
     {
-      "title": "EXP-042 approved and built (IsoFLOP ladder, multi-session Kaggle runner); waiting for the founder to launch session 1",
+      "title": "EXP-042 complete (IsoFLOP ladder); D-049 proposed: step-12 model 14 x 896 (190 M parameters); needs \"approve D-049\"",
       "evidence": [
+        "D-049",
         "EXP-042",
         "D-048",
-        "EXP-041",
-        "EXP-040",
         "D-047"
       ],
       "evidence_files": [
-        "scripts/gpu_lr_arch.py",
-        "scripts/ladder_fit.py",
-        "scripts/kaggle/exp042_kernel.py",
-        "scripts/run_kaggle_exp042.ps1",
-        "evals/results/EXP-041/summary.json"
+        "evals/results/EXP-042/session-3/summary.json",
+        "evals/results/EXP-042/posthoc.json",
+        "evals/results/EXP-042/isoflop.svg",
+        "scripts/plot_ladder.py"
       ],
-      "note": "EXP-042 approved 2026-10-02 (\"approve EXP-042\") and built as proposed: gpu_lr_arch.py --part ladder (one session per launch, resumes from evals/results/EXP-042/session-*/, 9 GPU-h per session, 25 in total), ladder_fit.py (numpy fits), kernel + runner (-Exp EXP-042; same 13-language dataset, no upload; forgets the launched commit after a successful push so the same line starts the next session). CPU tests only; no GPU result yet. Next: the founder runs powershell -ExecutionPolicy Bypass -File scripts\\run_kaggle_exp042.ps1 (about 3 sessions). Does not choose the step-12 size."
+      "note": "EXP-042 ran in 3 free Kaggle sessions (15.98 GPU-h), 20 runs, none failed, all 3 budgets bracketed. Pre-registered: N_opt ~ C^0.752 (non-embedding), D_opt ~ C^0.513, extrapolation for 2.78 B tokens 311 M non-embedding (leave-one-out 37 M - 4.6 B). Post-hoc (labelled): with total parameters N_opt ~ C^0.485 (a+b = 1.00 vs 1.27; Pearce & Song 2024), 206 M total; the family member spending C* on 2.78 B tokens lies between 14x896 (190 M) and 16x1024 (273 M). D-049 (proposed) picks 14x896, one pass over all tokens, about 74 T4-hours (NOT VERIFIED at this size). Learning rate, multi-session resume and evaluation go into EXP-043 after approval."
     }
   ],
   "baseline_model": {

@@ -148,6 +148,13 @@
 - **Update (2026-10-02, D-048 accepted):** phase 2, **EXP-042** (proposed), is a compute-optimal
   IsoFLOP ladder (3 budgets × 4 sizes, about 20 free Kaggle GPU-hours). It measures how the best
   model size grows with compute on our corpus, which is the evidence for the step-12 size decision.
+- **Update (2026-10-03, EXP-042 done): step 11 is complete, and Stage 4's exit criteria are met**
+  (a measured single-GPU throughput and memory curve, and a scaling-law plot from our own runs,
+  `evals/results/EXP-042/isoflop.svg`). 20 runs over 3 free Kaggle sessions (16 GPU-hours), none
+  failed, all 3 budgets bracketed. For our 2.78 B training tokens the evidence points to roughly
+  200–300 M parameters, with a wide range (an extrapolation). **D-049 (proposed)** sets the
+  step-12 model at 14 layers × 896 (about 190 M parameters), one pass over all tokens; the step-12
+  training plan (EXP-043) follows after approval.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

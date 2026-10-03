@@ -3509,3 +3509,92 @@ no change to the sizes, budgets, learning rates, limits or rules:
 - The plot (rule 6) is made in the sandbox from the final committed summary.
 
 **Status:** approved — code ready; waiting for the founder to launch the Kaggle run.
+
+**Results (2026-10-03; the founder's Kaggle runs, `evals/results/EXP-042/`):** three Kaggle T4
+sessions, Tesla T4, torch 2.10.0+cu128, each running the commit it was launched with:
+
+| session | code commit | results commit | script time | runs |
+|---|---|---|---|---|
+| 1 | `2e24422` | `39ddd65` | 405.7 min | 16 (all of C1 and C2) |
+| 2 | `39ddd65` | `e82dc80` | 418.9 min | 3 (C3: s2, s3, s4) |
+| 3 | `e82dc80` | `2e79552` | 133.9 min | 1 (C3: s5); `complete: true` |
+
+Total 15.98 GPU-hours by the script's own clock (cap 25); Kaggle's session clock is a little
+longer (start-up and download). Each session ended because the next run would not fit, as
+designed; no run spanned two sessions and nothing was overwritten.
+
+- **Part 0, every session:** 13 of 13 files match the manifest; 40 tests pass; the one-step
+  float64 check PASSES for the D-048 architecture (max |loss difference| 1.776e-15, max relative
+  gradient difference 2.654e-15; limits 1e-12 / 1e-10).
+- **Stability (rule 5):** no failed runs. At most 0.04% of steps were skipped by the fp16 scaler
+  (32 of 75,889, C3-s2); peak memory at most 6.7 GB of 16 GB.
+- **Speed (training tokens/s):** s1 about 267,000; s2 about 135,000; s3 about 73,000;
+  s4 about 44,000; s5 25,387. Including evaluations, s5 ran at 1.27e13 FLOPs per second.
+
+**Final validation bits per byte** (mean of the 13 languages with equal weight; lower is better):
+
+| budget | s1 | s2 | s3 | s4 | s5 |
+|---|---|---|---|---|---|
+| C1 = 1e16, lr 5e-4 / 1e-3 / 2e-3 | 1.0178 / 1.0013 / **0.9916** | 0.9592 / 0.8997 / **0.8916** | 0.9629 / **0.9093** / 0.9735 | **1.0005** / 1.0011 / 1.0288 | — |
+| C2 = 3e16, best lr | 0.9772 | 0.8400 | **0.8253** | 0.8824 | — |
+| C3 = 1e17, best lr | — | 0.8165 | **0.7736** | 0.7766 | 0.7845 |
+
+**Pre-registered analysis** (computed by the script in session 3, `session-3/summary.json`):
+1. **Best learning rate at C1:** s1 2e-3, s2 2e-3, s3 1e-3, s4 5e-4. Three are at an edge of the
+   range, which is reported as required. The gaps to the middle value are within the seed noise
+   for s1 (0.0097), s2 (0.0081) and s4 (0.0006). The trend is clear, though: the best learning
+   rate falls as the model grows. s5 used s4's 5e-4, as written down in advance.
+2. **Best size per budget:** all three budgets are **bracketed**.
+
+   | budget | N_opt (non-embedding) | N_opt (total, interpolated) | D_opt | tokens per non-embedding / total parameter | flat region (within 0.0174) |
+   |---|---|---|---|---|---|
+   | C1 | 3.96 M | 12.41 M | 124 M | 31.3 / 10.0 | 1.77–8.87 M |
+   | C2 | 6.83 M | 17.31 M | 265 M | 38.8 / 15.3 | 2.87–16.27 M |
+   | C3 | 22.19 M | 37.66 M | 406 M | 18.3 / 10.8 | 7.48–65.79 M |
+
+3. **Growth law (rule 2), from all three budgets:** N_opt ∝ C^0.752 (non-embedding), D_opt ∝
+   C^0.513. Leftover error in log10: up to 0.080 for N_opt and 0.057 for D_opt, both at C2.
+4. **What our 2.78 B tokens support (rule 3), an EXTRAPOLATION 1.6 orders of magnitude beyond the
+   largest budget:** D_opt = 2.78 B tokens at C = 3.77e18 FLOPs, where N_opt = **311 M
+   non-embedding parameters**. Leaving out one budget at a time gives anywhere from **37 M to
+   4.6 B**. The point estimate is therefore weakly determined.
+5. **Parametric fit (secondary, never a gate):** E 0.614, A 27.2, α 0.34, B 7.3e3, β 0.58, rmse
+   0.0186 (about the seed noise), converged. It implies N_opt ∝ C^0.63.
+6. **The plot:** `evals/results/EXP-042/isoflop.svg`, made by `scripts/plot_ladder.py` from the
+   committed summary.
+
+**Post-hoc checks (NOT pre-registered; labelled as such; `evals/results/EXP-042/posthoc.json`,
+written by the same script):**
+- **The two exponents do not add up.** If N and D are counted consistently, then C ∝ N × D, so
+  a + b should be about 1. Here it is 0.752 + 0.513 = **1.27**. Pearce & Song (2024, "Reconciling
+  Kaplan and Chinchilla Scaling Laws") show why: counting only non-embedding parameters at small
+  scale, where the embeddings are a large part of the model, inflates the exponent to about
+  0.74–0.78. That is close to Kaplan et al.'s 0.73, and to ours. Porian et al. (2024) find the
+  output layer's compute to be one of the causes; our FLOP count already includes it.
+- **The same fit with total parameters:** N_opt ∝ C^**0.485**, so a + b = 0.998, consistent and
+  close to Chinchilla's 0.5. At C = 3.77e18 this gives **206 M total parameters** (leave one
+  budget out: 48 M – 1.28 B), about 13.5 tokens per parameter.
+- **Which model of the same family spends 3.77e18 FLOPs on 2.78 B tokens:** 1.36e9 FLOPs per
+  token are needed. That lies between 14 layers × 896 (190.1 M total, 160.6 M non-embedding, 1.22e9
+  FLOPs per token) and 16 × 1024 (272.8 M total, 239.1 M non-embedding, 1.74e9). This uses only the
+  pre-registered D_opt law and our FLOP formula.
+- **The secondary fit evaluated at all 2.78 B tokens (an extrapolation of a secondary fit):**
+  predicted bits per byte 0.701 (10 × 640), 0.690 (12 × 768), 0.683 (14 × 896), 0.677 (16 × 1024),
+  0.673 (18 × 1152). Near the optimum the curve is flat: doubling the model changes the
+  prediction by less than the seed noise.
+- **T4 time for 3.77e18 FLOPs** at s5's measured 1.27e13 FLOPs per second: about **82 GPU-hours**.
+  Whether larger models reach the same speed on a T4 is NOT VERIFIED.
+
+**Limits:** one seed per point; the best learning rates at the edges of the range (s1, s2 and s4,
+and s5 by inheritance) may slightly understate those sizes; the step-12 question is 1.6 orders of
+magnitude beyond the largest measured budget; one data mix (natural proportions) and one context
+length (512).
+
+**What this means:** our training stack scales predictably on a GPU, and the compute-optimal
+size grows with compute as the literature expects once parameters are counted consistently. For
+the 2.78 B tokens we have, the evidence points to a model of roughly **200–300 M total
+parameters**, with a wide uncertainty. Stage 4's exit criteria are now met: a measured
+throughput and memory curve (EXP-038, EXP-042) and a scaling-law plot from our own runs. The
+step-12 size itself is decided separately (D-049, proposed).
+
+**Status:** complete — all 20 runs done, none failed; all 3 budgets bracketed; N_opt ∝ C^0.75 (non-embedding; post-hoc with total parameters C^0.48), D_opt ∝ C^0.51; extrapolation for 2.78 B tokens: 311 M non-embedding (range 37 M – 4.6 B; post-hoc 206 M total); 15.98 GPU-hours; D-049 proposed.

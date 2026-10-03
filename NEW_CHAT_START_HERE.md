@@ -646,6 +646,14 @@ comes next. They also update the table in §3.
     `powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp042.ps1`, **and the same line
     again for each later session (about 3).** Don't push while a session runs.
 
+  - **EXP-042 ran (2026-10-03, 3 Kaggle sessions, results `39ddd65`, `e82dc80`, `2e79552`,
+    complete):** 20 runs, none failed, 15.98 GPU-h; all 3 budgets bracketed (N_opt 4.0 / 6.8 /
+    22.2 M non-embedding); N_opt ∝ C^0.75 (non-embedding; post-hoc with total parameters C^0.48),
+    D_opt ∝ C^0.51; for 2.78 B tokens: 311 M non-embedding (range 37 M – 4.6 B; post-hoc 206 M
+    total). Plot and post-hoc checks: `scripts/plot_ladder.py` → `evals/results/EXP-042/`.
+    Step 11 complete. **D-049 proposed:** step-12 model 14 × 896 (190 M parameters), one pass
+    over all 2.78 B tokens. **Next: "approve D-049"; then propose EXP-043 (step-12 plan).**
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```
