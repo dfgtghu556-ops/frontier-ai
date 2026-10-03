@@ -1,0 +1,33 @@
+EXP-042 session 2: IsoFLOP ladder, 13 languages (step 11, phase 2)
+complete (whole ladder): False   started 2026-10-03 01:39:31   finished 2026-10-03 08:38:24   elapsed 418.9 min
+GPU hours used by earlier sessions: 6.76   this session's limit: 9.00 h
+device: Tesla T4   torch 2.10.0+cu128   CUDA 12.8
+
+Part 0
+  data: 13 of 13 files match the manifest
+  model/trainer tests: PASS (40 passed in 13.46s)
+  one-step float64 CPU = GPU (D-048): PASS  max |loss diff| 1.776e-15, max relative grad diff 2.654e-15
+
+Runs (final validation bits per byte, mean of 13 languages with equal weight)
+  run                  sess  non-emb N   tokens    mean    tok/s    min  status
+  C1-s1-lr0.0005          1     0.52 M     333M  1.0178  263,587   22.1  done
+  C1-s1-lr0.001           1     0.52 M     333M  1.0013  267,112   21.8  done
+  C1-s1-lr0.002           1     0.52 M     333M  0.9916  267,096   21.8  done
+  C1-s2-lr0.0005          1     3.93 M     124M  0.9592  131,366   17.1  done
+  C1-s2-lr0.001           1     3.93 M     124M  0.8997  134,996   16.7  done
+  C1-s2-lr0.002           1     3.93 M     124M  0.8916  134,774   16.7  done
+  C1-s3-lr0.0005          1    12.98 M      60M  0.9629   70,019   16.2  done
+  C1-s3-lr0.001           1    12.98 M      60M  0.9093   72,228   15.7  done
+  C1-s3-lr0.002           1    12.98 M      60M  0.9735   72,512   15.7  done
+  C1-s4-lr0.0005          1    30.42 M      32M  1.0005   41,993   15.8  done
+  C1-s4-lr0.001           1    30.42 M      32M  1.0011   43,547   15.3  done
+  C1-s4-lr0.002           1    30.42 M      32M  1.0288   43,994   15.2  done
+  C2-s1-lr0.002           1     0.52 M    1000M  0.9772  268,516   63.0  done
+  C2-s2-lr0.002           1     3.93 M     373M  0.8400  137,163   46.7  done
+  C2-s3-lr0.001           1    12.98 M     179M  0.8253   73,319   42.6  done
+  C2-s4-lr0.0005          1    30.42 M      97M  0.8824   43,671   40.0  done
+  C3-s2-lr0.002           2     3.93 M    1243M  0.8165  135,537  154.3  done
+  C3-s3-lr0.001           2    12.98 M     596M  0.7736   73,314  137.4  done
+  C3-s4-lr0.0005          2    30.42 M     324M  0.7766   44,383  124.6  done
+
+Still to run in later sessions (1): C3-s5-lr0.0005
