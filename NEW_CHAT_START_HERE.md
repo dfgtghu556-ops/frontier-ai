@@ -697,6 +697,12 @@ comes next. They also update the table in §3.
     measures CPU/RAM/disk and one verified download. Founder line, **only between two EXP-043
     sessions**: `scripts\run_kaggle_exp046_probe.ps1`. Results land in
     `evals/results/EXP-046/probe/`. Next: write the two build kernels from the probe's numbers.
+  - **EXP-043 session 1 done (2026-10-04):** learning-rate check, mean bpb 0.8543 / 0.8172 / 0.8160 at
+    2.5e-4 / 5e-4 / 1e-3, 0 skipped steps, so **5e-4** is chosen by the pre-registered rule. 9.27 GB peak,
+    about 11,100 tokens/s, 8.05 GPU-h. Results in `evals/results/EXP-043/session-1/`. A CPU smoke on
+    `2f31c82` vs the current code gives bit-identical training state and final weights. Recommended order
+    for the gap: EXP-044 (two-GPU check) first, then session 2 (the main run starts; first real
+    `kernel_sources` chain test).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

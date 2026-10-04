@@ -3797,6 +3797,33 @@ or any post-training, multiple GPUs, publishing the model, and any spending.
 
 **Status:** approved — code ready; next: session 1 (learning-rate check) via `scripts\run_kaggle_exp043.ps1`.
 
+**Update (2026-10-04): session 1 (learning-rate check) complete.** Kaggle T4, commit `2f31c82`;
+results in `evals/results/EXP-043/session-1/`.
+
+| learning rate | mean bpb (13 languages) | skipped fp16 steps | minutes |
+|---|---|---|---|
+| 2.5e-4 | 0.8543 | 0 | 160.2 |
+| 5e-4 | 0.8172 | 0 | 159.8 |
+| 1e-3 | 0.8160 | 0 | 159.5 |
+
+- **Rule applied as pre-registered:** 1e-3 has the lowest mean bpb. 5e-4 is 0.0012 behind, within the
+  seed noise 0.0174, so the lower rate **5e-4** is chosen. 2.5e-4 is 0.0383 behind, outside the noise.
+  5e-4 is not at an edge of the grid, so there is no extension run. No run had NaN or skipped steps.
+- **Now measured (were NOT VERIFIED):** peak memory 9.27 GB with micro-batch 16 × 2 (kept for all
+  sessions); speed about 11,100 tokens/s, i.e. 1.47 s per training step (1.57 s including validation);
+  `--file-pattern` works in the founder's Kaggle tool; session 1 used 8.05 GPU-hours (483.2 min).
+- The main run did not start in this session (less than 1 hour left, by the same-session rule). At
+  1.47–1.57 s per step, its 169,911 steps need about 69–74 GPU-hours (about 9 sessions).
+- **Still NOT VERIFIED:** the `kernel_sources` checkpoint chain (first used in session 2) and the output
+  size limit with a checkpoint.
+- Code check for session 2: the PC now runs a later commit (EXP-044/045/046 were added on top). A CPU
+  smoke of the whole EXP-043 flow (learning-rate check, then 2 chained sessions) was run on `2f31c82`
+  and on the current code. Model, optimizer and trainer-state files, and the final weights
+  (`6b3eab46…`), are bit-identical. The only differences are wall-clock times and run folder paths,
+  which also differ between two runs of the same code.
+
+**Status:** running — session 1 (learning-rate check) complete: 5e-4 chosen by the pre-registered rule; next: session 2 starts the main run
+
 ### EXP-044 — Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-044" before any code)
 

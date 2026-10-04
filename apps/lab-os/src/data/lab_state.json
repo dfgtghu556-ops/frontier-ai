@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "f7440de4f8b2147afc02bcbf8d4f5717d8f381f33c1a4f7af2ada91b3485f642",
+  "source_digest": "832bb290ece2cc1eddb1df6c6e61f0e519a2d0c1ce0f785d5bf5e9ca70be0052",
   "sources": {
-    "EXPERIMENTS.md": "3dc0bcdad71bd5e369e94e82432944b729d695e5baf8fa9f48e2c7ca9e0d29a4",
+    "EXPERIMENTS.md": "6457a51917f76a0573efb2e77036e013d6a0b054a5fb61c67a2055e81ca2a9cc",
     "DECISIONS.md": "4702e48298010274b9ac4e317bdf41191c185d2e4c39e190b3a3028f1cff9fae",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "c0866f101dba2c18c9b2f0613b2ac179fb2404a080878318cf7151ad0d7f2644",
+    "lab/registry.json": "792cbbe0d7e8553a724b6789c37851c4a3ba55d46277d7703b465c2b1aa6cd8a",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -357,7 +357,7 @@
   ],
   "current_work": [
     {
-      "title": "EXP-043 approved and built (train the 14 x 896 model on one Kaggle T4); next: session 1 = learning-rate check",
+      "title": "EXP-043 running (train the 14 x 896 model on one Kaggle T4): session 1 done, learning rate 5e-4 chosen; next: session 2 starts the main run",
       "evidence": [
         "EXP-043",
         "D-049",
@@ -370,9 +370,10 @@
         "scripts/run_kaggle_exp043.ps1",
         "scripts/kaggle/exp043_kernel.py",
         "src/frontier_ai/data/multi.py",
-        "tests/test_pretrain.py"
+        "tests/test_pretrain.py",
+        "evals/results/EXP-043/session-1/summary.json"
       ],
-      "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0."
+      "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0. Session 1 (2026-10-04): lr check done, bpb 0.8543 / 0.8172 / 0.8160 at 2.5e-4 / 5e-4 / 1e-3, no skipped steps; 5e-4 chosen by the pre-registered rule (within noise 0.0174 of the best -> the lower one); 9.27 GB peak, about 11,100 tokens/s, 8.05 GPU-h used. Session 2 = first main-run session and first real kernel_sources chain test."
     },
     {
       "title": "Parallel work while EXP-043 runs (approved 2026-10-04): EXP-044 two-GPU check, EXP-045 evaluation code and EXP-046 step 1 (slice-2 pins + probe) ready",
@@ -858,8 +859,8 @@
       "id": "EXP-043",
       "title": "Step 12: train the first serious Frontier base model (14 × 896, about 190 M parameters, D-049)",
       "date": "2026-10-03",
-      "status": "approved — code ready; next: session 1 (learning-rate check) via scripts\\run_kaggle_exp043.ps1.",
-      "category": "planned",
+      "status": "running — session 1 (learning-rate check) complete: 5e-4 chosen by the pre-registered rule; next: session 2 starts the main run",
+      "category": "other",
       "step": null,
       "summary": "this is the first model trained on our whole verified corpus at the size our own scaling evidence supports (D-049). It tests the whole pipeline at a scale 34× beyond anything trained so far: tokenizer, 13-language data, architecture, GPU stack, multi-session training and evaluation. Everything later (more data, larger …",
       "decisions": [
@@ -882,8 +883,8 @@
         "D-047",
         "D-049"
       ],
-      "line": 3800,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3800"
+      "line": 3827,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3827"
     },
     {
       "id": "EXP-045",
@@ -897,8 +898,8 @@
         "D-042",
         "D-047"
       ],
-      "line": 3897,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3897"
+      "line": 3924,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3924"
     },
     {
       "id": "EXP-046",
@@ -913,8 +914,8 @@
         "D-045",
         "D-049"
       ],
-      "line": 4001,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4001"
+      "line": 4028,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4028"
     }
   ],
   "experiment_numbers_not_in_log": [
