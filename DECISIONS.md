@@ -1800,6 +1800,67 @@ length changes.
 
 ---
 
+## D-050 — Continue the EXP-043 main run on both Kaggle GPUs (two-GPU data parallel) from the first session after this is built
+**Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve D-050"; evidence EXP-044, EXP-043 session 1)
+
+**Decision (proposed):**
+1. **What switches.** The rest of the EXP-043 main run moves to the two T4s of the same Kaggle
+   session: DistributedDataParallel launched with `torchrun`, **16 windows per GPU per step and no
+   accumulation**. That is the same 32 × 512 tokens per step as now, so nothing in the pre-registered
+   plan changes: same model, same one-pass order (fingerprint `19199520…`), learning rate 5e-4, same
+   warm-up and cosine schedule, same stop rules, same final evaluation, gate and checks.
+2. **When.** From the first EXP-043 session that starts after the code is built and tested. Session
+   2 runs on one GPU with the code already proven in session 1. The switch happens at a
+   checkpoint: the two-GPU session loads the one-GPU checkpoint after the usual sha256 chain check.
+3. **Safety rules built into the switch:**
+   - If the two-GPU start fails before training (an NCCL error, or a GPU out of memory), the same
+     session falls back to one GPU (16 × 2), so no session is lost.
+   - Only rank 0 writes checkpoints, logs and reports. Stop rules are agreed by both ranks (a stop
+     on one rank stops both).
+   - Every session summary records whether it ran on 1 or 2 GPUs. The final EXP-043 note lists the
+     step ranges trained on each.
+   - The one-GPU path stays bit-identical to today's (checked with the CPU smoke hashes, as for
+     EXP-044).
+4. **Accounting.** The 100-hour cap keeps counting **session hours**, which is what Kaggle's quota
+   measures. Reports also give GPU-device hours (2 per session hour) for compute accounting.
+
+**Rationale:**
+- **EXP-044 passed every pre-registered rule** on the real model and data (2026-10-04, commit
+  `818bdf8`):
+  - **Agreement:** after 300 steps, 1.4319 bpb on 1 GPU vs 1.4276 on 2 GPUs, a difference of
+    0.0042 (limit 0.01, seed noise 0.0174). 0 skipped steps on each.
+  - **Speed:** 12,225 vs 21,882 tokens/s, **1.79×** (rule: at least 1.4×).
+  - **Memory:** 8.98 GB per GPU (rule: under 14.5 GB).
+- **It costs no extra quota.** EXP-043 sessions already run on the two-T4 machine (session 1's
+  environment records `device_count: 2`), and today the second GPU sits idle.
+- **It roughly halves the remaining time.** Session 1 measured 1.47 s per training step on one GPU.
+  After session 2 (about 20,000 steps), about 150,000 steps remain. That is about 61 session hours
+  on one GPU, or about 34 at 1.79× (about 4–5 sessions instead of about 8). This saves about a week
+  of free quota. The 1.79× comes from 300 steps; over a whole session it is NOT VERIFIED and will be
+  measured.
+
+**Alternatives considered:**
+- **Stay on one GPU:** no new code, but about 8 more sessions with half the paid-for hardware idle.
+  Rejected, because EXP-044 removed the reason to wait.
+- **Switch for session 2 already:** saves about 4 more session hours, but session 2 would wait for
+  new code while also being the first real test of the `kernel_sources` checkpoint chain. Rejected:
+  test one new thing at a time.
+- **Use the second GPU for a bigger batch (64 windows per step):** that changes the pre-registered
+  plan, including the learning-rate choice made at 32. Rejected.
+
+**Consequences accepted:**
+- The main run will not be bit-identical to a pure one-GPU run: the gradient sums are added in a
+  different order, and EXP-044 measured the size of that difference (0.0042 bpb after 300 steps,
+  inside the noise). The CPU tests show a checkpoint crossing 1 → 2 processes matches the
+  uninterrupted run to 1e-10 in float64.
+- `scripts/gpu_pretrain.py` and the EXP-043 kernel get a two-GPU path. Today they are frozen during
+  the run; this decision unfreezes them for this change only, with the one-GPU path re-checked.
+- If two-GPU sessions turn out flaky, EXP-043 goes back to one GPU at the next checkpoint. Nothing
+  already trained is lost.
+
+**Revisit when:** a two-GPU session shows more than 5% skipped steps, a hang or NCCL error, or a
+whole-session speed below 1.4×. EXP-043 then returns to one GPU, and a dated note records why.
+
 ## Open items to decide later (not yet decisions)
 
 

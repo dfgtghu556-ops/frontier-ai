@@ -3921,6 +3921,24 @@ is what the Kaggle check measures (NOT VERIFIED until it runs).
 
 **Status:** approved 2026-10-04; code ready; the Kaggle check (`scripts\run_kaggle_exp044.ps1`, about 1.5 GPU-hours) runs between two EXP-043 sessions
 
+**Update (2026-10-04): Kaggle check complete — PASS on all three pre-registered rules.** Two T4s,
+commit `818bdf8`, 32.6 minutes; results in `evals/results/EXP-044/`. The same 190 M model, data
+order (fingerprint identical to EXP-043's) and learning rate 5e-4 were used for 300 steps each.
+
+| | 1 GPU (16 × 2) | 2 GPUs (16 × 1 each) | rule | result |
+|---|---|---|---|---|
+| validation, mean bpb after 300 steps | 1.4319 | 1.4276 | differ by ≤ 0.01 | PASS (0.0042) |
+| skipped fp16 steps | 0 | 0 | ≤ 5% | PASS |
+| tokens/s (steps 101–300) | 12,225 | 21,882 | ≥ 1.4× | PASS (1.79×) |
+| peak memory per GPU | 9.26 GB | 8.98 GB | < 14.5 GB | PASS |
+
+- At 1.79×, the rest of a run needs about 56% of its one-GPU session hours.
+- Repository tests on the Kaggle machine: 54 passed.
+- As pre-registered, using two GPUs for the rest of EXP-043 is a separate decision: **D-050
+  (proposed)**.
+
+**Status:** complete — PASS (agreement 0.0042 bpb, speed 1.79×, memory 8.98 GB); D-050 proposed
+
 ### EXP-045 — Step 15 preparation: a pre-registered evaluation plan for the EXP-043 model, plus a "try the model" tool
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-045" before any code)
 

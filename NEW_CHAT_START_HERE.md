@@ -703,6 +703,11 @@ comes next. They also update the table in §3.
     `2f31c82` vs the current code gives bit-identical training state and final weights. Recommended order
     for the gap: EXP-044 (two-GPU check) first, then session 2 (the main run starts; first real
     `kernel_sources` chain test).
+  - **EXP-044 PASSED (2026-10-04):** 1 vs 2 GPUs differ by 0.0042 bpb after 300 steps (limit 0.01),
+    1.79x faster (rule 1.4x), 8.98 GB per GPU. **D-050 proposed:** the rest of the EXP-043 main run on
+    both GPUs from the first session after it is built (fallback to one GPU if the two-GPU start
+    fails; the cap counts session hours). Session 2 runs on one GPU now. Implement D-050 only after
+    "approve D-050", keeping the one-GPU path bit-identical (CPU smoke hashes).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
