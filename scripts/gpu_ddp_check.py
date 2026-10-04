@@ -316,6 +316,8 @@ def run_worker(args: argparse.Namespace, setup: dict, procs: int, micro: int, ac
     cmd = worker_cmd(args, procs, micro, accum, out)
     gb._say(f"run '{tag}': {' '.join(cmd[-14:])}")
     env = {**os.environ, "OMP_NUM_THREADS": os.environ.get("OMP_NUM_THREADS", "1")}
+    if args.smoke:  # the CPU test must stay on CPU even on a GPU machine (Part 0 on Kaggle runs it)
+        env["CUDA_VISIBLE_DEVICES"] = ""
     t0 = time.time()
     with open(out / "worker.log", "w", encoding="utf-8") as log:
         try:

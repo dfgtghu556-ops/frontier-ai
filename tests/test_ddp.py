@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -40,7 +41,8 @@ def _run(langs: Path, out: Path, procs: int, micro: int, accum: int, *extra: str
 
     args = argparse.Namespace(data_dir=str(langs), manifest=str(langs / "manifest.json"), smoke=True)
     cmd = dc.worker_cmd(args, procs, micro, accum, out) + list(extra)
-    res = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=300)
+    env = {**os.environ, "CUDA_VISIBLE_DEVICES": ""}  # CPU + gloo, also on Kaggle's GPU machine (Part 0)
+    res = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=300, env=env)
     assert res.returncode == 0, res.stdout[-3000:] + res.stderr[-3000:]
     return json.loads((out / "worker.json").read_text(encoding="utf-8"))
 
