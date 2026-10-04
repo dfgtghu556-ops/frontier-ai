@@ -283,7 +283,7 @@ class GPT(nn.Module):
 
         rope = None
         if self.rope is not None:
-            rope = self.rope(T + start_pos, start=start_pos)
+            rope = self.rope(T, start=start_pos)  # the T positions start_pos .. start_pos + T - 1
 
         new_cache: list[tuple[torch.Tensor, torch.Tensor] | None] = []
         for i, block in enumerate(self.blocks):

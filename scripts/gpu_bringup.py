@@ -429,8 +429,8 @@ def environment_record() -> dict[str, Any]:
     return env
 
 
-def run_repo_tests() -> tuple[bool, str]:
-    """The model/trainer tests on this machine; returns (passed, last summary line)."""
+def run_repo_tests(extra: tuple[str, ...] = ()) -> tuple[bool, str]:
+    """The model/trainer tests (plus `extra` test files) on this machine; (passed, last summary line)."""
     cmd = [
         sys.executable,
         "-m",
@@ -443,6 +443,7 @@ def run_repo_tests() -> tuple[bool, str]:
         "tests/test_model.py",
         "tests/test_engine.py",
         "tests/test_train_smoke.py",
+        *extra,
     ]
     res = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=1800)
     tail = [ln for ln in res.stdout.strip().splitlines() if ln.strip()]

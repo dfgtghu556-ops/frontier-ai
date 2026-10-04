@@ -56,9 +56,15 @@ def test_grouped_query_attention():
     assert torch.isfinite(model(idx, targets=idx).loss)
 
 
-def test_generation_matches_full_forward():
-    """KV-cached decoding must reproduce a single full-context forward pass."""
-    cfg = tiny_cfg(n_layer=2, block_size=16)
+@pytest.mark.parametrize(
+    "arch",
+    [{}, {"pos": "rope"}, {"pos": "rope", "n_head": 4, "n_kv_head": 2}],
+    ids=["learned", "rope", "rope-gqa2"],
+)
+def test_generation_matches_full_forward(arch):
+    """KV-cached decoding must reproduce a single full-context forward pass (EXP-043: also with
+    RoPE + GQA, the D-048 architecture, where the cached step once used the wrong RoPE positions)."""
+    cfg = tiny_cfg(n_layer=2, block_size=16, **arch)
     model = GPT(cfg).eval()
     idx = torch.randint(0, cfg.vocab_size, (1, 5))
     with torch.no_grad():
@@ -67,6 +73,14 @@ def test_generation_matches_full_forward():
         cache = model._last_cache                     # (k, v) per block
         step = model(idx[:, -1:], kv_cache=cache, start_pos=idx.shape[1] - 1).logits
     assert torch.allclose(full[:, -1], step[:, -1], atol=1e-4)
+    # greedy generation with the cache equals greedy decoding by full recomputation
+    with torch.no_grad():
+        out = model.generate(idx, max_new_tokens=6, top_k=1)
+        ref = idx
+        for _ in range(6):
+            nxt = model(ref).logits[:, -1].argmax(-1, keepdim=True)
+            ref = torch.cat((ref, nxt), dim=1)
+    assert torch.equal(out, ref)
 
 
 def test_generate_grows_sequence():

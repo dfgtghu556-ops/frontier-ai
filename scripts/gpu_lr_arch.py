@@ -252,7 +252,12 @@ class Report:
 
 # ------------------------------------------------------------------ part 0 --
 def part0(
-    args: argparse.Namespace, rep: Report, check_shape: dict, plan: dict, device_check: bool = True
+    args: argparse.Namespace,
+    rep: Report,
+    check_shape: dict,
+    plan: dict,
+    device_check: bool = True,
+    extra_tests: tuple[str, ...] = (),
 ) -> MultiTokenDataset | None:
     rep.data["environment"] = gb.environment_record()
     p0: dict[str, Any] = {}
@@ -282,7 +287,7 @@ def part0(
     if args.skip_tests:
         p0["tests_pass"], p0["tests_line"] = None, "skipped"
     else:
-        p0["tests_pass"], p0["tests_line"] = gb.run_repo_tests()
+        p0["tests_pass"], p0["tests_line"] = gb.run_repo_tests(extra=extra_tests)
         if not p0["tests_pass"]:
             rep.data["stopped"] = "the model/trainer tests failed on this machine"
             return None
