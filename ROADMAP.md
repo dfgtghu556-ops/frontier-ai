@@ -160,6 +160,10 @@
   then one true pass over all 2.78 B tokens across about 9 sessions (about 85 free GPU-hours,
   about 3 weeks). Its new pieces are a one-pass sampler and checkpoints carried between Kaggle
   sessions.
+- **Update (2026-10-04, EXP-043 approved and built):** the one-pass sampler, the session runner
+  (`scripts/gpu_pretrain.py`) and the Kaggle side (two kernels that take turns and pass the
+  checkpoint) are tested on CPU. A run split across sessions ends with exactly the same weights as
+  one uninterrupted run. Next: session 1, the learning-rate check, on Kaggle.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and

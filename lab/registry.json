@@ -1,7 +1,7 @@
 {
   "schema": "frontier-lab-registry-v1",
   "purpose": "The few facts the Lab OS dashboard needs that are not machine-readable elsewhere in the repository: the status of each MASTER_CONTEXT section 37 step, the compute we have, and the key documents. Everything else in the dashboard is derived automatically from repository files by scripts/export_lab_state.py. Every entry here is cross-checked by tests/test_lab_state.py: step titles must equal MASTER_CONTEXT section 37, cited experiments/decisions must exist, a 'complete' step may only cite complete experiments and accepted decisions, and cited files must exist.",
-  "updated": "2026-10-03",
+  "updated": "2026-10-04",
   "roadmap_steps": [
     {
       "step": 1,
@@ -159,9 +159,10 @@
         "EXP-042"
       ],
       "evidence_files": [
-        "evals/results/EXP-042/posthoc.json"
+        "evals/results/EXP-042/posthoc.json",
+        "scripts/gpu_pretrain.py"
       ],
-      "note": "D-049 accepted 2026-10-03 (14 x 896, 190 M parameters, one pass over 2.78 B tokens); EXP-043 proposed (lr check + about 9-session main run, about 85 GPU-h); needs \"approve EXP-043\""
+      "note": "D-049 accepted 2026-10-03 (14 x 896, 190 M parameters, one pass over 2.78 B tokens); EXP-043 approved 2026-10-03 and built 2026-10-04 (CPU-tested); next: Kaggle session 1 (lr check)"
     },
     {
       "step": 13,
@@ -262,7 +263,7 @@
   ],
   "current_work": [
     {
-      "title": "D-049 accepted (step-12 model 14 x 896, 190 M parameters); EXP-043 proposed (train it on one Kaggle T4); needs \"approve EXP-043\"",
+      "title": "EXP-043 approved and built (train the 14 x 896 model on one Kaggle T4); next: session 1 = learning-rate check",
       "evidence": [
         "EXP-043",
         "D-049",
@@ -271,12 +272,13 @@
         "D-047"
       ],
       "evidence_files": [
-        "evals/results/EXP-042/posthoc.json",
-        "evals/results/EXP-042/session-3/summary.json",
+        "scripts/gpu_pretrain.py",
+        "scripts/run_kaggle_exp043.ps1",
+        "scripts/kaggle/exp043_kernel.py",
         "src/frontier_ai/data/multi.py",
-        "scripts/gpu_lr_arch.py"
+        "tests/test_pretrain.py"
       ],
-      "note": "D-049 accepted 2026-10-03 (\"approve D-049\"). EXP-043 (proposed, end of EXPERIMENTS.md): a true one-pass sampler (5,437,162 windows of 512, 169,911 steps of 16,384 tokens; today's sampler draws random windows with replacement, see the correction note under EXP-042); a learning-rate check {2.5e-4, 5e-4, 1e-3} x 100 M tokens with a pre-registered rule; the main run across about 9 Kaggle sessions with sha256-checked checkpoints passed between alternating kernels via kernel_sources (NOT VERIFIED on the account); sanity gate: beat EXP-042 C3-s3 (0.7736) by > 0.0174; reported: secondary-fit prediction 0.683. About 85 GPU-h (NOT VERIFIED), cap 100, about 3 weeks, Rs 0. No code before \"approve EXP-043\"."
+      "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0."
     }
   ],
   "baseline_model": {

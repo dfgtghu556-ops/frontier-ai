@@ -3736,3 +3736,63 @@ sha256 values are.
 or any post-training, multiple GPUs, publishing the model, and any spending.
 
 **Status:** proposed — founder approval needed before any code.
+
+**Approval and implementation note (2026-10-04).** Approved by the founder on 2026-10-03
+("approve EXP-043"). Built and tested on CPU in the sandbox; nothing has run on a GPU yet.
+- **Code:** `src/frontier_ai/data/multi.py` (`OnePassDataset`, `one_pass_order`);
+  `src/frontier_ai/engine/trainer.py` (uses a dataset's own window order and `seek` on resume;
+  `fit(should_stop=...)`; checkpoints are written to `<tag>.tmp` and swapped in only when complete);
+  `scripts/gpu_pretrain.py` (`--part auto | lrcheck | main`); `scripts/kaggle/exp043_kernel.py`;
+  `scripts/run_kaggle_exp043.ps1` (`-Exp EXP-043` in `scripts/run_kaggle_exp038.ps1`). Tests:
+  `tests/test_onepass_sampler.py`, `tests/test_pretrain.py`, EXP-043 checks in
+  `tests/test_kaggle_exp038.py`.
+- **Details fixed while building (not in the proposal text, recorded here):**
+  - **The order** is a shuffle built from integer hashing (SplitMix64 keys, stable sort), not
+    numpy's random generator, whose streams may change between numpy versions during a run of
+    several weeks. Its sha256 fingerprint is recorded in every session and must not change.
+  - **Memory choice:** in the first session, 3 real compiled fp16 training steps are made with
+    16 × 2 and, if needed, 8 × 4; the first with peak allocated memory below 14.5 GB is kept for
+    all later sessions (also for the learning-rate check).
+  - **Text samples:** the "3 fixed prompts per language" are the first 32 tokens of the first
+    three validation documents (of at least 32 tokens) in each language, continued for 128 tokens:
+    greedy (top-1) and temperature 0.8 (seed 1). Real corpus text was used rather than prompts
+    written by the agent in 13 languages.
+  - **Same-session start:** with `--part auto` (what the kernel uses), the main run starts in the
+    learning-rate check's session if at least 1 hour is left: 30 minutes of training plus a
+    30-minute reserve for the session end (save, full validation, and in the last session the
+    final files).
+  - **Stop rules** end the session without saving the current state. The checkpoint that remains
+    is the last periodic one of that session or, if there is none, the verified input
+    checkpoint. The best sampled validation loss and the count of evaluations above it carry over
+    between sessions. The window of 2,000 steps for skipped fp16 steps restarts at each session
+    start.
+  - **Keeping the chain unbroken:** each session's output holds `exp043_chain/chain.json` (which
+    session wrote it and its checkpoint's sha256). A session that makes no new checkpoint copies
+    the verified input checkpoint into its own output. The runner does not publish a session
+    whose chain check failed, so the session number does not advance and a retry reads the same
+    checkpoint. The first main-run session already checks that the other kernel's output is
+    mounted (the `kernel_sources` test) before any checkpoint depends on it.
+- **Bug found and fixed:** text generation with the KV cache used the wrong RoPE positions
+  (`GPT.forward` asked the RoPE table for `T + start_pos` positions instead of `T`), so cached
+  generation failed for every RoPE model. Training and evaluation always use `start_pos = 0` and
+  were not affected. The only committed text generation so far (EXP-038 Part 3) used learned
+  positions. No earlier result changes. `tests/test_model.py` now checks cached generation
+  against full recomputation for learned positions, RoPE and RoPE + GQA-2; the new cases fail on
+  the old code.
+- **CPU checks (tiny model, 3 tiny language files):**
+  - The sampler reads every window exactly once and resumes exactly.
+  - The learning-rate rule passes its table of cases.
+  - The whole flow passes the CPU smoke test: learning-rate check, then the main run over two
+    later "sessions" passing the checkpoint through folders.
+  - The run split across sessions ends with **bit-identical final weights** (same sha256) to
+    the same run done in one session.
+  - A checkpoint with one changed byte is refused, and so is a missing one.
+  - A rising validation loss fires the stop rule, keeps the last periodic checkpoint, and the
+    next launch refuses to continue.
+- **Still NOT VERIFIED (first seen on Kaggle):**
+  - speed and memory at this size;
+  - the `kernel_sources` chaining;
+  - `--file-pattern` support in the founder's Kaggle tool (the fallback is the full download);
+  - the output size limit.
+
+**Status:** approved — code ready; next: session 1 (learning-rate check) via `scripts\run_kaggle_exp043.ps1`.

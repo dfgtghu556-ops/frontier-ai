@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "e1556b72f22c5452890872328911c4ec95f69ed5a6723097e83c90660eb9ea23",
+  "source_digest": "977bc665cdda97c808a6efd5def74bdf0c10299c4369de44be2e7439c0b607af",
   "sources": {
-    "EXPERIMENTS.md": "50a701d7beb1893bccbde34fc18e20d090c00f20cd456eb4547c7e0a469d8526",
+    "EXPERIMENTS.md": "a1b753796e227a76a8d712df8340f0cd648c7773140cdf797bdaa11555d957b9",
     "DECISIONS.md": "4702e48298010274b9ac4e317bdf41191c185d2e4c39e190b3a3028f1cff9fae",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "e96617b0637c258633f17b2da2f8de82a16b60a7178d95bb1dcc8296e7165f1f",
+    "lab/registry.json": "66d39f4cf5637d5964e77c28806155bbd230e0e67dee060736f9e10d7da32272",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -236,9 +236,10 @@
         "EXP-042"
       ],
       "evidence_files": [
-        "evals/results/EXP-042/posthoc.json"
+        "evals/results/EXP-042/posthoc.json",
+        "scripts/gpu_pretrain.py"
       ],
-      "note": "D-049 accepted 2026-10-03 (14 x 896, 190 M parameters, one pass over 2.78 B tokens); EXP-043 proposed (lr check + about 9-session main run, about 85 GPU-h); needs \"approve EXP-043\"",
+      "note": "D-049 accepted 2026-10-03 (14 x 896, 190 M parameters, one pass over 2.78 B tokens); EXP-043 approved 2026-10-03 and built 2026-10-04 (CPU-tested); next: Kaggle session 1 (lr check)",
       "evidence_links": [
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1727",
         "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3613",
@@ -356,7 +357,7 @@
   ],
   "current_work": [
     {
-      "title": "D-049 accepted (step-12 model 14 x 896, 190 M parameters); EXP-043 proposed (train it on one Kaggle T4); needs \"approve EXP-043\"",
+      "title": "EXP-043 approved and built (train the 14 x 896 model on one Kaggle T4); next: session 1 = learning-rate check",
       "evidence": [
         "EXP-043",
         "D-049",
@@ -365,12 +366,13 @@
         "D-047"
       ],
       "evidence_files": [
-        "evals/results/EXP-042/posthoc.json",
-        "evals/results/EXP-042/session-3/summary.json",
+        "scripts/gpu_pretrain.py",
+        "scripts/run_kaggle_exp043.ps1",
+        "scripts/kaggle/exp043_kernel.py",
         "src/frontier_ai/data/multi.py",
-        "scripts/gpu_lr_arch.py"
+        "tests/test_pretrain.py"
       ],
-      "note": "D-049 accepted 2026-10-03 (\"approve D-049\"). EXP-043 (proposed, end of EXPERIMENTS.md): a true one-pass sampler (5,437,162 windows of 512, 169,911 steps of 16,384 tokens; today's sampler draws random windows with replacement, see the correction note under EXP-042); a learning-rate check {2.5e-4, 5e-4, 1e-3} x 100 M tokens with a pre-registered rule; the main run across about 9 Kaggle sessions with sha256-checked checkpoints passed between alternating kernels via kernel_sources (NOT VERIFIED on the account); sanity gate: beat EXP-042 C3-s3 (0.7736) by > 0.0174; reported: secondary-fit prediction 0.683. About 85 GPU-h (NOT VERIFIED), cap 100, about 3 weeks, Rs 0. No code before \"approve EXP-043\"."
+      "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0."
     }
   ],
   "experiments": [
@@ -829,7 +831,7 @@
       "id": "EXP-043",
       "title": "Step 12: train the first serious Frontier base model (14 × 896, about 190 M parameters, D-049)",
       "date": "2026-10-03",
-      "status": "proposed — founder approval needed before any code.",
+      "status": "approved — code ready; next: session 1 (learning-rate check) via scripts\\run_kaggle_exp043.ps1.",
       "category": "planned",
       "step": null,
       "summary": "this is the first model trained on our whole verified corpus at the size our own scaling evidence supports (D-049). It tests the whole pipeline at a scale 34× beyond anything trained so far: tokenizer, 13-language data, architecture, GPU stack, multi-session training and evaluation. Everything later (more data, larger …",

@@ -662,6 +662,17 @@ comes next. They also update the table in §3.
     checkpoints chained through `kernel_sources` (kernels -a/-b); about 85 GPU-h, cap 100.
     **Next: "approve EXP-043"; no code before that.**
 
+  - **EXP-043 approved and built ("approve EXP-043", 2026-10-03; code 2026-10-04):**
+    `OnePassDataset` (`src/frontier_ai/data/multi.py`), trainer hooks (`seek`, `fit(should_stop)`,
+    crash-safe checkpoint swap), `scripts/gpu_pretrain.py` (lr check, then the chained main run,
+    sha256 refusal, stop rules, final evaluation), `scripts/kaggle/exp043_kernel.py`,
+    `scripts/run_kaggle_exp043.ps1` (kernels `frontier-exp043-a`/`-b`, `kernel_sources`,
+    `--file-pattern` download with a full-download fallback). On CPU, a split run ends with
+    bit-identical weights to one uninterrupted run. Fixed: RoPE positions in KV-cached generation
+    (training unaffected). **Next: the founder runs**
+    `powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp043.ps1` **(session 1 = lr
+    check), then the same line once per session (about 10).** Don't push while a session runs.
+
 ## 9. The prompt the operator pastes into a new Arena chat
 
 ```
