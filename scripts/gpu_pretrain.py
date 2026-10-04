@@ -727,6 +727,7 @@ def run_session(
     args: argparse.Namespace, rep: Report, previous: list[dict], setup: dict, deadline: float
 ) -> None:
     st = state_from(previous)
+    rep.data["environment"] = gb.environment_record()  # Part 0 records it again; here for early stops
     chain_out = Path(args.chain_out)
     if chain_out.exists():
         shutil.rmtree(chain_out)
