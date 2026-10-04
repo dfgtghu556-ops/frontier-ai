@@ -680,6 +680,23 @@ comes next. They also update the table in §3.
     subset). Pushing docs during a session is safe: the runner checks the commit only when it
     launches, and it rebase-retries a rejected results push (its commit touches only
     `evals/results/`).
+  - **Parallel work approved and built (2026-10-04, "approve EXP-044, EXP-045, EXP-046"):**
+    EXP-044 DDP code (`engine/distributed.py`, `scripts/gpu_ddp_check.py`); `trainer.py` and
+    `multi.py` stay exact no-ops on one GPU (EXP-043 smoke hashes identical; re-check with a sha
+    probe after ANY change there, because every EXP-043 session runs the pushed code). EXP-045 code
+    (`evaluation/belebele.py`, `token_ngrams.py`, `scripts/eval_exp045.py`,
+    `scripts/belebele_contamination.py`, `generate.py --weights/--interactive`). Founder lines,
+    **only between two EXP-043 sessions** (the runner refuses otherwise):
+    `scripts\run_kaggle_exp044.ps1` (two-GPU check, about 1.5 GPU-h) and
+    `scripts\run_kaggle_exp045.ps1` (contamination check, CPU only). After EXP-043: export the
+    held-out texts on the PC (`scripts/export_heldout_text.py`) and wire the EXP-045 GPU session.
+    Next build: EXP-046 (probe kernel first).
+  - **EXP-046 step 1 built (2026-10-04):** `corpora/frontier/v2/sangraha_slice2.json` pins
+    `data-1` + `data-2` of the 13 languages (26 files, 9.79 GB; `mal/data-1` is half-size, kept as
+    pinned). The probe kernel (`scripts/kaggle/exp046_probe_kernel.py`, CPU, processes no data)
+    measures CPU/RAM/disk and one verified download. Founder line, **only between two EXP-043
+    sessions**: `scripts\run_kaggle_exp046_probe.ps1`. Results land in
+    `evals/results/EXP-046/probe/`. Next: write the two build kernels from the probe's numbers.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

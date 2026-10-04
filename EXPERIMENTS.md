@@ -3860,6 +3860,40 @@ approval.
 stop flag), a small kernel and a runner line, and tests. No change to EXP-043's code until the
 follow-up decision is approved.
 
+**Update (2026-10-04): approved and implemented (code only; the GPU check has not run yet).**
+The founder approved it on 2026-10-04 ("approve EXP-044, EXP-045, EXP-046"). Code (commits
+`ff7aa2c`, `fbd1aea`):
+- `src/frontier_ai/engine/distributed.py`: start-up from `torchrun`, rank-0-only saving and
+  logging, a "did every GPU pass?" vote (so one GPU can never stop alone and leave the other
+  waiting forever), and checkpoints always saved in the one-GPU key format.
+- `trainer.py` and `multi.py`: DDP-aware, and **exact no-ops on one GPU**. Re-checked with the
+  EXP-043 CPU smoke run: the final weights hash, every checkpoint file hash and the validation
+  numbers are identical before and after the change. EXP-043 sessions therefore train exactly as
+  before.
+- `scripts/gpu_ddp_check.py` (the pre-registered check), `scripts/kaggle/exp044_kernel.py`,
+  `scripts/run_kaggle_exp044.ps1`; `tests/test_ddp.py` (8 tests).
+
+Measured on CPU (tiny model, float64, 12 steps of 4 windows, gloo backend):
+
+| Comparison | Largest loss difference | Largest weight difference |
+|---|---|---|
+| 1 process (2 windows x 2 micro-steps) vs 2 processes (2 windows each) | 0.0 | 0.0 |
+| 2 processes with gradient accumulation (1 x 2 each) vs 1 process | - | 9.7e-17 |
+
+- A checkpoint written by 2 processes resumes on 1 process (and the reverse); 6 + 6 steps equal
+  12 uninterrupted steps to 1e-10.
+- A stop rule firing at step 5 on 2 processes stops both; no checkpoint is written.
+
+Fixed during the build: the first 2-process loss read twice too high (each process already
+reports its own mean, so the step loss is the average of the processes, not their sum). Later
+review: when the CPU tests run on Kaggle's GPU machine (Part 0), they now hide the GPUs, so they
+stay float64 on CPU.
+
+These are CPU results only. Whether two T4s agree, how fast they are and how much memory they use
+is what the Kaggle check measures (NOT VERIFIED until it runs).
+
+**Status:** approved 2026-10-04; code ready; the Kaggle check (`scripts\run_kaggle_exp044.ps1`, about 1.5 GPU-hours) runs between two EXP-043 sessions
+
 ### EXP-045 — Step 15 preparation: a pre-registered evaluation plan for the EXP-043 model, plus a "try the model" tool
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-045" before any code)
 
@@ -3925,6 +3959,44 @@ base model of this size cannot meaningfully attempt.
 **Budget:** ≤ 1 GPU-hour after EXP-043; Kaggle CPU time for test 4; ₹0. The Belebele data is
 downloaded at evaluation time by pinned revision and **not committed** (ShareAlike). Only hashes,
 scores and short excerpts in reports go into the repo.
+
+**Update (2026-10-04): approved and implemented.** Approved together with EXP-044/046. Code:
+`src/frontier_ai/evaluation/belebele.py` and `token_ngrams.py`, `src/frontier_ai/engine/weights.py`,
+`scripts/belebele_contamination.py` (test 4), `scripts/eval_exp045.py` (tests 1, 2, 3 and 5, plus
+the fp16 copy), `scripts/export_heldout_text.py`, `generate.py --weights/--interactive`,
+`scripts/kaggle/exp045_kernel.py` + `scripts/run_kaggle_exp045.ps1` (a CPU session),
+`evals/prompts/everyday-v1.json`, `tests/test_exp045.py` (15 tests) and 3 runner tests.
+
+What the download check settled (Hugging Face API, revision `7899cdfa`): one JSON-lines file per
+language under `data/`; ours are `asm_Beng`, `ben_Beng`, `eng_Latn`, `guj_Gujr`, `hin_Deva`,
+`kan_Knda`, `mal_Mlym`, `mar_Deva`, `ory_Orya`, `pan_Guru`, `tam_Taml`, `tel_Telu` and
+`urd_Arab`. Each is pinned by its git blob hash and size, and checked before use. The data README
+says 900 questions and 488 passages per language.
+
+Details fixed while building (recorded, not result-driven; no model exists yet):
+1. Training documents end with `<|endoftext|>`, so every scored text starts with that token
+   ("start of a document"). The exception is a Belebele text whose passage had to be cut.
+2. Passage, question and option are tokenized separately and joined, so an option's tokens are
+   the same in every context.
+3. Texts longer than 512 tokens (same-text bits and test 1) are scored in overlapping windows.
+   Every token is scored once, with at least 256 tokens of context.
+4. On the GPU, scoring uses fp16 autocast, like EXP-043's own validation on the T4 (D-047). Reports
+   say which precision was used.
+5. Test 1 needs the protected texts. `SUITE.json` holds only hashes, and the texts are re-built from
+   the frozen corpus on the founder's PC. `scripts/export_heldout_text.py` writes them (about 1 MB,
+   every document checked against the suite) for a private Kaggle input. Without them, test 1 is
+   reported as NOT RUN, never estimated.
+6. The 5 everyday prompts per language were written by the agent from 5 English themes and are NOT
+   VERIFIED by native speakers. A correction becomes a new set (`everyday-v2`), never an edit.
+7. The contamination scan was timed on synthetic data in the sandbox (2 cores): 100 M tokens in
+   40 s, so about 19 minutes for 2.78 B. The Kaggle time is NOT VERIFIED.
+
+When: test 4 runs on a Kaggle CPU session (no GPU quota) between two EXP-043 sessions, with
+`scripts\run_kaggle_exp045.ps1`. Tests 1, 2, 3 and 5 run after EXP-043 finishes. That session's
+kernel will read EXP-043's final kernel output, which is known only at the end, so wiring that
+session into the Kaggle runner is a small step done then.
+
+**Status:** approved 2026-10-04; code ready; test 4 (Kaggle CPU) runs between two EXP-043 sessions; tests 1-3 and 5 run after EXP-043
 
 ### EXP-046 — Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-046" before any code)
@@ -4017,3 +4089,37 @@ other datasets: each needs its own licence and quality review); near-duplicate (
 
 **Budget:** Kaggle CPU sessions only (estimated 2–4 sessions, NOT VERIFIED), no GPU, ₹0, no
 laptop work.
+
+**Update (2026-10-04): approved; step 1 implemented (pinned files + the 15-minute probe).** Approved
+together with EXP-044/045. Code: `corpora/frontier/v2/sangraha_slice2.json`,
+`scripts/kaggle/exp046_probe_kernel.py`, `scripts/run_kaggle_exp046_probe.ps1` (a CPU session through
+the shared runner), `tests/test_exp046.py` (5 tests) and 2 runner tests.
+
+The pinned files (Hugging Face API, revision `8b813c3f…`, read 2026-10-04):
+- `data-1` and `data-2` of each of the 13 languages: 26 files, **9,787,246,071 bytes** (1.92× slice 1's
+  5,106,130,219). Each is pinned by size and SHA-256, and the build checks both before use.
+- Cross-check: the `data-0` SHA-256 values in the same listings equal all 13 slice-1 pins.
+- **One thing seen in the listing:** `mal/data-1` is 151 MB, about half the usual file size. So
+  Malayalam grows 2.45× while the others grow 2.8–3.0×. By parquet bytes, Malayalam's share goes from
+  6.54% to 5.49%; every other language moves by at most 0.35 points. The rule was fixed by file name
+  before any content was seen, so it is **kept as pinned**. The slice-2 report shows the real token
+  shares, and a balance change, if wanted, is a separate comparison experiment.
+- At slice 1's overall tokens per byte, the 26 files are roughly 5.3 B tokens (NOT VERIFIED; filtering
+  and dedup against slice 1 will lower it).
+
+The probe processes no data. It reports CPU, RAM, cgroup memory limit and free disk for
+`/kaggle/working`, `/tmp` and `/kaggle/input`. It checks that numpy, pyarrow and the frozen Tokenizer
+v2 load. It downloads `asm/data-1` (326 MB) into `/tmp` with the repository's resumable, SHA-256-checked
+downloader and times the download and the hash. It reads the row count from the parquet footer only,
+then deletes the file: Sangraha files never go into a kernel output. It writes
+`EXP-046/probe/summary.json` and `SUMMARY.txt`, published to `evals/results/EXP-046/probe/`.
+
+One change from the plan text: the probe runs **between** two EXP-043 sessions, under the same runner
+guard as EXP-044/045. The plan said it could try to start while a GPU session runs. But two runners on
+the laptop committing to git at the same time could stop EXP-043's publish step, and EXP-043 comes
+first. So "can a CPU session run while a GPU session runs" stays **NOT VERIFIED**.
+
+Next: the build kernels (two, about 7 + 6 languages, each under 20 GB of output) are written after
+the probe's numbers are in. Disk, RAM and download speed decide how they are split.
+
+**Status:** approved 2026-10-04; step 1 ready (pinned files + probe); the probe runs between two EXP-043 sessions; the build kernels follow its results

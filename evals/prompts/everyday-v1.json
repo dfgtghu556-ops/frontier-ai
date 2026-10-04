@@ -1,0 +1,30 @@
+{
+  "schema": "frontier-prompts-v1",
+  "prompt_set": "everyday-v1",
+  "exp_id": "EXP-045",
+  "fixed_on": "2026-10-04",
+  "purpose": "EXP-045 test 5: 5 fixed everyday beginnings per language, continued greedily and at temperature 0.8 (seed 1), printed for reading. Not scored. Written down before the EXP-043 model exists and never changed afterwards (a new set gets a new name).",
+  "themes": [
+    "The weather today is",
+    "Every morning, I",
+    "In our village,",
+    "To make tea, first",
+    "India is a country"
+  ],
+  "provenance": "Written by the agent from the five English themes. NOT VERIFIED by native speakers; a correction would be a new prompt set (everyday-v2), never an edit of this one.",
+  "prompts": {
+    "as": ["আজিৰ বতৰ", "প্ৰতিদিনে ৰাতিপুৱা মই", "আমাৰ গাঁৱত", "চাহ বনাবলৈ প্ৰথমে", "ভাৰত এনে এখন দেশ"],
+    "bn": ["আজকের আবহাওয়া", "প্রতিদিন সকালে আমি", "আমাদের গ্রামে", "চা বানাতে প্রথমে", "ভারত এমন একটি দেশ"],
+    "en": ["The weather today is", "Every morning, I", "In our village,", "To make tea, first", "India is a country"],
+    "gu": ["આજે હવામાન", "દરરોજ સવારે હું", "અમારા ગામમાં", "ચા બનાવવા માટે પહેલાં", "ભારત એક એવો દેશ છે"],
+    "hi": ["आज मौसम", "हर सुबह मैं", "हमारे गाँव में", "चाय बनाने के लिए पहले", "भारत एक ऐसा देश है"],
+    "kn": ["ಇಂದಿನ ಹವಾಮಾನ", "ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ನಾನು", "ನಮ್ಮ ಹಳ್ಳಿಯಲ್ಲಿ", "ಚಹಾ ಮಾಡಲು ಮೊದಲು", "ಭಾರತವು ಒಂದು ದೇಶ"],
+    "ml": ["ഇന്നത്തെ കാലാവസ്ഥ", "എല്ലാ ദിവസവും രാവിലെ ഞാൻ", "ഞങ്ങളുടെ ഗ്രാമത്തിൽ", "ചായ ഉണ്ടാക്കാൻ ആദ്യം", "ഇന്ത്യ ഒരു രാജ്യമാണ്"],
+    "mr": ["आजचे हवामान", "दररोज सकाळी मी", "आमच्या गावात", "चहा बनवण्यासाठी आधी", "भारत हा असा देश आहे"],
+    "or": ["ଆଜିର ପାଣିପାଗ", "ପ୍ରତିଦିନ ସକାଳେ ମୁଁ", "ଆମ ଗାଁରେ", "ଚା ତିଆରି କରିବା ପାଇଁ ପ୍ରଥମେ", "ଭାରତ ଏକ ଦେଶ"],
+    "pa": ["ਅੱਜ ਮੌਸਮ", "ਹਰ ਰੋਜ਼ ਸਵੇਰੇ ਮੈਂ", "ਸਾਡੇ ਪਿੰਡ ਵਿੱਚ", "ਚਾਹ ਬਣਾਉਣ ਲਈ ਪਹਿਲਾਂ", "ਭਾਰਤ ਇੱਕ ਅਜਿਹਾ ਦੇਸ਼ ਹੈ"],
+    "ta": ["இன்றைய வானிலை", "தினமும் காலையில் நான்", "எங்கள் கிராமத்தில்", "தேநீர் தயாரிக்க முதலில்", "இந்தியா ஒரு நாடு"],
+    "te": ["ఈ రోజు వాతావరణం", "ప్రతి రోజు ఉదయం నేను", "మా గ్రామంలో", "టీ తయారు చేయడానికి ముందుగా", "భారతదేశం ఒక దేశం"],
+    "ur": ["آج موسم", "ہر صبح میں", "ہمارے گاؤں میں", "چائے بنانے کے لیے پہلے", "ہندوستان ایک ایسا ملک ہے"]
+  }
+}

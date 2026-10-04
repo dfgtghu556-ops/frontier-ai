@@ -1,0 +1,22 @@
+# scripts/run_kaggle_exp045.ps1
+#
+# ONE-COMMAND runner for EXP-045 test 4 (the contamination check): are the Belebele test texts
+# inside our 2.78 B training tokens? One Kaggle CPU session (no GPU, so no GPU quota; about 1 hour,
+# not measured yet). It runs scripts\run_kaggle_exp038.ps1 with -Exp EXP-045: the same checks, the
+# Kaggle username and token saved earlier, the SAME private 13-language dataset (no new upload), one
+# private kernel <username>/frontier-exp045, then it commits ONLY evals/results/EXP-045/ and pushes.
+#
+# Start it only BETWEEN two EXP-043 sessions (like EXP-044): after an EXP-043 report said "run the
+# same line again", and before running that line. The runner refuses while an EXP-043 session is
+# launched but not yet collected.
+#
+# Usage (from the repo root):
+#   powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp045.ps1
+# If the laptop was switched off: run the same line again - it continues.
+#
+# ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
+
+param([switch]$Relaunch)
+
+& "$PSScriptRoot\run_kaggle_exp038.ps1" -Exp "EXP-045" -Relaunch:$Relaunch
+exit $LASTEXITCODE

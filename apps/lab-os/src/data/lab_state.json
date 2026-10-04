@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "caf7640e58621965c8a31ceca409892bc3e54ff08174f21aa892af9560f0fcdc",
+  "source_digest": "f7440de4f8b2147afc02bcbf8d4f5717d8f381f33c1a4f7af2ada91b3485f642",
   "sources": {
-    "EXPERIMENTS.md": "0ffd5d2a883373b46552dcd52c637f94dce0367ccb077c0b4255233cd8dba783",
+    "EXPERIMENTS.md": "3dc0bcdad71bd5e369e94e82432944b729d695e5baf8fa9f48e2c7ca9e0d29a4",
     "DECISIONS.md": "4702e48298010274b9ac4e317bdf41191c185d2e4c39e190b3a3028f1cff9fae",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "c0eecdf1380cc74ae1c045b5776d95aef93993779a841c123dd81c91a71761a9",
+    "lab/registry.json": "c0866f101dba2c18c9b2f0613b2ac179fb2404a080878318cf7151ad0d7f2644",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -375,7 +375,7 @@
       "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0."
     },
     {
-      "title": "Parallel plans while EXP-043 runs (proposed, not approved): EXP-044 two-GPU training (step 13), EXP-045 evaluation plan + try-the-model tool, EXP-046 data slice 2 on Kaggle CPU",
+      "title": "Parallel work while EXP-043 runs (approved 2026-10-04): EXP-044 two-GPU check, EXP-045 evaluation code and EXP-046 step 1 (slice-2 pins + probe) ready",
       "evidence": [
         "EXP-044",
         "EXP-045",
@@ -385,10 +385,21 @@
         "D-049"
       ],
       "evidence_files": [
-        "EXPERIMENTS.md",
-        "docs/compute_options_and_costs.md"
+        "scripts/gpu_ddp_check.py",
+        "src/frontier_ai/engine/distributed.py",
+        "scripts/run_kaggle_exp044.ps1",
+        "scripts/eval_exp045.py",
+        "scripts/belebele_contamination.py",
+        "scripts/run_kaggle_exp045.ps1",
+        "src/frontier_ai/evaluation/belebele.py",
+        "tests/test_ddp.py",
+        "tests/test_exp045.py",
+        "corpora/frontier/v2/sangraha_slice2.json",
+        "scripts/kaggle/exp046_probe_kernel.py",
+        "scripts/run_kaggle_exp046_probe.ps1",
+        "tests/test_exp046.py"
       ],
-      "note": "Founder 2026-10-04: do all work possible in parallel. Plans only, no code before approval. Found in the committed environment records: every Kaggle session had 2 T4s, we use 1 (D-047 by design until step 13). Measured via the Hugging Face API: Sangraha verified = 217.9 GB, our 13 languages 195.3 GB, estimated ~108 B tokens with our filters (NOT VERIFIED; v2-slice1 used 5.1 GB). Kaggle official CPU spec: 4 cores, 30 GB RAM, 12 h, 20 GB output. Belebele (CC BY-SA 4.0, not gated, rev 7899cdfa) covers our 13 languages. Waiting for: approve EXP-044 / EXP-045 / EXP-046."
+      "note": "Founder 2026-10-04: \"approve EXP-044, EXP-045, EXP-046\". EXP-044 (step 13): DDP code with one-GPU behaviour unchanged (EXP-043 smoke hashes identical); CPU: 1 vs 2 processes give identical losses and weights (accumulation: 9.7e-17); the Kaggle check (about 1.5 GPU-h) runs between two EXP-043 sessions. EXP-045: Belebele (13 files pinned by hash), same-text bits, protected-suite bpb, 13-token contamination scan (Kaggle CPU, between EXP-043 sessions), everyday prompts, generate.py --interactive, fp16 copy; tests 1-3 and 5 run after EXP-043. EXP-046 step 1: data-1 + data-2 of the 13 languages pinned (26 files, 9,787,246,071 bytes; data-0 hashes cross-checked against slice 1; mal/data-1 is a half-size file, kept as pinned); the 15-minute probe (CPU, processes no data) runs between two EXP-043 sessions. Next: the build kernels, shaped by the probe's numbers."
     }
   ],
   "experiments": [
@@ -863,7 +874,7 @@
       "id": "EXP-044",
       "title": "Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use",
       "date": "2026-10-04",
-      "status": "proposed (needs the founder's \"approve EXP-044\" before any code)",
+      "status": "approved 2026-10-04; code ready; the Kaggle check (scripts\\run_kaggle_exp044.ps1, about 1.5 GPU-hours) runs between two EXP-043 sessions",
       "category": "planned",
       "step": null,
       "summary": "every Kaggle session we have run had two T4 GPUs attached (device_count: 2 in the committed environment records of EXP-038, EXP-040, EXP-041 and all three EXP-042 sessions), and we use one (D-047: \"only one is used until step 13\"). Kaggle's weekly quota counts session hours, not GPUs (NOT VERIFIED for this account). …",
@@ -878,21 +889,22 @@
       "id": "EXP-045",
       "title": "Step 15 preparation: a pre-registered evaluation plan for the EXP-043 model, plus a \"try the model\" tool",
       "date": "2026-10-04",
-      "status": "proposed (needs the founder's \"approve EXP-045\" before any code)",
+      "status": "approved 2026-10-04; code ready; test 4 (Kaggle CPU) runs between two EXP-043 sessions; tests 1-3 and 5 run after EXP-043",
       "category": "planned",
       "step": null,
       "summary": "\"the best model in India\" must be shown with fixed, public, honest tests, not with impressions. EXP-043 already measures bits per byte on our own validation split. This plan fixes, before the model exists, which outside tests we run, how we score them and how we report them. Then the result cannot be tuned after the …",
       "decisions": [
-        "D-042"
+        "D-042",
+        "D-047"
       ],
-      "line": 3863,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3863"
+      "line": 3897,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3897"
     },
     {
       "id": "EXP-046",
       "title": "Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions",
       "date": "2026-10-04",
-      "status": "proposed (needs the founder's \"approve EXP-046\" before any code)",
+      "status": "approved 2026-10-04; step 1 ready (pinned files + probe); the probe runs between two EXP-043 sessions; the build kernels follow its results",
       "category": "planned",
       "step": null,
       "summary": "EXP-042/D-049 showed that our 2.78 B training tokens support only a ~190 M model. A better model needs more data before it needs anything else. This plan measures how much more verified data exists and proposes the next build. It runs on Kaggle CPU sessions, so it does not load the founder's laptop and does not use …",
@@ -901,8 +913,8 @@
         "D-045",
         "D-049"
       ],
-      "line": 3929,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3929"
+      "line": 4001,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4001"
     }
   ],
   "experiment_numbers_not_in_log": [

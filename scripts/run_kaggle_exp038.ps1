@@ -66,7 +66,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044")][string]$Exp = "EXP-038", [switch]$Relaunch)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -94,7 +94,7 @@ $datasetSubtitle = "Hindi training tokens for the frontier-ai project (EXP-037)"
 $datasetText = "Hindi part of FrontierCorpus v2-slice1"
 $uploadSize = "about 400 MB"
 $expectedRun = "EXP-038 took about 80 minutes, EXP-039 should be shorter"
-if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044") {
+if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {
     $datasetSlug = "frontier-v2-tok2-13lang"
     $dataFiles = @()
     foreach ($f in (Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json).files) { $dataFiles += @($f.path, $f.meta) }
@@ -119,6 +119,18 @@ if ($Exp -eq "EXP-043") {
 if ($Exp -eq "EXP-044") {
     $expectedRun = "EXP-044 is expected to take about 1.5 hours, at most 2"
     $maxWaitHours = 4
+}
+if ($Exp -eq "EXP-045") {
+    # EXP-045 test 4 (contamination check) runs on a Kaggle CPU session: no GPU quota is used
+    $expectedRun = "EXP-045 (CPU only, no GPU) should take about 1 hour; not measured yet"
+    $maxWaitHours = 6
+}
+if ($Exp -eq "EXP-046") {
+    # EXP-046 step 1: the 15-minute probe of a Kaggle CPU session (no GPU, processes no data)
+    $template = "scripts\kaggle\exp046_probe_kernel.py"
+    $kernelSlug = "frontier-exp046-probe"
+    $expectedRun = "the EXP-046 probe (CPU only, no GPU) should take about 15 minutes; not measured yet"
+    $maxWaitHours = 2
 }
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
@@ -180,13 +192,13 @@ foreach ($f in @($python, $template, $manifestPath, "scripts\gpu_bringup.py", "s
 Add-Report "PASS 1c: .venv and scripts found"
 
 $launching = (-not $state.pinned_commit) -or $Relaunch
-if ($launching -and $Exp -eq "EXP-044") {
-    # EXP-044 runs only BETWEEN EXP-043 sessions: never while one is launched and not yet collected
+if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046")) {
+    # EXP-044/045/046 run only BETWEEN EXP-043 sessions: never while one is launched and not yet collected
     $s43 = "out\kaggle\EXP-043\state.json"
     if ((Test-Path $s43) -and ((Get-Content $s43 -Raw -Encoding UTF8 | ConvertFrom-Json).pinned_commit)) {
-        Stop-Run "an EXP-043 session is launched and not yet collected. Run scripts\run_kaggle_exp043.ps1 first (it waits for that session); start EXP-044 after its report" 2
+        Stop-Run "an EXP-043 session is launched and not yet collected. Run scripts\run_kaggle_exp043.ps1 first (it waits for that session); start $Exp after its report" 2
     }
-    Add-Report "PASS 1d0: no EXP-043 session is running (EXP-044 runs between sessions)"
+    Add-Report "PASS 1d0: no EXP-043 session is running ($Exp runs between sessions)"
 }
 if ($launching) {
     $r = Invoke-Logged "git fetch -q origin $branch"
@@ -337,6 +349,12 @@ if ($launching) {
         kernel_sources = $kernelSources
         machine_shape = "NvidiaTeslaT4"
     }
+    if ($Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {
+        # a CPU session (4 cores, 30 GB): no GPU, so no GPU quota
+        $meta.enable_gpu = $false
+        $meta.Remove("machine_shape")
+        Add-Report "INFO 4: $Exp runs on a Kaggle CPU session (no GPU is requested)"
+    }
     Write-Ascii "$stage\kernel-metadata.json" ($meta | ConvertTo-Json -Depth 5)
     $r = Invoke-Logged "$kaggle kernels push -p $stage"
     if ($r.Code -ne 0 -or (($r.Lines -join " ") -match "error")) { Stop-Run "Kaggle did not accept the kernel (see the lines above)" 1 }
@@ -401,6 +419,8 @@ if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {
     if ($sessions.Count -gt 1) { Stop-Run "the kernel output has $($sessions.Count) session folders; expected one" 1 }
     if ($sessions.Count -eq 1) { $resultDir = $sessions[0].FullName }
 }
+# EXP-046: the probe writes EXP-046\probe\ (later build steps get their own folders)
+if ($Exp -eq "EXP-046") { $resultDir = "$outputDir\$Exp\probe" }
 $summaryPath = "$resultDir\summary.json"
 if (-not (Test-Path $summaryPath)) {
     Add-Report "FAIL 5a: the kernel left no summary.json. Last 60 lines of the kernel log:"
@@ -450,8 +470,10 @@ if ($changed.Count -eq 0) {
     }
     Add-Report "PASS 6b: staged $($staged.Count) files, all under $resultsPrefix"
     $msgFile = "$outDir\commit_message.txt"
-    "${Exp}: GPU results from one Kaggle T4 (commit $($state.pinned_commit.Substring(0, 7)); checkpoints stay on Kaggle)" |
-        Set-Content -Path $msgFile -Encoding ASCII
+    $msgText = "${Exp}: GPU results from one Kaggle T4 (commit $($state.pinned_commit.Substring(0, 7)); checkpoints stay on Kaggle)"
+    if ($Exp -eq "EXP-045") { $msgText = "${Exp}: contamination check results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
+    if ($Exp -eq "EXP-046") { $msgText = "${Exp}: probe results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
+    $msgText | Set-Content -Path $msgFile -Encoding ASCII
     $r = Invoke-Logged "git commit -q -F $msgFile"
     if ($r.Code -ne 0) { Stop-Run "git commit failed: $($r.Lines -join ' | ')" 1 }
     $hash = ((Invoke-Logged "git rev-parse --short HEAD").Lines -join "").Trim()
