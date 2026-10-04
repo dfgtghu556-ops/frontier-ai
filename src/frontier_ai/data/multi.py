@@ -153,3 +153,99 @@ def full_split_loss(
     if was_training:
         model.train()
     return total / count, count * block_size
+
+
+# --------------------------------------------------------------- one pass (EXP-043) ---
+_GOLDEN = np.uint64(0x9E3779B97F4A7C15)
+
+
+def _splitmix64(x: np.ndarray) -> np.ndarray:
+    """SplitMix64 finaliser on uint64 (wrap-around integer maths: identical on every platform)."""
+    with np.errstate(over="ignore"):
+        z = x + _GOLDEN
+        z = (z ^ (z >> np.uint64(30))) * np.uint64(0xBF58476D1CE4E5B9)
+        z = (z ^ (z >> np.uint64(27))) * np.uint64(0x94D049BB133111EB)
+        return z ^ (z >> np.uint64(31))
+
+
+def one_pass_order(n: int, seed: int) -> np.ndarray:
+    """A fixed shuffle of ``range(n)`` that depends only on ``(n, seed)``.
+
+    Built from integer hashing and a stable sort rather than ``numpy.random``, whose streams may
+    change between numpy versions; a multi-week run over several machines must see one order.
+    """
+    with np.errstate(over="ignore"):
+        keys = _splitmix64(np.arange(n, dtype=np.uint64) ^ (np.uint64(seed) * _GOLDEN))
+    return np.argsort(keys, kind="stable").astype(np.int64)
+
+
+class OnePassDataset:
+    """Every non-overlapping training window exactly once, in a fixed shuffled order (EXP-043).
+
+    The training splits of all files are cut into windows of ``block_size`` tokens (window k of a
+    file covers tokens ``k*block_size .. (k+1)*block_size`` and its targets are shifted by one), so
+    a file of n tokens gives ``(n - 1) // block_size`` windows. All windows of all files are
+    shuffled together once (:func:`one_pass_order`) and read in that order: natural proportions
+    follow from the file sizes. The read position counts windows; the :class:`Trainer` uses
+    :meth:`next_train_batch` for training and :meth:`seek` on resume, so a resumed run continues
+    with exactly the next window. Validation and everything else is delegated to ``base``.
+    """
+
+    def __init__(self, base: MultiTokenDataset, block_size: int, seed: int) -> None:
+        self.base = base
+        self.block_size = block_size
+        self.seed = seed
+        self.counts = np.array([(len(base.parts[n].split("train")) - 1) // block_size for n in base.names])
+        if (self.counts <= 0).any():
+            raise ValueError("a training split is shorter than one window")
+        self.offsets = np.concatenate([[0], np.cumsum(self.counts)])
+        self.n_windows = int(self.offsets[-1])
+        self.order = one_pass_order(self.n_windows, seed)
+        self.position = 0
+
+    def __getattr__(self, name: str):  # only called for attributes not found on self
+        if name == "base":
+            raise AttributeError(name)
+        return getattr(self.base, name)
+
+    def steps_per_pass(self, windows_per_step: int) -> int:
+        return self.n_windows // windows_per_step
+
+    def fingerprint(self) -> str:
+        """sha256 of the order (int64 little-endian): the same order on every machine."""
+        import hashlib
+
+        return hashlib.sha256(self.order.astype("<i8").tobytes()).hexdigest()
+
+    def seek(self, position: int) -> None:
+        if not 0 <= position <= self.n_windows:
+            raise ValueError(f"position {position} outside 0..{self.n_windows}")
+        self.position = int(position)
+
+    def window(self, k: int) -> tuple[str, int]:
+        """(file name, first token) of global window k (before shuffling)."""
+        f = int(np.searchsorted(self.offsets, k, side="right") - 1)
+        return self.base.names[f], int(k - self.offsets[f]) * self.block_size
+
+    def next_train_batch(
+        self, batch_size: int, block_size: int, device: torch.device
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        if block_size != self.block_size:
+            raise ValueError(f"block_size {block_size} != the sampler's {self.block_size}")
+        if self.position + batch_size > self.n_windows:
+            raise RuntimeError(
+                f"the one pass is used up ({self.position} of {self.n_windows} windows read); "
+                "max_steps is larger than one pass"
+            )
+        idx = self.order[self.position : self.position + batch_size]
+        self.position += batch_size
+        xs, ys = [], []
+        for k in idx:
+            name, start = self.window(int(k))
+            data = self.base.parts[name].split("train")
+            xs.append(data[start : start + block_size].astype(np.int64))
+            ys.append(data[start + 1 : start + 1 + block_size].astype(np.int64))
+        non_blocking = device.type == "cuda" if isinstance(device, torch.device) else False
+        xt = torch.from_numpy(np.stack(xs)).to(device=device, non_blocking=non_blocking)
+        yt = torch.from_numpy(np.stack(ys)).to(device=device, non_blocking=non_blocking)
+        return xt, yt

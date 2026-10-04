@@ -14,9 +14,12 @@ CPU smoke test and a multi-hour CUDA run. Key mechanics:
 from __future__ import annotations
 
 import math
+import shutil
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import torch
 
@@ -80,6 +83,9 @@ class Trainer:
         self.logger = logger or RunLogger(self.out_dir, name="train")
         self.state = TrainState()
         self._gen = torch.Generator().manual_seed(cfg.data.seed)
+        self.stop_reason: str | None = None
+        if hasattr(dataset, "seek"):  # a one-pass dataset (EXP-043) starts at its first window
+            dataset.seek(0)
 
         # resume if requested
         resume_from = cfg.train.resume or (cfg.train.out_dir if cfg.train.init_from == "resume" else "")
@@ -103,9 +109,15 @@ class Trainer:
             self._gen.set_state(blob["data_generator"])
             if blob.get("scaler"):
                 self.scaler.load_state_dict(blob["scaler"])
+        if hasattr(self.ds, "seek"):  # continue the one pass with exactly the next window
+            accum = max(1, self.cfg.train.accum_steps)
+            self.ds.seek(self.state.step * accum * self.cfg.data.batch_size)
         print(f"[resume] loaded {path} at step {self.state.step} (best_val={self.state.best_val:.4f})")
 
     def save(self, tag: str, extra: dict | None = None) -> Path:
+        """Write ``out_dir/tag``. Written to ``tag.tmp`` first and swapped in only when complete,
+        so a crash while saving never destroys the previous checkpoint."""
+        final = self.out_dir / tag
         path = ckpt.save_checkpoint(
             self.out_dir,
             self.model,
@@ -119,17 +131,29 @@ class Trainer:
                 "skipped_steps": self.state.skipped_steps,
                 **(extra or {}),
             },
-            tag=tag,
+            tag=f"{tag}.tmp",
         )
         torch.save(
             {"data_generator": self._gen.get_state(), "scaler": self.scaler.state_dict()},
             path / TRAINER_STATE,
         )
-        return path
+        old = self.out_dir / f"{tag}.old"
+        if old.exists():
+            shutil.rmtree(old)
+        if final.exists():
+            final.rename(old)
+        path.rename(final)
+        if old.exists():
+            shutil.rmtree(old)
+        return final
 
     # --------------------------------------------------------------- train --
-    def fit(self) -> dict[str, float]:
+    def fit(self, should_stop: Callable[[Trainer], str | None] | None = None) -> dict[str, Any]:
+        """Train to ``max_steps``. ``should_stop(trainer)`` runs after every optimizer step; a
+        non-empty string it returns ends the run early (saved as ``last``, the reason returned as
+        ``stopped``)."""
         cfg = self.cfg
+        self.stop_reason = None
         self.logger.log(
             event="run.start",
             info=self.spec.describe(),
@@ -152,13 +176,16 @@ class Trainer:
             self.optimizer.zero_grad(set_to_none=True)
             micro_loss = 0.0
             for micro in range(accum):
-                x, y = self.ds.get_batch(
-                    "train",
-                    cfg.data.batch_size,
-                    cfg.model.block_size,
-                    self.device,
-                    generator=self._gen,
-                )
+                if hasattr(self.ds, "next_train_batch"):  # one pass in a fixed order (EXP-043)
+                    x, y = self.ds.next_train_batch(cfg.data.batch_size, cfg.model.block_size, self.device)
+                else:
+                    x, y = self.ds.get_batch(
+                        "train",
+                        cfg.data.batch_size,
+                        cfg.model.block_size,
+                        self.device,
+                        generator=self._gen,
+                    )
                 with torch.autocast(
                     device_type=self.device.type,
                     dtype=self.spec.amp_dtype,
@@ -180,9 +207,7 @@ class Trainer:
 
             if cfg.optim.grad_clip > 0:
                 self.scaler.unscale_(self.optimizer)
-                grad_norm = torch.nn.utils.clip_grad_norm_(
-                    self.model.parameters(), cfg.optim.grad_clip
-                )
+                grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), cfg.optim.grad_clip)
                 grad_norm = float(grad_norm)
             else:
                 grad_norm = float("nan")
@@ -238,6 +263,12 @@ class Trainer:
             if cfg.train.save_interval > 0 and self.state.step % cfg.train.save_interval == 0:
                 self.save(f"step-{self.state.step}")
 
+            if should_stop is not None:
+                reason = should_stop(self)
+                if reason:
+                    self.stop_reason = reason
+                    break
+
         self.save("last")
         total_min = (time.time() - t_start) / 60
         mean_tps = self.state.tokens_seen / max(time.time() - t_start, 1e-9)
@@ -251,12 +282,14 @@ class Trainer:
             mean_tps=round(mean_tps, 1),
             throughput=fmt_tokens_per_sec(mean_tps),
             skipped_steps=self.state.skipped_steps,
+            stopped=self.stop_reason,
         )
         return {
             "best_val": self.state.best_val,
             "steps": self.state.step,
             "best_bpb": best_bpb,
             "skipped_steps": self.state.skipped_steps,
+            "stopped": self.stop_reason,
         }
 
     # ------------------------------------------------------------ reporting --
