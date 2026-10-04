@@ -672,6 +672,14 @@ comes next. They also update the table in §3.
     (training unaffected). **Next: the founder runs**
     `powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp043.ps1` **(session 1 = lr
     check), then the same line once per session (about 10).** Don't push while a session runs.
+  - **Parallel plans proposed (2026-10-04, founder: "do most of all the work possible in
+    parallel"):** EXP-044 two-GPU training (step 13; every Kaggle session had 2 T4s, we use 1),
+    EXP-045 pre-registered evaluation plan + try-the-model tool, EXP-046 data slice 2 (Sangraha
+    verified measured at 217.9 GB; ~108 B tokens estimated for our 13 languages, NOT VERIFIED)
+    on Kaggle CPU sessions. **Next: the founder's "approve EXP-044 / EXP-045 / EXP-046"** (any
+    subset). Pushing docs during a session is safe: the runner checks the commit only when it
+    launches, and it rebase-retries a rejected results push (its commit touches only
+    `evals/results/`).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

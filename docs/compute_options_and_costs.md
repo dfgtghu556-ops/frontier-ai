@@ -84,3 +84,12 @@ To become "the best model in India" we would have to beat models of that scale. 
   25% MFU assumption is confirmed at 22–26% for fp16 + compile. With one T4 and no multi-GPU code,
   30 free hours a week train about 7.5 B tokens at 32 M parameters or about 1.9 B tokens at
   139 M parameters (measured tokens/s × 108,000 seconds). Larger models were not measured.
+- **Update (2026-10-04):** two facts checked for the parallel plans (EXP-044, EXP-046):
+  - Kaggle's official technical specification (kaggle.com/docs/notebooks, read 2026-10-04): CPU
+    sessions get 4 cores and 30 GB RAM; CPU and GPU sessions run up to 12 hours; **20 GB of saved
+    output** per session (this settles the output-size question left open in EXP-043). Whether CPU
+    sessions use any quota, and whether one can run during a GPU session, are NOT VERIFIED.
+  - Every Kaggle GPU session we ran reported **two T4s** (`device_count: 2` in the committed
+    environment records of EXP-038 to EXP-042). We use one (D-047). The free quota counts session
+    hours (NOT VERIFIED for this account), so two-GPU training (EXP-044) could nearly double the
+    work per free hour.

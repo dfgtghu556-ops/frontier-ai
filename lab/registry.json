@@ -279,6 +279,22 @@
         "tests/test_pretrain.py"
       ],
       "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0."
+    },
+    {
+      "title": "Parallel plans while EXP-043 runs (proposed, not approved): EXP-044 two-GPU training (step 13), EXP-045 evaluation plan + try-the-model tool, EXP-046 data slice 2 on Kaggle CPU",
+      "evidence": [
+        "EXP-044",
+        "EXP-045",
+        "EXP-046",
+        "EXP-043",
+        "D-047",
+        "D-049"
+      ],
+      "evidence_files": [
+        "EXPERIMENTS.md",
+        "docs/compute_options_and_costs.md"
+      ],
+      "note": "Founder 2026-10-04: do all work possible in parallel. Plans only, no code before approval. Found in the committed environment records: every Kaggle session had 2 T4s, we use 1 (D-047 by design until step 13). Measured via the Hugging Face API: Sangraha verified = 217.9 GB, our 13 languages 195.3 GB, estimated ~108 B tokens with our filters (NOT VERIFIED; v2-slice1 used 5.1 GB). Kaggle official CPU spec: 4 cores, 30 GB RAM, 12 h, 20 GB output. Belebele (CC BY-SA 4.0, not gated, rev 7899cdfa) covers our 13 languages. Waiting for: approve EXP-044 / EXP-045 / EXP-046."
     }
   ],
   "baseline_model": {

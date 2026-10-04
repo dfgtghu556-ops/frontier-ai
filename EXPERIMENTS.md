@@ -3796,3 +3796,224 @@ or any post-training, multiple GPUs, publishing the model, and any spending.
   - the output size limit.
 
 **Status:** approved — code ready; next: session 1 (learning-rate check) via `scripts\run_kaggle_exp043.ps1`.
+
+### EXP-044 — Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use
+**Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-044" before any code)
+
+**Purpose (why this serves the mission):** every Kaggle session we have run had **two T4 GPUs**
+attached (`device_count: 2` in the committed environment records of EXP-038, EXP-040, EXP-041 and
+all three EXP-042 sessions), and we use one (D-047: "only one is used until step 13"). Kaggle's
+weekly quota counts session hours, not GPUs (NOT VERIFIED for this account). So if two-GPU
+training works, the same quota trains almost twice as much. Free compute is our tightest limit:
+the EXP-043 main run needs about 74 GPU-hours (NOT VERIFIED), about 2.5 weeks of quota on one
+GPU. Every later, larger model needs this ability too. This is step 13 of the roadmap.
+
+**What changes (and what does not):**
+- Two processes, one per GPU (PyTorch DistributedDataParallel, launched with `torchrun`). Each
+  step still uses **the same 32 sequences of 512 tokens (16,384 tokens) in the same order**: GPU 0
+  takes sequences 0–15 of the step's batch, GPU 1 takes 16–31. The gradients are averaged across
+  the two GPUs. Mathematically this is the same update as one GPU doing all 32. Only the order of
+  floating-point additions differs.
+- Unchanged: model, data order, learning-rate schedule, optimizer, fp16 + GradScaler + compile,
+  the stop rules and the checkpoint format. Only GPU 0 evaluates, writes checkpoints and writes
+  the report. A stop rule that fires is sent to both processes, so neither keeps training alone.
+- A checkpoint written by the two-GPU run loads in the one-GPU run and the other way round (the
+  saved weights are stored without the wrapper prefixes).
+
+**Checks before any GPU time (CPU, in the sandbox, tiny model):**
+1. Two CPU processes (`gloo` backend) against one process with the same global batch, in float64
+   (the D-047 method): every step's loss and the final weights agree to 1e-10.
+2. Checkpoint crossing: save on two processes, resume on one, and the other way round. The
+   result equals the uninterrupted run.
+3. A stop rule raised on one process stops both; only process 0 writes files.
+
+**GPU check (one short Kaggle session, kernel `frontier-exp044`, about 1.5 GPU-hours, hard cap 2):**
+- The real 190 M model (D-049), fresh weights with seed 1, the first 300 steps of the EXP-043
+  one-pass order. Run once on one GPU and once on two GPUs (after compile warm-up in each).
+- **Pre-registered pass rules:**
+  - **Agreement:** the validation bits per byte (mean of 13 languages) after 300 steps differ by
+    at most 0.01 between the two runs (well under the 0.0174 seed noise). There is no NaN/inf, and
+    skipped fp16 steps are at most 5% in both runs.
+  - **Speed:** the two-GPU run processes at least **1.4×** as many tokens per second as the
+    one-GPU run, measured over steps 101–300. Below 1.4× the saving is too small to justify a
+    change during a running experiment.
+  - **Memory:** peak memory per GPU is under 14.5 GB with 16 sequences per GPU and no gradient
+    accumulation (otherwise 8 × 2, the same rule as EXP-043).
+- **When:** only **between** EXP-043 sessions (the founder starts it after a session has finished
+  and before starting the next). It never runs while an EXP-043 session runs, and it reads nothing
+  from EXP-043's outputs.
+
+**What a pass leads to (a separate decision, not decided here):** if all three rules pass, a new
+decision proposes running **the rest of the EXP-043 main run on two GPUs**: same order, same
+batch, same schedule, same pre-registered final rules. It would continue from the latest checkpoint
+and add a dated note recording which steps ran on one GPU and which on two. If the speed-up is
+about 1.8× (NOT VERIFIED; the gradient exchange is about 0.76 GB per step over PCIe), the remaining
+main run would need roughly 55% of the GPU-hours. If any rule fails, EXP-043 simply continues on
+one GPU and nothing is lost but the check's ~1.5 GPU-hours.
+
+**Not in scope:** more than one machine, model or tensor parallelism, ZeRO/FSDP, mixed GPU
+types, bf16. The founder's guardrail on distributed training is the reason this needs explicit
+approval.
+
+**Budget:** about 1.5 GPU-hours (cap 2), ₹0. Code: a `--gpus 2` path in `scripts/gpu_pretrain.py`
+(rank-aware batch slicing in `OnePassDataset`, a rank-0-only report and checkpoint, a broadcast
+stop flag), a small kernel and a runner line, and tests. No change to EXP-043's code until the
+follow-up decision is approved.
+
+### EXP-045 — Step 15 preparation: a pre-registered evaluation plan for the EXP-043 model, plus a "try the model" tool
+**Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-045" before any code)
+
+**Purpose (why this serves the mission):** "the best model in India" must be shown with fixed,
+public, honest tests, not with impressions. EXP-043 already measures bits per byte on our own
+validation split. This plan fixes, **before the model exists**, which outside tests we run, how
+we score them and how we report them. Then the result cannot be tuned after the fact. The same
+yardstick then measures every later model, so progress (or its absence) is visible.
+
+**Tests (all on the EXP-043 final checkpoint):**
+1. **Protected suite `frontier-heldout-v1`** (D-042; 3,427 documents, 13 languages): bits per byte
+   per language with Frontier Tokenizer v2. EXP-043 does not measure it. It is the one set that
+   has been protected since before any v2 data was built.
+2. **Belebele reading comprehension** (`facebook/belebele`, pinned revision `7899cdfa…`, CC BY-SA
+   4.0, not gated on Hugging Face):
+   - 900 four-choice questions per language. All 13 of our languages are listed in its metadata;
+     the exact configuration names are NOT VERIFIED until the download.
+   - **Scoring (fixed now):** zero-shot; the text is the passage, a newline, the question, a
+     newline, then the answer option. Each option's score is its summed log-probability divided
+     by its UTF-8 bytes; the highest score is the model's answer. If passage + question + option
+     exceed 512 tokens, the passage is cut from the left and the number of cut items is reported.
+   - **Report:** accuracy per language with a 95% Wilson interval (about ±3 points at 900
+     questions); chance is 25%.
+   - **Honest expectation:** close to chance for a 190 M base model. A language is called "above
+     chance" only if its whole interval is above 25%. The point is the baseline that later models
+     must beat, not a headline.
+3. **Same text in every language (Belebele's FLORES passages):** every Belebele passage is a
+   FLORES-200 passage, translated by people into each language. We report **total bits needed to
+   encode the same passages** in each language, and bits per byte. Because the content is
+   identical, total bits compare languages fairly, which per-byte numbers cannot (scripts use
+   different numbers of bytes per letter). This shows which languages the model knows least.
+4. **Contamination check (Kaggle CPU session, no GPU):** 13-token n-gram overlap between the
+   Belebele passages, questions and options (tokenized with Tokenizer v2) and all 2.78 B EXP-037
+   training tokens, streamed from the existing Kaggle dataset. Every overlapping item is listed.
+   Belebele results are reported **with and without** flagged items. The training data was built
+   before this plan, so overlap is measured and reported, never silently removed.
+5. **Samples for reading:** the EXP-043 samples, plus 5 fixed everyday prompts per language
+   (written down before evaluation), generated greedily and at temperature 0.8 with seed 1. They
+   are printed in the report so a reader can judge fluency.
+
+**"Try the model" tool (laptop, CPU):** `scripts/generate.py` already samples from a checkpoint
+directory. It gets:
+- an `--interactive` loop (type a beginning, the model continues it);
+- support for the EXP-043 final checkpoint file.
+
+The evaluation session also writes a **weights-only fp16 copy** (about 0.38 GB instead of the
+multi-GB training checkpoint) for the founder to download. Plain-language warning in the tool:
+this is a base model that continues text. It does not answer questions or follow instructions.
+Speed on the i3-4030U is NOT VERIFIED and is measured on first use.
+
+**Where and when:**
+- Code and tests are built now on CPU with tiny models (no GPU, no laptop load, no EXP-043 code
+  touched).
+- The contamination check (test 4) can run on a Kaggle CPU session at any time.
+- Tests 1–3 and 5 run in one short GPU session (estimated under 0.5 GPU-hours, NOT VERIFIED; cap
+  1) **after EXP-043 finishes**. Belebele needs about 11,700 passage+question encodings plus 4
+  short options each, which is too slow on CPU.
+
+**Not in scope:** comparing against other companies' models (that needs their weights and compute
+and is a separate plan); any test whose licence we have not checked; generative benchmarks that a
+base model of this size cannot meaningfully attempt.
+
+**Budget:** ≤ 1 GPU-hour after EXP-043; Kaggle CPU time for test 4; ₹0. The Belebele data is
+downloaded at evaluation time by pinned revision and **not committed** (ShareAlike). Only hashes,
+scores and short excerpts in reports go into the repo.
+
+### EXP-046 — Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions
+**Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-046" before any code)
+
+**Purpose (why this serves the mission):** EXP-042/D-049 showed that our 2.78 B training tokens
+support only a ~190 M model. A better model needs more data before it needs anything else. This
+plan measures how much more verified data exists and proposes the next build. It runs on Kaggle
+CPU sessions, so it does not load the founder's laptop and does not use GPU quota.
+
+**Measured on 2026-10-04 (Hugging Face API, pinned revision `8b813c3f…`):**
+- Sangraha `verified/` totals **217.9 GB** of parquet over 23 language folders.
+- Our 13 languages total **195.3 GB**. v2-slice1 used one ~0.33–0.60 GB file per language (5.1 GB
+  in total).
+
+| lang | full verified (GB) | ≈ files | estimated tokens if fully built (B) |
+|---|---|---|---|
+| as | 0.98 | 3 | 0.47 |
+| bn | 29.90 | 76 | 15.4 |
+| en | 29.92 | 50 | 24.1 |
+| gu | 9.93 | 27 | 5.4 |
+| hi | 37.34 | 99 | 19.5 |
+| kn | 7.65 | 21 | 3.5 |
+| ml | 12.17 | 36 | 5.1 |
+| mr | 12.78 | 33 | 6.1 |
+| or | 3.92 | 11 | 2.0 |
+| pa | 4.14 | 12 | 2.4 |
+| ta | 18.71 | 52 | 8.4 |
+| te | 15.10 | 40 | 7.9 |
+| ur | 12.78 | 26 | 8.4 |
+| **total** | **195.3** | | **≈ 108** |
+
+- The token column is an **estimate (NOT VERIFIED)**. It multiplies each language's measured
+  slice-1 tokens-per-parquet-byte by the folder size. Later files may filter differently, and
+  duplicates across files would lower it. The file counts are folder size ÷ slice-1 file size.
+- So about **39× more verified data** exists than we use. Assamese is the exception: only about
+  3× exists.
+
+**How much to build next (sized to the compute we can actually get, not to what exists):**
+- At EXP-043's measured T4 rate, one GPU does about 1.3e13 useful FLOP/s. If EXP-044 passes, two
+  GPUs do roughly 2.3e13 (NOT VERIFIED). That is roughly **2.5e18 FLOP per week** of free quota.
+- A next model with ~4× EXP-043's compute (~1.4e19, about 5–6 weeks of quota) would want about
+  **2× the tokens**, by EXP-042's fit (tokens grow as compute^0.513): ~5.7 B tokens in one pass.
+- With validation and a margin, the target is **v2-slice1 + v2-slice2 ≈ 8 B tokens**. Building all
+  108 B now would be wasted work: we could not train on it with free compute. This plan does
+  **not** fix the next model's size; that gets its own experiment.
+
+**Selection rule (pinned before building):** files `data-1` and `data-2` of each of the 13
+languages, pinned by size and SHA-256 in a new `corpora/frontier/v2/sangraha_slice2.json`.
+Assamese has only three files, so this uses all of it. Every language grows by about the same
+factor (≈ 3× in total), so **the language balance stays as in v2-slice1**, and the scaling
+evidence from EXP-040–043 still applies. Changing the balance is a separate comparison experiment
+(the standing rule: no fixed mixing percentages without a comparison). The estimate is about
++5.6 B tokens (NOT VERIFIED).
+
+**Same recipe, plus four safeguards:**
+1. The **unchanged v2 build rules** (D-045's configuration fingerprint): normalize, language ID,
+   quality rules, exact dedup, protected-suite decontamination including the short-document
+   index.
+2. **No document from v2-slice1 twice:** slice-2 documents are compared with slice-1 by hashing
+   each document's token sequence. Slice-1's tokens are in the existing EXP-037 Kaggle dataset,
+   and the tokenizer is deterministic, so identical text gives identical tokens. Matches are
+   removed and counted.
+3. **Belebele protected too** (if EXP-045 is approved): its passages, questions and options join
+   the protected set, so the next model is clean on the evaluation that EXP-045 fixes.
+4. **Read before accepting:** the report prints random kept and removed documents per language,
+   as EXP-036 did. Acceptance is a separate decision, as D-045 was for slice 1.
+
+**Where it runs:**
+- **Kaggle CPU sessions.** Official specification checked 2026-10-04 on kaggle.com/docs/notebooks:
+  4 CPU cores, 30 GB RAM, 12 hours per session, 20 GB saved output.
+- The work is split into two kernels (about 7 + 6 languages), so each output stays well under
+  20 GB.
+- Each output holds the packed tokens (uint16) and compressed filtered text, as a kernel output
+  that training kernels mount with `kernel_sources`. That needs no upload from the founder's PC.
+- NOT VERIFIED until a probe:
+  - whether a CPU session can run while an EXP-043 GPU session runs;
+  - whether CPU sessions use any quota;
+  - scratch disk size;
+  - download speed from Hugging Face.
+
+  The **first step is a 15-minute probe kernel**: it reports CPU, RAM, disk and the download time
+  of one pinned file, and processes nothing. If Kaggle refuses to start it while the GPU session
+  runs, it simply waits for the next gap.
+- For scale: EXP-036 built 5.1 GB on the laptop in 3 h 43 min.
+
+**Not in scope:** sources other than Sangraha Verified (the `unverified` and `synthetic` subsets,
+other datasets: each needs its own licence and quality review); near-duplicate (MinHash) removal
+(proposed separately if slice-2 inspection shows near-duplicates matter); tokenizer changes
+(Tokenizer v2 is frozen, D-035).
+
+**Budget:** Kaggle CPU sessions only (estimated 2–4 sessions, NOT VERIFIED), no GPU, ₹0, no
+laptop work.

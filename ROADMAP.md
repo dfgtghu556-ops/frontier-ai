@@ -164,6 +164,12 @@
   (`scripts/gpu_pretrain.py`) and the Kaggle side (two kernels that take turns and pass the
   checkpoint) are tested on CPU. A run split across sessions ends with exactly the same weights as
   one uninterrupted run. Next: session 1, the learning-rate check, on Kaggle.
+- **Update (2026-10-04, parallel plans proposed while EXP-043 runs):** EXP-044 (step 13: train on
+  both of the two T4s Kaggle already attaches; could nearly halve the rest of EXP-043), EXP-045
+  (step 15 prep: a pre-registered evaluation plan with Belebele, same-text-in-every-language bits,
+  the protected suite and a contamination check, plus a "try the model" tool) and EXP-046 (next
+  data: about 8 B tokens from Sangraha Verified, of an estimated ~108 B available, built on Kaggle
+  CPU sessions). All three are proposals awaiting approval.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and
