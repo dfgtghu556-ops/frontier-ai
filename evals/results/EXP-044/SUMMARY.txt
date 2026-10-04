@@ -1,0 +1,21 @@
+EXP-044 - two-GPU data-parallel check (step 13)
+started 2026-10-04 17:13:28  finished 2026-10-04 17:46:03
+elapsed 32.6 min
+Part 0: data files 13/13 (sha256 checked); tests 54 passed in 92.82s (0:01:32)
+GPUs attached: 2 x Tesla T4
+One-pass order fingerprint 19199520944bc37b... (same as EXP-043: yes)
+
+One GPU: micro-batch 16 x 2 per GPU, 1 process(es)
+  12225 tokens/s (steps 101-300); peak memory per GPU [9.261] GB; skipped fp16 steps 0
+  validation after 300 steps: mean 1.4319 bpb
+
+Two GPUs: micro-batch 16 x 1 per GPU, 2 process(es)
+  21882 tokens/s (steps 101-300); peak memory per GPU [8.981, 8.981] GB; skipped fp16 steps 0
+  validation after 300 steps: mean 1.4276 bpb
+
+Pre-registered rules:
+  agreement: PASS: |1.4319 - 1.4276| = 0.0042 bpb (limit 0.01); skipped fp16 steps 0 / 0 (limit 15)
+  speed: PASS: 21,882 vs 12,225 tokens/s = 1.79x (at least 1.4x)
+  memory: PASS: peak 8.98 GB per GPU (under 14.5 GB)
+VERDICT: PASS - two-GPU training may be proposed for the rest of EXP-043 (a separate decision)
+  at 1.79x the rest of a run needs 56% of its one-GPU GPU-hours

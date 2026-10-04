@@ -1,0 +1,223 @@
+{
+  "schema": "frontier-ddp-check-v1",
+  "exp_id": "EXP-044",
+  "smoke": false,
+  "complete": true,
+  "started_at": "2026-10-04 17:13:28",
+  "setup": {
+    "model": {
+      "n_layer": 14,
+      "n_head": 14,
+      "n_embd": 896,
+      "block_size": 512,
+      "pos": "rope",
+      "n_kv_head": 2
+    },
+    "windows_per_step": 32,
+    "steps": 300,
+    "speed_from_step": 100,
+    "lr": 0.0005,
+    "warmup": 100,
+    "min_lr_ratio": 0.1,
+    "seed": 1,
+    "order_seed": 1,
+    "eval_batch": 16,
+    "micro_options_one": [
+      [
+        16,
+        2
+      ],
+      [
+        8,
+        4
+      ]
+    ],
+    "gpus": 2,
+    "agree_bpb": 0.01,
+    "min_speedup": 1.4,
+    "mem_limit_gb": 14.5,
+    "max_skipped": 0.05,
+    "worker_timeout_min": 50
+  },
+  "precision": "fp16 + GradScaler + torch.compile (D-047), DistributedDataParallel for two GPUs",
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.39",
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "cuda_available": true,
+    "device_count": 2,
+    "gpu_name": "Tesla T4",
+    "gpu_memory_gb": 14.56,
+    "compute_capability": "7.5",
+    "bf16_supported": true,
+    "matmul_tf32": false,
+    "driver": "580.178.04",
+    "code_commit": "818bdf861a0bfc350304b6f17422f099922d58f3"
+  },
+  "part0": {
+    "files_expected": 13,
+    "sha256_checked": true,
+    "packed_id": "frontier-v2-sangraha-slice1@frontier-tokenizer-v2",
+    "files_ok": 13,
+    "problems": [],
+    "tests_pass": true,
+    "tests_line": "54 passed in 92.82s (0:01:32)"
+  },
+  "elapsed_min": 32.6,
+  "languages": [
+    "as",
+    "bn",
+    "en",
+    "gu",
+    "hi",
+    "kn",
+    "ml",
+    "mr",
+    "or",
+    "pa",
+    "ta",
+    "te",
+    "ur"
+  ],
+  "sampling_weights": {
+    "as": 0.055718,
+    "bn": 0.0722,
+    "en": 0.171196,
+    "gu": 0.072141,
+    "hi": 0.070464,
+    "kn": 0.059417,
+    "ml": 0.050404,
+    "mr": 0.064773,
+    "or": 0.067427,
+    "pa": 0.072938,
+    "ta": 0.057645,
+    "te": 0.070099,
+    "ur": 0.115579
+  },
+  "order": {
+    "fingerprint": "19199520944bc37be166a9f2e50a1138b8e8f0c4f018dd8e23fbb12f8ae01f01",
+    "n_windows": 5437162,
+    "same_as_exp043": "yes"
+  },
+  "one": {
+    "world": 1,
+    "micro": 16,
+    "accum": 2,
+    "start_step": 0,
+    "end": "done",
+    "steps": 300,
+    "skipped_steps": 0,
+    "tokens_seen": 4915200,
+    "sampler_position": 9600,
+    "speed_steps": "101-300",
+    "tokens_per_s": 12224.781004197945,
+    "peak_mem_gb": [
+      9.261
+    ],
+    "weights_sha256": "b6278325faf88b9da6e02b1e88bcd3c254e40dc566d2de1124fe0887fa10865a",
+    "scores": {
+      "nats": {
+        "as": 4.688139123409068,
+        "bn": 4.531117888363925,
+        "en": 3.916707207545761,
+        "gu": 4.2762123993720005,
+        "hi": 4.090911550805362,
+        "kn": 4.741166987822424,
+        "ml": 4.722349265993815,
+        "mr": 4.647816730354032,
+        "or": 4.383240554275433,
+        "pa": 3.972777879307036,
+        "ta": 4.531592108662289,
+        "te": 4.450236859385408,
+        "ur": 3.6469605127592835
+      },
+      "bpb": {
+        "as": 1.3675476847823784,
+        "bn": 1.3100154968698607,
+        "en": 2.9211804157590437,
+        "gu": 1.347010735255341,
+        "hi": 1.2459504452701873,
+        "kn": 1.2216135732754945,
+        "ml": 1.1226283784251705,
+        "mr": 1.242878225797966,
+        "or": 1.2732800377410531,
+        "pa": 1.2902309977290571,
+        "ta": 1.0626047269907708,
+        "te": 1.343401212288653,
+        "ur": 1.8658366773190957
+      },
+      "bpb_mean": 1.4318598928849287,
+      "bpb_token_weighted": 1.6189665867435603,
+      "bpb_pooled": 1.433238525011447
+    },
+    "minutes": 16.67
+  },
+  "two": {
+    "world": 2,
+    "micro": 16,
+    "accum": 1,
+    "start_step": 0,
+    "end": "done",
+    "steps": 300,
+    "skipped_steps": 0,
+    "tokens_seen": 4915200,
+    "sampler_position": 9600,
+    "speed_steps": "101-300",
+    "tokens_per_s": 21882.41812649385,
+    "peak_mem_gb": [
+      8.981,
+      8.981
+    ],
+    "weights_sha256": "be79359d33a53bc642e72910678df20103f361aec4fd0fbcc1993d9d18b3df0b",
+    "scores": {
+      "nats": {
+        "as": 4.614044464602857,
+        "bn": 4.497982115312056,
+        "en": 3.8959622272775194,
+        "gu": 4.286657883433367,
+        "hi": 4.102281936188956,
+        "kn": 4.723771242359978,
+        "ml": 4.697314867566399,
+        "mr": 4.655465749528421,
+        "or": 4.3948061264420755,
+        "pa": 3.9869969299992616,
+        "ta": 4.519508942107013,
+        "te": 4.4210056484048135,
+        "ur": 3.6410280021522503
+      },
+      "bpb": {
+        "as": 1.345933996187,
+        "bn": 1.3004354379819238,
+        "en": 2.905708278866057,
+        "gu": 1.350301072088859,
+        "hi": 1.249413472166673,
+        "kn": 1.2171313690357468,
+        "ml": 1.1166770341834809,
+        "mr": 1.2449236591556265,
+        "or": 1.2766397009816377,
+        "pa": 1.2948488899240747,
+        "ta": 1.059771367414098,
+        "te": 1.3345771326927147,
+        "ur": 1.862801520826323
+      },
+      "bpb_mean": 1.4276279178080165,
+      "bpb_token_weighted": 1.6139268187393474,
+      "bpb_pooled": 1.4292515318330805
+    },
+    "minutes": 13.64
+  },
+  "verdict": {
+    "agreement_pass": true,
+    "agreement": "PASS: |1.4319 - 1.4276| = 0.0042 bpb (limit 0.01); skipped fp16 steps 0 / 0 (limit 15)",
+    "speedup": 1.79,
+    "speed_pass": true,
+    "speed": "PASS: 21,882 vs 12,225 tokens/s = 1.79x (at least 1.4x)",
+    "memory_pass": true,
+    "memory": "PASS: peak 8.98 GB per GPU (under 14.5 GB)",
+    "pass": true,
+    "result": "PASS - two-GPU training may be proposed for the rest of EXP-043 (a separate decision)",
+    "saving": "at 1.79x the rest of a run needs 56% of its one-GPU GPU-hours"
+  },
+  "finished_at": "2026-10-04 17:46:03"
+}
