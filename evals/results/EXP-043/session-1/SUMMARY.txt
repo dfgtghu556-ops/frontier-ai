@@ -1,0 +1,14 @@
+EXP-043 - train the step-12 model (D-049), session 1
+started 2026-10-04 03:51:30  finished 2026-10-04 11:54:42
+elapsed 483.2 min; GPU-hours before this session 0.00
+Part 0: data files 13/13 (sha256 checked); tests 46 passed in 15.67s; one-step float64 check pass=True
+Checkpoint chain: first session, nothing to check
+One-pass order: 5,437,162 windows, 169,911 steps, fingerprint 19199520944bc37b...
+Micro-batch: 16 x 2 accumulation (peak 9.26 GB < 14.5 GB)
+
+Learning-rate check (6,104 steps each, same first 100 M tokens):
+         lr session status                        mean bpb  minutes
+    0.00025       1 done                            0.8543    160.2
+     0.0005       1 done                            0.8172    159.8
+      0.001       1 done                            0.8160    159.5
+  Chosen learning rate: 0.0005  (lowest mean bpb 0.8160 at 0.001; 0.0005 is within the noise 0.0174 so the lower one is chosen)
