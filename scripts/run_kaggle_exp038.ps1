@@ -66,7 +66,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043")][string]$Exp = "EXP-038", [switch]$Relaunch)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044")][string]$Exp = "EXP-038", [switch]$Relaunch)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -94,7 +94,7 @@ $datasetSubtitle = "Hindi training tokens for the frontier-ai project (EXP-037)"
 $datasetText = "Hindi part of FrontierCorpus v2-slice1"
 $uploadSize = "about 400 MB"
 $expectedRun = "EXP-038 took about 80 minutes, EXP-039 should be shorter"
-if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {
+if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044") {
     $datasetSlug = "frontier-v2-tok2-13lang"
     $dataFiles = @()
     foreach ($f in (Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json).files) { $dataFiles += @($f.path, $f.meta) }
@@ -115,6 +115,10 @@ if ($Exp -eq "EXP-042") {
 if ($Exp -eq "EXP-043") {
     $expectedRun = "one EXP-043 session takes at most 9 hours; about 10 sessions in total"
     $maxWaitHours = 11
+}
+if ($Exp -eq "EXP-044") {
+    $expectedRun = "EXP-044 is expected to take about 1.5 hours, at most 2"
+    $maxWaitHours = 4
 }
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
@@ -176,6 +180,14 @@ foreach ($f in @($python, $template, $manifestPath, "scripts\gpu_bringup.py", "s
 Add-Report "PASS 1c: .venv and scripts found"
 
 $launching = (-not $state.pinned_commit) -or $Relaunch
+if ($launching -and $Exp -eq "EXP-044") {
+    # EXP-044 runs only BETWEEN EXP-043 sessions: never while one is launched and not yet collected
+    $s43 = "out\kaggle\EXP-043\state.json"
+    if ((Test-Path $s43) -and ((Get-Content $s43 -Raw -Encoding UTF8 | ConvertFrom-Json).pinned_commit)) {
+        Stop-Run "an EXP-043 session is launched and not yet collected. Run scripts\run_kaggle_exp043.ps1 first (it waits for that session); start EXP-044 after its report" 2
+    }
+    Add-Report "PASS 1d0: no EXP-043 session is running (EXP-044 runs between sessions)"
+}
 if ($launching) {
     $r = Invoke-Logged "git fetch -q origin $branch"
     if ($r.Code -ne 0) { Stop-Run "git fetch failed - is the PC online?" 2 }

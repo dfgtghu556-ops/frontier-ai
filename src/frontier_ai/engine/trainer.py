@@ -9,6 +9,10 @@ CPU smoke test and a multi-hour CUDA run. Key mechanics:
 * periodic + best-checkpoint saving, resume from any checkpoint directory. A checkpoint also
   stores the batch-sampling generator and the fp16 GradScaler (``trainer_state.pt``), so a
   resumed run draws exactly the batches the uninterrupted run would have drawn (EXP-038).
+* several GPUs of one machine (EXP-044): when ``torchrun`` started a process group
+  (:mod:`.distributed`), the model is wrapped in DistributedDataParallel, each process reads its
+  fixed slice of every batch from the one-pass sampler, only process 0 writes files, and
+  checkpoints keep the one-GPU format. Without a process group none of this code runs.
 """
 
 from __future__ import annotations
@@ -30,6 +34,7 @@ from ..utils.device import DeviceSpec, resolve_spec, threads_for
 from ..utils.logging import RunLogger, fmt_tokens_per_sec
 from ..utils.seed import set_seed
 from . import checkpoint as ckpt
+from . import distributed as dd
 from .metrics import loss_summary
 from .optim import LRScheduler, build_optimizer
 
@@ -68,19 +73,42 @@ class Trainer:
         self.model.to(self.device)
         if cfg.train.grad_checkpointing:
             self.model.gradient_checkpointing = True
+        self.raw_model = self.model  # the plain model, whatever wraps it below
+        self.rank, self.world = dd.rank(), dd.world()
+        if self.world > 1:  # EXP-044: data parallel across the processes torchrun started
+            if not hasattr(dataset, "set_shard"):
+                raise ValueError("multi-GPU training needs the one-pass sampler (OnePassDataset)")
+            dataset.set_shard(self.rank, self.world)
+            from torch.nn.parallel import DistributedDataParallel
+
+            ids = [torch.cuda.current_device()] if self.device.type == "cuda" else None
+            self.model = DistributedDataParallel(
+                self.model, device_ids=ids, broadcast_buffers=False, gradient_as_bucket_view=True
+            )
         if cfg.train.compile and hasattr(torch, "compile") and self.device.type == "cuda":
             try:
                 self.model = torch.compile(self.model)  # type: ignore[assignment]
             except Exception as exc:  # pragma: no cover - backend dependent
                 print(f"[warn] torch.compile unavailable ({exc}); continuing without it")
 
-        self.optimizer = build_optimizer(self.model, cfg.optim, device_type=self.device.type)
+        opt_model = self.model if self.world == 1 else self.raw_model
+        self.optimizer = build_optimizer(opt_model, cfg.optim, device_type=self.device.type)
         self.scheduler = LRScheduler(self.optimizer, cfg.optim, max_steps=cfg.train.max_steps)
         self.scaler = _make_scaler(self.spec)
 
         self.out_dir = Path(cfg.train.out_dir)
         self.out_dir.mkdir(parents=True, exist_ok=True)
-        self.logger = logger or RunLogger(self.out_dir, name="train")
+        if logger is None:
+            logger = RunLogger(self.out_dir, name="train") if self.rank == 0 else _QuietLogger()
+        self.logger = logger
+        # what evaluation and checkpoints use: the model itself on one process; with several, the
+        # plain model (no gradient exchange during evaluation) and the one-GPU checkpoint format
+        self.eval_model = self.model if self.world == 1 else self.raw_model
+        self._ckpt_model = (
+            self.model
+            if self.world == 1
+            else dd.SingleFormat(self.raw_model, compiled=hasattr(self.model, "_orig_mod"))
+        )
         self.state = TrainState()
         self._gen = torch.Generator().manual_seed(cfg.data.seed)
         self.stop_reason: str | None = None
@@ -96,7 +124,9 @@ class Trainer:
 
     # ------------------------------------------------------------------ io --
     def _resume(self, path: Path) -> None:
-        meta = ckpt.load_checkpoint(path, self.model, self.optimizer, self.scheduler, map_location="cpu")
+        meta = ckpt.load_checkpoint(
+            path, self._ckpt_model, self.optimizer, self.scheduler, map_location="cpu"
+        )
         self.model.to(self.device)
         self.state.step = int(meta.get("step", 0))
         if meta.get("best_val") is not None:
@@ -111,16 +141,19 @@ class Trainer:
                 self.scaler.load_state_dict(blob["scaler"])
         if hasattr(self.ds, "seek"):  # continue the one pass with exactly the next window
             accum = max(1, self.cfg.train.accum_steps)
-            self.ds.seek(self.state.step * accum * self.cfg.data.batch_size)
+            self.ds.seek(self.state.step * accum * self.cfg.data.batch_size * self.world)
         print(f"[resume] loaded {path} at step {self.state.step} (best_val={self.state.best_val:.4f})")
 
     def save(self, tag: str, extra: dict | None = None) -> Path:
         """Write ``out_dir/tag``. Written to ``tag.tmp`` first and swapped in only when complete,
-        so a crash while saving never destroys the previous checkpoint."""
+        so a crash while saving never destroys the previous checkpoint. With several processes only
+        process 0 writes."""
         final = self.out_dir / tag
+        if self.rank != 0:
+            return final
         path = ckpt.save_checkpoint(
             self.out_dir,
-            self.model,
+            self._ckpt_model,
             self.optimizer,
             self.scheduler,
             self.cfg,
@@ -157,7 +190,7 @@ class Trainer:
         self.logger.log(
             event="run.start",
             info=self.spec.describe(),
-            n_params=self.model.n_params(),
+            n_params=self.raw_model.n_params(),
             max_steps=cfg.train.max_steps,
             eff_batch=cfg.data.batch_size * cfg.train.accum_steps * cfg.model.block_size,
         )
@@ -193,7 +226,10 @@ class Trainer:
                 ):
                     out = self.model(x, targets=y)
                     loss = out.loss / accum
-                if not torch.isfinite(loss):
+                finite = bool(torch.isfinite(loss))
+                if self.world > 1:  # every process must take the same branch (EXP-044)
+                    finite = dd.all_true(finite)
+                if not finite:
                     if cfg.train.early_stop_on_nan:
                         raise FloatingPointError(
                             f"non-finite loss at step {self.state.step} (micro {micro}); "
@@ -219,7 +255,8 @@ class Trainer:
                 self.state.skipped_steps += 1  # the scaler lowers its scale exactly when it skips
             self.scheduler.step()
 
-            self.state.tokens_seen += tokens_per_micro * accum
+            self.state.tokens_seen += tokens_per_micro * accum * self.world
+            self.last_loss = micro_loss  # this process's share of the step's mean loss
             step_dt = time.time() - step_t0
             remaining = cfg.train.max_steps - self.state.step
             eta_min = remaining * (time.time() - t_start) / max(self.state.step, 1) / 60
@@ -316,7 +353,8 @@ class Trainer:
     @torch.no_grad()
     def evaluate(self, max_iters: int | None = None, split: str = "val") -> float:
         """Mean loss over `eval_iters` batches of `split` (full split if 0)."""
-        self.model.eval()
+        model = self.eval_model
+        model.eval()
         cfg = self.cfg
         iters = cfg.train.eval_iters if max_iters is None else max_iters
         if iters <= 0:
@@ -331,10 +369,20 @@ class Trainer:
             with torch.autocast(
                 device_type=self.device.type, dtype=self.spec.amp_dtype, enabled=self.spec.amp
             ):
-                out = self.model(x, targets=y)
+                out = model(x, targets=y)
             total += float(out.loss)
             count += 1
         return total / max(count, 1)
+
+
+class _QuietLogger:
+    """The logger of processes other than 0: they train, process 0 reports (EXP-044)."""
+
+    def log(self, **fields: Any) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
 
 
 def _make_scaler(spec: DeviceSpec) -> torch.amp.GradScaler:

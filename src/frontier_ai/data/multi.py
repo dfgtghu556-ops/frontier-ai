@@ -189,6 +189,11 @@ class OnePassDataset:
     follow from the file sizes. The read position counts windows; the :class:`Trainer` uses
     :meth:`next_train_batch` for training and :meth:`seek` on resume, so a resumed run continues
     with exactly the next window. Validation and everything else is delegated to ``base``.
+
+    Several GPUs (EXP-044): after :meth:`set_shard` (rank r of w processes) each call reads
+    ``w * batch_size`` windows of the order and returns the r-th slice of ``batch_size`` of them,
+    so the w processes together read exactly the windows one process would read with a w times
+    larger batch. ``position`` stays the global window count, the same on every process.
     """
 
     def __init__(self, base: MultiTokenDataset, block_size: int, seed: int) -> None:
@@ -202,6 +207,7 @@ class OnePassDataset:
         self.n_windows = int(self.offsets[-1])
         self.order = one_pass_order(self.n_windows, seed)
         self.position = 0
+        self.rank, self.world = 0, 1
 
     def __getattr__(self, name: str):  # only called for attributes not found on self
         if name == "base":
@@ -222,6 +228,11 @@ class OnePassDataset:
             raise ValueError(f"position {position} outside 0..{self.n_windows}")
         self.position = int(position)
 
+    def set_shard(self, rank: int, world: int) -> None:
+        if world < 1 or not 0 <= rank < world:
+            raise ValueError(f"rank {rank} of {world} processes is not valid")
+        self.rank, self.world = int(rank), int(world)
+
     def window(self, k: int) -> tuple[str, int]:
         """(file name, first token) of global window k (before shuffling)."""
         f = int(np.searchsorted(self.offsets, k, side="right") - 1)
@@ -232,13 +243,15 @@ class OnePassDataset:
     ) -> tuple[torch.Tensor, torch.Tensor]:
         if block_size != self.block_size:
             raise ValueError(f"block_size {block_size} != the sampler's {self.block_size}")
-        if self.position + batch_size > self.n_windows:
+        chunk = batch_size * self.world
+        if self.position + chunk > self.n_windows:
             raise RuntimeError(
                 f"the one pass is used up ({self.position} of {self.n_windows} windows read); "
                 "max_steps is larger than one pass"
             )
-        idx = self.order[self.position : self.position + batch_size]
-        self.position += batch_size
+        lo = self.position + self.rank * batch_size
+        idx = self.order[lo : lo + batch_size]
+        self.position += chunk
         xs, ys = [], []
         for k in idx:
             name, start = self.window(int(k))

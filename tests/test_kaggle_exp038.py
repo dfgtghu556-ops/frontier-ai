@@ -37,7 +37,7 @@ def test_runner_commits_only_the_exp038_results_folder():
     text = _ps1()
     assert '$resultsPrefix = "evals/results/$Exp/"' in text
     assert (
-        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043")]'
+        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044")]'
         '[string]$Exp = "EXP-038", [switch]$Relaunch)' in text
     )
     assert "git add $resultsPrefix" in text
@@ -156,7 +156,7 @@ def test_exp039_wrapper_reuses_the_runner_and_the_dataset():
     # only EXP-040 (all 13 languages) switches to another dataset
     assert text.count("$datasetSlug = ") == 2
     assert (
-        'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {\n'
+        'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044") {\n'
         '    $datasetSlug = "frontier-v2-tok2-13lang"' in text
     )
     assert '$dataFiles = @("hi.bin", "hi.meta.json")' in text
@@ -231,7 +231,7 @@ def test_exp041_wrapper_reuses_the_13_language_dataset():
     wrapper = PS1_041.read_text(encoding="ascii")
     assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-041" -Relaunch:$Relaunch' in wrapper
     text = _ps1()
-    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {' in text  # no new upload
+    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044") {' in text  # no new upload
     assert 'if ($Exp -eq "EXP-041") {\n    $expectedRun' in text and "$maxWaitHours = 7" in text
 
 
@@ -271,7 +271,7 @@ def test_exp042_wrapper_reuses_the_13_language_dataset_and_waits_long_enough():
     wrapper = PS1_042.read_text(encoding="ascii")
     assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-042" -Relaunch:$Relaunch' in wrapper
     text = _ps1()
-    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {' in text
+    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044") {' in text
     block = text[text.index('if ($Exp -eq "EXP-042") {\n    $expectedRun') :]
     assert "$maxWaitHours = 11" in block.split("}")[0]  # 9-hour kernel + queueing and download
 
@@ -402,3 +402,51 @@ def test_exp043_kernel_runs_one_session_within_nine_gpu_hours():
         assert flag in helptext, flag
     res = subprocess.run([sys.executable, str(KERNEL_043)], capture_output=True, text=True, timeout=60)
     assert res.returncode != 0 and "placeholder" in (res.stderr + res.stdout)
+
+
+# ------------------------------------------------------------------------------------ EXP-044 --
+PS1_044 = ROOT / "scripts" / "run_kaggle_exp044.ps1"
+KERNEL_044 = ROOT / "scripts" / "kaggle" / "exp044_kernel.py"
+
+
+def test_exp044_wrapper_reuses_the_13_language_dataset_and_waits_long_enough():
+    wrapper = PS1_044.read_text(encoding="ascii")
+    assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-044" -Relaunch:$Relaunch' in wrapper
+    text = _ps1()
+    block = text[text.index('if ($Exp -eq "EXP-044") {\n    $expectedRun') :]
+    assert "$maxWaitHours = 4" in block.split("}")[0]
+    # EXP-044 never touches the EXP-043 kernels: no kernel_sources, its own kernel slug
+    assert "frontier-exp044" not in text  # the slug comes from $kernelSlug = "frontier-$expSlug"
+    i = text.index("$kernelSources = @()")
+    assert 'if ($Exp -eq "EXP-043") {' in text[i : i + 60]
+
+
+def test_exp044_refuses_to_start_while_an_exp043_session_is_out():
+    text = _ps1()
+    i = text.index('if ($launching -and $Exp -eq "EXP-044") {')
+    block = text[i : text.index("\n}\n", i)]
+    assert '$s43 = "out\\kaggle\\EXP-043\\state.json"' in block
+    assert ".pinned_commit" in block and "Stop-Run" in block
+    # the guard comes before anything is launched
+    assert i < text.index("$kaggle kernels push -p $stage")
+
+
+def test_exp044_kernel_runs_the_check_and_keeps_no_checkpoint():
+    tree = ast.parse(KERNEL_044.read_text(encoding="ascii"))
+    consts = {
+        n.targets[0].id: (n.value.args[0].value if isinstance(n.value, ast.Call) else n.value.value)
+        for n in tree.body
+        if isinstance(n, ast.Assign) and isinstance(n.value, (ast.Constant, ast.Call))
+    }
+    assert consts["COMMIT"] == "__PINNED_COMMIT__"
+    assert consts["OUT"] == "/kaggle/working/EXP-044" and str(consts["SCRATCH"]).startswith("/tmp/")
+    text = KERNEL_044.read_text(encoding="ascii")
+    assert "gpu_ddp_check.py" in text and "kernel_sources" not in text.split('"""', 2)[2]
+    flags = set(re.findall(r'"(--[a-z-]+)"', text)) - {"--quiet", "--no-deps"}
+    assert flags == {"--data-dir", "--out", "--scratch"}
+    helptext = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "gpu_ddp_check.py"), "--help"],
+        capture_output=True, text=True, cwd=ROOT, timeout=120,
+    ).stdout  # fmt: skip
+    for f in flags:
+        assert f in helptext
