@@ -3836,6 +3836,14 @@ summary now says whether it ran on 1 or 2 GPUs. **NOT VERIFIED:** whole-session 
 
 **Status:** running — session 1 complete (5e-4 chosen); session 2 launched on one GPU (result not yet in the repo); from the next session launched: two GPUs (D-050)
 
+**Correction (2026-10-05):** session 2 had **not** been launched; the note above wrongly says it had.
+The code now follows D-050 point 2: the first main-run session (session 2, no checkpoint yet) runs on
+one GPU even with `--gpus 2`, and two GPUs start from session 3, at session 2's checkpoint. Details
+are in D-050's correction note. Session 2 stays the first real test of the `kernel_sources` checkpoint
+chain, with the code proven in session 1.
+
+**Status:** running — session 1 complete (5e-4 chosen); next: session 2 (main run starts, one GPU); from session 3: two GPUs (D-050)
+
 ### EXP-044 — Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-044" before any code)
 

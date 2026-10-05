@@ -174,4 +174,24 @@ def test_one_gpu_is_the_default_and_no_setup_key_was_added():
     assert "gpus" not in gp.SETUP_FULL and "gpus" not in gp.SETUP_SMOKE
     assert gp.main.__defaults__ == (None,)
     args = type("A", (), {"gpus": 1, "smoke": False})()
-    assert gp.gpus_for_main(args) == (1, "one GPU (--gpus 1)")
+    assert gp.gpus_for_main(args, {"checkpoint": {"step": 1}}) == (1, "one GPU (--gpus 1)")
+    # D-050: no main-run checkpoint yet (the first main-run session) -> one GPU even with --gpus 2
+    two = type("A", (), {"gpus": 2, "smoke": True})()
+    assert gp.gpus_for_main(two, {"checkpoint": None})[0] == 1
+    assert gp.gpus_for_main(two, {"checkpoint": {"step": 1}})[0] == 2
+
+
+def test_the_first_main_run_session_stays_on_one_gpu_with_gpus_2(langs, chain, tmp_path):
+    """Session 2 (no main-run checkpoint yet) with --gpus 2 is the one-GPU session, bit for bit."""
+    res = tmp_path / "res"
+    res.mkdir()
+    shutil.copytree(chain / "res" / "session-1", res / "session-1")
+    assert (
+        _session(langs, res, tmp_path, chain / "c1", tmp_path / "c2", "--gpus", "2", "--session-steps", "100")
+        == 0
+    )
+    s2, ref = _summary(res, 2), _summary(chain / "res", 2)
+    assert s2["main"]["gpus"] == 1 and "no checkpoint yet" in s2["gpus_plan"]
+    assert not (tmp_path / "scratch" / gp.DDP_DIR).exists()  # no worker was started
+    for f in ("model.pt", "optimizer.pt", "trainer_state.pt"):
+        assert s2["checkpoint"]["files"][f] == ref["checkpoint"]["files"][f], f

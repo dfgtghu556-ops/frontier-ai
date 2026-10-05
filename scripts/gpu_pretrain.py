@@ -885,7 +885,7 @@ def run_session(
         if resume_dir is not None:
             meta = json.loads((resume_dir / "last" / "meta.json").read_text(encoding="utf-8"))
             rep.data["skipped_before"] = meta.get("skipped_steps", 0)
-        gpus, note = gpus_for_main(args)
+        gpus, note = gpus_for_main(args, st)
         rep.data["gpus_plan"] = note
         if gpus > 1:
             run_main_two_gpus(args, rep, ops, setup, st, deadline, resume_dir)
@@ -896,10 +896,19 @@ def run_session(
 
 
 # ------------------------------------------------------------ two GPUs --
-def gpus_for_main(args: argparse.Namespace) -> tuple[int, str]:
-    """How many processes train the main run (D-050) and why."""
+def gpus_for_main(args: argparse.Namespace, st: dict) -> tuple[int, str]:
+    """How many processes train the main run (D-050) and why.
+
+    D-050: the first main-run session (session 2) runs on one GPU; the switch to two happens at a
+    checkpoint, i.e. only once the main run has a sha256-checked checkpoint from an earlier session.
+    """
     if args.gpus <= 1:
         return 1, "one GPU (--gpus 1)"
+    if st["checkpoint"] is None:
+        return 1, (
+            "one GPU: the main run has no checkpoint yet (D-050: the first main-run session runs on "
+            "one GPU; the switch to two GPUs happens at a checkpoint)"
+        )
     if args.smoke:
         return 2, "two CPU processes (smoke test of the two-GPU path, gloo)"
     n = torch.cuda.device_count()

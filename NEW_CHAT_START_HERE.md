@@ -714,6 +714,9 @@ comes next. They also update the table in §3.
     `tests/test_pretrain_ddp.py` 6 passed; full suite 748 passed, 1 skipped. Every EXP-043 session
     launched from now on uses both GPUs (the same founder line). Check each two-GPU session against
     D-050's revisit rules: >5% skipped steps, a hang/NCCL error, or whole-session speed < 1.4x.
+  - **Correction (2026-10-05):** session 2 had NOT been launched. The code now keeps the first
+    main-run session (no checkpoint yet = session 2) on one GPU even with `--gpus 2` (D-050 point 2).
+    Two GPUs start from session 3. The same founder line is used for every session.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

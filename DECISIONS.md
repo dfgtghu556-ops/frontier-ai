@@ -1900,6 +1900,18 @@ proposal text above is unchanged; this note records how it was built.
 - **First two-GPU session:** the first EXP-043 session launched after the founder's PC has pulled
   this commit. Session 2 (one GPU, already launched) is not affected.
 
+**Correction (2026-10-05): session 2 had not been launched.** The note above wrongly says it was. With
+the code as first built, session 2 would have been the first two-GPU session, against point 2 of this
+decision ("Session 2 runs on one GPU… the switch happens at a checkpoint"). Fixed so the code follows
+the decision:
+- `gpus_for_main` uses two GPUs only when the main run already has a sha256-checked checkpoint from
+  an earlier session. Session 2 starts the main run from step 0 with no checkpoint, so it runs on one
+  GPU even though the kernel passes `--gpus 2`. The first two-GPU session is therefore session 3,
+  which loads session 2's one-GPU checkpoint. The founder's launch line is the same for every session.
+- New test: session 2 with `--gpus 2` starts no worker and gives the same model, optimizer and
+  trainer-state files as a one-GPU session 2.
+- The CPU smoke still gives final weights `6b3eab46…` (bpb 0.9773914663710349).
+
 ## Open items to decide later (not yet decisions)
 
 
