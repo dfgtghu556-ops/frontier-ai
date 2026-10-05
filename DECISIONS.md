@@ -1801,7 +1801,7 @@ length changes.
 ---
 
 ## D-050 — Continue the EXP-043 main run on both Kaggle GPUs (two-GPU data parallel) from the first session after this is built
-**Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve D-050"; evidence EXP-044, EXP-043 session 1)
+**Date:** 2026-10-04 · **Status:** accepted (founder decision 2026-10-04: "APPROVE D-50"; evidence EXP-044, EXP-043 session 1)
 
 **Decision (proposed):**
 1. **What switches.** The rest of the EXP-043 main run moves to the two T4s of the same Kaggle
@@ -1860,6 +1860,45 @@ length changes.
 
 **Revisit when:** a two-GPU session shows more than 5% skipped steps, a hang or NCCL error, or a
 whole-session speed below 1.4×. EXP-043 then returns to one GPU, and a dated note records why.
+
+**Update (2026-10-05): approved and built.** The founder approved on 2026-10-04 ("APPROVE D-50"). The
+proposal text above is unchanged; this note records how it was built.
+- `scripts/gpu_pretrain.py --gpus 2`: the main-run part of a session starts a `torchrun` worker with
+  two processes (the same launcher as EXP-044). They run the same `run_main` with 16 × 1 per GPU
+  instead of 16 × 2. Part 0, the checkpoint chain check, the learning-rate state and the order
+  fingerprint stay in the one parent process; the worker re-checks the order fingerprint.
+- Decisions at each step (stop rules, evaluations, checkpoints, time budget) are made on process 0
+  and shared, so both processes always stop together. Only process 0 writes. After training, the
+  processes leave the group together; the session-end evaluation, samples and `model_final.pt` are
+  then made by process 0 alone.
+- **If the two-GPU start fails** before the first training step, the same session continues on one
+  GPU and its summary records `two_gpu_fallback` (with each process's error). **If it fails during
+  training**, the session stops, records `two_gpu_failure`, and the newest periodic checkpoint is
+  carried forward as usual.
+- Each session summary records the GPU count (`main.gpus`, `main.micro_per_gpu`,
+  `main.peak_mem_gb_per_gpu`, `gpus_plan`), and SUMMARY.txt shows it. The GPU count is deliberately
+  **not** part of the session `setup`, because sessions whose setup differs are refused (that would
+  refuse sessions 1 and 2).
+- `scripts/kaggle/exp043_kernel.py` passes `--gpus 2`. The runner is unchanged: the Kaggle T4
+  machine that EXP-043 already uses has two GPUs (session 1 recorded `device_count` 2).
+- **Verified on CPU** (two processes, gloo, `tests/test_pretrain_ddp.py`, 6 tests):
+  - session 3 on two processes finishes the pass with the same steps, tokens, order position,
+    evaluation points and checkpoints as one process;
+  - a two-process checkpoint resumes on one process;
+  - a failed start falls back to one process with bit-identical final weights;
+  - a failure at step 130 keeps the step-125 checkpoint;
+  - a stop rule on process 0 stops both processes.
+  On CPU the two-process final bpb equals the one-process value (0.9773914663710349). On T4s it will
+  differ slightly (EXP-044: 0.0042 bpb after 300 steps).
+- **The one-GPU path is unchanged:** the EXP-043 CPU smoke gives bit-identical model, optimizer and
+  trainer-state files and final weights (`6b3eab46…`, bpb 0.9773914663710349) before and after this
+  change. The only other code change is that the summary is also saved right after each periodic
+  checkpoint. Full test suite: 748 passed, 1 skipped.
+- **NOT VERIFIED until the first two-GPU session:** this script on NCCL on Kaggle (EXP-044 checked
+  the same trainer path and launcher), the whole-session speed (the 1.4× rule above), and memory per
+  GPU over a long session.
+- **First two-GPU session:** the first EXP-043 session launched after the founder's PC has pulled
+  this commit. Session 2 (one GPU, already launched) is not affected.
 
 ## Open items to decide later (not yet decisions)
 

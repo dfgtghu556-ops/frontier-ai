@@ -3824,6 +3824,18 @@ results in `evals/results/EXP-043/session-1/`.
 
 **Status:** running — session 1 (learning-rate check) complete: 5e-4 chosen by the pre-registered rule; next: session 2 starts the main run
 
+**Update (2026-10-05): D-050 approved and built. The main run continues on both GPUs** from the first
+session launched on the new code. The plan is unchanged: the same 32 windows per step (16 per GPU),
+order, learning rate 5e-4, schedule, stop rules, evaluation, gate and 100-hour cap (counted in session
+hours). Details and checks are in D-050's 2026-10-05 note:
+- one-GPU path bit-identical;
+- CPU tests of two processes, the fallback to one GPU and failures;
+- full suite 748 passed, 1 skipped.
+Session 2 was launched on one GPU before this; its result is not in the repository yet. Each session
+summary now says whether it ran on 1 or 2 GPUs. **NOT VERIFIED:** whole-session speed on two T4s.
+
+**Status:** running — session 1 complete (5e-4 chosen); session 2 launched on one GPU (result not yet in the repo); from the next session launched: two GPUs (D-050)
+
 ### EXP-044 — Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-044" before any code)
 

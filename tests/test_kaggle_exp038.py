@@ -390,8 +390,9 @@ def test_exp043_kernel_runs_one_session_within_nine_gpu_hours():
     flags = set(re.findall(r'"(--[a-z-]+)"', text)) - {"--quiet", "--no-deps"}
     assert flags == {
         "--data-dir", "--part", "--out", "--prev-dir", "--chain-in", "--chain-out", "--final-dir", "--scratch",
-        "--exp-id", "--max-hours",
+        "--exp-id", "--max-hours", "--gpus",
     }  # fmt: skip
+    assert '"--gpus",\n        "2",\n    ]' in text  # D-050: the main run on both T4s
     helptext = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "gpu_pretrain.py"), "--help"],
         capture_output=True,

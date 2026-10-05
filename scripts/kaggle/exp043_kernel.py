@@ -2,7 +2,8 @@
 
 Do not run this file directly. ``scripts/run_kaggle_exp043.ps1`` copies it to ``run.py``, replaces
 the commit placeholder with the commit being tested and pushes it as a private Kaggle script kernel
-(one T4 GPU, internet on, the private 13-language token dataset attached). Two kernels,
+(Kaggle's T4 machine, which has two T4 GPUs; internet on, the private 13-language token dataset
+attached). Two kernels,
 ``frontier-exp043-a`` and ``frontier-exp043-b``, take turns; each gets the other's latest output
 mounted under ``/kaggle/input`` (``kernel_sources``), which is how the checkpoint travels from one
 session to the next.
@@ -11,7 +12,10 @@ On Kaggle it: clones the repository at that commit, finds the folder under ``/ka
 holds all 13 EXP-037 token files, and runs ``scripts/gpu_pretrain.py --part auto``: Part 0 (sha256
 checks, tests, the one-step float64 device check, the checkpoint sha256 check against the last
 committed ``evals/results/EXP-043/session-*/summary.json``), then the learning-rate check or the
-next stretch of the main run, until the 9-hour budget of this session. Written to
+next stretch of the main run, until the 9-hour budget of this session. The main run uses both
+GPUs (``--gpus 2``, D-050, approved 2026-10-04 after EXP-044): 16 windows per GPU per step, the
+same 32 windows per step as on one GPU; the learning-rate check stays on one GPU. If the two-GPU
+start fails, the session continues on one GPU and its summary says so. Written to
 ``/kaggle/working`` (the kernel output): the two small result files in ``EXP-043/session-<n>``
 (plus ``samples.jsonl`` at the end), the checkpoint for the next session in ``exp043_chain``
 (about 2.3 GB) and, in the last session only, ``exp043_final/model_final.pt`` (about 760 MB).
@@ -86,6 +90,8 @@ def main() -> int:
         "EXP-043",
         "--max-hours",
         MAX_HOURS,
+        "--gpus",
+        "2",
     ]
     print("+", " ".join(cmd), flush=True)
     code = subprocess.run(cmd, cwd=SRC).returncode

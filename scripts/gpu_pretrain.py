@@ -23,6 +23,16 @@ Stop rules (the session stops, keeps its last good checkpoint and reports; going
 decision): a NaN/inf loss; more than 5% skipped fp16 steps in any 2,000-step window; a sampled
 validation loss more than 0.1 nats above the best so far at 3 evaluations in a row.
 
+Two GPUs (D-050, approved 2026-10-04 after EXP-044 passed): with ``--gpus 2`` the main run's
+training is done by a ``torchrun`` worker with two processes (this same script, ``--ddp-worker``)
+running the same :func:`run_main`: 16 windows per GPU per step instead of 16 x 2 on one GPU, so
+the same 32 windows per step, order, learning rate and rules. Everything else (Part 0, the chain
+check, the learning-rate state) stays in this one process. Per-step decisions (stop rules,
+evaluations, checkpoints, time budget) are made on process 0 and shared; the end-of-session
+evaluation and final files are made by process 0 alone after the process group is closed. If the
+worker fails before its first training step, the session continues on one GPU. Without
+``--gpus 2`` nothing of this runs and the one-GPU path is unchanged.
+
 CPU test of the whole flow: ``--smoke`` (tiny model, tiny data; see tests/test_pretrain.py).
 """
 
@@ -31,7 +41,9 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import shutil
+import subprocess
 import sys
 import time
 import traceback
@@ -49,6 +61,7 @@ import torch  # noqa: E402
 import gpu_bringup as gb  # noqa: E402
 import gpu_lr_arch as la  # noqa: E402
 from frontier_ai.data.multi import MultiTokenDataset, OnePassDataset, full_split_loss  # noqa: E402
+from frontier_ai.engine import distributed as dd  # noqa: E402
 from frontier_ai.engine.trainer import Trainer  # noqa: E402
 
 ROOT = gb.ROOT
@@ -56,6 +69,12 @@ SCHEMA = "frontier-pretrain-v1"
 EXP_ID = "EXP-043"
 CHAIN_FILE = "chain.json"
 CKPT_FILES = ("model.pt", "optimizer.pt", "trainer_state.pt", "meta.json", "config.json")
+# D-050: the two-GPU worker. Not part of SETUP_* on purpose: earlier sessions are refused when their
+# setup differs, and the GPU count does not change the pre-registered plan.
+DDP_DIR = "ddp"  # under --scratch: in.json, worker.log, first_step.json, done.json
+DDP_GRACE_MIN = 90.0  # after the training deadline: session-end evaluation, final files, start-up
+DDP_NCCL_TIMEOUT_MIN = 60.0
+_FIRST_STEP_MARKER: Path | None = None  # set in the worker on process 0
 
 MODEL_FULL = {"n_layer": 14, "n_head": 14, "n_embd": 896, "block_size": 512, "pos": "rope", "n_kv_head": 2}
 MODEL_SMOKE = {"n_layer": 2, "n_head": 4, "n_embd": 32, "block_size": 16, "pos": "rope", "n_kv_head": 2}
@@ -149,6 +168,15 @@ def render(d: dict[str, Any]) -> str:
         out.append(f"STOPPED: {d['stopped']}")
     if d.get("stop_rule"):
         out.append(f"STOP RULE FIRED: {d['stop_rule']} (continuing needs a decision)")
+    for key, label in (
+        ("two_gpu_fallback", "TWO-GPU START FAILED"),
+        ("two_gpu_failure", "TWO-GPU RUN FAILED"),
+    ):
+        if d.get(key):
+            fb = d[key]
+            out.append(f"{label}: {fb.get('note')} (exit code {fb.get('exit_code')})")
+            out += [f"    {k}: {v}" for k, v in fb.get("errors", {}).items()]
+            out += [f"    | {line}" for line in fb.get("log_tail", [])[-8:]]
     p0 = d.get("part0", {})
     if p0:
         osc = p0.get("one_step_check", {})
@@ -195,6 +223,14 @@ def render(d: dict[str, Any]) -> str:
         if m.get("tokens_per_s"):
             out.append(f"  {m['tokens_per_s']:,.0f} tokens/s; peak memory {_f(m.get('peak_mem_gb'), 2)} GB")
         out.append(f"  skipped fp16 steps this session: {m.get('skipped_steps_session')}")
+        mpg = m.get("micro_per_gpu")
+        if mpg:
+            per = m.get("peak_mem_gb_per_gpu")
+            out.append(
+                f"  trained on {m.get('gpus', 1)} GPU(s): {mpg[0]} x {mpg[1]} per GPU"
+                + (f"; peak memory per GPU {per} GB" if per else "")
+                + (f"  [{d['gpus_plan']}]" if d.get("gpus_plan") else "")
+            )
         curve = m.get("val_curve", [])
         if curve:
             out.append(
@@ -567,6 +603,11 @@ def run_main(
 ) -> None:
     gpu = torch.cuda.is_available()
     micro, accum = rep.data["micro"]
+    world = dd.world()
+    if world > 1:  # D-050: the same windows per step, split over the processes
+        if accum % world:
+            raise ValueError(f"accumulation {accum} cannot be split over {world} processes")
+        accum //= world
     lr = rep.data["lr_choice"]["lr"]
     total = ops.steps_per_pass(setup["windows_per_step"])
     chain_out = Path(args.chain_out)
@@ -606,6 +647,8 @@ def run_main(
         "periodic_saves": [],
         "best_val": None if math.isinf(st["best_val"]) else st["best_val"],
         "bad_evals": st["bad_evals"],
+        "gpus": world,
+        "micro_per_gpu": [micro, accum],
     }
     rep.data["main"] = m
     rep.save()
@@ -616,8 +659,17 @@ def run_main(
     t0 = time.time()
 
     def callback(tr: Trainer) -> str | None:
+        return dd.run_on_main(lambda: decide(tr))
+
+    def decide(tr: Trainer) -> str | None:
         nonlocal best, last_skipped
         s = tr.state.step
+        if _FIRST_STEP_MARKER is not None and s == start + 1:
+            _FIRST_STEP_MARKER.write_text(json.dumps({"step": s}) + "\n", encoding="utf-8")
+        if args.smoke and args.test_stop_at is not None and s == args.test_stop_at:
+            raise StopRule(f"test stop rule at step {s}")
+        if args.smoke and os.environ.get("FRONTIER_TEST_DDP_FAIL") == f"step:{s}" and dd.world() > 1:
+            raise RuntimeError(f"test: the two-GPU worker fails at step {s}")
         skips.append(tr.state.skipped_steps - last_skipped)
         last_skipped = tr.state.skipped_steps
         m["end_step"] = s
@@ -648,6 +700,7 @@ def run_main(
         if s % setup["save_every"] == 0 and s < total:
             tr.save("last")
             m["periodic_saves"].append(s)
+            rep.save()  # the record names the newest checkpoint even if the process dies later
         if args.session_steps is not None and s - start >= args.session_steps:
             return "session step limit (test)"
         if time.time() > t_train_end:
@@ -675,8 +728,16 @@ def run_main(
         skipped_steps_session=trainer.state.skipped_steps - (rep.data.get("skipped_before") or 0),
         sampler_position=ops.position,
     )
+    if trainer.world > 1:  # D-050: both processes get here together (decisions are shared)
+        m["peak_mem_gb_per_gpu"] = dd.all_gather_object(m["peak_mem_gb"])
+        dd.barrier()
+        dd.cleanup()  # from here on process 0 works alone: no exchange can hang during evaluation
+        if trainer.rank != 0:
+            del trainer
+            gb.reset_backend()
+            return
     rep.save()
-    model = getattr(trainer.model, "_orig_mod", trainer.model)
+    model = trainer.raw_model if trainer.world > 1 else getattr(trainer.model, "_orig_mod", trainer.model)
     amp = trainer.spec.amp_dtype if trainer.spec.amp else None
     if not rep.data.get("stop_rule"):
         t_eval = time.time()
@@ -824,9 +885,151 @@ def run_session(
         if resume_dir is not None:
             meta = json.loads((resume_dir / "last" / "meta.json").read_text(encoding="utf-8"))
             rep.data["skipped_before"] = meta.get("skipped_steps", 0)
-        run_main(args, rep, ops, setup, st, deadline, resume_dir)
+        gpus, note = gpus_for_main(args)
+        rep.data["gpus_plan"] = note
+        if gpus > 1:
+            run_main_two_gpus(args, rep, ops, setup, st, deadline, resume_dir)
+        else:
+            run_main(args, rep, ops, setup, st, deadline, resume_dir)
     finally:
         finish_chain(rep, chain_out, resume_dir)
+
+
+# ------------------------------------------------------------ two GPUs --
+def gpus_for_main(args: argparse.Namespace) -> tuple[int, str]:
+    """How many processes train the main run (D-050) and why."""
+    if args.gpus <= 1:
+        return 1, "one GPU (--gpus 1)"
+    if args.smoke:
+        return 2, "two CPU processes (smoke test of the two-GPU path, gloo)"
+    n = torch.cuda.device_count()
+    if n < 2:
+        return 1, f"--gpus 2 was asked, but {n} GPU(s) are visible: one GPU"
+    return 2, f"two GPUs ({torch.cuda.get_device_name(0)} x {n}; D-050)"
+
+
+def run_main_two_gpus(
+    args: argparse.Namespace,
+    rep: Report,
+    ops: OnePassDataset,
+    setup: dict,
+    st: dict,
+    deadline: float,
+    resume_dir: Path | None,
+) -> None:
+    """Run :func:`run_main` in a two-process torchrun worker; fall back to one GPU if it fails to start."""
+    wdir = Path(args.scratch) / DDP_DIR
+    shutil.rmtree(wdir, ignore_errors=True)
+    wdir.mkdir(parents=True)
+    snapshot = json.loads(json.dumps(rep.data))
+    payload = {
+        "args": vars(args),
+        "setup": setup,
+        "st": st,
+        "deadline": deadline,
+        "resume_dir": str(resume_dir) if resume_dir else None,
+        "rep_data": rep.data,
+        "rep_t0": rep.t0,
+        "rep_out": str(rep.out),
+    }
+    (wdir / "in.json").write_text(json.dumps(payload) + "\n", encoding="utf-8")
+    rep.save()
+    gb.reset_backend()
+    cmd = [sys.executable, "-m", "torch.distributed.run", "--standalone", "--nnodes", "1"]
+    cmd += ["--nproc_per_node", "2", str(SCRIPTS / "gpu_pretrain.py"), "--ddp-worker", str(wdir / "in.json")]
+    env = {**os.environ, "OMP_NUM_THREADS": os.environ.get("OMP_NUM_THREADS", "1")}
+    if args.smoke:  # the CPU test stays on CPU even on a GPU machine
+        env["CUDA_VISIBLE_DEVICES"] = ""
+    timeout = max(deadline - time.time(), 0.0) + DDP_GRACE_MIN * 60
+    gb._say(f"main run on two processes: {' '.join(cmd[-6:])}")
+    timed_out = False
+    with open(wdir / "worker.log", "w", encoding="utf-8") as log:
+        try:
+            code = subprocess.run(
+                cmd, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env, timeout=timeout
+            ).returncode
+        except subprocess.TimeoutExpired:
+            code, timed_out = -9, True
+    tail = (wdir / "worker.log").read_text(encoding="utf-8", errors="replace").splitlines()[-30:]
+    print("\n".join(tail), flush=True)
+    done, started = (wdir / "done.json").exists(), (wdir / "first_step.json").exists()
+    summary = rep.out / "summary.json"
+    if done or started:  # process 0 kept the session summary up to date: take it over
+        rep.data = json.loads(summary.read_text(encoding="utf-8"))
+    if done:
+        return
+    errors = {
+        f.stem: (f.read_text(encoding="utf-8", errors="replace").strip().splitlines() or [""])[-1]
+        for f in sorted(wdir.glob("error_rank*.txt"))
+    }
+    failure = {"exit_code": code, "timed_out": timed_out, "errors": errors, "log_tail": tail[-20:]}
+    if started:
+        failure["note"] = "the two-GPU worker failed after training had started"
+        rep.data["two_gpu_failure"] = failure
+        rep.data["stopped"] = (
+            f"the two-GPU training failed after it started (exit code {code}"
+            f"{', timed out' if timed_out else ''}); the newest complete checkpoint is kept"
+        )
+        return
+    rep.data = snapshot
+    failure["note"] = (
+        "the two-GPU start failed before the first training step; this session continues on one GPU"
+    )
+    rep.data["two_gpu_fallback"] = failure
+    rep.data["gpus_plan"] = snapshot.get("gpus_plan", "") + " -> FALLBACK: one GPU"
+    rep.save()
+    run_main(args, rep, ops, setup, st, deadline, resume_dir)
+
+
+class _QuietReport:
+    """The report of processes other than 0: they train, process 0 reports."""
+
+    def __init__(self, out: Path, data: dict) -> None:
+        self.out, self.data = out, data
+
+    def save(self) -> None:
+        pass
+
+
+def ddp_worker(path: Path) -> int:
+    """One process of the two-GPU main run (started by torchrun from :func:`run_main_two_gpus`)."""
+    global _FIRST_STEP_MARKER
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    args = argparse.Namespace(**payload["args"])
+    dd.init_from_env(timeout_minutes=DDP_NCCL_TIMEOUT_MIN)
+    rank = dd.rank()
+    out = Path(payload["rep_out"])
+    if rank == 0:
+        _FIRST_STEP_MARKER = path.parent / "first_step.json"
+        rep: Any = Report(out, args.exp_id, args.smoke)
+        rep.data, rep.t0 = payload["rep_data"], payload["rep_t0"]
+    else:
+        rep = _QuietReport(out, payload["rep_data"])
+    setup, st = payload["setup"], payload["st"]
+    code = 0
+    try:
+        if args.smoke and os.environ.get("FRONTIER_TEST_DDP_FAIL") == "start":
+            raise RuntimeError("test: the two-GPU start fails")
+        if dd.world() != 2:
+            raise RuntimeError(f"expected 2 processes, got {dd.world()}")
+        manifest = json.loads((ROOT / args.manifest).read_text(encoding="utf-8"))
+        base = MultiTokenDataset([Path(args.data_dir) / f["path"] for f in manifest["files"]])
+        ops = OnePassDataset(base, setup["model"]["block_size"], setup["order_seed"])
+        if ops.fingerprint() != payload["rep_data"]["order"]["fingerprint"]:
+            raise RuntimeError("the worker's one-pass order differs from the session's")
+        gb.reset_backend()
+        resume = Path(payload["resume_dir"]) if payload["resume_dir"] else None
+        rep.data["precision"] = rep.data["precision"] + "; DistributedDataParallel on two GPUs (D-050)"
+        run_main(args, rep, ops, setup, st, payload["deadline"], resume)
+    except Exception:  # noqa: BLE001 - the parent reads the exit code, these files and the log
+        traceback.print_exc()
+        (path.parent / f"error_rank{rank}.txt").write_text(traceback.format_exc(), encoding="utf-8")
+        code = 1
+    if code == 0 and rank == 0:
+        rep.save()
+        (path.parent / "done.json").write_text(json.dumps({"ok": True}) + "\n", encoding="utf-8")
+    dd.cleanup()
+    return code
 
 
 def finish_chain(rep: Report, chain_out: Path, resume_dir: Path | None) -> None:
@@ -854,6 +1057,9 @@ def la_plan(args: argparse.Namespace) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if argv[:1] == ["--ddp-worker"]:  # D-050: one process of the two-GPU main run
+        return ddp_worker(Path(argv[1]))
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--data-dir", required=True, help="folder with the 13 EXP-037 .bin + .meta.json files")
     p.add_argument("--manifest", default=gb.DEFAULT_MANIFEST)
@@ -869,6 +1075,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--exp-id", default=EXP_ID)
     p.add_argument("--max-hours", type=float, default=9.0, help="time budget of this session")
     p.add_argument("--smoke", action="store_true", help="tiny model and data (CPU test of the script)")
+    p.add_argument(
+        "--gpus", type=int, choices=[1, 2], default=1, help="processes for the main run (2: D-050, torchrun)"
+    )
+    p.add_argument("--test-stop-at", type=int, default=None, help=argparse.SUPPRESS)  # smoke tests only
     p.add_argument("--max-runs", type=int, default=None, help=argparse.SUPPRESS)  # tests
     p.add_argument("--session-steps", type=int, default=None, help=argparse.SUPPRESS)  # tests
     p.add_argument("--skip-tests", action="store_true", help=argparse.SUPPRESS)

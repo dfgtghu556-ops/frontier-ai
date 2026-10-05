@@ -708,6 +708,12 @@ comes next. They also update the table in §3.
     both GPUs from the first session after it is built (fallback to one GPU if the two-GPU start
     fails; the cap counts session hours). Session 2 runs on one GPU now. Implement D-050 only after
     "approve D-050", keeping the one-GPU path bit-identical (CPU smoke hashes).
+  - **D-050 approved (2026-10-04, "APPROVE D-50") and built (2026-10-05):** `gpu_pretrain.py --gpus 2`
+    (torchrun worker, 16 x 1 per GPU, process 0 decides and writes; fallback to one GPU if the start
+    fails); the EXP-043 kernel passes `--gpus 2`. One-GPU path bit-identical (CPU smoke hashes);
+    `tests/test_pretrain_ddp.py` 6 passed; full suite 748 passed, 1 skipped. Every EXP-043 session
+    launched from now on uses both GPUs (the same founder line). Check each two-GPU session against
+    D-050's revisit rules: >5% skipped steps, a hang/NCCL error, or whole-session speed < 1.4x.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

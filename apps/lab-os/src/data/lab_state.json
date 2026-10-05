@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "168293e35d55e2381b128ad1b27d7ca14248a0b2935284bc61a12c7b26a60db7",
+  "source_digest": "c15373cdfec1f8d1196efdca75bb0cc6d71ea63d76368d469eda9d3f71de13fd",
   "sources": {
-    "EXPERIMENTS.md": "b2b105cb6c6083d0502fe2a05bb7bb7ec02ac8b3db71a0bca04d93b2b3059dbb",
-    "DECISIONS.md": "c0a074c94d0e566ff92c8778d50e26977fdf53917dd9f654aa6ef2239b8e6ead",
+    "EXPERIMENTS.md": "e0b3ff2fbed9bf555af40e816a3e716a742e61068ce40cb3c0fc9621a79c7500",
+    "DECISIONS.md": "9fa41ee02dffe20bf05f793ab1def05bf6767187ddb648e6971e9615c7b139bf",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "9f0892b7463d4f3fc1f2f5be86a823fb70f45428bb60d4c8e68f123953e8773f",
+    "lab/registry.json": "79f93800395b5ddc8e91f36e9d87cfe5cbbbfc98e6650fcc3f49abbc651f1668",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -358,13 +358,14 @@
   ],
   "current_work": [
     {
-      "title": "EXP-043 running (train the 14 x 896 model on one Kaggle T4): session 1 done, learning rate 5e-4 chosen; next: session 2 starts the main run",
+      "title": "EXP-043 running (train the 14 x 896 model on Kaggle): session 1 done, lr 5e-4; session 2 on one GPU; next sessions on both GPUs (D-050 built)",
       "evidence": [
         "EXP-043",
         "D-049",
         "EXP-042",
         "D-048",
-        "D-047"
+        "D-047",
+        "D-050"
       ],
       "evidence_files": [
         "scripts/gpu_pretrain.py",
@@ -372,12 +373,13 @@
         "scripts/kaggle/exp043_kernel.py",
         "src/frontier_ai/data/multi.py",
         "tests/test_pretrain.py",
-        "evals/results/EXP-043/session-1/summary.json"
+        "evals/results/EXP-043/session-1/summary.json",
+        "tests/test_pretrain_ddp.py"
       ],
-      "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0. Session 1 (2026-10-04): lr check done, bpb 0.8543 / 0.8172 / 0.8160 at 2.5e-4 / 5e-4 / 1e-3, no skipped steps; 5e-4 chosen by the pre-registered rule (within noise 0.0174 of the best -> the lower one); 9.27 GB peak, about 11,100 tokens/s, 8.05 GPU-h used. Session 2 = first main-run session and first real kernel_sources chain test."
+      "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0. Session 1 (2026-10-04): lr check done, bpb 0.8543 / 0.8172 / 0.8160 at 2.5e-4 / 5e-4 / 1e-3, no skipped steps; 5e-4 chosen by the pre-registered rule (within noise 0.0174 of the best -> the lower one); 9.27 GB peak, about 11,100 tokens/s, 8.05 GPU-h used. Session 2 = first main-run session and first real kernel_sources chain test. D-050 approved 2026-10-04 (\"APPROVE D-50\") and built 2026-10-05: gpu_pretrain.py --gpus 2 (torchrun worker, 16 x 1 per GPU, process 0 decides and writes, fallback to one GPU if the start fails); the kernel passes --gpus 2. One-GPU path bit-identical (CPU smoke hashes); tests/test_pretrain_ddp.py 6 passed; full suite 748 passed, 1 skipped. Whole-session two-GPU speed NOT VERIFIED."
     },
     {
-      "title": "Parallel work while EXP-043 runs: EXP-044 two-GPU check PASSED (1.79x, D-050 proposed); EXP-045 evaluation code and EXP-046 step 1 ready",
+      "title": "Parallel work while EXP-043 runs: EXP-044 two-GPU check PASSED (1.79x, D-050 approved and built); EXP-045 evaluation code and EXP-046 step 1 ready",
       "evidence": [
         "EXP-044",
         "EXP-045",
@@ -862,14 +864,15 @@
       "id": "EXP-043",
       "title": "Step 12: train the first serious Frontier base model (14 × 896, about 190 M parameters, D-049)",
       "date": "2026-10-03",
-      "status": "running — session 1 (learning-rate check) complete: 5e-4 chosen by the pre-registered rule; next: session 2 starts the main run",
+      "status": "running — session 1 complete (5e-4 chosen); session 2 launched on one GPU (result not yet in the repo); from the next session launched: two GPUs (D-050)",
       "category": "other",
       "step": null,
       "summary": "this is the first model trained on our whole verified corpus at the size our own scaling evidence supports (D-049). It tests the whole pipeline at a scale 34× beyond anything trained so far: tokenizer, 13-language data, architecture, GPU stack, multi-session training and evaluation. Everything later (more data, larger …",
       "decisions": [
         "D-047",
         "D-048",
-        "D-049"
+        "D-049",
+        "D-050"
       ],
       "line": 3613,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3613"
@@ -887,8 +890,8 @@
         "D-049",
         "D-050"
       ],
-      "line": 3827,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3827"
+      "line": 3839,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3839"
     },
     {
       "id": "EXP-045",
@@ -902,8 +905,8 @@
         "D-042",
         "D-047"
       ],
-      "line": 3942,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3942"
+      "line": 3954,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L3954"
     },
     {
       "id": "EXP-046",
@@ -918,8 +921,8 @@
         "D-045",
         "D-049"
       ],
-      "line": 4046,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4046"
+      "line": 4058,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4058"
     }
   ],
   "experiment_numbers_not_in_log": [
@@ -1531,8 +1534,8 @@
       "id": "D-050",
       "title": "Continue the EXP-043 main run on both Kaggle GPUs (two-GPU data parallel) from the first session after this is built",
       "date": "2026-10-04",
-      "status": "proposed (needs the founder's \"approve D-050\"; evidence EXP-044, EXP-043 session 1)",
-      "category": "proposed",
+      "status": "accepted (founder decision 2026-10-04: \"APPROVE D-50\"; evidence EXP-044, EXP-043 session 1)",
+      "category": "accepted",
       "summary": "",
       "experiments": [
         "EXP-043",
