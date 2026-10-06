@@ -1,0 +1,12 @@
+EXP-046 probe (Kaggle CPU session; no data processed)
+commit: 7bea38ed9ce38a43795c2e771bc77b4b661e2782
+finished: 2026-10-06T13:52:06Z  ok: True
+CPU: 4 usable of 4 (Intel(R) Xeon(R) CPU @ 2.20GHz)
+RAM: 33.7 GB total, 32.7 GB available; cgroup limit 32212254720; GPU visible: False
+disk /kaggle/working: 20.9 GB free of 21.0 GB
+disk /tmp: 1148.8 GB free of 8758.4 GB
+disk /kaggle/input: 20.9 GB free of 21.0 GB
+dependencies: {'numpy': '2.1.3', 'pyarrow': '23.0.1', 'tokenizer_v2': 'loaded and hash-verified; sample sentence -> 10 tokens'}
+EXP-037 token files: 13 files, 5.6 GB
+download sangraha-verified-asm-data-1: downloaded in 7.2 s (~45.3 MB/s including the hash check)
+hash alone: 1.0 s; rows in footer: 110238; deleted afterwards: True

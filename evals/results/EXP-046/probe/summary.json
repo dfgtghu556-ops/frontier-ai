@@ -1,0 +1,93 @@
+{
+  "schema": "frontier-exp046-probe-v1",
+  "experiment": "EXP-046",
+  "step": "probe",
+  "smoke": false,
+  "environment": {
+    "code_commit": "7bea38ed9ce38a43795c2e771bc77b4b661e2782"
+  },
+  "complete": true,
+  "ok": true,
+  "errors": [],
+  "started_utc": "2026-10-06T13:51:44Z",
+  "machine": {
+    "python": "3.13.15",
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.39",
+    "cpu_count_os": 4,
+    "cpu_count_usable": 4,
+    "cpu_model": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "ram_total_bytes": 33658310656,
+    "ram_available_bytes": 32685867008,
+    "cgroup_memory_limit": "32212254720",
+    "gpu_visible": false
+  },
+  "disks": {
+    "/kaggle/working": {
+      "total_bytes": 20957446144,
+      "free_bytes": 20940533760
+    },
+    "/tmp": {
+      "total_bytes": 8758385086464,
+      "free_bytes": 1148830158848
+    },
+    "/kaggle/input": {
+      "total_bytes": 20957446144,
+      "free_bytes": 20940533760
+    },
+    "/": {
+      "total_bytes": 8758385086464,
+      "free_bytes": 1148830158848
+    },
+    "df": "Filesystem         1B-blocks          Used     Available Use% Mounted on\n/dev/loop2       20957446144        135168   20940533760   1% /kaggle/working\noverlay        8758385086464 7609538150400 1148830158848  87% /\n/dev/loop2       20957446144        135168   20940533760   1% /kaggle/input\n"
+  },
+  "dependencies": {
+    "numpy": "2.1.3",
+    "pyarrow": "23.0.1",
+    "tokenizer_v2": "loaded and hash-verified; sample sentence -> 10 tokens"
+  },
+  "token_dataset": {
+    "folders_with_all_files": [
+      "/kaggle/input/datasets/someshwar0112/frontier-v2-tok2-13lang"
+    ],
+    "total_bytes": 5596692818,
+    "files": 13
+  },
+  "download": {
+    "source_id": "sangraha-verified-asm-data-1",
+    "size_bytes": 326255363,
+    "sha256_pinned": "878eababc210d4ac0f95bf458b362759b60266ae65d2656173a11ec2aaec9f99",
+    "result": "downloaded",
+    "download_and_verify_seconds": 7.2,
+    "sha256_again": true,
+    "hash_seconds": 1.0,
+    "download_MB_per_s_incl_hash": 45.3,
+    "parquet_rows_from_footer": 110238,
+    "footer_seconds": 0.1,
+    "log": [
+      "[fetch] sangraha-verified-asm-data-1: 1 / 326 MB (0.3%, 1.05 MB/s)",
+      "[fetch] sangraha-verified-asm-data-1: downloaded and verified (326.3 MB, sha256 OK)"
+    ],
+    "deleted_after_measuring": true
+  },
+  "disks_after": {
+    "/kaggle/working": {
+      "total_bytes": 20957446144,
+      "free_bytes": 20940517376
+    },
+    "/tmp": {
+      "total_bytes": 8758385086464,
+      "free_bytes": 1148810133504
+    },
+    "/kaggle/input": {
+      "total_bytes": 20957446144,
+      "free_bytes": 20940517376
+    },
+    "/": {
+      "total_bytes": 8758385086464,
+      "free_bytes": 1148810133504
+    },
+    "df": "Filesystem         1B-blocks          Used     Available Use% Mounted on\n/dev/loop2       20957446144        151552   20940517376   1% /kaggle/working\noverlay        8758385086464 7609558175744 1148810133504  87% /\n/dev/loop2       20957446144        151552   20940517376   1% /kaggle/input\n"
+  },
+  "finished_utc": "2026-10-06T13:52:06Z",
+  "seconds": 21.2
+}
