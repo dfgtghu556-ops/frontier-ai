@@ -741,6 +741,11 @@ comes next. They also update the table in §3.
     was used up. Slice-2 output estimate 16.4 GB, so two build kernels (A: en ur as bn gu hi; B: kn ml
     mr or pa ta te). The build needs the held-out texts on Kaggle (export_heldout_text.py -> small
     private input). Next for the founder in the gap: EXP-045 test 4 (CPU).
+  - **EXP-045 test 4 done (2026-10-06, results `0332f69`):** 8,799 of 11,700 Belebele questions (75.2%)
+    share at least one 13-token run with the EXP-037 training tokens (mostly via passages); 2,901 clean
+    (en/hi/pa/te/ur only 25-62 each). Belebele is reported on all questions and on the clean ones.
+    `windows` counts occurrences, not coverage. Recommended (needs approval): a coverage re-scan with a
+    threshold fixed before any model accuracy exists. Next build: EXP-046 kernels A/B.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

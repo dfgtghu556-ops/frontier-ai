@@ -4114,6 +4114,56 @@ session into the Kaggle runner is a small step done then.
 
 **Status:** approved 2026-10-04; code ready; test 4 (Kaggle CPU) runs between two EXP-043 sessions; tests 1-3 and 5 run after EXP-043
 
+**Update (2026-10-06): test 4 (contamination) done.** Kaggle CPU session, commit `cc27e8d`; results in
+`evals/results/EXP-045/` (results commit `0332f69`): `summary.json`, `SUMMARY.txt`, and
+`contamination.json` listing every flagged question. All 2,783,830,088 EXP-037 training tokens were
+scanned in 1,871 s against 1,967,608 Belebele 13-token keys. Every hash hit was confirmed token by
+token.
+
+**Result, by the pre-registered rule** (a question is flagged if its passage, its question or any
+option shares at least one 13-token run with the training data): **8,799 of 11,700 questions
+flagged (75.2%)**, so 2,901 are clean.
+
+| lang | flagged | clean | flagged % | | lang | flagged | clean | flagged % |
+|---|---|---|---|---|---|---|---|---|
+| as | 515 | 385 | 57.2 | | or | 636 | 264 | 70.7 |
+| bn | 626 | 274 | 69.6 | | pa | 849 | 51 | 94.3 |
+| en | 862 | 38 | 95.8 | | ta | 524 | 376 | 58.2 |
+| gu | 761 | 139 | 84.6 | | te | 842 | 58 | 93.6 |
+| hi | 838 | 62 | 93.1 | | ur | 875 | 25 | 97.2 |
+| kn | 511 | 389 | 56.8 | | | | | |
+| ml | 461 | 439 | 51.2 | | **all** | **8,799** | **2,901** | **75.2** |
+
+How to read it:
+- **Most flags come from the passages** (4,497 passage hits vs 2,465 question and 2,561 option
+  hits). Belebele passages are FLORES-200 sentences, taken from English Wikinews, Wikijunior and
+  Wikivoyage and professionally translated. Text from those sites and its translations can be on
+  the web that Sangraha was built from. That this actually happened is plausible but NOT VERIFIED
+  by this test.
+- **What the test cannot say:** how much of a text is in the training data. `windows` in
+  `contamination.json` counts training positions that match any 13-gram of the text, so one full
+  copy of a passage and one common phrase repeated many times can give similar numbers.
+- **13 tokens is short in some scripts:** with Tokenizer v2 it is often about 6–9 words in the Indic
+  languages. That makes this test more sensitive than the 13-*word* rule that the corpus build uses
+  to protect the held-out suite (`frontier_ai.corpus.decontaminate`).
+- About 2,000 of the 3,600 options per language are shorter than 13 tokens and cannot be checked;
+  they are counted in `summary.json`, not guessed.
+- **Consequences (by the pre-registered plan, nothing changed):**
+  - Belebele accuracy for the EXP-043 model is reported on all questions and on the 2,901 clean
+    ones.
+  - For en, hi, pa, te and ur the clean subsets are small (25–62 questions), so their clean
+    per-language intervals will be wide. Pooled clean results (2,901 questions) stay usable.
+  - No model accuracy exists yet, so nothing here was chosen after seeing a score.
+- **For EXP-046:** safeguard 3 (Belebele joins the protected set) matters. Slice-2 documents that
+  share a 13-word run with any Belebele passage, question or option will be removed, so the next
+  model can be evaluated cleanly.
+- **Recommended follow-up (needs approval, not started):** measure *how much* of each flagged text is
+  in the training data: the share of its distinct 13-grams found, by tokens and by words. Then fix a
+  "substantially present" threshold now, before any model accuracy exists, and add it as a third
+  reporting subset. This is a Kaggle CPU re-scan of about 35 minutes (NOT VERIFIED), no GPU, ₹0.
+
+**Status:** approved 2026-10-04; test 4 done 2026-10-06 (75.2% of Belebele questions flagged, 2,901 clean); tests 1-3 and 5 run after EXP-043
+
 ### EXP-046 — Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-046" before any code)
 
