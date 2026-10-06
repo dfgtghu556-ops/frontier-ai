@@ -1,0 +1,43 @@
+EXP-045 test 4 - Belebele vs EXP-037 training tokens (13-token runs)
+code commit bc9f32051ea23c55687139507f6c3de03ef874f2 | Belebele facebook/belebele@7899cdfa
+training tokens scanned: 2,783,830,088 in 13 files (1693 s); Belebele 13-grams: 1,967,608
+
+lang  questions  flagged  (passage / question / option)
+as          900      515  (446 / 117 / 104)
+bn          900      626  (583 / 98 / 107)
+en          900      862  (824 / 382 / 197)
+gu          900      761  (738 / 94 / 116)
+hi          900      838  (799 / 397 / 212)
+kn          900      511  (462 / 77 / 78)
+ml          900      461  (417 / 61 / 87)
+mr          900      499  (469 / 60 / 56)
+or          900      636  (564 / 152 / 125)
+pa          900      849  (821 / 272 / 224)
+ta          900      524  (498 / 65 / 76)
+te          900      842  (829 / 185 / 203)
+ur          900      875  (860 / 505 / 338)
+
+TOTAL: 8799 of 11700 questions flagged (75.2%)
+Flagged questions are listed in contamination.json; Belebele accuracy is reported with and
+without them. Texts shorter than 13 tokens cannot be checked (counts in summary.json).
+
+COVERAGE: share of each text's distinct 13-token runs found in the training tokens;
+'substantially present' = at least 70% (PaLM's rule), fixed before any model accuracy.
+reproduces test 4's flags exactly: True
+
+lang  flagged  substantially  (passage / question / option)  remaining   passage coverage:
+                 present                                              none | 0-10% .. 90-100%
+as        515              9  (0 / 0 / 9)                          891   246 | 241 1 0 0 0 0 0 0 0 0
+bn        626             12  (0 / 0 / 12)                         888   175 | 311 2 0 0 0 0 0 0 0 0
+en        862             33  (0 / 0 / 33)                         867   41 | 379 55 11 2 0 0 0 0 0 0
+gu        761             19  (0 / 0 / 19)                         881   89 | 388 11 0 0 0 0 0 0 0 0
+hi        838             17  (0 / 0 / 17)                         883   54 | 414 20 0 0 0 0 0 0 0 0
+kn        511             16  (0 / 0 / 16)                         884   238 | 249 1 0 0 0 0 0 0 0 0
+ml        461             23  (0 / 0 / 23)                         877   262 | 224 2 0 0 0 0 0 0 0 0
+mr        499             11  (0 / 0 / 11)                         889   235 | 250 3 0 0 0 0 0 0 0 0
+or        636              9  (0 / 0 / 9)                          891   186 | 299 3 0 0 0 0 0 0 0 0
+pa        849             22  (0 / 0 / 22)                         878   43 | 432 13 0 0 0 0 0 0 0 0
+ta        524             10  (0 / 0 / 10)                         890   217 | 268 3 0 0 0 0 0 0 0 0
+te        842             38  (0 / 0 / 38)                         862   39 | 428 21 0 0 0 0 0 0 0 0
+ur        875             49  (0 / 0 / 49)                         851   22 | 423 42 1 0 0 0 0 0 0 0
+TOTAL: 268 of 11700 questions substantially present (2.3%); listed in coverage.json

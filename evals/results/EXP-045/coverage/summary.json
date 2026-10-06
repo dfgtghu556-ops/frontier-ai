@@ -1,0 +1,642 @@
+{
+  "schema": "frontier-exp045-contamination-v1",
+  "exp_id": "EXP-045",
+  "test": "4 (contamination)",
+  "smoke": false,
+  "complete": true,
+  "created_utc": "2026-10-06T20:28:20Z",
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.39",
+    "torch": "2.11.0+cpu",
+    "cuda": null,
+    "cuda_available": false,
+    "device_count": 0,
+    "code_commit": "bc9f32051ea23c55687139507f6c3de03ef874f2"
+  },
+  "belebele": {
+    "repo": "facebook/belebele",
+    "revision": "7899cdfa4e1e0d733fd77c848e2c273cb1d32be2",
+    "license": "CC BY-SA 4.0 (test set; the Belebele training set is CC BY-NC and is NOT used)",
+    "files": {
+      "as": "asm_Beng",
+      "bn": "ben_Beng",
+      "en": "eng_Latn",
+      "gu": "guj_Gujr",
+      "hi": "hin_Deva",
+      "kn": "kan_Knda",
+      "ml": "mal_Mlym",
+      "mr": "mar_Deva",
+      "or": "ory_Orya",
+      "pa": "pan_Guru",
+      "ta": "tam_Taml",
+      "te": "tel_Telu",
+      "ur": "urd_Arab"
+    }
+  },
+  "ngram_n": 13,
+  "method": "EXP-045 test 4: 13-token n-gram overlap between evaluation texts and a packed training stream.",
+  "index_keys": 1967608,
+  "index_texts": 64844,
+  "too_short_texts": 26868,
+  "train_tokens": 2783830088,
+  "files": [
+    {
+      "language": "as",
+      "file": "as.bin",
+      "train_tokens": 155108306,
+      "refs_hit": 560,
+      "seconds": 85.0
+    },
+    {
+      "language": "bn",
+      "file": "bn.bin",
+      "train_tokens": 200991341,
+      "refs_hit": 599,
+      "seconds": 119.4
+    },
+    {
+      "language": "en",
+      "file": "en.bin",
+      "train_tokens": 476579709,
+      "refs_hit": 1314,
+      "seconds": 295.4
+    },
+    {
+      "language": "gu",
+      "file": "gu.bin",
+      "train_tokens": 200828610,
+      "refs_hit": 669,
+      "seconds": 111.6
+    },
+    {
+      "language": "hi",
+      "file": "hi.bin",
+      "train_tokens": 196159928,
+      "refs_hit": 1194,
+      "seconds": 105.4
+    },
+    {
+      "language": "kn",
+      "file": "kn.bin",
+      "train_tokens": 165406826,
+      "refs_hit": 438,
+      "seconds": 99.8
+    },
+    {
+      "language": "ml",
+      "file": "ml.bin",
+      "train_tokens": 140315042,
+      "refs_hit": 413,
+      "seconds": 76.3
+    },
+    {
+      "language": "mr",
+      "file": "mr.bin",
+      "train_tokens": 180317701,
+      "refs_hit": 438,
+      "seconds": 111.0
+    },
+    {
+      "language": "or",
+      "file": "or.bin",
+      "train_tokens": 187704674,
+      "refs_hit": 628,
+      "seconds": 120.8
+    },
+    {
+      "language": "pa",
+      "file": "pa.bin",
+      "train_tokens": 203046650,
+      "refs_hit": 1077,
+      "seconds": 143.8
+    },
+    {
+      "language": "ta",
+      "file": "ta.bin",
+      "train_tokens": 160474332,
+      "refs_hit": 471,
+      "seconds": 101.1
+    },
+    {
+      "language": "te",
+      "file": "te.bin",
+      "train_tokens": 195144749,
+      "refs_hit": 905,
+      "seconds": 131.1
+    },
+    {
+      "language": "ur",
+      "file": "ur.bin",
+      "train_tokens": 321752220,
+      "refs_hit": 1550,
+      "seconds": 192.5
+    }
+  ],
+  "per_language": {
+    "as": {
+      "questions": 900,
+      "flagged": 515,
+      "flagged_by": {
+        "passage": 446,
+        "question": 117,
+        "option": 104
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 5,
+        "option": 2003
+      }
+    },
+    "bn": {
+      "questions": 900,
+      "flagged": 626,
+      "flagged_by": {
+        "passage": 583,
+        "question": 98,
+        "option": 107
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 8,
+        "option": 1952
+      }
+    },
+    "en": {
+      "questions": 900,
+      "flagged": 862,
+      "flagged_by": {
+        "passage": 824,
+        "question": 382,
+        "option": 197
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 4,
+        "option": 2088
+      }
+    },
+    "gu": {
+      "questions": 900,
+      "flagged": 761,
+      "flagged_by": {
+        "passage": 738,
+        "question": 94,
+        "option": 116
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 5,
+        "option": 2149
+      }
+    },
+    "hi": {
+      "questions": 900,
+      "flagged": 838,
+      "flagged_by": {
+        "passage": 799,
+        "question": 397,
+        "option": 212
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 9,
+        "option": 2159
+      }
+    },
+    "kn": {
+      "questions": 900,
+      "flagged": 511,
+      "flagged_by": {
+        "passage": 462,
+        "question": 77,
+        "option": 78
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 12,
+        "option": 2152
+      }
+    },
+    "ml": {
+      "questions": 900,
+      "flagged": 461,
+      "flagged_by": {
+        "passage": 417,
+        "question": 61,
+        "option": 87
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 8,
+        "option": 2128
+      }
+    },
+    "mr": {
+      "questions": 900,
+      "flagged": 499,
+      "flagged_by": {
+        "passage": 469,
+        "question": 60,
+        "option": 56
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 10,
+        "option": 2313
+      }
+    },
+    "or": {
+      "questions": 900,
+      "flagged": 636,
+      "flagged_by": {
+        "passage": 564,
+        "question": 152,
+        "option": 125
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 6,
+        "option": 2056
+      }
+    },
+    "pa": {
+      "questions": 900,
+      "flagged": 849,
+      "flagged_by": {
+        "passage": 821,
+        "question": 272,
+        "option": 224
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 4,
+        "option": 1959
+      }
+    },
+    "ta": {
+      "questions": 900,
+      "flagged": 524,
+      "flagged_by": {
+        "passage": 498,
+        "question": 65,
+        "option": 76
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 13,
+        "option": 2145
+      }
+    },
+    "te": {
+      "questions": 900,
+      "flagged": 842,
+      "flagged_by": {
+        "passage": 829,
+        "question": 185,
+        "option": 203
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 4,
+        "option": 1801
+      }
+    },
+    "ur": {
+      "questions": 900,
+      "flagged": 875,
+      "flagged_by": {
+        "passage": 860,
+        "question": 505,
+        "option": 338
+      },
+      "too_short_to_check": {
+        "passage": 0,
+        "question": 5,
+        "option": 1870
+      }
+    }
+  },
+  "totals": {
+    "questions": 11700,
+    "flagged": 8799
+  },
+  "seconds": {
+    "verify": 204.8,
+    "index": 49.6,
+    "scan": 1693.2
+  },
+  "numpy": "2.1.3",
+  "coverage": {
+    "rule": "coverage = distinct 13-token runs of a text found in the training tokens / all of its distinct 13-token runs; a text is substantially present at coverage >= threshold; a question is when its passage, question or any option is",
+    "threshold": 0.7,
+    "threshold_source": "PaLM (Chowdhery et al.): an example is contaminated if >= 70% of its n-grams occur in the training data; fixed 2026-10-06 before any model accuracy existed",
+    "per_language": {
+      "as": {
+        "questions": 900,
+        "substantially_present": 9,
+        "not_substantially_present": 891,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 9
+        },
+        "passages_no_overlap": 246,
+        "passage_coverage_hist": [
+          241,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "bn": {
+        "questions": 900,
+        "substantially_present": 12,
+        "not_substantially_present": 888,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 12
+        },
+        "passages_no_overlap": 175,
+        "passage_coverage_hist": [
+          311,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "en": {
+        "questions": 900,
+        "substantially_present": 33,
+        "not_substantially_present": 867,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 33
+        },
+        "passages_no_overlap": 41,
+        "passage_coverage_hist": [
+          379,
+          55,
+          11,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "gu": {
+        "questions": 900,
+        "substantially_present": 19,
+        "not_substantially_present": 881,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 19
+        },
+        "passages_no_overlap": 89,
+        "passage_coverage_hist": [
+          388,
+          11,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "hi": {
+        "questions": 900,
+        "substantially_present": 17,
+        "not_substantially_present": 883,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 17
+        },
+        "passages_no_overlap": 54,
+        "passage_coverage_hist": [
+          414,
+          20,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "kn": {
+        "questions": 900,
+        "substantially_present": 16,
+        "not_substantially_present": 884,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 16
+        },
+        "passages_no_overlap": 238,
+        "passage_coverage_hist": [
+          249,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "ml": {
+        "questions": 900,
+        "substantially_present": 23,
+        "not_substantially_present": 877,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 23
+        },
+        "passages_no_overlap": 262,
+        "passage_coverage_hist": [
+          224,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "mr": {
+        "questions": 900,
+        "substantially_present": 11,
+        "not_substantially_present": 889,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 11
+        },
+        "passages_no_overlap": 235,
+        "passage_coverage_hist": [
+          250,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "or": {
+        "questions": 900,
+        "substantially_present": 9,
+        "not_substantially_present": 891,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 9
+        },
+        "passages_no_overlap": 186,
+        "passage_coverage_hist": [
+          299,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "pa": {
+        "questions": 900,
+        "substantially_present": 22,
+        "not_substantially_present": 878,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 22
+        },
+        "passages_no_overlap": 43,
+        "passage_coverage_hist": [
+          432,
+          13,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "ta": {
+        "questions": 900,
+        "substantially_present": 10,
+        "not_substantially_present": 890,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 10
+        },
+        "passages_no_overlap": 217,
+        "passage_coverage_hist": [
+          268,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "te": {
+        "questions": 900,
+        "substantially_present": 38,
+        "not_substantially_present": 862,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 38
+        },
+        "passages_no_overlap": 39,
+        "passage_coverage_hist": [
+          428,
+          21,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "ur": {
+        "questions": 900,
+        "substantially_present": 49,
+        "not_substantially_present": 851,
+        "substantially_present_by": {
+          "passage": 0,
+          "question": 0,
+          "option": 49
+        },
+        "passages_no_overlap": 22,
+        "passage_coverage_hist": [
+          423,
+          42,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "totals": {
+      "questions": 11700,
+      "substantially_present": 268
+    },
+    "test4_file": "evals/results/EXP-045/contamination.json",
+    "reproduces_test4": true
+  }
+}
