@@ -729,6 +729,13 @@ comes next. They also update the table in §3.
     validation 0.7199 bpb mean (mid-run). 25.38 of 100 session-h used; about 3 more sessions (4-6).
     Kaggle's weekly GPU quota resets Saturday 00:00 UTC (Kaggle staff note, 2020; current behaviour
     NOT VERIFIED); about 26 h of it were used in the week starting 2026-10-03.
+  - **EXP-043 session 4 refused by Kaggle (2026-10-06 19:14 IST):** "Maximum weekly GPU quota of 30.00
+    hours reached" (EXP-042's last session on 2026-10-03 also counts in this quota week). Nothing ran;
+    session 3's checkpoint (step 61,207, kernel a) is untouched. Session 4 = the same founder line
+    after the weekly reset (Saturday 2026-10-10 00:00 UTC = 05:30 IST per Kaggle's 2020 staff note;
+    NOT VERIFIED). Meanwhile the approved CPU-only work (EXP-046 probe, EXP-045 test 4) uses the gap.
+    The runner prints Kaggle's refusal only to run.log, not REPORT.txt (possible small fix, needs
+    approval).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
