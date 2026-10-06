@@ -3844,6 +3844,34 @@ chain, with the code proven in session 1.
 
 **Status:** running — session 1 complete (5e-4 chosen); next: session 2 (main run starts, one GPU); from session 3: two GPUs (D-050)
 
+**Update (2026-10-06): session 2 complete. The main run has started, on one GPU** as D-050 point 2
+requires. Kaggle T4 machine (2 GPUs visible, 1 used), commit `37788c7`; results in
+`evals/results/EXP-043/session-2/` (results commit `1eeca41`).
+- **Steps 0 → 20,594 of 169,911 (12.1%)**, 337,412,096 tokens. The session ended at its time budget;
+  no stop rule fired.
+- **Speed and memory:** 11,115 tokens/s, i.e. 1.474 s per step (the same as session 1); peak memory
+  9.27 GB.
+- **Health:** 7 skipped fp16 steps in the whole session (rule: stop above 5% in any 2,000 steps).
+  The sampled validation loss fell from 3.407 (step 1,000) to 2.299 (step 20,000), with no bad
+  evaluations.
+- **Checkpoint:** step 20,594, sha256 of its 5 files recorded (`model.pt` `295ed631…`), with periodic
+  saves at 5,000 / 10,000 / 15,000 / 20,000.
+- **Chain:** session 2 found session 1's output mounted from kernel `frontier-exp043-a`
+  (`kernel_sources` works on the account). **Still NOT VERIFIED:** loading a real checkpoint from the
+  other kernel's output. Session 3 is the first to do that, and also the first two-GPU session, as
+  D-050 point 2 plans. Its summary reports the two separately (the checkpoint chain line, then
+  `gpus_plan` / any `two_gpu_fallback`). If the chain check fails, nothing is trained or published.
+- **Full validation at the session end (not a result: 12% of the pass, learning rate still high):**
+  mean **0.7727 bpb**. That is already 0.0009 below the final score of the best EXP-042 run (C3-s3,
+  0.7736), but within the seed noise (0.0174). 7 of 13 languages are below C3-s3 (largest gaps: hi
+  −0.0078, ur −0.0075; ml +0.0062, kn +0.0057 still behind). The gate (final mean < 0.7562) is
+  judged only at the end.
+- **Time:** session 2 used 8.67 session-hours, 16.72 of the 100-hour cap in total. 149,317 steps
+  remain: about 61 h on one GPU, or about 34 h at EXP-044's 1.79× on two GPUs (about 4–5 sessions).
+  The whole-session two-GPU speed is NOT VERIFIED.
+
+**Status:** running — sessions 1–2 complete (lr 5e-4; main run at step 20,594 of 169,911, one GPU); next: session 3, the first two-GPU session (D-050)
+
 ### EXP-044 — Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-044" before any code)
 

@@ -717,6 +717,12 @@ comes next. They also update the table in §3.
   - **Correction (2026-10-05):** session 2 had NOT been launched. The code now keeps the first
     main-run session (no checkpoint yet = session 2) on one GPU even with `--gpus 2` (D-050 point 2).
     Two GPUs start from session 3. The same founder line is used for every session.
+  - **EXP-043 session 2 done (2026-10-06, results `1eeca41`):** main run steps 0 → 20,594 of 169,911
+    on one GPU; 11,115 tokens/s (1.474 s/step); 9.27 GB; 7 skipped steps; checkpoint step 20,594
+    (sha256 recorded). Session-end full validation 0.7727 bpb mean (mid-run, not a result; C3-s3
+    final 0.7736). 16.72 of 100 session-h used. Next: session 3 = first checkpoint load from the other
+    kernel AND the first two-GPU session (D-050). Check its chain line, `gpus_plan`, speed vs 1.474
+    s/step (needs >= 1.4x) and skipped steps.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
