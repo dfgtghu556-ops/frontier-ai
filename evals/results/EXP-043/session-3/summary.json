@@ -1,0 +1,764 @@
+{
+  "schema": "frontier-pretrain-v1",
+  "exp_id": "EXP-043",
+  "smoke": false,
+  "complete": false,
+  "started_at": "2026-10-06 02:08:25",
+  "part": "auto",
+  "session": 3,
+  "setup": {
+    "model": {
+      "n_layer": 14,
+      "n_head": 14,
+      "n_embd": 896,
+      "block_size": 512,
+      "pos": "rope",
+      "n_kv_head": 2
+    },
+    "windows_per_step": 32,
+    "expected_windows": 5437162,
+    "expected_steps": 169911,
+    "seed": 1,
+    "order_seed": 1,
+    "lr_grid": [
+      0.00025,
+      0.0005,
+      0.001
+    ],
+    "lr_extension": {
+      "low": 0.000125,
+      "high": 0.002
+    },
+    "lr_check_steps": 6104,
+    "warmup": 1000,
+    "min_lr_ratio": 0.1,
+    "eval_every": 1000,
+    "eval_iters": 20,
+    "eval_batch": 16,
+    "save_every": 5000,
+    "skip_window": 2000,
+    "max_skipped": 0.05,
+    "diverge_nats": 0.1,
+    "diverge_evals": 3,
+    "mem_limit_gb": 14.5,
+    "micro_options": [
+      [
+        16,
+        2
+      ],
+      [
+        8,
+        4
+      ]
+    ],
+    "total_cap_hours": 100.0,
+    "reserve_minutes": 30.0,
+    "min_train_minutes": 30.0,
+    "noise": 0.0174,
+    "reference_run": "C3-s3-lr0.001",
+    "reference_bpb": 0.7736,
+    "predicted_bpb": 0.683,
+    "consistent_band": 0.03,
+    "sample_prompt_tokens": 32,
+    "sample_new_tokens": 128,
+    "sample_prompts_per_language": 3,
+    "sample_temperature": 0.8
+  },
+  "hours_before": 16.718,
+  "session_hours": 9.0,
+  "previous_sessions": [
+    1,
+    2
+  ],
+  "lr_runs": [
+    {
+      "name": "lrcheck-lr0.00025",
+      "grid": "lrcheck",
+      "arch": "rope_gqa2",
+      "lr": 0.00025,
+      "seed": 1,
+      "status": "done",
+      "n_params": 190064000,
+      "steps": 6104,
+      "tokens": 100007936,
+      "minutes": 160.1887496272723,
+      "train_minutes": 150.34201573928198,
+      "tokens_per_s": 11090.7,
+      "peak_mem_gb": 9.265,
+      "skipped_steps": 0,
+      "failed": false,
+      "val_curve": [
+        {
+          "step": 1000,
+          "val_loss": 3.38857
+        },
+        {
+          "step": 2000,
+          "val_loss": 3.02559
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.83287
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.66552
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.60465
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.54559
+        },
+        {
+          "step": 6104,
+          "val_loss": 2.52714
+        }
+      ],
+      "nats": {
+        "as": 2.800825663975307,
+        "bn": 2.693103870045055,
+        "en": 2.2329770915764424,
+        "gu": 2.761410953400287,
+        "hi": 2.499387349060778,
+        "kn": 2.7989357644645727,
+        "ml": 2.773122763651118,
+        "mr": 2.6803129827033048,
+        "or": 2.685996632590937,
+        "pa": 2.445765019841277,
+        "ta": 2.763972358513354,
+        "te": 2.5766743523325304,
+        "ur": 2.1806841298690034
+      },
+      "bpb": {
+        "as": 0.8170113026558931,
+        "bn": 0.7786175269240444,
+        "en": 1.6654114293212665,
+        "gu": 0.8698469232323764,
+        "hi": 0.7612271108261645,
+        "kn": 0.721176438074914,
+        "ml": 0.6592452476461235,
+        "mr": 0.7167456975593327,
+        "or": 0.780250559231074,
+        "pa": 0.7943061348073817,
+        "ta": 0.6481188118881942,
+        "te": 0.7778254412001449,
+        "ur": 1.1156689020684838
+      },
+      "bpb_mean": 0.8542655019565687,
+      "bpb_token_weighted": 0.9587883502425681,
+      "bpb_pooled": 0.8552752499492227,
+      "session": 1,
+      "attempted": true
+    },
+    {
+      "name": "lrcheck-lr0.0005",
+      "grid": "lrcheck",
+      "arch": "rope_gqa2",
+      "lr": 0.0005,
+      "seed": 1,
+      "status": "done",
+      "n_params": 190064000,
+      "steps": 6104,
+      "tokens": 100007936,
+      "minutes": 159.82178510427474,
+      "train_minutes": 150.04794620672862,
+      "tokens_per_s": 11112.6,
+      "peak_mem_gb": 9.267,
+      "skipped_steps": 0,
+      "failed": false,
+      "val_curve": [
+        {
+          "step": 1000,
+          "val_loss": 3.40764
+        },
+        {
+          "step": 2000,
+          "val_loss": 3.04751
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.83302
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.61934
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.50834
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.43319
+        },
+        {
+          "step": 6104,
+          "val_loss": 2.41513
+        }
+      ],
+      "nats": {
+        "as": 2.6787169527272883,
+        "bn": 2.5715910252657803,
+        "en": 2.1464433480885403,
+        "gu": 2.6387904360053245,
+        "hi": 2.3785699441578374,
+        "kn": 2.667360353232616,
+        "ml": 2.6374688395438275,
+        "mr": 2.5387343736293415,
+        "or": 2.569418303022315,
+        "pa": 2.3512888188996066,
+        "ta": 2.620850061240636,
+        "te": 2.4757441468760337,
+        "ur": 2.104744026043636
+      },
+      "bpb": {
+        "as": 0.7813917357097742,
+        "bn": 0.743486304640382,
+        "en": 1.600872350093649,
+        "gu": 0.8312213504432803,
+        "hi": 0.7244302997571075,
+        "kn": 0.6872745930896803,
+        "ml": 0.6269966916267226,
+        "mr": 0.6788859925267318,
+        "or": 0.7463859200366457,
+        "pa": 0.7636232910376504,
+        "ta": 0.6145583267489739,
+        "te": 0.7473574538432818,
+        "ur": 1.0768168688476505
+      },
+      "bpb_mean": 0.8171770137231946,
+      "bpb_token_weighted": 0.9186958494376498,
+      "bpb_pooled": 0.8181943589119552,
+      "session": 1,
+      "attempted": true
+    },
+    {
+      "name": "lrcheck-lr0.001",
+      "grid": "lrcheck",
+      "arch": "rope_gqa2",
+      "lr": 0.001,
+      "seed": 1,
+      "status": "done",
+      "n_params": 190064000,
+      "steps": 6104,
+      "tokens": 100007936,
+      "minutes": 159.49450115760166,
+      "train_minutes": 149.73683748642603,
+      "tokens_per_s": 11135.6,
+      "peak_mem_gb": 9.267,
+      "skipped_steps": 0,
+      "failed": false,
+      "val_curve": [
+        {
+          "step": 1000,
+          "val_loss": 3.50478
+        },
+        {
+          "step": 2000,
+          "val_loss": 3.08681
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.76251
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.58497
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.49369
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.42731
+        },
+        {
+          "step": 6104,
+          "val_loss": 2.41051
+        }
+      ],
+      "nats": {
+        "as": 2.672197162270212,
+        "bn": 2.566992372166027,
+        "en": 2.161626614026787,
+        "gu": 2.6288739599092175,
+        "hi": 2.3657688457864423,
+        "kn": 2.6498177881857647,
+        "ml": 2.6114793387231474,
+        "mr": 2.5281906896655864,
+        "or": 2.5612431332359993,
+        "pa": 2.3463493224972707,
+        "ta": 2.6029159148732326,
+        "te": 2.46860771295823,
+        "ur": 2.11817681364662
+      },
+      "bpb": {
+        "as": 0.7794898884927579,
+        "bn": 0.7421567636807711,
+        "en": 1.6121964181834512,
+        "gu": 0.8280976515925589,
+        "hi": 0.7205315270709448,
+        "kn": 0.68275455917686,
+        "ml": 0.6208182940709754,
+        "mr": 0.6760664933987512,
+        "or": 0.7440111289739224,
+        "pa": 0.7620191008299217,
+        "ta": 0.6103529816412094,
+        "te": 0.7452031653684162,
+        "ur": 1.0836892733336871
+      },
+      "bpb_mean": 0.8159528650626329,
+      "bpb_token_weighted": 0.9193397896613722,
+      "bpb_pooled": 0.8170215272356635,
+      "session": 1,
+      "attempted": true
+    }
+  ],
+  "precision": "fp16 + GradScaler + torch.compile (D-047); DistributedDataParallel on two GPUs (D-050)",
+  "primary_metric": "mean of per-language validation bits per byte, equal weight",
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.39",
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "cuda_available": true,
+    "device_count": 2,
+    "gpu_name": "Tesla T4",
+    "gpu_memory_gb": 14.56,
+    "compute_capability": "7.5",
+    "bf16_supported": true,
+    "matmul_tf32": false,
+    "driver": "580.178.04",
+    "code_commit": "166a47f15ed72b227682346599289f29c908b5f3"
+  },
+  "checkpoint": {
+    "session": 3,
+    "step": 61207,
+    "files": {
+      "model.pt": "a689b339dac014e49242e5c2ee1b8179eed41bb7334365efa79b1a39b24927d5",
+      "optimizer.pt": "d25e08b5583768eb4b54d5b4b29bc9d691a03df65c38726f39a116610b851b18",
+      "trainer_state.pt": "0ff4832b41625aab5c4b213f3dd4e7b98414cb7cea66741b169d1341c3bac9ff",
+      "meta.json": "bb2469b390bdccba26eb1d508ef6a0a0e930c2af5fe97ecb17cc948775788c32",
+      "config.json": "0fa2b69b691f30e58d05820f0341d6ab7276a40a539cb12fa6beeb5b67c758b9"
+    }
+  },
+  "chain_check": {
+    "looked_in": "/kaggle/input",
+    "expected_from_session": 2,
+    "found": "/kaggle/input/frontier-exp043-b/exp043_chain",
+    "ok": true,
+    "result": "checkpoint of step 20,594 verified (sha256 of 5 files)"
+  },
+  "elapsed_min": 519.5,
+  "part0": {
+    "files_expected": 13,
+    "sha256_checked": true,
+    "packed_id": "frontier-v2-sangraha-slice1@frontier-tokenizer-v2",
+    "files_ok": 13,
+    "problems": [],
+    "tests_pass": true,
+    "tests_line": "46 passed in 14.03s",
+    "one_step_check": {
+      "pass": true,
+      "arch": "rope_gqa2",
+      "devices": [
+        "cpu",
+        "cuda"
+      ],
+      "states": [
+        1,
+        11,
+        21,
+        31,
+        41,
+        50
+      ],
+      "max_loss_diff": 1.7763568394002505e-15,
+      "max_grad_rel_diff": 2.6537936703661145e-15,
+      "tolerance_loss": 1e-12,
+      "tolerance_grad_rel": 1e-10,
+      "rows": [
+        {
+          "state": 1,
+          "loss_cpu": 10.478381674582305,
+          "loss_gpu": 10.478381674582305,
+          "loss_diff": 0.0,
+          "grad_rel_diff": 8.829902653234453e-16,
+          "grad_norm": 6.683524628035288
+        },
+        {
+          "state": 11,
+          "loss_cpu": 8.914915068625795,
+          "loss_gpu": 8.914915068625795,
+          "loss_diff": 0.0,
+          "grad_rel_diff": 1.1161058719969446e-15,
+          "grad_norm": 3.3867778618758617
+        },
+        {
+          "state": 21,
+          "loss_cpu": 7.543682809928706,
+          "loss_gpu": 7.543682809928706,
+          "loss_diff": 0.0,
+          "grad_rel_diff": 1.34280542595284e-15,
+          "grad_norm": 2.9583576461527294
+        },
+        {
+          "state": 31,
+          "loss_cpu": 6.869723071678167,
+          "loss_gpu": 6.869723071678165,
+          "loss_diff": 1.7763568394002505e-15,
+          "grad_rel_diff": 2.065747696465579e-15,
+          "grad_norm": 0.42304059704132446
+        },
+        {
+          "state": 41,
+          "loss_cpu": 6.784432561259692,
+          "loss_gpu": 6.784432561259692,
+          "loss_diff": 0.0,
+          "grad_rel_diff": 2.6537936703661145e-15,
+          "grad_norm": 0.7514352512304102
+        },
+        {
+          "state": 50,
+          "loss_cpu": 6.8415637505881906,
+          "loss_gpu": 6.8415637505881906,
+          "loss_diff": 0.0,
+          "grad_rel_diff": 1.1863510903889022e-15,
+          "grad_norm": 0.6549937849742754
+        }
+      ]
+    }
+  },
+  "languages": [
+    "as",
+    "bn",
+    "en",
+    "gu",
+    "hi",
+    "kn",
+    "ml",
+    "mr",
+    "or",
+    "pa",
+    "ta",
+    "te",
+    "ur"
+  ],
+  "sampling_weights": {
+    "as": 0.055718,
+    "bn": 0.0722,
+    "en": 0.171196,
+    "gu": 0.072141,
+    "hi": 0.070464,
+    "kn": 0.059417,
+    "ml": 0.050404,
+    "mr": 0.064773,
+    "or": 0.067427,
+    "pa": 0.072938,
+    "ta": 0.057645,
+    "te": 0.070099,
+    "ur": 0.115579
+  },
+  "order": {
+    "n_windows": 5437162,
+    "steps_per_pass": 169911,
+    "dropped_windows": 10,
+    "fingerprint": "19199520944bc37be166a9f2e50a1138b8e8f0c4f018dd8e23fbb12f8ae01f01"
+  },
+  "micro": [
+    16,
+    2
+  ],
+  "micro_note": "chosen in an earlier session",
+  "lr_choice": {
+    "decided": true,
+    "lr": 0.0005,
+    "best_lr": 0.001,
+    "reason": "lowest mean bpb 0.8160 at 0.001; 0.0005 is within the noise 0.0174 so the lower one is chosen"
+  },
+  "skipped_before": 7,
+  "gpus_plan": "two GPUs (Tesla T4 x 2; D-050)",
+  "main": {
+    "lr": 0.0005,
+    "total_steps": 169911,
+    "start_step": 20594,
+    "end_step": 61207,
+    "val_curve": [
+      {
+        "step": 21000,
+        "val_loss": 2.2818,
+        "minutes": 5.69
+      },
+      {
+        "step": 22000,
+        "val_loss": 2.33912,
+        "minutes": 18.07
+      },
+      {
+        "step": 23000,
+        "val_loss": 2.25984,
+        "minutes": 30.44
+      },
+      {
+        "step": 24000,
+        "val_loss": 2.27245,
+        "minutes": 42.8
+      },
+      {
+        "step": 25000,
+        "val_loss": 2.27234,
+        "minutes": 55.14
+      },
+      {
+        "step": 26000,
+        "val_loss": 2.23516,
+        "minutes": 67.51
+      },
+      {
+        "step": 27000,
+        "val_loss": 2.31354,
+        "minutes": 79.88
+      },
+      {
+        "step": 28000,
+        "val_loss": 2.20116,
+        "minutes": 92.24
+      },
+      {
+        "step": 29000,
+        "val_loss": 2.24264,
+        "minutes": 104.58
+      },
+      {
+        "step": 30000,
+        "val_loss": 2.22613,
+        "minutes": 116.94
+      },
+      {
+        "step": 31000,
+        "val_loss": 2.26162,
+        "minutes": 129.35
+      },
+      {
+        "step": 32000,
+        "val_loss": 2.23891,
+        "minutes": 141.75
+      },
+      {
+        "step": 33000,
+        "val_loss": 2.21275,
+        "minutes": 154.14
+      },
+      {
+        "step": 34000,
+        "val_loss": 2.24397,
+        "minutes": 166.51
+      },
+      {
+        "step": 35000,
+        "val_loss": 2.19653,
+        "minutes": 178.88
+      },
+      {
+        "step": 36000,
+        "val_loss": 2.221,
+        "minutes": 191.29
+      },
+      {
+        "step": 37000,
+        "val_loss": 2.20043,
+        "minutes": 203.65
+      },
+      {
+        "step": 38000,
+        "val_loss": 2.22645,
+        "minutes": 216.01
+      },
+      {
+        "step": 39000,
+        "val_loss": 2.22613,
+        "minutes": 228.39
+      },
+      {
+        "step": 40000,
+        "val_loss": 2.18379,
+        "minutes": 240.78
+      },
+      {
+        "step": 41000,
+        "val_loss": 2.22407,
+        "minutes": 253.19
+      },
+      {
+        "step": 42000,
+        "val_loss": 2.20087,
+        "minutes": 265.56
+      },
+      {
+        "step": 43000,
+        "val_loss": 2.1861,
+        "minutes": 277.91
+      },
+      {
+        "step": 44000,
+        "val_loss": 2.20084,
+        "minutes": 290.27
+      },
+      {
+        "step": 45000,
+        "val_loss": 2.18912,
+        "minutes": 302.65
+      },
+      {
+        "step": 46000,
+        "val_loss": 2.16843,
+        "minutes": 315.08
+      },
+      {
+        "step": 47000,
+        "val_loss": 2.18679,
+        "minutes": 327.46
+      },
+      {
+        "step": 48000,
+        "val_loss": 2.19181,
+        "minutes": 339.84
+      },
+      {
+        "step": 49000,
+        "val_loss": 2.20874,
+        "minutes": 352.2
+      },
+      {
+        "step": 50000,
+        "val_loss": 2.16217,
+        "minutes": 364.56
+      },
+      {
+        "step": 51000,
+        "val_loss": 2.16138,
+        "minutes": 376.97
+      },
+      {
+        "step": 52000,
+        "val_loss": 2.15531,
+        "minutes": 389.37
+      },
+      {
+        "step": 53000,
+        "val_loss": 2.1026,
+        "minutes": 401.77
+      },
+      {
+        "step": 54000,
+        "val_loss": 2.15455,
+        "minutes": 414.17
+      },
+      {
+        "step": 55000,
+        "val_loss": 2.17783,
+        "minutes": 426.55
+      },
+      {
+        "step": 56000,
+        "val_loss": 2.10083,
+        "minutes": 438.95
+      },
+      {
+        "step": 57000,
+        "val_loss": 2.14382,
+        "minutes": 451.3
+      },
+      {
+        "step": 58000,
+        "val_loss": 2.15969,
+        "minutes": 463.67
+      },
+      {
+        "step": 59000,
+        "val_loss": 2.16653,
+        "minutes": 476.02
+      },
+      {
+        "step": 60000,
+        "val_loss": 2.15209,
+        "minutes": 488.4
+      },
+      {
+        "step": 61000,
+        "val_loss": 2.10742,
+        "minutes": 500.84
+      }
+    ],
+    "periodic_saves": [
+      25000,
+      30000,
+      35000,
+      40000,
+      45000,
+      50000,
+      55000,
+      60000
+    ],
+    "best_val": 2.100831997394562,
+    "bad_evals": 0,
+    "gpus": 2,
+    "micro_per_gpu": [
+      16,
+      1
+    ],
+    "session_end": "time budget of this session",
+    "tokens_seen": 1002815488,
+    "train_minutes": 503.42,
+    "tokens_per_s": 22029.510856361965,
+    "peak_mem_gb": 8.969,
+    "skipped_steps_total": 23,
+    "skipped_steps_session": 16,
+    "sampler_position": 1958624,
+    "peak_mem_gb_per_gpu": [
+      8.969,
+      8.969
+    ],
+    "session_eval": {
+      "nats": {
+        "as": 2.361312396052171,
+        "bn": 2.276805245659568,
+        "en": 1.886598032171076,
+        "gu": 2.3417956695128024,
+        "hi": 2.080216370748288,
+        "kn": 2.342332049981872,
+        "ml": 2.31206483357497,
+        "mr": 2.2106596433570314,
+        "or": 2.263567849511014,
+        "pa": 2.0762929011401874,
+        "ta": 2.288116318032034,
+        "te": 2.1961458742646065,
+        "ur": 1.8712936484049165
+      },
+      "bpb": {
+        "as": 0.6888036415440032,
+        "bn": 0.6582592262338127,
+        "en": 1.4070730672362388,
+        "gu": 0.7376677330320328,
+        "hi": 0.6335621000854725,
+        "kn": 0.6035274928568369,
+        "ml": 0.5496394799980747,
+        "mr": 0.591155136869922,
+        "or": 0.6575399458839991,
+        "pa": 0.6743134257189173,
+        "ta": 0.53653620121677,
+        "te": 0.6629546073772898,
+        "ur": 0.9573803475559086
+      },
+      "bpb_mean": 0.7198778773545599,
+      "bpb_token_weighted": 0.8097244848021105,
+      "bpb_pooled": 0.7209035508012211
+    },
+    "session_eval_minutes": 9.24
+  },
+  "finished_at": "2026-10-06 10:47:54"
+}
