@@ -483,12 +483,12 @@ def test_exp045_kernel_runs_the_scan_and_never_saves_belebele():
         if isinstance(n, ast.Assign) and isinstance(n.value, (ast.Constant, ast.Call))
     }
     assert consts["COMMIT"] == "__PINNED_COMMIT__"
-    assert consts["OUT"] == "/kaggle/working/EXP-045"
+    assert consts["OUT"] == "/kaggle/working/EXP-045/coverage"  # test 4's files are never overwritten
     assert str(consts["BELEBELE"]).startswith("/tmp/")  # ShareAlike data stays out of the kernel output
     text = KERNEL_045.read_text(encoding="ascii")
     assert "belebele_contamination.py" in text and "nvidia-smi" not in text
     flags = set(re.findall(r'"(--[a-z-]+)"', text)) - {"--quiet", "--no-deps"}
-    assert flags == {"--data-dir", "--out", "--belebele-dir"}
+    assert flags == {"--data-dir", "--out", "--belebele-dir", "--coverage"}
     helptext = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "belebele_contamination.py"), "--help"],
         capture_output=True, text=True, cwd=ROOT, timeout=120,
@@ -502,6 +502,14 @@ def test_exp045_results_are_publishable():
     import publish_eval_results as pub
 
     assert {"summary.json", "SUMMARY.txt", "contamination.json", "belebele_items.jsonl"} <= set(pub.PUBLISHED)
+    assert "coverage.json" in pub.PUBLISHED
+    text = _ps1()
+    # the coverage re-scan is read from EXP-045\coverage\ but published from EXP-045\ (so it lands in
+    # evals/results/EXP-045/coverage/), and only NEW files under evals/results/EXP-045/ are accepted
+    assert 'if ($Exp -eq "EXP-045") { $resultDir = "$outputDir\\$Exp\\coverage" }' in text
+    i = text.index('if ($Exp -eq "EXP-045") { $resultDir')
+    assert text.index("$publishSrc = $resultDir") < i < text.index('$summaryPath = "$resultDir\\summary.json"')
+    assert "-Relaunch" in PS1_045.read_text(encoding="ascii")
 
 
 # ------------------------------------------------------------------------------------ EXP-046 --

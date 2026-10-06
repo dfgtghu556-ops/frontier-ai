@@ -4164,6 +4164,48 @@ How to read it:
 
 **Status:** approved 2026-10-04; test 4 done 2026-10-06 (75.2% of Belebele questions flagged, 2,901 clean); tests 1-3 and 5 run after EXP-043
 
+**Update (2026-10-07): coverage follow-up approved and built; the rule is pre-registered here.** The
+founder approved it on 2026-10-06 ("approve coverage"). The rule below was written before the re-scan
+ran and before any model accuracy exists; it is not changed after seeing either.
+
+- **Coverage of a text** (a passage, a question or one option with at least 13 tokens) = the number of
+  its distinct 13-token runs found at least once in the 2,783,830,088 EXP-037 training tokens,
+  divided by the number of its distinct 13-token runs. Same Tokenizer v2 tokens, same scan, same
+  token-by-token confirmation as test 4.
+- **Substantially present** = coverage of at least **0.70**. This is PaLM's rule (Chowdhery et al.,
+  2022: an example is contaminated if at least 70% of its 8-grams occur in the training data),
+  applied to our 13-token runs. A **question** is substantially present if its passage, its question
+  or any checkable option is.
+- **Third reporting subset:** Belebele accuracy is reported on (1) all questions, (2) questions not
+  flagged by test 4, and (3) questions not substantially present. Subset 3 lies between the other two.
+- **Also reported:** per language, how many questions are substantially present and through which
+  part; how many passages have no overlap; and the passage coverage spread in 10% steps.
+- **Reproduction check:** the re-scan recomputes test 4's flags and records whether they equal the
+  committed `evals/results/EXP-045/contamination.json` (`reproduces_test4`). If not, the coverage
+  results are not used until the difference is explained.
+- **Change from the recommendation:** it said "by tokens and by words". Only the token measure is
+  built. A word measure would need decoding and hashing about 1.5 B words in Python, which does not fit
+  one Kaggle CPU session. The corpus build's 13-*word* protection (EXP-046 safeguard 3) is not
+  affected.
+- **Code** (this commit):
+  - `token_ngrams.scan(..., matched=)` marks every key found;
+  - `token_ngrams.coverage()` computes found/total per text;
+  - `belebele_contamination.py --coverage` adds the threshold and the reproduction check, writing
+    `coverage.json` instead of `contamination.json`;
+  - `eval_exp045.py --coverage` adds subset 3;
+  - the Kaggle kernel now writes `EXP-045/coverage/`.
+
+  Test 4's files are never overwritten: the runner reads the new folder, the publisher refuses to
+  replace a file with different content, and only new files under `evals/results/EXP-045/` are
+  committed. Tested on synthetic data:
+  - a fully planted passage → coverage 1.0, substantially present;
+  - one shared 13-token run → flagged, below 10%, not substantially present.
+- **Run:** one Kaggle CPU session (no GPU quota, ₹0), about 40 minutes (NOT VERIFIED; test 4's scan
+  took 1,871 s). Because this PC's runner still remembers test 4's kernel, it starts once with
+  `scripts\run_kaggle_exp045.ps1 -Relaunch`.
+
+**Status:** approved 2026-10-04; test 4 done 2026-10-06 (75.2% of Belebele questions flagged, 2,901 clean); coverage re-scan approved 2026-10-06 and built 2026-10-07 (rule pre-registered: coverage >= 0.70), runs next on Kaggle CPU; tests 1-3 and 5 run after EXP-043
+
 ### EXP-046 — Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-046" before any code)
 

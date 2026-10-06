@@ -64,6 +64,11 @@ class NgramIndex:
         # (hashing the flattened keys gives each key's hash at multiples of n)
         self.order = np.argsort(hashes, kind="stable")
         self.sorted_hashes = hashes[self.order]
+        # distinct 13-grams per text (the denominator of coverage)
+        self.ref_keys: dict[str, int] = {}
+        for refs in self.refs:
+            for ref in refs:
+                self.ref_keys[ref] = self.ref_keys.get(ref, 0) + 1
 
     def __len__(self) -> int:
         return len(self._grams)
@@ -79,8 +84,15 @@ def iter_chunks(tokens: np.ndarray, chunk: int, n: int = N) -> Iterator[tuple[in
         start += chunk
 
 
-def scan(index: NgramIndex, tokens: np.ndarray, chunk: int = 50_000_000) -> dict[str, dict[str, Any]]:
-    """Confirmed matches per ref: ``{ref: {"windows": count, "first_offset": int}}``."""
+def scan(
+    index: NgramIndex, tokens: np.ndarray, chunk: int = 50_000_000, matched: np.ndarray | None = None
+) -> dict[str, dict[str, Any]]:
+    """Confirmed matches per ref: ``{ref: {"windows": count, "first_offset": int}}``.
+
+    ``windows`` counts training positions, so a phrase repeated many times counts many times. With
+    ``matched`` (a bool array, one entry per key) every key found at least once is also marked, which
+    gives :func:`coverage`.
+    """
     hits: dict[str, dict[str, Any]] = {}
     if not len(index.sorted_hashes):
         return hits
@@ -96,11 +108,22 @@ def scan(index: NgramIndex, tokens: np.ndarray, chunk: int = 50_000_000) -> dict
             while j < len(sh) and sh[j] == h[c]:  # equal hashes are adjacent; confirm each
                 k = int(index.order[j])
                 if np.array_equal(index.keys[k], window):
+                    if matched is not None:
+                        matched[k] = True
                     for ref in index.refs[k]:
                         e = hits.setdefault(ref, {"windows": 0, "first_offset": offset + c})
                         e["windows"] += 1
                 j += 1
     return hits
+
+
+def coverage(index: NgramIndex, matched: np.ndarray) -> dict[str, tuple[int, int]]:
+    """``{ref: (found, total)}``: how many of each text's distinct 13-grams occur in the scanned tokens."""
+    found: dict[str, int] = {}
+    for k in np.flatnonzero(matched).tolist():
+        for ref in index.refs[k]:
+            found[ref] = found.get(ref, 0) + 1
+    return {ref: (found.get(ref, 0), total) for ref, total in index.ref_keys.items()}
 
 
 def train_tokens(bin_path: str | Path, n_train: int) -> np.ndarray:

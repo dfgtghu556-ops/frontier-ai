@@ -1,4 +1,8 @@
-"""EXP-045 Kaggle kernel: test 4, the Belebele contamination check (CPU session, no GPU).
+"""EXP-045 Kaggle kernel: the Belebele contamination check with coverage (CPU session, no GPU).
+
+Test 4 itself ran from this file at commit 0332f69 (results in ``evals/results/EXP-045/``). Since
+the coverage follow-up (approved 2026-10-06) it runs the same scan with ``--coverage`` and writes to
+``EXP-045/coverage/``, so test 4's committed files are never touched.
 
 Do not run this file directly. ``scripts/run_kaggle_exp045.ps1`` copies it to ``run.py``, replaces
 the commit placeholder with the commit being tested and pushes it as a private Kaggle script kernel
@@ -9,9 +13,11 @@ On Kaggle it: clones the repository at that commit, finds the folder under ``/ka
 holds all 13 EXP-037 token files, and runs ``scripts/belebele_contamination.py``: sha256 checks of
 the token files, download of the 13 pinned Belebele files into ``/tmp`` (verified by hash; never
 saved to the output, because Belebele is ShareAlike and must not be republished from here), then
-the 13-token overlap scan over all 2.78 B training tokens. Written to ``/kaggle/working`` (the
-kernel output): ``EXP-045/summary.json``, ``SUMMARY.txt`` and ``contamination.json`` (question keys,
-counts and offsets only; no Belebele text). No credentials are needed or used.
+the 13-token overlap scan over all 2.78 B training tokens, which also records how much of each text
+was found. Written to ``/kaggle/working`` (the kernel output): ``EXP-045/coverage/summary.json``,
+``SUMMARY.txt`` and ``coverage.json`` (question keys and counts only; no Belebele text). The summary
+also says whether the flags reproduce test 4's committed ``contamination.json`` exactly. No
+credentials are needed or used.
 """
 
 from __future__ import annotations
@@ -24,7 +30,7 @@ from pathlib import Path
 REPO = "https://github.com/dfgtghu556-ops/frontier-ai.git"
 COMMIT = "__PINNED_COMMIT__"
 SRC = Path("/tmp/frontier-ai")
-OUT = Path("/kaggle/working/EXP-045")
+OUT = Path("/kaggle/working/EXP-045/coverage")
 INPUT = Path("/kaggle/input")
 BELEBELE = Path("/tmp/belebele")
 MANIFEST = "evals/results/EXP-037/manifest.json"
@@ -57,6 +63,7 @@ def main() -> int:
         str(OUT),
         "--belebele-dir",
         str(BELEBELE),
+        "--coverage",
     ]
     print("+", " ".join(cmd), flush=True)
     code = subprocess.run(cmd, cwd=SRC).returncode

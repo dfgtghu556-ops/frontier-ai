@@ -15,6 +15,15 @@
 A question is *flagged* if its passage, its question or any of its options shares at least one
 13-token run with the training data. Nothing is removed from the training data: the overlap is
 measured and reported (EXP-045). Only keys, counts and offsets are written; no Belebele text.
+
+``--coverage`` (EXP-045 coverage follow-up, approved 2026-10-06): also measures *how much* of each
+text is in the training data, i.e. the share of its distinct 13-token runs that occur there. A text
+is **substantially present** when that share is at least ``COVERAGE_THRESHOLD`` (70%, PaLM's rule
+for a contaminated example, applied to our 13-token runs), and a question is substantially present
+when its passage, its question or any option is. The rule was fixed on 2026-10-06, before any model
+accuracy existed. Belebele accuracy is then also reported without these questions. In this mode
+the run writes ``coverage.json`` instead of ``contamination.json`` and checks that its flags
+reproduce test 4's committed ``contamination.json`` exactly.
 """
 
 from __future__ import annotations
@@ -35,6 +44,9 @@ from frontier_ai.evaluation import belebele as bb  # noqa: E402
 from frontier_ai.evaluation import token_ngrams as tn  # noqa: E402
 
 SCHEMA = "frontier-exp045-contamination-v1"
+COVERAGE_THRESHOLD = 0.70  # fixed 2026-10-06 before any model accuracy existed (PaLM's 70% rule)
+COVERAGE_BINS = 10  # histogram of passage coverage in steps of 10%
+TEST4 = ROOT / "evals" / "results" / "EXP-045" / "contamination.json"
 MANIFEST = ROOT / "evals" / "results" / "EXP-037" / "manifest.json"
 
 
@@ -109,9 +121,94 @@ def render(s: dict) -> str:
         "Flagged questions are listed in contamination.json; Belebele accuracy is reported with and",
         "without them. Texts shorter than 13 tokens cannot be checked (counts in summary.json).",
     ]
+    c = s.get("coverage")
+    if c:
+        thr = int(round(100 * c["threshold"]))
+        lines += [
+            "",
+            "COVERAGE: share of each text's distinct 13-token runs found in the training tokens;",
+            f"'substantially present' = at least {thr}% (PaLM's rule), fixed before any model accuracy.",
+            f"reproduces test 4's flags exactly: {c.get('reproduces_test4')}",
+            "",
+            "lang  flagged  substantially  (passage / question / option)  remaining   passage coverage:",
+            "                 present                                              none | 0-10% .. 90-100%",
+        ]
+        for lang, r in c["per_language"].items():
+            b = r["substantially_present_by"]
+            parts = f"({b['passage']} / {b['question']} / {b['option']})"
+            hist = " ".join(f"{x}" for x in r["passage_coverage_hist"])
+            flagged = s["per_language"][lang]["flagged"]
+            lines.append(
+                f"{lang:4}  {flagged:7}  {r['substantially_present']:13}  {parts:<29}  "
+                f"{r['not_substantially_present']:9}   {r['passages_no_overlap']} | {hist}"
+            )
+        t = c["totals"]
+        lines.append(
+            f"TOTAL: {t['substantially_present']} of {t['questions']} questions substantially present "
+            f"({100 * t['substantially_present'] / max(t['questions'], 1):.1f}%); listed in coverage.json"
+        )
     if s["smoke"]:
         lines.append("SMOKE RUN: synthetic data, not a result.")
     return "\n".join(lines) + "\n"
+
+
+def _parts(lang: str, items: list[bb.Item]) -> list[tuple[bb.Item, dict[str, list[str]]]]:
+    passage_of = {q: k for k in bb.passages(items) for q in k.split("|")}
+    return [
+        (
+            it,
+            {
+                "passage": [f"{lang}|passage|{passage_of[it.key]}"],
+                "question": [f"{lang}|question|{it.key}"],
+                "option": [f"{lang}|option{j}|{it.key}" for j in range(1, 5)],
+            },
+        )
+        for it in items
+    ]
+
+
+def substantial_items(
+    items_by_lang: dict[str, list[bb.Item]], cov: dict[str, tuple[int, int]], threshold: float
+) -> dict[str, Any]:
+    """Questions with a part whose coverage is at least ``threshold``, plus passage coverage histograms."""
+    per_lang: dict[str, Any] = {}
+    keys_by_lang: dict[str, list[str]] = {}
+
+    def strong(ref: str) -> bool:
+        found, total = cov.get(ref, (0, 0))
+        return total > 0 and found / total >= threshold
+
+    for lang, items in items_by_lang.items():
+        by = {"passage": 0, "question": 0, "option": 0}
+        keys = []
+        for it, parts in _parts(lang, items):
+            hit = False
+            for name, refs in parts.items():
+                if any(strong(r) for r in refs):
+                    by[name] += 1
+                    hit = True
+            if hit:
+                keys.append(it.key)
+        hist = [0] * COVERAGE_BINS
+        none = 0
+        for key in bb.passages(items):
+            found, total = cov.get(f"{lang}|passage|{key}", (0, 0))
+            if total == 0:
+                continue
+            if found == 0:
+                none += 1
+            else:
+                hist[min(int(COVERAGE_BINS * found / total), COVERAGE_BINS - 1)] += 1
+        keys_by_lang[lang] = keys
+        per_lang[lang] = {
+            "questions": len(items),
+            "substantially_present": len(keys),
+            "not_substantially_present": len(items) - len(keys),
+            "substantially_present_by": by,
+            "passages_no_overlap": none,
+            "passage_coverage_hist": hist,
+        }
+    return {"per_language": per_lang, "substantially_present": keys_by_lang}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -126,6 +223,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--smoke", action="store_true", help="mark the output as a smoke run (tests)")
     p.add_argument("--languages", default=",".join(bb.LANGUAGES))
+    p.add_argument("--coverage", action="store_true", help="also measure coverage (EXP-045 follow-up)")
+    p.add_argument("--test4", default=str(TEST4), help="test 4's contamination.json, to check reproduction")
     args = p.parse_args(argv)
 
     import numpy as np
@@ -165,13 +264,14 @@ def main(argv: list[str] | None = None) -> int:
         )
     index = build_index(tok, items_by_lang)
     t_index = time.monotonic() - t0 - t_verify
+    matched = np.zeros(len(index.keys), dtype=bool) if args.coverage else None
 
     hits: dict[str, dict[str, Any]] = {}
     file_rows = []
     train_total = 0
     for lang, path, n_train in files:
         ts = time.monotonic()
-        found = tn.scan(index, tn.train_tokens(path, n_train), args.chunk)
+        found = tn.scan(index, tn.train_tokens(path, n_train), args.chunk, matched)
         for ref, e in found.items():
             h = hits.setdefault(ref, {"windows": 0, "files": {}})
             h["windows"] += e["windows"]
@@ -226,10 +326,54 @@ def main(argv: list[str] | None = None) -> int:
         "flagged": flags["flagged"],
         "hits": {ref: hits[ref] for ref in sorted(hits)},
     }
+    if matched is not None:
+        cov = tn.coverage(index, matched)
+        sub = substantial_items(items_by_lang, cov, COVERAGE_THRESHOLD)
+        test4 = Path(args.test4)
+        repro: dict[str, Any] = {
+            "test4_file": str(test4.relative_to(ROOT)) if test4.is_relative_to(ROOT) else str(test4)
+        }
+        if test4.exists():
+            old = json.loads(test4.read_text(encoding="utf-8"))
+            same = old.get("belebele_revision") == bb.REVISION and all(
+                sorted(old["flagged"].get(lang, [])) == sorted(flags["flagged"][lang]) for lang in langs
+            )
+            repro["reproduces_test4"] = bool(same)
+        else:
+            repro["reproduces_test4"] = None
+        summary["coverage"] = {
+            "rule": (
+                "coverage = distinct 13-token runs of a text found in the training tokens / all of its "
+                "distinct 13-token runs; a text is substantially present at coverage >= threshold; a "
+                "question is when its passage, question or any option is"
+            ),
+            "threshold": COVERAGE_THRESHOLD,
+            "threshold_source": (
+                "PaLM (Chowdhery et al.): an example is contaminated if >= 70% of its n-grams occur in the "
+                "training data; fixed 2026-10-06 before any model accuracy existed"
+            ),
+            "per_language": sub["per_language"],
+            "totals": {
+                "questions": totals["questions"],
+                "substantially_present": sum(
+                    r["substantially_present"] for r in sub["per_language"].values()
+                ),
+            },
+            **repro,
+        }
+        coverage_file = {
+            "schema": SCHEMA + "-coverage",
+            "belebele_revision": bb.REVISION,
+            "threshold": COVERAGE_THRESHOLD,
+            "substantially_present": sub["substantially_present"],
+            "texts": {ref: list(v) for ref, v in sorted(cov.items()) if v[0] > 0},
+        }
+        (out / "coverage.json").write_text(json.dumps(coverage_file, indent=1) + "\n", encoding="utf-8")
+    else:
+        (out / "contamination.json").write_text(json.dumps(contamination, indent=1) + "\n", encoding="utf-8")
     (out / "summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    (out / "contamination.json").write_text(json.dumps(contamination, indent=1) + "\n", encoding="utf-8")
     (out / "SUMMARY.txt").write_text(render(summary), encoding="utf-8")
     print(render(summary), flush=True)
     return 0

@@ -209,8 +209,12 @@ def test_window_hashes_and_scan_across_chunks():
     idx.add("planted", [7, 7, *gram.tolist(), 9])
     idx.add("short", [1, 2, 3])
     idx.freeze()
-    hits = tn.scan(idx, stream, chunk=1000)
+    matched = np.zeros(len(idx.keys), dtype=bool)
+    hits = tn.scan(idx, stream, chunk=1000, matched=matched)
     assert hits == {"planted": {"windows": 1, "first_offset": 997}}
+    # coverage: "planted" (16 tokens) has 4 distinct 13-grams; only the planted one is in the stream
+    assert idx.ref_keys == {"planted": 4} and matched.sum() == 1
+    assert tn.coverage(idx, matched) == {"planted": (1, 4)}
     assert idx.too_short == ["short"] and len(idx) == 4
     h = tn.window_hashes(np.arange(20), 13)
     assert len(h) == 8 and len(set(h.tolist())) == 8
@@ -261,6 +265,46 @@ def test_contamination_script_end_to_end(tmp_path, tok):
     assert sorted(c["flagged"]["hi"]) == ["https://example.org/0#1", "https://example.org/0#2"]
     assert len(q_planted) >= 13  # (sanity of the fixture text)
     assert "TOTAL: 2 of 12 questions flagged" in (out / "SUMMARY.txt").read_text(encoding="utf-8")
+    # coverage follow-up: same scan, written elsewhere, compared with the run above
+    cov_out = tmp_path / "coverage"
+    rc = bc.main(
+        ["--data-dir", str(tmp_path), "--out", str(cov_out), "--belebele-dir", str(bdir), "--no-verify",
+         "--smoke", "--languages", "en,hi", "--manifest", str(tmp_path / "manifest.json"), "--chunk", "1000",
+         "--coverage", "--test4", str(out / "contamination.json")]
+    )  # fmt: skip
+    assert rc == 0 and not (cov_out / "contamination.json").exists()
+    s2 = json.loads((cov_out / "summary.json").read_text(encoding="utf-8"))
+    cv = s2["coverage"]
+    assert cv["threshold"] == bc.COVERAGE_THRESHOLD == 0.70 and cv["reproduces_test4"] is True
+    assert s2["per_language"] == s["per_language"]
+    hi = cv["per_language"]["hi"]
+    assert hi["substantially_present"] == 2 and hi["substantially_present_by"]["passage"] == 2
+    assert hi["passage_coverage_hist"][-1] == 1 and hi["passages_no_overlap"] == 2
+    assert cv["per_language"]["en"]["substantially_present"] == 0
+    cf = json.loads((cov_out / "coverage.json").read_text(encoding="utf-8"))
+    assert sorted(cf["substantially_present"]["hi"]) == sorted(c["flagged"]["hi"])
+    ref = next(r for r in cf["texts"] if r.startswith("hi|passage|"))
+    assert cf["texts"][ref][0] == cf["texts"][ref][1] == len(planted) - 12
+    assert "TOTAL: 2 of 12 questions substantially present" in (cov_out / "SUMMARY.txt").read_text(
+        encoding="utf-8"
+    )
+    # a single shared 13-token run flags a passage but is far below 70% coverage
+    en = bb.load_language(bdir, "en", verify=False, expected=None)
+    piece = tok.encode_ordinary(en[0].passage)[:13]
+    assert len(tok.encode_ordinary(en[0].passage)) > 30
+    raw = np.fromfile(tmp_path / "en.bin", dtype=np.uint16)
+    raw[50:63] = piece
+    raw.tofile(tmp_path / "en.bin")
+    cov3 = tmp_path / "coverage3"
+    assert bc.main(
+        ["--data-dir", str(tmp_path), "--out", str(cov3), "--belebele-dir", str(bdir), "--no-verify",
+         "--smoke", "--languages", "en,hi", "--manifest", str(tmp_path / "manifest.json"), "--chunk", "1000",
+         "--coverage", "--test4", str(out / "contamination.json")]
+    ) == 0  # fmt: skip
+    s3 = json.loads((cov3 / "summary.json").read_text(encoding="utf-8"))
+    assert s3["per_language"]["en"]["flagged"] == 2 and s3["coverage"]["reproduces_test4"] is False
+    assert s3["coverage"]["per_language"]["en"]["substantially_present"] == 0
+    assert s3["coverage"]["per_language"]["en"]["passage_coverage_hist"][0] == 1
 
 
 # ----------------------------------------------------------------- evaluation script ------------
@@ -285,9 +329,20 @@ def test_eval_script_end_to_end(tmp_path, model):
     contam.write_text(
         json.dumps({"belebele_revision": bb.REVISION, "flagged": {"hi": ["https://example.org/0#1"]}})
     )
+    covf = tmp_path / "coverage.json"
+    covf.write_text(
+        json.dumps(
+            {
+                "belebele_revision": bb.REVISION,
+                "substantially_present": {"hi": ["https://example.org/0#1", "https://example.org/0#2"]},
+            }
+        )
+    )
     out = tmp_path / "out"
     rc = ev.main(
         [
+            "--coverage",
+            str(covf),
             "--weights",
             str(w),
             "--out",
@@ -318,6 +373,9 @@ def test_eval_script_end_to_end(tmp_path, model):
     assert set(t["1_heldout"]["per_language"]) == {"en", "hi"}
     hi = t["2_belebele"]["per_language"]["hi"]
     assert hi["questions"] == 6 and hi["without_flagged"]["flagged_removed"] == 1
+    assert hi["without_substantially_present"]["removed"] == 2
+    assert hi["without_substantially_present"]["questions"] == 4
+    assert t["2_belebele"]["coverage"] == "applied"
     assert t["3_parallel"]["passages"] == 3 and t["3_parallel"]["per_language"]["en"]["bits_vs_en"] == 1.0
     rows = [json.loads(x) for x in (out / "samples.jsonl").read_text(encoding="utf-8").splitlines()]
     assert len(rows) == 2 * 5 * 2 and rows[0]["prompt"] == "The weather today is"

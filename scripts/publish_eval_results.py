@@ -22,7 +22,8 @@ from pathlib import Path
 
 PUBLISHED = ("report.json", "report.txt", "compare.json", "compare.txt", "experiment.json",
              "summary.json", "SUMMARY.txt", "DIVERGED.json", "samples.jsonl", "manifest.json",
-             "contamination.json", "belebele_items.jsonl")  # EXP-045: keys and counts, no Belebele text
+             "contamination.json", "belebele_items.jsonl",  # EXP-045: keys and counts, no Belebele text
+             "coverage.json")  # EXP-045 coverage follow-up: keys and counts, no Belebele text
 
 
 def main() -> int:

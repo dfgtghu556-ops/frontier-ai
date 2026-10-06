@@ -14,6 +14,12 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp045.ps1
 # If the laptop was switched off: run the same line again - it continues.
 #
+# Coverage re-scan (approved 2026-10-06): test 4 is done (commit 0332f69) and this PC still remembers
+# its kernel, so START the re-scan once with -Relaunch (it pins the current GitHub commit; results go
+# to evals/results/EXP-045/coverage/). If the laptop is switched off after that, run the line again
+# WITHOUT -Relaunch - it continues.
+#   powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp045.ps1 -Relaunch
+#
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
 param([switch]$Relaunch)

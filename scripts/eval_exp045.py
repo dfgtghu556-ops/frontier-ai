@@ -122,7 +122,9 @@ def test_heldout(model, tok, args, block, device, amp) -> dict[str, Any]:
     }
 
 
-def test_belebele(model, tok, items_by_lang, args, block, device, amp, flagged) -> tuple[dict, list[dict]]:
+def test_belebele(
+    model, tok, items_by_lang, args, block, device, amp, flagged, substantial=None
+) -> tuple[dict, list[dict]]:
     per: dict[str, Any] = {}
     item_rows: list[dict] = []
     for lang, items in items_by_lang.items():
@@ -136,6 +138,13 @@ def test_belebele(model, tok, items_by_lang, args, block, device, amp, flagged) 
                 **bb.accuracy_report(clean),
                 "flagged_removed": len(res["rows"]) - len(clean),
             }
+        if substantial is not None:  # the coverage follow-up's third subset (rule fixed 2026-10-06)
+            strong = set(substantial.get(lang, []))
+            rest = [r["correct"] for r in res["rows"] if r["key"] not in strong]
+            rep["without_substantially_present"] = {
+                **bb.accuracy_report(rest),
+                "removed": len(res["rows"]) - len(rest),
+            }
         rep["seconds"] = round(time.monotonic() - t, 1)
         per[lang] = rep
         for r in res["rows"]:
@@ -147,6 +156,7 @@ def test_belebele(model, tok, items_by_lang, args, block, device, amp, flagged) 
         "protocol": bb.PROTOCOL,
         "chance": bb.CHANCE,
         "contamination": "applied" if flagged is not None else "NOT AVAILABLE (no --contamination)",
+        "coverage": "applied" if substantial is not None else "NOT AVAILABLE (no --coverage)",
         "per_language": per,
     }, item_rows
 
@@ -235,6 +245,9 @@ def render(s: dict) -> str:
                 if w["questions"]
                 else ""
             )
+        if "without_substantially_present" in r and r["without_substantially_present"]["questions"]:
+            w = r["without_substantially_present"]
+            line += f" | without {w['removed']} substantially present: {100 * w['accuracy']:5.1f}%"
         if r["passages_cut"]:
             line += f" | {r['passages_cut']} passages cut"
         out.append(line)
@@ -263,6 +276,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--heldout-jsonl", default=None)
     p.add_argument("--suite", default=str(SUITE))
     p.add_argument("--contamination", default=None, help="contamination.json from test 4")
+    p.add_argument("--coverage", default=None, help="coverage.json from the coverage follow-up")
     p.add_argument("--export-fp16", default=None, help="write the fp16 weights copy here")
     p.add_argument("--device", default="auto")
     p.add_argument("--amp", default="auto", choices=["auto", "fp16", "none"], help="auto = fp16 on CUDA")
@@ -310,6 +324,12 @@ def main(argv: list[str] | None = None) -> int:
         if c.get("belebele_revision") != bb.REVISION:
             raise SystemExit("contamination.json was made for another Belebele revision")
         flagged = c["flagged"]
+    substantial = None
+    if args.coverage:
+        c = json.loads(Path(args.coverage).read_text(encoding="utf-8"))
+        if c.get("belebele_revision") != bb.REVISION:
+            raise SystemExit("coverage.json was made for another Belebele revision")
+        substantial = c["substantially_present"]
 
     tests: dict[str, Any] = {}
     t = time.monotonic()
@@ -317,7 +337,7 @@ def main(argv: list[str] | None = None) -> int:
     tests["1_heldout"]["seconds"] = round(time.monotonic() - t, 1)
     t = time.monotonic()
     tests["2_belebele"], item_rows = test_belebele(
-        model, tok, items_by_lang, args, block, device, amp, flagged
+        model, tok, items_by_lang, args, block, device, amp, flagged, substantial
     )
     tests["2_belebele"]["seconds"] = round(time.monotonic() - t, 1)
     t = time.monotonic()

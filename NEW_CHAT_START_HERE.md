@@ -746,6 +746,11 @@ comes next. They also update the table in §3.
     (en/hi/pa/te/ur only 25-62 each). Belebele is reported on all questions and on the clean ones.
     `windows` counts occurrences, not coverage. Recommended (needs approval): a coverage re-scan with a
     threshold fixed before any model accuracy exists. Next build: EXP-046 kernels A/B.
+  - **EXP-045 coverage re-scan approved (2026-10-06) and built (2026-10-07):** coverage = share of a
+    text's distinct 13-token runs found in training; "substantially present" = coverage >= 0.70
+    (PaLM's rule), pre-registered in EXPERIMENTS before any model accuracy; third Belebele subset. Tokens
+    only (words too slow). Writes evals/results/EXP-045/coverage/ and checks it reproduces test 4.
+    Founder starts it once with `run_kaggle_exp045.ps1 -Relaunch` (Kaggle CPU, ~40 min NOT VERIFIED).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

@@ -122,7 +122,8 @@ if ($Exp -eq "EXP-044") {
 }
 if ($Exp -eq "EXP-045") {
     # EXP-045 test 4 (contamination check) runs on a Kaggle CPU session: no GPU quota is used
-    $expectedRun = "EXP-045 (CPU only, no GPU) should take about 1 hour; not measured yet"
+    # (test 4 took 1,871 s of scanning; the coverage re-scan writes EXP-045\coverage\)
+    $expectedRun = "EXP-045 coverage re-scan (CPU only, no GPU) should take about 40 minutes; not measured yet"
     $maxWaitHours = 6
 }
 if ($Exp -eq "EXP-046") {
@@ -421,6 +422,8 @@ if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {
 }
 # EXP-046: the probe writes EXP-046\probe\ (later build steps get their own folders)
 if ($Exp -eq "EXP-046") { $resultDir = "$outputDir\$Exp\probe" }
+# EXP-045: since test 4 the kernel writes the coverage re-scan to EXP-045\coverage\
+if ($Exp -eq "EXP-045") { $resultDir = "$outputDir\$Exp\coverage" }
 $summaryPath = "$resultDir\summary.json"
 if (-not (Test-Path $summaryPath)) {
     Add-Report "FAIL 5a: the kernel left no summary.json. Last 60 lines of the kernel log:"
@@ -471,7 +474,7 @@ if ($changed.Count -eq 0) {
     Add-Report "PASS 6b: staged $($staged.Count) files, all under $resultsPrefix"
     $msgFile = "$outDir\commit_message.txt"
     $msgText = "${Exp}: GPU results from one Kaggle T4 (commit $($state.pinned_commit.Substring(0, 7)); checkpoints stay on Kaggle)"
-    if ($Exp -eq "EXP-045") { $msgText = "${Exp}: contamination check results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
+    if ($Exp -eq "EXP-045") { $msgText = "${Exp}: coverage re-scan results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     if ($Exp -eq "EXP-046") { $msgText = "${Exp}: probe results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     $msgText | Set-Content -Path $msgFile -Encoding ASCII
     $r = Invoke-Logged "git commit -q -F $msgFile"
