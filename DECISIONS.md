@@ -1912,6 +1912,17 @@ the decision:
   trainer-state files as a one-GPU session 2.
 - The CPU smoke still gives final weights `6b3eab46…` (bpb 0.9773914663710349).
 
+**Update (2026-10-06): the first two-GPU session (EXP-043 session 3) passed every revisit rule.**
+Commit `166a47f`; results in `evals/results/EXP-043/session-3/` (results commit `d0c3655`).
+- **Skipped fp16 steps:** 16 of 40,613 (0.04%; the limit is 5%).
+- **Hang or NCCL error:** none. No `two_gpu_fallback` or `two_gpu_failure`.
+- **Whole-session speed:** 0.744 s per step vs 1.474 on one GPU in session 2, i.e. **1.98×**
+  (22,030 vs 11,115 tokens/s; rule ≥ 1.4×; EXP-044 had measured 1.79× over 300 steps).
+- **Memory:** 8.97 GB on each GPU.
+- **Chain:** session 2's one-GPU checkpoint (step 20,594) was found in kernel b's output, its sha256
+  was verified, and it was resumed on two GPUs.
+EXP-043 stays on two GPUs.
+
 ## Open items to decide later (not yet decisions)
 
 

@@ -3872,6 +3872,29 @@ requires. Kaggle T4 machine (2 GPUs visible, 1 used), commit `37788c7`; results 
 
 **Status:** running — sessions 1–2 complete (lr 5e-4; main run at step 20,594 of 169,911, one GPU); next: session 3, the first two-GPU session (D-050)
 
+**Update (2026-10-06): session 3 complete, the first on two GPUs (D-050).** Commit `166a47f`; results
+in `evals/results/EXP-043/session-3/` (results commit `d0c3655`).
+- **Chain (first real checkpoint load, was NOT VERIFIED):** the step-20,594 checkpoint was found in
+  kernel `frontier-exp043-b`'s output, its sha256 (5 files) verified, and it was resumed on two GPUs.
+- **Steps 20,594 → 61,207 (40,613 this session; 36.0% of the pass done)**, 1,002,815,488 tokens seen
+  in total. The session ended at its time budget; no stop rule fired.
+- **Speed:** 22,030 tokens/s, i.e. 0.744 s per step, **1.98×** session 2's one-GPU speed. Memory
+  8.97 GB per GPU.
+- **Health:** 16 skipped fp16 steps (0.04%), no bad evaluations. The sampled validation loss went
+  from 2.282 (step 21,000) to 2.107 (step 61,000); the best so far is 2.1008.
+- **Checkpoint:** step 61,207 (`model.pt` `a689b339…`); periodic saves every 5,000 steps from 25,000
+  to 60,000.
+- **Full validation at the session end (still mid-run, not a result):** mean **0.7199 bpb**, all 13
+  languages below the C3-s3 reference (by 0.036 for ml up to 0.111 for en; hi 0.6336). The gate
+  (final mean < 0.7562) is judged only at the end of the pass.
+- **Time:** 8.66 session-hours, 25.38 of the 100-hour cap used. 108,704 steps remain: about 22.5 h of
+  training at this speed. At 8.39 training hours per session, that is **3 more sessions** (4, 5, 6),
+  the last one shorter, with the final evaluation.
+- **All D-050 revisit rules clear** (skipped steps, no hang, speed ≥ 1.4×): the run stays on two
+  GPUs.
+
+**Status:** running — sessions 1–3 complete (main run at step 61,207 of 169,911; session 3 on two GPUs at 1.98×); next: session 4
+
 ### EXP-044 — Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-044" before any code)
 

@@ -723,6 +723,12 @@ comes next. They also update the table in §3.
     final 0.7736). 16.72 of 100 session-h used. Next: session 3 = first checkpoint load from the other
     kernel AND the first two-GPU session (D-050). Check its chain line, `gpus_plan`, speed vs 1.474
     s/step (needs >= 1.4x) and skipped steps.
+  - **EXP-043 session 3 done (2026-10-06, results `d0c3655`), the first two-GPU session:** checkpoint
+    20,594 verified from kernel b and resumed; steps 20,594 -> 61,207; 0.744 s/step = 1.98x one GPU;
+    8.97 GB per GPU; 16 skipped steps (0.04%); all D-050 revisit rules clear. Session-end full
+    validation 0.7199 bpb mean (mid-run). 25.38 of 100 session-h used; about 3 more sessions (4-6).
+    Kaggle's weekly GPU quota resets Saturday 00:00 UTC (Kaggle staff note, 2020; current behaviour
+    NOT VERIFIED); about 26 h of it were used in the week starting 2026-10-03.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
