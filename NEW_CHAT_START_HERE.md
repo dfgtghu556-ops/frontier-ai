@@ -736,6 +736,11 @@ comes next. They also update the table in §3.
     NOT VERIFIED). Meanwhile the approved CPU-only work (EXP-046 probe, EXP-045 test 4) uses the gap.
     The runner prints Kaggle's refusal only to run.log, not REPORT.txt (possible small fix, needs
     approval).
+  - **EXP-046 probe done (2026-10-06, results `1d3eabe`):** Kaggle CPU session = 4 cores Xeon 2.2 GHz,
+    30 GiB RAM limit, 20.96 GB output, about 45 MB/s from Hugging Face; it started while the GPU quota
+    was used up. Slice-2 output estimate 16.4 GB, so two build kernels (A: en ur as bn gu hi; B: kn ml
+    mr or pa ta te). The build needs the held-out texts on Kaggle (export_heldout_text.py -> small
+    private input). Next for the founder in the gap: EXP-045 test 4 (CPU).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

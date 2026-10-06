@@ -4239,3 +4239,35 @@ Next: the build kernels (two, about 7 + 6 languages, each under 20 GB of output)
 the probe's numbers are in. Disk, RAM and download speed decide how they are split.
 
 **Status:** approved 2026-10-04; step 1 ready (pinned files + probe); the probe runs between two EXP-043 sessions; the build kernels follow its results
+
+**Update (2026-10-06): step 1 done. The probe ran on a Kaggle CPU session.** Commit `7bea38e`;
+results in `evals/results/EXP-046/probe/` (results commit `1d3eabe`). It processed no data.
+
+| what | measured |
+|---|---|
+| CPU | 4 usable cores, Intel Xeon @ 2.20 GHz |
+| RAM | 33.7 GB total; container limit 32,212,254,720 bytes (30 GiB) |
+| `/kaggle/working` (the saved output) | 20.96 GB, 20.94 GB free |
+| `/tmp` | on the host's shared disk: 1,148.8 GB free of 8,758 GB. The per-session limit is NOT VERIFIED, so the build keeps only a few GB there at a time |
+| dependencies | numpy 2.1.3, pyarrow 23.0.1, Tokenizer v2 loads with its hash verified |
+| download | `asm/data-1` (326 MB) in 7.2 s including the SHA-256 check (about 45 MB/s); hash alone 1.0 s; 110,238 rows (from the footer); deleted afterwards |
+| EXP-037 token dataset | mounted, 13 files, 5.6 GB |
+
+- **Also learned:** Kaggle started this CPU session while the account's weekly GPU quota was used up
+  (EXP-043 session 4 had just been refused). So the GPU quota does not block CPU sessions. Whether
+  CPU sessions have a quota of their own, and whether one can run during a GPU session, are still
+  NOT VERIFIED.
+- **What it means for the build:**
+  - Downloading all 26 slice-2 files (9.79 GB) takes minutes at this speed (other files and hours
+    NOT VERIFIED), so the work is CPU-bound.
+  - Output estimate, scaling slice 1's real sizes per language by each language's parquet growth,
+    before any removals: about 5.6 GB of compressed text plus 10.8 GB of uint16 tokens, **16.4 GB**.
+    One 20 GB output would hold it with little margin, so the plan's two build kernels stay.
+  - Recommended split (by estimated output): **A** = en, ur, as, bn, gu, hi (about 9.2 GB);
+    **B** = kn, ml, mr, or, pa, ta, te (about 7.2 GB). Both are well under 20 GB.
+- **Needed by the build:** the protected held-out texts. The same rules as slice 1 refuse to run
+  without them. `scripts/export_heldout_text.py` (built for EXP-045) exports them from the founder's
+  PC, about 1 MB, every document checked against `SUITE.json`. They go to Kaggle as a small private
+  input, shared with EXP-045's later evaluation session.
+
+**Status:** approved 2026-10-04; step 1 (probe) done 2026-10-06; next: the two build kernels (A: en ur as bn gu hi; B: kn ml mr or pa ta te)
