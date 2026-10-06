@@ -1,0 +1,22 @@
+EXP-045 test 4 - Belebele vs EXP-037 training tokens (13-token runs)
+code commit cc27e8d91d0808788798e6cef299761fb348440d | Belebele facebook/belebele@7899cdfa
+training tokens scanned: 2,783,830,088 in 13 files (1871 s); Belebele 13-grams: 1,967,608
+
+lang  questions  flagged  (passage / question / option)
+as          900      515  (446 / 117 / 104)
+bn          900      626  (583 / 98 / 107)
+en          900      862  (824 / 382 / 197)
+gu          900      761  (738 / 94 / 116)
+hi          900      838  (799 / 397 / 212)
+kn          900      511  (462 / 77 / 78)
+ml          900      461  (417 / 61 / 87)
+mr          900      499  (469 / 60 / 56)
+or          900      636  (564 / 152 / 125)
+pa          900      849  (821 / 272 / 224)
+ta          900      524  (498 / 65 / 76)
+te          900      842  (829 / 185 / 203)
+ur          900      875  (860 / 505 / 338)
+
+TOTAL: 8799 of 11700 questions flagged (75.2%)
+Flagged questions are listed in contamination.json; Belebele accuracy is reported with and
+without them. Texts shorter than 13 tokens cannot be checked (counts in summary.json).
