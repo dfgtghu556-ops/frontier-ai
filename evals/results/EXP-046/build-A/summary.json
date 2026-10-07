@@ -1,0 +1,4511 @@
+{
+  "schema": "frontier-slice2-build-v1",
+  "exp_id": "EXP-046",
+  "part": "A",
+  "languages": [
+    "en",
+    "ur",
+    "as",
+    "bn",
+    "gu",
+    "hi"
+  ],
+  "slice_id": "sangraha-verified-slice2",
+  "dataset": "ai4bharat/sangraha",
+  "revision": "8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8",
+  "license_id": "CC-BY-4.0",
+  "attribution": "Sangraha (AI4Bharat): Khan et al. 2024, IndicLLMSuite: A Blueprint for Creating Pre-training and Fine-Tuning Datasets for Indian Languages, ACL 2024 (arXiv:2403.06350). CC-BY-4.0.",
+  "pins": "corpora/frontier/v2/sangraha_slice2.json",
+  "config": {
+    "boilerplate_min_repeats": 100,
+    "min_declared_share": 0.6,
+    "urdu_min_letters": 50,
+    "wiki_marker_limit": 2,
+    "min_repetition_ratio": 0.3,
+    "repetition_min_tokens": 8,
+    "max_control_ratio": 0.02,
+    "near_dup_threshold": 0.8,
+    "near_dup_bands": 16,
+    "minhash_perm": 128,
+    "minhash_shingle": 5,
+    "minhash_seed": 35,
+    "short_suite_min_words": 3,
+    "normalization": "nfc"
+  },
+  "config_fingerprint": "43ce349329a98770",
+  "code_sha256_16": {
+    "slice_build": "b02a8fc50ee38882",
+    "pack": "4c7423ce3d388ad7",
+    "prior_docs": "6cfe18ea1e3181c7",
+    "build_slice2": "df51ca6fad60b965"
+  },
+  "tokenizer": {
+    "name": "frontier-tokenizer-v1 counts (D-041), frontier-tokenizer-v2 packs (EXP-037)",
+    "v1_dir_sha256_16": "b39afa08fa86b0d1",
+    "v2_dir_sha256_16": "87bd6d31ae8723c2",
+    "vocab_size": 32896,
+    "endoftext_id": 32768,
+    "exact_count": true
+  },
+  "val_ppm": 5000,
+  "suite": {
+    "suite_id": "frontier-heldout-v1",
+    "suite_sha256_16": "043c1b7ee2a52e28",
+    "ngram_n": 13,
+    "suite_documents": 68271,
+    "suite_unique_texts": 64832,
+    "suite_ngrams": 440983,
+    "suite_too_short_documents": 56433,
+    "short_index": {
+      "min_words": 3,
+      "below_ngram": 13,
+      "indexed_documents": 1727,
+      "not_indexed_too_short": 155,
+      "distinct_anchors": 1725
+    },
+    "belebele": {
+      "dataset": "facebook/belebele",
+      "revision": "7899cdfa4e1e0d733fd77c848e2c273cb1d32be2",
+      "files_verified": true,
+      "texts": 64844,
+      "texts_per_language": {
+        "as": 4988,
+        "bn": 4988,
+        "en": 4988,
+        "gu": 4988,
+        "hi": 4988,
+        "kn": 4988,
+        "ml": 4988,
+        "mr": 4988,
+        "or": 4988,
+        "pa": 4988,
+        "ta": 4988,
+        "te": 4988,
+        "ur": 4988
+      },
+      "guarded_by": "13-word runs and exact text (not the 3-12-word short-passage index)"
+    }
+  },
+  "suite_status": "CHECKED against frontier-heldout-v1 (3427 documents; 13-grams + exact + passages of 3-12 words; verified against SUITE.json) and Belebele (64,844 texts; 13-grams + exact)",
+  "slice1": {
+    "manifest": "evals/results/EXP-037/manifest.json",
+    "manifest_sha256": "b43c0d91c74efc7cb7a7c2480b190a95a44c34fc35427d4d5c13514f6ff6a11b",
+    "packed_id": "frontier-v2-sangraha-slice1@frontier-tokenizer-v2",
+    "rule": "a slice-2 document whose final text equals a slice-1 document's text is removed",
+    "per_language": {
+      "gu": {
+        "docs": 149466,
+        "distinct_texts": 149466,
+        "sha256_verified": true
+      },
+      "bn": {
+        "docs": 149458,
+        "distinct_texts": 149458,
+        "sha256_verified": true
+      },
+      "ur": {
+        "docs": 191621,
+        "distinct_texts": 191621,
+        "sha256_verified": true
+      },
+      "en": {
+        "docs": 348394,
+        "distinct_texts": 348387,
+        "sha256_verified": true
+      },
+      "as": {
+        "docs": 104386,
+        "distinct_texts": 104386,
+        "sha256_verified": true
+      },
+      "hi": {
+        "docs": 171199,
+        "distinct_texts": 171199,
+        "sha256_verified": true
+      }
+    }
+  },
+  "reasons": [
+    "empty",
+    "suite_exact",
+    "suite_ngram",
+    "suite_short",
+    "exact_duplicate",
+    "cross_file_duplicate",
+    "control_chars",
+    "empty_after_cleaning",
+    "no_letters",
+    "script_share",
+    "urdu_persian_like",
+    "urdu_uyghur_like",
+    "wiki_markup",
+    "repetition",
+    "suite_after_cleaning",
+    "slice1_duplicate",
+    "near_duplicate"
+  ],
+  "max_docs_per_file": null,
+  "workers": 4,
+  "data_out": "/kaggle/working/slice2-A",
+  "disk": {
+    "data_out_free": 20940537856,
+    "data_out_need_estimate": 10773484621,
+    "work_free": 1148763041792
+  },
+  "environment": {
+    "code_commit": "d8bb772dcf507d7711ad7be975c1285a5d07260f",
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.39",
+    "python": "3.13.15",
+    "cpu_count": 4
+  },
+  "started_at": "2026-10-07 16:50:04",
+  "files": [
+    {
+      "source_id": "sangraha-verified-eng-data-1",
+      "language": "en",
+      "script": "latin",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 349525,
+        "chars": 935178127,
+        "by_type": {
+          "pdf": {
+            "docs": 4818,
+            "chars": 38854900
+          },
+          "speech": {
+            "docs": 22,
+            "chars": 1200080
+          },
+          "web": {
+            "docs": 344685,
+            "chars": 895123147
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 349525,
+        "lines": 4220897,
+        "distinct_lines": 3862481,
+        "boilerplate_distinct_lines": 370,
+        "boilerplate_line_occurrences": 126094
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 4,
+          "chars": 27834,
+          "share_docs": 1.1e-05,
+          "share_chars": 3e-05
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 88,
+          "chars": 94225,
+          "share_docs": 0.000252,
+          "share_chars": 0.000101
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 96,
+          "chars": 94701,
+          "share_docs": 0.000275,
+          "share_chars": 0.000101
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 120,
+          "chars": 116751,
+          "share_docs": 0.000343,
+          "share_chars": 0.000125
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 27,
+          "chars": 111805,
+          "share_docs": 7.7e-05,
+          "share_chars": 0.00012
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 4,
+          "chars": 47828,
+          "share_docs": 1.1e-05,
+          "share_chars": 5.1e-05
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 593,
+          "chars": 1137465,
+          "share_docs": 0.001697,
+          "share_chars": 0.001216
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 566,
+          "chars": 1401731,
+          "share_docs": 0.001619,
+          "share_chars": 0.001499
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 126089,
+          "chars": 9303341,
+          "share_chars": 0.009948
+        },
+        "foreign": {
+          "lines": 24294,
+          "chars": 3869969,
+          "share_chars": 0.004138
+        }
+      },
+      "kept": {
+        "docs": 348027,
+        "chars": 917758437,
+        "tokens": 477413028,
+        "share_docs": 0.995714,
+        "share_chars_of_input": 0.981373,
+        "by_type": {
+          "pdf": {
+            "docs": 4814,
+            "chars": 36703091,
+            "tokens": 19050963
+          },
+          "speech": {
+            "docs": 22,
+            "chars": 1181803,
+            "tokens": 633102
+          },
+          "web": {
+            "docs": 343191,
+            "chars": 879873543,
+            "tokens": 457728963
+          }
+        }
+      },
+      "masked": {
+        "emails": 1445,
+        "phones": 787,
+        "docs_masked": 1657
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 64177,
+          "kept_under_200_chars": 2778
+        },
+        "chars": {
+          "kept_under_200_chars": 414074
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 348589,
+        "removed": 566,
+        "clusters_with_removals": 147,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 4,
+        "suite_documents_touched": 2,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 4263,
+          "text": "Follow us on Google News and stay updated with the latest!"
+        },
+        {
+          "count": 3727,
+          "text": "Video Tags:"
+        },
+        {
+          "count": 2307,
+          "text": "Get the hottest deals available in your inbox plus news, reviews, opinion, analysis, deals and more from the TechRadar t..."
+        },
+        {
+          "count": 2128,
+          "text": "Get the most important tech news in your inbox each week."
+        },
+        {
+          "count": 1807,
+          "text": "Is this review helpful?"
+        },
+        {
+          "count": 1770,
+          "text": "Posted On:"
+        },
+        {
+          "count": 1425,
+          "text": "Catch us for latest Bollywood News, New Bollywood Movies update, Box office collection, New Movies Release , Bollywood N..."
+        },
+        {
+          "count": 1349,
+          "text": "Begin typing your search above and press return to search."
+        },
+        {
+          "count": 1277,
+          "text": "Download The Economic Times News App to get Daily Market Updates & Live Business News."
+        },
+        {
+          "count": 1275,
+          "text": "- Travel Have you been to Vishveshwaraya Falls in Mandya yet? If not, this is the best time!"
+        },
+        {
+          "count": 1269,
+          "text": "157 (20. 0 ov)"
+        },
+        {
+          "count": 1269,
+          "text": "172/7 (20. 0 ov)"
+        },
+        {
+          "count": 1246,
+          "text": "- Curated newsletters on markets, personal finance, policy & politics, start-ups, technology, and more."
+        },
+        {
+          "count": 1246,
+          "text": "- Full access to our intuitive epaper - clip, save, share articles from any device; newspaper archives from 2006."
+        },
+        {
+          "count": 1246,
+          "text": "- Pick your 5 favourite companies, get a daily email with all news updates on them."
+        },
+        {
+          "count": 1246,
+          "text": "- Preferential invites to Business Standard events."
+        },
+        {
+          "count": 1246,
+          "text": "- Unlock 30+ premium stories daily hand-picked by our editors, across devices on browser and app."
+        },
+        {
+          "count": 1246,
+          "text": "TO READ THE FULL STORY, SUBSCRIBE NOW NOW AT JUST RS 249 A MONTH."
+        },
+        {
+          "count": 1246,
+          "text": "What you get on Business Standard Premium?"
+        },
+        {
+          "count": 1232,
+          "text": "If you disable this cookie, we will not be able to save your preferences. This means that every time you visit this webs..."
+        },
+        {
+          "count": 1232,
+          "text": "Strictly Necessary Cookie should be enabled at all times so that we can save your preferences for cookie settings."
+        },
+        {
+          "count": 1232,
+          "text": "This website uses cookies so that we can provide you with the best user experience possible. Cookie information is store..."
+        },
+        {
+          "count": 1105,
+          "text": "( With inputs from ANI )"
+        },
+        {
+          "count": 1054,
+          "text": "Holy Bible, New International Version®, NIV® Copyright ©1973, 1978, 1984, 2011 by Biblica, Inc.® Used by permission. All..."
+        },
+        {
+          "count": 1053,
+          "text": "116/7 (17. 0 ov)"
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-eng-data-1.jsonl.gz",
+        "sha256_gz": "24fb6d2224f157a5cd804c5a0e81a303c392b1a82b1f1551344812f1670ebc07",
+        "sha256_jsonl": "12081a8453a2715d8ce63c775c5b3d026e1e6b1a0271d669d22514ad1885bf5e",
+        "bytes_gz": 385430375
+      },
+      "max_docs": null,
+      "seconds": 2478.7,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-eng-data-2",
+      "language": "en",
+      "script": "latin",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 349526,
+        "chars": 940951939,
+        "by_type": {
+          "pdf": {
+            "docs": 4889,
+            "chars": 38057328
+          },
+          "speech": {
+            "docs": 19,
+            "chars": 1293839
+          },
+          "web": {
+            "docs": 344618,
+            "chars": 901600772
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 349526,
+        "lines": 4271639,
+        "distinct_lines": 3908604,
+        "boilerplate_distinct_lines": 379,
+        "boilerplate_line_occurrences": 127064
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 1,
+          "chars": 32418,
+          "share_docs": 3e-06,
+          "share_chars": 3.4e-05
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 1,
+          "chars": 24039,
+          "share_docs": 3e-06,
+          "share_chars": 2.6e-05
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 34,
+          "chars": 117458,
+          "share_docs": 9.7e-05,
+          "share_chars": 0.000125
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 122,
+          "chars": 223592,
+          "share_docs": 0.000349,
+          "share_chars": 0.000238
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 93,
+          "chars": 88275,
+          "share_docs": 0.000266,
+          "share_chars": 9.4e-05
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 137,
+          "chars": 128490,
+          "share_docs": 0.000392,
+          "share_chars": 0.000137
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 27,
+          "chars": 91068,
+          "share_docs": 7.7e-05,
+          "share_chars": 9.7e-05
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 3,
+          "chars": 37156,
+          "share_docs": 9e-06,
+          "share_chars": 3.9e-05
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 621,
+          "chars": 1204453,
+          "share_docs": 0.001777,
+          "share_chars": 0.00128
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 541,
+          "chars": 1299261,
+          "share_docs": 0.001548,
+          "share_chars": 0.001381
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 127050,
+          "chars": 9189414,
+          "share_chars": 0.009766
+        },
+        "foreign": {
+          "lines": 23603,
+          "chars": 3679172,
+          "share_chars": 0.00391
+        }
+      },
+      "kept": {
+        "docs": 347946,
+        "chars": 923613357,
+        "tokens": 481200553,
+        "share_docs": 0.99548,
+        "share_chars_of_input": 0.981573,
+        "by_type": {
+          "pdf": {
+            "docs": 4886,
+            "chars": 36167280,
+            "tokens": 18824085
+          },
+          "speech": {
+            "docs": 19,
+            "chars": 1282272,
+            "tokens": 691677
+          },
+          "web": {
+            "docs": 343041,
+            "chars": 886163805,
+            "tokens": 461684791
+          }
+        }
+      },
+      "masked": {
+        "emails": 1454,
+        "phones": 807,
+        "docs_masked": 1687
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 63356,
+          "kept_under_200_chars": 2657
+        },
+        "chars": {
+          "kept_under_200_chars": 402553
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 348486,
+        "removed": 541,
+        "clusters_with_removals": 149,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 2,
+        "suite_documents_touched": 2,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 4307,
+          "text": "Follow us on Google News and stay updated with the latest!"
+        },
+        {
+          "count": 3766,
+          "text": "Video Tags:"
+        },
+        {
+          "count": 2196,
+          "text": "Get the hottest deals available in your inbox plus news, reviews, opinion, analysis, deals and more from the TechRadar t..."
+        },
+        {
+          "count": 2058,
+          "text": "Get the most important tech news in your inbox each week."
+        },
+        {
+          "count": 1696,
+          "text": "Posted On:"
+        },
+        {
+          "count": 1634,
+          "text": "Is this review helpful?"
+        },
+        {
+          "count": 1467,
+          "text": "Catch us for latest Bollywood News, New Bollywood Movies update, Box office collection, New Movies Release , Bollywood N..."
+        },
+        {
+          "count": 1378,
+          "text": "- Travel Have you been to Vishveshwaraya Falls in Mandya yet? If not, this is the best time!"
+        },
+        {
+          "count": 1346,
+          "text": "Begin typing your search above and press return to search."
+        },
+        {
+          "count": 1285,
+          "text": "157 (20. 0 ov)"
+        },
+        {
+          "count": 1285,
+          "text": "172/7 (20. 0 ov)"
+        },
+        {
+          "count": 1249,
+          "text": "If you disable this cookie, we will not be able to save your preferences. This means that every time you visit this webs..."
+        },
+        {
+          "count": 1249,
+          "text": "Strictly Necessary Cookie should be enabled at all times so that we can save your preferences for cookie settings."
+        },
+        {
+          "count": 1249,
+          "text": "This website uses cookies so that we can provide you with the best user experience possible. Cookie information is store..."
+        },
+        {
+          "count": 1247,
+          "text": "- Curated newsletters on markets, personal finance, policy & politics, start-ups, technology, and more."
+        },
+        {
+          "count": 1247,
+          "text": "- Full access to our intuitive epaper - clip, save, share articles from any device; newspaper archives from 2006."
+        },
+        {
+          "count": 1247,
+          "text": "- Pick your 5 favourite companies, get a daily email with all news updates on them."
+        },
+        {
+          "count": 1247,
+          "text": "- Preferential invites to Business Standard events."
+        },
+        {
+          "count": 1247,
+          "text": "- Unlock 30+ premium stories daily hand-picked by our editors, across devices on browser and app."
+        },
+        {
+          "count": 1247,
+          "text": "TO READ THE FULL STORY, SUBSCRIBE NOW NOW AT JUST RS 249 A MONTH."
+        },
+        {
+          "count": 1247,
+          "text": "What you get on Business Standard Premium?"
+        },
+        {
+          "count": 1212,
+          "text": "Download The Economic Times News App to get Daily Market Updates & Live Business News."
+        },
+        {
+          "count": 1101,
+          "text": "Our editors will review what you’ve submitted and determine whether to revise the article."
+        },
+        {
+          "count": 1057,
+          "text": "116/7 (17. 0 ov)"
+        },
+        {
+          "count": 1034,
+          "text": "119/4 (16. 1 ov)"
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-eng-data-2.jsonl.gz",
+        "sha256_gz": "fbbf1e1821933b3f5fd2764433b2c320b33909df4f745c5f810b4fa3683605cc",
+        "sha256_jsonl": "b557a8689b7aed33d2c123f6c588e1af44882b9e21c286a47a83c6431e456626",
+        "bytes_gz": 387944717
+      },
+      "max_docs": null,
+      "seconds": 2555.6,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-urd-data-1",
+      "language": "ur",
+      "script": "arabic",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 209716,
+        "chars": 569668706,
+        "by_type": {
+          "pdf": {
+            "docs": 69076,
+            "chars": 227446557
+          },
+          "speech": {
+            "docs": 11,
+            "chars": 441385
+          },
+          "web": {
+            "docs": 140629,
+            "chars": 341780764
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 209716,
+        "lines": 708350,
+        "distinct_lines": 668608,
+        "boilerplate_distinct_lines": 36,
+        "boilerplate_line_occurrences": 8738
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 1,
+          "chars": 3244,
+          "share_docs": 5e-06,
+          "share_chars": 6e-06
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 262,
+          "chars": 1044970,
+          "share_docs": 0.001249,
+          "share_chars": 0.001834
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 1,
+          "chars": 74613,
+          "share_docs": 5e-06,
+          "share_chars": 0.000131
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 229,
+          "chars": 334149,
+          "share_docs": 0.001092,
+          "share_chars": 0.000587
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 17615,
+          "chars": 48369859,
+          "share_docs": 0.083995,
+          "share_chars": 0.084909
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 221,
+          "chars": 569667,
+          "share_docs": 0.001054,
+          "share_chars": 0.001
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 13,
+          "chars": 20181,
+          "share_docs": 6.2e-05,
+          "share_chars": 3.5e-05
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 1,
+          "chars": 4935,
+          "share_docs": 5e-06,
+          "share_chars": 9e-06
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 4,
+          "chars": 6693,
+          "share_docs": 1.9e-05,
+          "share_chars": 1.2e-05
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 8738,
+          "chars": 262331,
+          "share_chars": 0.00046
+        },
+        "foreign": {
+          "lines": 17977,
+          "chars": 2030683,
+          "share_chars": 0.003565
+        }
+      },
+      "kept": {
+        "docs": 191369,
+        "chars": 518066083,
+        "tokens": 322409721,
+        "share_docs": 0.912515,
+        "share_chars_of_input": 0.909416,
+        "by_type": {
+          "pdf": {
+            "docs": 68420,
+            "chars": 224632092,
+            "tokens": 141777125
+          },
+          "speech": {
+            "docs": 8,
+            "chars": 302047,
+            "tokens": 177398
+          },
+          "web": {
+            "docs": 122941,
+            "chars": 293131944,
+            "tokens": 180455198
+          }
+        }
+      },
+      "masked": {
+        "emails": 0,
+        "phones": 575,
+        "docs_masked": 402
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 13572,
+          "kept_under_200_chars": 369,
+          "kept_pashto_like": 66
+        },
+        "chars": {
+          "kept_under_200_chars": 59311,
+          "kept_pashto_like": 123616
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 191373,
+        "removed": 4,
+        "clusters_with_removals": 4,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 1,
+        "suite_documents_touched": 1,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 1272,
+          "text": "فہرست کا خانہ :"
+        },
+        {
+          "count": 678,
+          "text": "Video Tags:"
+        },
+        {
+          "count": 574,
+          "text": "محکم دلائل وبراہین سے مزین ، متنوع ومنفرد موضوعات پر مشتمل مفت آن لائن مکتبہ"
+        },
+        {
+          "count": 414,
+          "text": "Scanned by CamScanner"
+        },
+        {
+          "count": 383,
+          "text": "Scanned with CamScanner"
+        },
+        {
+          "count": 308,
+          "text": "بسم اللہ الرحمن الرحیم"
+        },
+        {
+          "count": 287,
+          "text": "شیئر کریں :"
+        },
+        {
+          "count": 243,
+          "text": "Click For More Books https:// archive.org/ details/@ zohaibhasanattari"
+        },
+        {
+          "count": 234,
+          "text": "for more books click on the link"
+        },
+        {
+          "count": 227,
+          "text": "جلد دوم"
+        },
+        {
+          "count": 226,
+          "text": "محکم دلائل سے مزین متنوع و منفرد موضوعات پر مشتمل مفت آن لائن مکتبہ"
+        },
+        {
+          "count": 199,
+          "text": "جلد اول"
+        },
+        {
+          "count": 195,
+          "text": "تفسیر کمالین شرح اردو تفسیر جلالین :"
+        },
+        {
+          "count": 189,
+          "text": "( متر جم : ابوالاعلی مودودی صاحب )"
+        },
+        {
+          "count": 189,
+          "text": "( متر جم : احمد رضا خان صاحب )"
+        },
+        {
+          "count": 189,
+          "text": "( متر جم : احمد علی صاحب )"
+        },
+        {
+          "count": 189,
+          "text": "( متر جم : جالندہری صاحب )"
+        },
+        {
+          "count": 189,
+          "text": "( متر جم : طاہر القادری صاحب )"
+        },
+        {
+          "count": 183,
+          "text": "English Sahih:"
+        },
+        {
+          "count": 183,
+          "text": "محکم دلائل و براہین سے مزین متنوع و منفرد موضوعات پر مشتمل مفت آن لائن مکتبہ"
+        },
+        {
+          "count": 180,
+          "text": "ONLINE LIBRARY FOR PAKISTAN"
+        },
+        {
+          "count": 167,
+          "text": "PAKSOCIETY1 f PAKSOCIETY"
+        },
+        {
+          "count": 154,
+          "text": "محکم دلائل و براہین سے مزین متنوع و منفرد کتب پر مشتمل مفت آن لائن مکتبہ"
+        },
+        {
+          "count": 151,
+          "text": "Presented by [url]"
+        },
+        {
+          "count": 149,
+          "text": "ویب ڈیسک |وقت اشاعت :"
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-urd-data-1.jsonl.gz",
+        "sha256_gz": "7351a4fdc0330210111505857dd29e9a1f77f28253aec62eaae840895faa63ae",
+        "sha256_jsonl": "20db1e9702abb568e6ec0b96cf8d4efeca48eb7d5339afe8e9b0e63eea0e6cc9",
+        "bytes_gz": 271426399
+      },
+      "max_docs": null,
+      "seconds": 2099.7,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-urd-data-2",
+      "language": "ur",
+      "script": "arabic",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 209715,
+        "chars": 571460473,
+        "by_type": {
+          "pdf": {
+            "docs": 69228,
+            "chars": 226914481
+          },
+          "speech": {
+            "docs": 9,
+            "chars": 201345
+          },
+          "web": {
+            "docs": 140478,
+            "chars": 344344647
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 209715,
+        "lines": 696548,
+        "distinct_lines": 659344,
+        "boilerplate_distinct_lines": 31,
+        "boilerplate_line_occurrences": 7606
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 256,
+          "chars": 949520,
+          "share_docs": 0.001221,
+          "share_chars": 0.001662
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 1,
+          "chars": 49662,
+          "share_docs": 5e-06,
+          "share_chars": 8.7e-05
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 279,
+          "chars": 462671,
+          "share_docs": 0.00133,
+          "share_chars": 0.00081
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 17383,
+          "chars": 48637705,
+          "share_docs": 0.082889,
+          "share_chars": 0.085111
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 202,
+          "chars": 572038,
+          "share_docs": 0.000963,
+          "share_chars": 0.001001
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 20,
+          "chars": 55957,
+          "share_docs": 9.5e-05,
+          "share_chars": 9.8e-05
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 2,
+          "chars": 3938,
+          "share_docs": 1e-05,
+          "share_chars": 7e-06
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 2,
+          "chars": 696,
+          "share_docs": 1e-05,
+          "share_chars": 1e-06
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 2,
+          "chars": 6837,
+          "share_docs": 1e-05,
+          "share_chars": 1.2e-05
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 7606,
+          "chars": 223040,
+          "share_chars": 0.00039
+        },
+        "foreign": {
+          "lines": 17293,
+          "chars": 2058277,
+          "share_chars": 0.003602
+        }
+      },
+      "kept": {
+        "docs": 191568,
+        "chars": 519471710,
+        "tokens": 323212325,
+        "share_docs": 0.913468,
+        "share_chars_of_input": 0.909025,
+        "by_type": {
+          "pdf": {
+            "docs": 68562,
+            "chars": 224084923,
+            "tokens": 141353823
+          },
+          "speech": {
+            "docs": 6,
+            "chars": 99904,
+            "tokens": 58705
+          },
+          "web": {
+            "docs": 123000,
+            "chars": 295286883,
+            "tokens": 181799797
+          }
+        }
+      },
+      "masked": {
+        "emails": 1,
+        "phones": 513,
+        "docs_masked": 371
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 13506,
+          "kept_under_200_chars": 380,
+          "kept_pashto_like": 33
+        },
+        "chars": {
+          "kept_under_200_chars": 61770,
+          "kept_pashto_like": 74177
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 191570,
+        "removed": 2,
+        "clusters_with_removals": 2,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 0,
+        "suite_documents_touched": 0,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 1239,
+          "text": "فہرست کا خانہ :"
+        },
+        {
+          "count": 642,
+          "text": "Video Tags:"
+        },
+        {
+          "count": 586,
+          "text": "محکم دلائل وبراہین سے مزین ، متنوع ومنفرد موضوعات پر مشتمل مفت آن لائن مکتبہ"
+        },
+        {
+          "count": 443,
+          "text": "Scanned by CamScanner"
+        },
+        {
+          "count": 346,
+          "text": "Scanned with CamScanner"
+        },
+        {
+          "count": 324,
+          "text": "شیئر کریں :"
+        },
+        {
+          "count": 266,
+          "text": "بسم اللہ الرحمن الرحیم"
+        },
+        {
+          "count": 259,
+          "text": "Click For More Books https:// archive.org/ details/@ zohaibhasanattari"
+        },
+        {
+          "count": 225,
+          "text": "جلد دوم"
+        },
+        {
+          "count": 220,
+          "text": "for more books click on the link"
+        },
+        {
+          "count": 220,
+          "text": "محکم دلائل سے مزین متنوع و منفرد موضوعات پر مشتمل مفت آن لائن مکتبہ"
+        },
+        {
+          "count": 202,
+          "text": "جلد اول"
+        },
+        {
+          "count": 190,
+          "text": "تفسیر کمالین شرح اردو تفسیر جلالین :"
+        },
+        {
+          "count": 189,
+          "text": "ONLINE LIBRARY FOR PAKISTAN"
+        },
+        {
+          "count": 181,
+          "text": "PAKSOCIETY1 f PAKSOCIETY"
+        },
+        {
+          "count": 176,
+          "text": "English Sahih:"
+        },
+        {
+          "count": 169,
+          "text": "الہدایۃ - AlHidayah"
+        },
+        {
+          "count": 157,
+          "text": "محکم دلائل و براہین سے مزین متنوع و منفرد موضوعات پر مشتمل مفت آن لائن مکتبہ"
+        },
+        {
+          "count": 145,
+          "text": "Click For More Books"
+        },
+        {
+          "count": 143,
+          "text": "محکم دلائل و براہین سے مزین متنوع و منفرد کتب پر مشتمل مفت آن لائن مکتبہ"
+        },
+        {
+          "count": 138,
+          "text": "CC-0.Kashmir Research Institute, Srinagar.Digitized by eGangotri"
+        },
+        {
+          "count": 134,
+          "text": "WWW.PAKSOCIETY.COM RSPK.PAKSOCIETY.COM"
+        },
+        {
+          "count": 129,
+          "text": "Presented by [url]"
+        },
+        {
+          "count": 128,
+          "text": "جلد چہارم"
+        },
+        {
+          "count": 127,
+          "text": "ویب ڈیسک |وقت اشاعت :"
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-urd-data-2.jsonl.gz",
+        "sha256_gz": "bb98027bb8749f1450cf2eacba7134c9c2f330ccce0055c24fc8d230a8eeefb5",
+        "sha256_jsonl": "844c00050eee3f21df0ac387ed8f9ce689cadb806fbb9d69b2fd00c0017a75c6",
+        "bytes_gz": 272114820
+      },
+      "max_docs": null,
+      "seconds": 2139.8,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-asm-data-1",
+      "language": "as",
+      "script": "bengali",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 110238,
+        "chars": 316758763,
+        "by_type": {
+          "pdf": {
+            "docs": 21445,
+            "chars": 159822460
+          },
+          "speech": {
+            "docs": 39,
+            "chars": 793707
+          },
+          "web": {
+            "docs": 88754,
+            "chars": 156142596
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 110238,
+        "lines": 1187589,
+        "distinct_lines": 1136531,
+        "boilerplate_distinct_lines": 34,
+        "boilerplate_line_occurrences": 20339
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 6,
+          "chars": 175902,
+          "share_docs": 5.4e-05,
+          "share_chars": 0.000555
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 1,
+          "chars": 6495,
+          "share_docs": 9e-06,
+          "share_chars": 2.1e-05
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 5020,
+          "chars": 20104317,
+          "share_docs": 0.045538,
+          "share_chars": 0.063469
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 283,
+          "chars": 892557,
+          "share_docs": 0.002567,
+          "share_chars": 0.002818
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 14,
+          "chars": 40016,
+          "share_docs": 0.000127,
+          "share_chars": 0.000126
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 276,
+          "chars": 339553,
+          "share_docs": 0.002504,
+          "share_chars": 0.001072
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 347,
+          "chars": 399310,
+          "share_docs": 0.003148,
+          "share_chars": 0.001261
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 20331,
+          "chars": 1896698,
+          "share_chars": 0.005988
+        },
+        "foreign": {
+          "lines": 83530,
+          "chars": 21567078,
+          "share_chars": 0.068087
+        }
+      },
+      "kept": {
+        "docs": 104291,
+        "chars": 291105350,
+        "tokens": 154994462,
+        "share_docs": 0.946053,
+        "share_chars_of_input": 0.919013,
+        "by_type": {
+          "pdf": {
+            "docs": 21323,
+            "chars": 158254650,
+            "tokens": 83441275
+          },
+          "speech": {
+            "docs": 29,
+            "chars": 576073,
+            "tokens": 304496
+          },
+          "web": {
+            "docs": 82939,
+            "chars": 132274627,
+            "tokens": 71248691
+          }
+        }
+      },
+      "masked": {
+        "emails": 57,
+        "phones": 792,
+        "docs_masked": 642
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 20912,
+          "kept_under_200_chars": 1429,
+          "kept_docs_latin_fused_with_marks": 421,
+          "latin_fused_with_marks_occurrences": 582
+        },
+        "chars": {
+          "kept_under_200_chars": 186330
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 104637,
+        "removed": 347,
+        "clusters_with_removals": 200,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 7,
+        "suite_documents_touched": 7,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 7863,
+          "text": "- First Published :"
+        },
+        {
+          "count": 1954,
+          "text": "অসমীয়াত ব্ৰেকিং নিউজ সৰ্বপ্ৰথম News18 অসমত। শেহতীয়া খবৰ, লাইভ নিউজ আপডেট, সবাতোকৈ বিশ্বাসযোগ্য অসমীয়া নিউজ ৱেবছাইট Ne..."
+        },
+        {
+          "count": 1297,
+          "text": "Get the latest Assamese news from Assam and NorthEast India. নৰ্থ-ইষ্ট নাও এটা মাল্টি-এপ ভিত্তিক সম্পূৰ্ণভাৱে আঞ্চলিক, দ..."
+        },
+        {
+          "count": 1168,
+          "text": "২ হাজাৰ টকা বিনিয়োগ কৰি আপুনি ডেৰ লাখ টকা পাব! ডাকঘৰৰ কি আঁচনিত এই সুবিধা?"
+        },
+        {
+          "count": 1099,
+          "text": "Begin typing your search above and press return to search."
+        },
+        {
+          "count": 964,
+          "text": "নিউজ ডেস্কঃ"
+        },
+        {
+          "count": 450,
+          "text": "- থানাৰ সমুখত উত্তাল জনতা, সোণাপুৰত ১৬ বছৰীয়া কিশোৰী বলি হ'ল ধৰ্ষণ আৰু হত্যাৰ!"
+        },
+        {
+          "count": 448,
+          "text": "আপোনালৈ সেৱা আগবঢ়োৱাৰ ক্ষেত্ৰত 'নীলা চৰাই'ক আপুনিও সহায় কৰিব পাৰে। আপোনাৰ আৰ্থিক বৰঙণিৰে এই যাত্ৰাৰ সহযাত্ৰী হওক।"
+        },
+        {
+          "count": 448,
+          "text": "আৰ্থিক সহযোগিতাৰ বাহিৰে আপুনি এই লেখা সামাজিক মাধ্যমত শ্বেয়াৰ কৰিও আমাক সহায় কৰিব পাৰে। ওপৰৰ ফেচবুক/টুইটাৰ বাটনত ক্লিক..."
+        },
+        {
+          "count": 312,
+          "text": "CNN name, logo and all associated elements ® and © 2017 Cable News Network LP, LLLP. A Time Warner Company. All rights r..."
+        },
+        {
+          "count": 290,
+          "text": "Share this:"
+        },
+        {
+          "count": 278,
+          "text": "."
+        },
+        {
+          "count": 249,
+          "text": "কি হ'ব BJPৰ ৫ পাণ্ডৱৰ ভৱিষ্যত ? ৰাজনীতিৰ পৰা সন্ন্যাস নে সন্মানজনক অৱসৰ ?"
+        },
+        {
+          "count": 248,
+          "text": "Theme: ColorMag by ThemeGrill. Powered by WordPress."
+        },
+        {
+          "count": 240,
+          "text": "ষ্টাফ ৰিপ'ৰ্টাৰঃ"
+        },
+        {
+          "count": 224,
+          "text": "UPI-ৰ জৰিয়তে বৰঙণি আগবঢ়াবলৈ স্কেন কৰকঃ"
+        },
+        {
+          "count": 223,
+          "text": "নিউজ ডেস্ক :"
+        },
+        {
+          "count": 218,
+          "text": "Get the latest Assamese news from Assam and NorthEast India. নৰ্থ-ইষ্ট নাও এটা মাল্টি-এপ ভিত্তিক সম্পূৰ্ণভাৱে আঞ্চলিক, দ..."
+        },
+        {
+          "count": 207,
+          "text": "Copying is Prohibited!"
+        },
+        {
+          "count": 207,
+          "text": "Copyright © 2022 সাহিত্য ডট অৰ্গ. All rights reserved."
+        },
+        {
+          "count": 186,
+          "text": "মহাবিদ্যালয় আৰু বিশ্ববিদ্যালয়ত পুৱা ৯ বজাৰ পৰা ৫ বজালৈ কৰিব লাগিব পাঠদান !"
+        },
+        {
+          "count": 186,
+          "text": "শিতানত লেখাৰ সংখ্যা Select Category অনুবাদ (274) অনুভৱ (528) অসমীয়া লিখন সঁজুলি (1) আখল (215) ই-কিতাপ (38) কবিতা (1,316..."
+        },
+        {
+          "count": 181,
+          "text": "জ্বৰৰ সৈতে এইটো সমস্যা নেকি ? এয়া ডেংগু নেকি ? ডেংগুৰ লক্ষণবোৰ কি ?"
+        },
+        {
+          "count": 156,
+          "text": "(১)"
+        },
+        {
+          "count": 155,
+          "text": "বাৰিষাৰ পথাৰখনে হাত বাউলি মাতেনে আপোনাক ? বোকামাটিৰ গোন্ধে ভৰাইনে আপোনাৰ মন ?"
+        }
+      ],
+      "review": [
+        {
+          "rule": "empty_after_cleaning",
+          "share_chars": 0.063469,
+          "bound": 0.02
+        }
+      ],
+      "output": {
+        "path": "sangraha-verified-asm-data-1.jsonl.gz",
+        "sha256_gz": "c88d939ffa302fc207cae932184990abf3b4fee62ce21fda901140a059af2999",
+        "sha256_jsonl": "ed0f5ff601c119a27d4f6fdc7c239c4c2641147e120947036ac9f4d061b80ab5",
+        "bytes_gz": 176096150
+      },
+      "max_docs": null,
+      "seconds": 1300.8,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-asm-data-2",
+      "language": "as",
+      "script": "bengali",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 110238,
+        "chars": 315930738,
+        "by_type": {
+          "pdf": {
+            "docs": 21247,
+            "chars": 158114477
+          },
+          "speech": {
+            "docs": 46,
+            "chars": 1017503
+          },
+          "web": {
+            "docs": 88945,
+            "chars": 156798758
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 110238,
+        "lines": 1186448,
+        "distinct_lines": 1134511,
+        "boilerplate_distinct_lines": 30,
+        "boilerplate_line_occurrences": 20180
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 3,
+          "chars": 33465,
+          "share_docs": 2.7e-05,
+          "share_chars": 0.000106
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 3,
+          "chars": 47084,
+          "share_docs": 2.7e-05,
+          "share_chars": 0.000149
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 5079,
+          "chars": 20115690,
+          "share_docs": 0.046073,
+          "share_chars": 0.063671
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 328,
+          "chars": 1088399,
+          "share_docs": 0.002975,
+          "share_chars": 0.003445
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 17,
+          "chars": 152778,
+          "share_docs": 0.000154,
+          "share_chars": 0.000484
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 247,
+          "chars": 302656,
+          "share_docs": 0.002241,
+          "share_chars": 0.000958
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 337,
+          "chars": 387949,
+          "share_docs": 0.003057,
+          "share_chars": 0.001228
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 20180,
+          "chars": 1915320,
+          "share_chars": 0.006062
+        },
+        "foreign": {
+          "lines": 87959,
+          "chars": 21675043,
+          "share_chars": 0.068607
+        }
+      },
+      "kept": {
+        "docs": 104224,
+        "chars": 289979405,
+        "tokens": 154496620,
+        "share_docs": 0.945445,
+        "share_chars_of_input": 0.917858,
+        "by_type": {
+          "pdf": {
+            "docs": 21128,
+            "chars": 156538489,
+            "tokens": 82595472
+          },
+          "speech": {
+            "docs": 30,
+            "chars": 616969,
+            "tokens": 329550
+          },
+          "web": {
+            "docs": 83066,
+            "chars": 132823947,
+            "tokens": 71571598
+          }
+        }
+      },
+      "masked": {
+        "emails": 67,
+        "phones": 856,
+        "docs_masked": 650
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 21074,
+          "kept_under_200_chars": 1418,
+          "kept_docs_latin_fused_with_marks": 378,
+          "latin_fused_with_marks_occurrences": 532
+        },
+        "chars": {
+          "kept_under_200_chars": 188715
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 104561,
+        "removed": 337,
+        "clusters_with_removals": 200,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 6,
+        "suite_documents_touched": 6,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 8002,
+          "text": "- First Published :"
+        },
+        {
+          "count": 2034,
+          "text": "অসমীয়াত ব্ৰেকিং নিউজ সৰ্বপ্ৰথম News18 অসমত। শেহতীয়া খবৰ, লাইভ নিউজ আপডেট, সবাতোকৈ বিশ্বাসযোগ্য অসমীয়া নিউজ ৱেবছাইট Ne..."
+        },
+        {
+          "count": 1361,
+          "text": "Get the latest Assamese news from Assam and NorthEast India. নৰ্থ-ইষ্ট নাও এটা মাল্টি-এপ ভিত্তিক সম্পূৰ্ণভাৱে আঞ্চলিক, দ..."
+        },
+        {
+          "count": 1150,
+          "text": "২ হাজাৰ টকা বিনিয়োগ কৰি আপুনি ডেৰ লাখ টকা পাব! ডাকঘৰৰ কি আঁচনিত এই সুবিধা?"
+        },
+        {
+          "count": 1147,
+          "text": "Begin typing your search above and press return to search."
+        },
+        {
+          "count": 974,
+          "text": "নিউজ ডেস্কঃ"
+        },
+        {
+          "count": 492,
+          "text": "- থানাৰ সমুখত উত্তাল জনতা, সোণাপুৰত ১৬ বছৰীয়া কিশোৰী বলি হ'ল ধৰ্ষণ আৰু হত্যাৰ!"
+        },
+        {
+          "count": 366,
+          "text": "আপোনালৈ সেৱা আগবঢ়োৱাৰ ক্ষেত্ৰত 'নীলা চৰাই'ক আপুনিও সহায় কৰিব পাৰে। আপোনাৰ আৰ্থিক বৰঙণিৰে এই যাত্ৰাৰ সহযাত্ৰী হওক।"
+        },
+        {
+          "count": 366,
+          "text": "আৰ্থিক সহযোগিতাৰ বাহিৰে আপুনি এই লেখা সামাজিক মাধ্যমত শ্বেয়াৰ কৰিও আমাক সহায় কৰিব পাৰে। ওপৰৰ ফেচবুক/টুইটাৰ বাটনত ক্লিক..."
+        },
+        {
+          "count": 316,
+          "text": "CNN name, logo and all associated elements ® and © 2017 Cable News Network LP, LLLP. A Time Warner Company. All rights r..."
+        },
+        {
+          "count": 297,
+          "text": "Share this:"
+        },
+        {
+          "count": 297,
+          "text": "Theme: ColorMag by ThemeGrill. Powered by WordPress."
+        },
+        {
+          "count": 253,
+          "text": "."
+        },
+        {
+          "count": 246,
+          "text": "কি হ'ব BJPৰ ৫ পাণ্ডৱৰ ভৱিষ্যত ? ৰাজনীতিৰ পৰা সন্ন্যাস নে সন্মানজনক অৱসৰ ?"
+        },
+        {
+          "count": 244,
+          "text": "Copying is Prohibited!"
+        },
+        {
+          "count": 244,
+          "text": "Copyright © 2022 সাহিত্য ডট অৰ্গ. All rights reserved."
+        },
+        {
+          "count": 240,
+          "text": "ষ্টাফ ৰিপ'ৰ্টাৰঃ"
+        },
+        {
+          "count": 219,
+          "text": "নিউজ ডেস্ক :"
+        },
+        {
+          "count": 212,
+          "text": "শিতানত লেখাৰ সংখ্যা Select Category অনুবাদ (274) অনুভৱ (528) অসমীয়া লিখন সঁজুলি (1) আখল (215) ই-কিতাপ (38) কবিতা (1,316..."
+        },
+        {
+          "count": 207,
+          "text": "জ্বৰৰ সৈতে এইটো সমস্যা নেকি ? এয়া ডেংগু নেকি ? ডেংগুৰ লক্ষণবোৰ কি ?"
+        },
+        {
+          "count": 200,
+          "text": "Get the latest Assamese news from Assam and NorthEast India. নৰ্থ-ইষ্ট নাও এটা মাল্টি-এপ ভিত্তিক সম্পূৰ্ণভাৱে আঞ্চলিক, দ..."
+        },
+        {
+          "count": 186,
+          "text": "মহাবিদ্যালয় আৰু বিশ্ববিদ্যালয়ত পুৱা ৯ বজাৰ পৰা ৫ বজালৈ কৰিব লাগিব পাঠদান !"
+        },
+        {
+          "count": 183,
+          "text": "UPI-ৰ জৰিয়তে বৰঙণি আগবঢ়াবলৈ স্কেন কৰকঃ"
+        },
+        {
+          "count": 152,
+          "text": "বাৰিষাৰ পথাৰখনে হাত বাউলি মাতেনে আপোনাক ? বোকামাটিৰ গোন্ধে ভৰাইনে আপোনাৰ মন ?"
+        },
+        {
+          "count": 147,
+          "text": "নিউজ ডেক্সঃ"
+        }
+      ],
+      "review": [
+        {
+          "rule": "empty_after_cleaning",
+          "share_chars": 0.063671,
+          "bound": 0.02
+        }
+      ],
+      "output": {
+        "path": "sangraha-verified-asm-data-2.jsonl.gz",
+        "sha256_gz": "67f75be017267a673ec438e8e9f2827b22019853be6d455f97993dfa6b9e78ca",
+        "sha256_jsonl": "c90440df4da85395a8feb12e5081ca0c7091874390991159ba7d1ab4729102f5",
+        "bytes_gz": 175262055
+      },
+      "max_docs": null,
+      "seconds": 879.8,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-ben-data-1",
+      "language": "bn",
+      "script": "bengali",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 149796,
+        "chars": 384035412,
+        "by_type": {
+          "pdf": {
+            "docs": 19717,
+            "chars": 121545667
+          },
+          "speech": {
+            "docs": 171,
+            "chars": 2467736
+          },
+          "web": {
+            "docs": 129908,
+            "chars": 260022009
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 149796,
+        "lines": 1511437,
+        "distinct_lines": 1436406,
+        "boilerplate_distinct_lines": 57,
+        "boilerplate_line_occurrences": 24494
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 12,
+          "chars": 328843,
+          "share_docs": 8e-05,
+          "share_chars": 0.000856
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 49,
+          "chars": 159913,
+          "share_docs": 0.000327,
+          "share_chars": 0.000416
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 252,
+          "chars": 560846,
+          "share_docs": 0.001682,
+          "share_chars": 0.00146
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 20,
+          "chars": 91905,
+          "share_docs": 0.000134,
+          "share_chars": 0.000239
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 1,
+          "chars": 765,
+          "share_docs": 7e-06,
+          "share_chars": 2e-06
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 4,
+          "chars": 3004,
+          "share_docs": 2.7e-05,
+          "share_chars": 8e-06
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 24494,
+          "chars": 1848627,
+          "share_chars": 0.004814
+        },
+        "foreign": {
+          "lines": 20718,
+          "chars": 2236467,
+          "share_chars": 0.005824
+        }
+      },
+      "kept": {
+        "docs": 149458,
+        "chars": 378482174,
+        "tokens": 202437253,
+        "share_docs": 0.997744,
+        "share_chars_of_input": 0.98554,
+        "by_type": {
+          "pdf": {
+            "docs": 19686,
+            "chars": 119904626,
+            "tokens": 62480958
+          },
+          "speech": {
+            "docs": 167,
+            "chars": 2351763,
+            "tokens": 1247427
+          },
+          "web": {
+            "docs": 129605,
+            "chars": 256225785,
+            "tokens": 138708868
+          }
+        }
+      },
+      "masked": {
+        "emails": 101,
+        "phones": 649,
+        "docs_masked": 473
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 15725,
+          "kept_docs_latin_fused_with_marks": 575,
+          "latin_fused_with_marks_occurrences": 897,
+          "kept_under_200_chars": 563
+        },
+        "chars": {
+          "kept_under_200_chars": 92315
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 149462,
+        "removed": 4,
+        "clusters_with_removals": 4,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 12,
+        "suite_documents_touched": 11,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 2801,
+          "text": "\""
+        },
+        {
+          "count": 2284,
+          "text": "পয়েন্ট)"
+        },
+        {
+          "count": 2029,
+          "text": "Tags:"
+        },
+        {
+          "count": 1866,
+          "text": "নিউজ১৮ বাংলায় সবার আগে পড়ুন ব্রেকিং নিউজ। থাকছে দৈনিক টাটকা খবর, খবরের লাইভ আপডেট। সবচেয়ে ভরসাযোগ্য বাংলা খবর পড়ুন ন..."
+        },
+        {
+          "count": 1288,
+          "text": "এই ওয়েবসাইটের কোনো লেখা, ছবি, অডিও, ভিডিও অনুমতি ছাড়া ব্যবহার বেআইনি।"
+        },
+        {
+          "count": 1288,
+          "text": "১৪৭/ডি, গ্রীন রোড, ঢাকা-১২১৫।"
+        },
+        {
+          "count": 988,
+          "text": "."
+        },
+        {
+          "count": 697,
+          "text": "কর্ণফুলী মিডিয়া পয়েন্ট, তৃতীয় তলা, ৭০ শহীদ সাংবাদিক সেলিনা পারভীন সড়ক, (নিউ সার্কুলার রোড, মালিবাগ), ঢাকা-১২১৭ ।"
+        },
+        {
+          "count": 503,
+          "text": "পাঠকের মতামতঃ"
+        },
+        {
+          "count": 459,
+          "text": "©somewhere in net ltd."
+        },
+        {
+          "count": 443,
+          "text": "(Zee 24 Ghanta App দেশ, দুনিয়া, রাজ্য, কলকাতা, বিনোদন, খেলা, লাইফস্টাইল স্বাস্থ্য, প্রযুক্তির লেটেস্ট খবর পড়তে ডাউনলোড..."
+        },
+        {
+          "count": 417,
+          "text": "- মুখোমুখি পাকিস্তান এবং শ্রীলঙ্কা, এগিয়ে কারা?"
+        },
+        {
+          "count": 390,
+          "text": "Bangladesh is a country located in South Asia and is home to a diverse population of over 160 million people. It has a r..."
+        },
+        {
+          "count": 390,
+          "text": "Stay up-to-date with the latest news from Bangladesh. Our comprehensive coverage includes politics, business, sports, an..."
+        },
+        {
+          "count": 382,
+          "text": "এই পোস্টটি শেয়ার করতে চাইলে :"
+        },
+        {
+          "count": 377,
+          "text": "360-degree view of the world's latest news with our comprehensive coverage. From local stories to global events, we brin..."
+        },
+        {
+          "count": 377,
+          "text": "Get the latest world news from our trusted sources. Our coverage spans across continents and covers politics, business, ..."
+        },
+        {
+          "count": 377,
+          "text": "Never miss a beat with our up-to-the-minute coverage of the world's latest news. Our team of expert journalists and anal..."
+        },
+        {
+          "count": 357,
+          "text": "হ্যাঁ।"
+        },
+        {
+          "count": 346,
+          "text": "Sports, cricket, and football are popular topics in the world of sports. Cricket is a bat-and-ball game played between t..."
+        },
+        {
+          "count": 346,
+          "text": "Stay on top of the latest sports news, including cricket and football, from around the world. Get comprehensive coverage..."
+        },
+        {
+          "count": 309,
+          "text": "আরও পড়ুনঃ"
+        },
+        {
+          "count": 296,
+          "text": "পদ্মা লাইফ টাওয়ার (লেভেল -১১)"
+        },
+        {
+          "count": 296,
+          "text": "১১৫, কাজী নজরুল ইসলাম এভিনিউ,"
+        },
+        {
+          "count": 286,
+          "text": "- \"খালেদা জিয়াকে উন্নত চিকিৎসার জন্য দ্রুত বিদেশে নিতে হবে\""
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-ben-data-1.jsonl.gz",
+        "sha256_gz": "a1acf12f55701f5130ecf0445b263a4f30d3bb5fd7f051b1f53d6445a5fd0426",
+        "sha256_jsonl": "8127f91c3b95120cd75145f9a1449b34419496e4e0a5dd8bb7b1dbdd3c359a48",
+        "bytes_gz": 222853493
+      },
+      "max_docs": null,
+      "seconds": 1810.1,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-ben-data-2",
+      "language": "bn",
+      "script": "bengali",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 149797,
+        "chars": 382043144,
+        "by_type": {
+          "pdf": {
+            "docs": 19908,
+            "chars": 120667673
+          },
+          "speech": {
+            "docs": 178,
+            "chars": 2339922
+          },
+          "web": {
+            "docs": 129711,
+            "chars": 259035549
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 149797,
+        "lines": 1520735,
+        "distinct_lines": 1443470,
+        "boilerplate_distinct_lines": 60,
+        "boilerplate_line_occurrences": 24087
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 1,
+          "chars": 0,
+          "share_docs": 7e-06,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 1,
+          "chars": 5329,
+          "share_docs": 7e-06,
+          "share_chars": 1.4e-05
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 10,
+          "chars": 238618,
+          "share_docs": 6.7e-05,
+          "share_chars": 0.000625
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 1,
+          "chars": 4861,
+          "share_docs": 7e-06,
+          "share_chars": 1.3e-05
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 51,
+          "chars": 145380,
+          "share_docs": 0.00034,
+          "share_chars": 0.000381
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 270,
+          "chars": 644984,
+          "share_docs": 0.001802,
+          "share_chars": 0.001688
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 17,
+          "chars": 82696,
+          "share_docs": 0.000113,
+          "share_chars": 0.000216
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 4,
+          "chars": 2988,
+          "share_docs": 2.7e-05,
+          "share_chars": 8e-06
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 24087,
+          "chars": 1869331,
+          "share_chars": 0.004893
+        },
+        "foreign": {
+          "lines": 20620,
+          "chars": 2108695,
+          "share_chars": 0.00552
+        }
+      },
+      "kept": {
+        "docs": 149442,
+        "chars": 376606315,
+        "tokens": 201372594,
+        "share_docs": 0.99763,
+        "share_chars_of_input": 0.985769,
+        "by_type": {
+          "pdf": {
+            "docs": 19877,
+            "chars": 119338394,
+            "tokens": 62140497
+          },
+          "speech": {
+            "docs": 175,
+            "chars": 2248119,
+            "tokens": 1185794
+          },
+          "web": {
+            "docs": 129390,
+            "chars": 255019802,
+            "tokens": 138046303
+          }
+        }
+      },
+      "masked": {
+        "emails": 126,
+        "phones": 696,
+        "docs_masked": 492
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 15793,
+          "kept_under_200_chars": 592,
+          "kept_docs_latin_fused_with_marks": 562,
+          "latin_fused_with_marks_occurrences": 1081
+        },
+        "chars": {
+          "kept_under_200_chars": 95617
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 149446,
+        "removed": 4,
+        "clusters_with_removals": 4,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 11,
+        "suite_documents_touched": 11,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 2514,
+          "text": "\""
+        },
+        {
+          "count": 2386,
+          "text": "পয়েন্ট)"
+        },
+        {
+          "count": 1897,
+          "text": "নিউজ১৮ বাংলায় সবার আগে পড়ুন ব্রেকিং নিউজ। থাকছে দৈনিক টাটকা খবর, খবরের লাইভ আপডেট। সবচেয়ে ভরসাযোগ্য বাংলা খবর পড়ুন ন..."
+        },
+        {
+          "count": 1874,
+          "text": "Tags:"
+        },
+        {
+          "count": 1284,
+          "text": "এই ওয়েবসাইটের কোনো লেখা, ছবি, অডিও, ভিডিও অনুমতি ছাড়া ব্যবহার বেআইনি।"
+        },
+        {
+          "count": 1284,
+          "text": "১৪৭/ডি, গ্রীন রোড, ঢাকা-১২১৫।"
+        },
+        {
+          "count": 726,
+          "text": "কর্ণফুলী মিডিয়া পয়েন্ট, তৃতীয় তলা, ৭০ শহীদ সাংবাদিক সেলিনা পারভীন সড়ক, (নিউ সার্কুলার রোড, মালিবাগ), ঢাকা-১২১৭ ।"
+        },
+        {
+          "count": 722,
+          "text": "."
+        },
+        {
+          "count": 468,
+          "text": "পাঠকের মতামতঃ"
+        },
+        {
+          "count": 444,
+          "text": "©somewhere in net ltd."
+        },
+        {
+          "count": 435,
+          "text": "Bangladesh is a country located in South Asia and is home to a diverse population of over 160 million people. It has a r..."
+        },
+        {
+          "count": 435,
+          "text": "Stay up-to-date with the latest news from Bangladesh. Our comprehensive coverage includes politics, business, sports, an..."
+        },
+        {
+          "count": 432,
+          "text": "(Zee 24 Ghanta App দেশ, দুনিয়া, রাজ্য, কলকাতা, বিনোদন, খেলা, লাইফস্টাইল স্বাস্থ্য, প্রযুক্তির লেটেস্ট খবর পড়তে ডাউনলোড..."
+        },
+        {
+          "count": 416,
+          "text": "এই পোস্টটি শেয়ার করতে চাইলে :"
+        },
+        {
+          "count": 368,
+          "text": "- মুখোমুখি পাকিস্তান এবং শ্রীলঙ্কা, এগিয়ে কারা?"
+        },
+        {
+          "count": 359,
+          "text": "360-degree view of the world's latest news with our comprehensive coverage. From local stories to global events, we brin..."
+        },
+        {
+          "count": 359,
+          "text": "Get the latest world news from our trusted sources. Our coverage spans across continents and covers politics, business, ..."
+        },
+        {
+          "count": 359,
+          "text": "Never miss a beat with our up-to-the-minute coverage of the world's latest news. Our team of expert journalists and anal..."
+        },
+        {
+          "count": 351,
+          "text": "Sports, cricket, and football are popular topics in the world of sports. Cricket is a bat-and-ball game played between t..."
+        },
+        {
+          "count": 351,
+          "text": "Stay on top of the latest sports news, including cricket and football, from around the world. Get comprehensive coverage..."
+        },
+        {
+          "count": 295,
+          "text": "আরও পড়ুনঃ"
+        },
+        {
+          "count": 274,
+          "text": "পদ্মা লাইফ টাওয়ার (লেভেল -১১)"
+        },
+        {
+          "count": 274,
+          "text": "১১৫, কাজী নজরুল ইসলাম এভিনিউ,"
+        },
+        {
+          "count": 264,
+          "text": "- \"খালেদা জিয়াকে উন্নত চিকিৎসার জন্য দ্রুত বিদেশে নিতে হবে\""
+        },
+        {
+          "count": 252,
+          "text": "করুন।"
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-ben-data-2.jsonl.gz",
+        "sha256_gz": "1e1f65764ed7c800ccfa2fbc5bf1e533929562e20ab9b89e88b656131c085672",
+        "sha256_jsonl": "30df3764dae54427011a9fbc186e82543f203a11b47f7180fc09ae8d7a2a6905",
+        "bytes_gz": 221869485
+      },
+      "max_docs": null,
+      "seconds": 1807.8,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-guj-data-1",
+      "language": "gu",
+      "script": "gujarati",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 149796,
+        "chars": 363110440,
+        "by_type": {
+          "pdf": {
+            "docs": 26567,
+            "chars": 106715062
+          },
+          "speech": {
+            "docs": 576,
+            "chars": 1868381
+          },
+          "web": {
+            "docs": 122653,
+            "chars": 254526997
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 149796,
+        "lines": 1313773,
+        "distinct_lines": 1258087,
+        "boilerplate_distinct_lines": 50,
+        "boilerplate_line_occurrences": 15255
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 2,
+          "chars": 21427,
+          "share_docs": 1.3e-05,
+          "share_chars": 5.9e-05
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 1,
+          "chars": 16439,
+          "share_docs": 7e-06,
+          "share_chars": 4.5e-05
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 103,
+          "chars": 416080,
+          "share_docs": 0.000688,
+          "share_chars": 0.001146
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 228,
+          "chars": 386643,
+          "share_docs": 0.001522,
+          "share_chars": 0.001065
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 11,
+          "chars": 38398,
+          "share_docs": 7.3e-05,
+          "share_chars": 0.000106
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 1,
+          "chars": 424,
+          "share_docs": 7e-06,
+          "share_chars": 1e-06
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 15255,
+          "chars": 1017687,
+          "share_chars": 0.002803
+        },
+        "foreign": {
+          "lines": 30194,
+          "chars": 2822849,
+          "share_chars": 0.007774
+        }
+      },
+      "kept": {
+        "docs": 149450,
+        "chars": 358374677,
+        "tokens": 202276534,
+        "share_docs": 0.99769,
+        "share_chars_of_input": 0.986958,
+        "by_type": {
+          "pdf": {
+            "docs": 26419,
+            "chars": 105106203,
+            "tokens": 59212304
+          },
+          "speech": {
+            "docs": 555,
+            "chars": 1610893,
+            "tokens": 920440
+          },
+          "web": {
+            "docs": 122476,
+            "chars": 251657581,
+            "tokens": 142143790
+          }
+        }
+      },
+      "masked": {
+        "emails": 132,
+        "phones": 1105,
+        "docs_masked": 864
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 19882,
+          "kept_docs_latin_fused_with_marks": 1366,
+          "latin_fused_with_marks_occurrences": 2280,
+          "kept_under_200_chars": 1016
+        },
+        "chars": {
+          "kept_under_200_chars": 149651
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 149450,
+        "removed": 0,
+        "clusters_with_removals": 0,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 3,
+        "suite_documents_touched": 3,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 2108,
+          "text": "First published:"
+        },
+        {
+          "count": 1748,
+          "text": "This website follows the DNPA Code of Ethics."
+        },
+        {
+          "count": 647,
+          "text": "આ પ્રકારના તમામ સમાચાર માટેે App ડાઉનલોડ કરો."
+        },
+        {
+          "count": 530,
+          "text": "તમે અમને ફેસબુક, ટ્વીટર, ઇન્સ્ટાગ્રામ અને યુ ટ્યુબ પર પણ લાઇક અને ફોલો કરી શકો છો."
+        },
+        {
+          "count": 523,
+          "text": "લેટેસ્ટ ન્યૂઝ અપડેટ્સ તમારા ફોન પર સૌથી પહેલા મેળવવા માટે નીચે આપેલી લીંક પર ક્લિક કરીને જોડાઓ અસ્મિતા ન્યુઝ સાથે."
+        },
+        {
+          "count": 471,
+          "text": "વીડિયો,"
+        },
+        {
+          "count": 466,
+          "text": "નીચે આપેલી લીંક પર ક્લિક કરીને જોડાઓ ત્રિશુલ ન્યૂઝ Trishul News સાથે. અમારું ફેસબુક પેજ લાઈક કરો અને ફોન પર અપડેટ્સ મેળવ..."
+        },
+        {
+          "count": 457,
+          "text": "Forgot your password?"
+        },
+        {
+          "count": 454,
+          "text": "A password will be e-mailed to you."
+        },
+        {
+          "count": 418,
+          "text": "Welcome!"
+        },
+        {
+          "count": 386,
+          "text": "KALOL(Panchamahal)"
+        },
+        {
+          "count": 382,
+          "text": "MALIYA(MIYANA)"
+        },
+        {
+          "count": 382,
+          "text": "MANGROL (JUNAGADH)"
+        },
+        {
+          "count": 326,
+          "text": "Like this:"
+        },
+        {
+          "count": 312,
+          "text": "આપણી માતૃભાષા 21મી સદીમાં પણ જીવંત રહે અને નવી પેઢીને એનો લાભ મળે એ માટે અમે રોજ નવી સ્ટોરી, રસપ્રદ લેખો, ઉપયોગી માહિતી,..."
+        },
+        {
+          "count": 273,
+          "text": "નીચે આપેલી લીંક પર ક્લિક કરીને જોડાઓ khabargujaratlive. com ન્યૂઝ સાથે."
+        },
+        {
+          "count": 260,
+          "text": "લેટેસ્ટ ન્યૂઝ અપડેટ્સ તમારા ફોન પર સૌથી પહેલા મેળવવા માટે આજે જ ડાઉનલોડ કરો khabargujaratlive. com ની મોબાઇલ એપ્લિકેશન."
+        },
+        {
+          "count": 240,
+          "text": "(પ્રતિનિધિ દ્વારા)"
+        },
+        {
+          "count": 226,
+          "text": "વધુ રસપ્રદ માહિતી અને નવી પોસ્ટ વાંચવા માટે ડાબી તરફ સ્વાઇપ કરો."
+        },
+        {
+          "count": 218,
+          "text": "For Breaking News from Gujarati Oneindia.Get instant news updates throughout the day."
+        },
+        {
+          "count": 214,
+          "text": "- હું 22 વર્ષની પરણિત મહિલા છું. મારા સાસુના કહેવાથી મારા દેવર મને શ-રીર સુખ આપતા હતા. આવું બે વરસ સુધી ચાલ્યું કઈ વાંધો..."
+        },
+        {
+          "count": 207,
+          "text": "તમે આ લેખ દેશીમોજ ના માધ્યમ થી વાંચી રહ્યા છો,આવી જ રીતે રોજિંદા જીવન માં ઉપયોગી હોઈ તેવા લાગણીસભર લેખ,સ્વાસ્થ્ય વર્ધક મ..."
+        },
+        {
+          "count": 197,
+          "text": "તમે આ લેખ \"Gujarati Masti\" ના માધ્યમ થી વાંચી રહ્યા છો,આવી જ રીતે રોજિંદા જીવન માં ઉપયોગી હોઈ તેવા લાગણીસભર લેખ,સ્વાસ્થ્..."
+        },
+        {
+          "count": 191,
+          "text": "Content is protected ! !"
+        },
+        {
+          "count": 191,
+          "text": "error:"
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-guj-data-1.jsonl.gz",
+        "sha256_gz": "afb16248e38a800ef7514b4401f20c9a8dcec34aeffa11162b45d9e3b70126dc",
+        "sha256_jsonl": "a6534d5b0d89e8500634039e763fa2c5b82c96a5c0993f7a846b0ce435ad4468",
+        "bytes_gz": 217340441
+      },
+      "max_docs": null,
+      "seconds": 1566.0,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-guj-data-2",
+      "language": "gu",
+      "script": "gujarati",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 149796,
+        "chars": 360785104,
+        "by_type": {
+          "pdf": {
+            "docs": 26608,
+            "chars": 105390257
+          },
+          "speech": {
+            "docs": 524,
+            "chars": 2045417
+          },
+          "web": {
+            "docs": 122664,
+            "chars": 253349430
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 149796,
+        "lines": 1310251,
+        "distinct_lines": 1255363,
+        "boilerplate_distinct_lines": 47,
+        "boilerplate_line_occurrences": 14754
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 2,
+          "chars": 55186,
+          "share_docs": 1.3e-05,
+          "share_chars": 0.000153
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 1,
+          "chars": 8132,
+          "share_docs": 7e-06,
+          "share_chars": 2.3e-05
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 84,
+          "chars": 338506,
+          "share_docs": 0.000561,
+          "share_chars": 0.000938
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 218,
+          "chars": 390767,
+          "share_docs": 0.001455,
+          "share_chars": 0.001083
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 5,
+          "chars": 22914,
+          "share_docs": 3.3e-05,
+          "share_chars": 6.4e-05
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 1,
+          "chars": 1066,
+          "share_docs": 7e-06,
+          "share_chars": 3e-06
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 9,
+          "chars": 11745,
+          "share_docs": 6e-05,
+          "share_chars": 3.3e-05
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 14754,
+          "chars": 915207,
+          "share_chars": 0.002537
+        },
+        "foreign": {
+          "lines": 30144,
+          "chars": 2710641,
+          "share_chars": 0.007513
+        }
+      },
+      "kept": {
+        "docs": 149476,
+        "chars": 356234955,
+        "tokens": 201115826,
+        "share_docs": 0.997864,
+        "share_chars_of_input": 0.987388,
+        "by_type": {
+          "pdf": {
+            "docs": 26481,
+            "chars": 103747414,
+            "tokens": 58469728
+          },
+          "speech": {
+            "docs": 511,
+            "chars": 1801243,
+            "tokens": 1025889
+          },
+          "web": {
+            "docs": 122484,
+            "chars": 250686298,
+            "tokens": 141620209
+          }
+        }
+      },
+      "masked": {
+        "emails": 127,
+        "phones": 1108,
+        "docs_masked": 851
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 19678,
+          "kept_docs_latin_fused_with_marks": 1347,
+          "latin_fused_with_marks_occurrences": 2274,
+          "kept_under_200_chars": 995
+        },
+        "chars": {
+          "kept_under_200_chars": 145870
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 149484,
+        "removed": 9,
+        "clusters_with_removals": 9,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 2,
+        "suite_documents_touched": 2,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 2058,
+          "text": "First published:"
+        },
+        {
+          "count": 1807,
+          "text": "This website follows the DNPA Code of Ethics."
+        },
+        {
+          "count": 698,
+          "text": "આ પ્રકારના તમામ સમાચાર માટેે App ડાઉનલોડ કરો."
+        },
+        {
+          "count": 492,
+          "text": "તમે અમને ફેસબુક, ટ્વીટર, ઇન્સ્ટાગ્રામ અને યુ ટ્યુબ પર પણ લાઇક અને ફોલો કરી શકો છો."
+        },
+        {
+          "count": 485,
+          "text": "લેટેસ્ટ ન્યૂઝ અપડેટ્સ તમારા ફોન પર સૌથી પહેલા મેળવવા માટે નીચે આપેલી લીંક પર ક્લિક કરીને જોડાઓ અસ્મિતા ન્યુઝ સાથે."
+        },
+        {
+          "count": 472,
+          "text": "Forgot your password?"
+        },
+        {
+          "count": 461,
+          "text": "નીચે આપેલી લીંક પર ક્લિક કરીને જોડાઓ ત્રિશુલ ન્યૂઝ Trishul News સાથે. અમારું ફેસબુક પેજ લાઈક કરો અને ફોન પર અપડેટ્સ મેળવ..."
+        },
+        {
+          "count": 460,
+          "text": "A password will be e-mailed to you."
+        },
+        {
+          "count": 424,
+          "text": "વીડિયો,"
+        },
+        {
+          "count": 418,
+          "text": "Welcome!"
+        },
+        {
+          "count": 400,
+          "text": "KALOL(Panchamahal)"
+        },
+        {
+          "count": 390,
+          "text": "MALIYA(MIYANA)"
+        },
+        {
+          "count": 390,
+          "text": "MANGROL (JUNAGADH)"
+        },
+        {
+          "count": 293,
+          "text": "આપણી માતૃભાષા 21મી સદીમાં પણ જીવંત રહે અને નવી પેઢીને એનો લાભ મળે એ માટે અમે રોજ નવી સ્ટોરી, રસપ્રદ લેખો, ઉપયોગી માહિતી,..."
+        },
+        {
+          "count": 278,
+          "text": "Like this:"
+        },
+        {
+          "count": 254,
+          "text": "(પ્રતિનિધિ દ્વારા)"
+        },
+        {
+          "count": 243,
+          "text": "નીચે આપેલી લીંક પર ક્લિક કરીને જોડાઓ khabargujaratlive. com ન્યૂઝ સાથે."
+        },
+        {
+          "count": 235,
+          "text": "લેટેસ્ટ ન્યૂઝ અપડેટ્સ તમારા ફોન પર સૌથી પહેલા મેળવવા માટે આજે જ ડાઉનલોડ કરો khabargujaratlive. com ની મોબાઇલ એપ્લિકેશન."
+        },
+        {
+          "count": 212,
+          "text": "વધુ રસપ્રદ માહિતી અને નવી પોસ્ટ વાંચવા માટે ડાબી તરફ સ્વાઇપ કરો."
+        },
+        {
+          "count": 203,
+          "text": "- હું 22 વર્ષની પરણિત મહિલા છું. મારા સાસુના કહેવાથી મારા દેવર મને શ-રીર સુખ આપતા હતા. આવું બે વરસ સુધી ચાલ્યું કઈ વાંધો..."
+        },
+        {
+          "count": 202,
+          "text": "તમે આ લેખ \"Gujarati Masti\" ના માધ્યમ થી વાંચી રહ્યા છો,આવી જ રીતે રોજિંદા જીવન માં ઉપયોગી હોઈ તેવા લાગણીસભર લેખ,સ્વાસ્થ્..."
+        },
+        {
+          "count": 199,
+          "text": "For Breaking News from Gujarati Oneindia.Get instant news updates throughout the day."
+        },
+        {
+          "count": 197,
+          "text": "Content is protected ! !"
+        },
+        {
+          "count": 197,
+          "text": "error:"
+        },
+        {
+          "count": 177,
+          "text": "તમે આ લેખ દેશીમોજ ના માધ્યમ થી વાંચી રહ્યા છો,આવી જ રીતે રોજિંદા જીવન માં ઉપયોગી હોઈ તેવા લાગણીસભર લેખ,સ્વાસ્થ્ય વર્ધક મ..."
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-guj-data-2.jsonl.gz",
+        "sha256_gz": "c20d188beb274961a42b144e1cc466392563a8910eb308aa5a33e6a9965da345",
+        "sha256_jsonl": "6c2a97bfd66386992841956e0f5e0fc5f969cf7c793efb2aedd3fcc67b08e561",
+        "bytes_gz": 216253146
+      },
+      "max_docs": null,
+      "seconds": 1569.0,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-hin-data-1",
+      "language": "hi",
+      "script": "devanagari",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 174763,
+        "chars": 383172150,
+        "by_type": {
+          "pdf": {
+            "docs": 21240,
+            "chars": 89253929
+          },
+          "speech": {
+            "docs": 307,
+            "chars": 1992960
+          },
+          "web": {
+            "docs": 153216,
+            "chars": 291925261
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 174763,
+        "lines": 1408945,
+        "distinct_lines": 1282006,
+        "boilerplate_distinct_lines": 107,
+        "boilerplate_line_occurrences": 58544
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 4,
+          "chars": 106844,
+          "share_docs": 2.3e-05,
+          "share_chars": 0.000279
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 2,
+          "chars": 11437,
+          "share_docs": 1.1e-05,
+          "share_chars": 3e-05
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 2887,
+          "chars": 10775616,
+          "share_docs": 0.01652,
+          "share_chars": 0.028122
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 19,
+          "chars": 53384,
+          "share_docs": 0.000109,
+          "share_chars": 0.000139
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 434,
+          "chars": 595219,
+          "share_docs": 0.002483,
+          "share_chars": 0.001553
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 20,
+          "chars": 125932,
+          "share_docs": 0.000114,
+          "share_chars": 0.000329
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 1,
+          "chars": 8074,
+          "share_docs": 6e-06,
+          "share_chars": 2.1e-05
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 153,
+          "chars": 1010355,
+          "share_docs": 0.000875,
+          "share_chars": 0.002637
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 28,
+          "chars": 56383,
+          "share_docs": 0.00016,
+          "share_chars": 0.000147
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 33761,
+          "chars": 2872364,
+          "share_chars": 0.007496
+        },
+        "foreign": {
+          "lines": 22312,
+          "chars": 2212007,
+          "share_chars": 0.005773
+        }
+      },
+      "kept": {
+        "docs": 171215,
+        "chars": 364927791,
+        "tokens": 195934096,
+        "share_docs": 0.979698,
+        "share_chars_of_input": 0.952386,
+        "by_type": {
+          "pdf": {
+            "docs": 21213,
+            "chars": 87965610,
+            "tokens": 45921894
+          },
+          "speech": {
+            "docs": 286,
+            "chars": 1817647,
+            "tokens": 983378
+          },
+          "web": {
+            "docs": 149716,
+            "chars": 275144534,
+            "tokens": 149028824
+          }
+        }
+      },
+      "masked": {
+        "emails": 149,
+        "phones": 690,
+        "docs_masked": 572
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 28508,
+          "kept_lla_3plus": 226,
+          "kept_under_200_chars": 647,
+          "kept_docs_latin_fused_with_marks": 119,
+          "latin_fused_with_marks_occurrences": 130
+        },
+        "chars": {
+          "kept_lla_3plus": 1885295,
+          "kept_under_200_chars": 98016
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 171226,
+        "removed": 28,
+        "clusters_with_removals": 23,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 6,
+        "suite_documents_touched": 6,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 5127,
+          "text": "This website follows the DNPA Code of Ethics."
+        },
+        {
+          "count": 2616,
+          "text": "."
+        },
+        {
+          "count": 2554,
+          "text": "- ऐसे बोर्डों, परिषदों, समितियों और अन्य निकायों के, जिनमें दो या अधिक व्यक्ति हैं, जिनका उसके भाग के रूप में या इस बारे..."
+        },
+        {
+          "count": 2554,
+          "text": "- सूचना का अधिकार अधिनियम 2005 के तहत नोडल अधिकारी का नामांकन (513.49 KB)"
+        },
+        {
+          "count": 2554,
+          "text": "4 की उप-धारा 1 में निर्धारित 17 मदों (नियमावली) को प्रकाशित करना होगा।"
+        },
+        {
+          "count": 2554,
+          "text": "किसी व्यवस्था की विशिष्टियां, जो उसकी नीति की संरचना या उसके कार्यान्वयन के संबंध में जनता के सदस्यों से परामर्श के लिए ..."
+        },
+        {
+          "count": 2554,
+          "text": "विभाग में विभिन्न स्तरों पर कार्य का संचालन, कार्य संचालन नियमों और समय-समय पर जारी अन्य सरकारी आदेशों / अनुदेशों के अनु..."
+        },
+        {
+          "count": 2554,
+          "text": "स्वास्थ्य एवं परिवार कल्याण मंत्रालय, कार्मिक एवं प्रशिक्षण विभाग की कार्यालय पद्धति निर्देशिका, स्वास्थ्य और परिवार कल्..."
+        },
+        {
+          "count": 2554,
+          "text": "स्वास्थ्य एवं परिवार कल्याण मंत्री की अध्यक्षता में एक केंद्रीय स्वास्थ्य एवं परिवार कल्याण परिषद है जिसमें राज्य सरकारो..."
+        },
+        {
+          "count": 2554,
+          "text": "स्वास्थ्य और परिवार कल्याण मंत्रालय चिकित्सा और जन स्वास्थ्य मामलों को देखता है जिसमें औषध नियंत्रण और खाद्य में मिलावट ..."
+        },
+        {
+          "count": 2554,
+          "text": "स्वास्थ्य और परिवार कल्याण मंत्रालय में निम्नलिखित विभाग शामिल हैंः"
+        },
+        {
+          "count": 1805,
+          "text": "Don't Miss!"
+        },
+        {
+          "count": 1384,
+          "text": "Read the latest and breaking Hindi news on amarujala. com. Get live Hindi news about India and the World from politics, ..."
+        },
+        {
+          "count": 1384,
+          "text": "हम डाटा संग्रह टूल्स, जैसे की कुकीज के माध्यम से आपकी जानकारी एकत्र करते हैं ताकि आपको बेहतर और व्यक्तिगत अनुभव प्रदान क..."
+        },
+        {
+          "count": 1176,
+          "text": "शॉर्टकटः मतभेद, समानता, समानता गुणांक, संदर्भ।"
+        },
+        {
+          "count": 953,
+          "text": "चर्चा में क्यों?"
+        },
+        {
+          "count": 915,
+          "text": "Disclaimer: लोकमत हिन्दी ने इस ख़बर को संपादित नहीं किया है। यह ख़बर पीटीआई-भाषा की फीड से प्रकाशित की गयी है।"
+        },
+        {
+          "count": 806,
+          "text": "Get all India News in Hindi related to live update of politics, sports, entertainment, technology and education etc. Sta..."
+        },
+        {
+          "count": 781,
+          "text": "Posted On:"
+        },
+        {
+          "count": 544,
+          "text": "ताजा गॉसिप के लिए हमें Facebook Messenger पर फॉलो करें।"
+        },
+        {
+          "count": 544,
+          "text": "बॉलीवुड, हॉलीवुड, साउथ, भोजपुरी और टीवी जगत की ताजा खबरों के लिए यहां क्लिक करें...बॉलीवुड लाइफ हिन्दी के फेसबुक पेज, ट्..."
+        },
+        {
+          "count": 462,
+          "text": "- Travel आखिर क्यों कोई नहीं कर पाया कैलाश पर्वत की चढ़ाई? क्या है इसका वैज्ञानिक कारण?"
+        },
+        {
+          "count": 461,
+          "text": "नई दिल्लीः"
+        },
+        {
+          "count": 408,
+          "text": "Quick links:"
+        },
+        {
+          "count": 344,
+          "text": "ये भी पढ़ेंः"
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-hin-data-1.jsonl.gz",
+        "sha256_gz": "9aa5ad52bf61892eab163597e83d67c102f02c9937e22276e269d590a3e72380",
+        "sha256_jsonl": "318b58a41cebc6d76f0c9c2d721d2fa6ce71c48bbdcc3afc2c68b25cc6cfa76d",
+        "bytes_gz": 212279779
+      },
+      "max_docs": null,
+      "seconds": 1646.0,
+      "pinned_sha256_verified": true
+    },
+    {
+      "source_id": "sangraha-verified-hin-data-2",
+      "language": "hi",
+      "script": "devanagari",
+      "config_fingerprint": "43ce349329a98770",
+      "input": {
+        "docs": 174762,
+        "chars": 378257201,
+        "by_type": {
+          "pdf": {
+            "docs": 20989,
+            "chars": 86904066
+          },
+          "speech": {
+            "docs": 337,
+            "chars": 2120189
+          },
+          "web": {
+            "docs": 153436,
+            "chars": 289232946
+          }
+        }
+      },
+      "line_counts": {
+        "docs": 174762,
+        "lines": 1390674,
+        "distinct_lines": 1274156,
+        "boilerplate_distinct_lines": 103,
+        "boilerplate_line_occurrences": 58350
+      },
+      "removed_docs": {
+        "empty": {
+          "rule": "normalization (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_exact": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "suite_ngram": {
+          "rule": "1 protected suite",
+          "docs": 4,
+          "chars": 36134,
+          "share_docs": 2.3e-05,
+          "share_chars": 9.6e-05
+        },
+        "suite_short": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "exact_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 39,
+          "chars": 81664,
+          "share_docs": 0.000223,
+          "share_chars": 0.000216
+        },
+        "cross_file_duplicate": {
+          "rule": "2 duplicates (EXP-046: across the files of a language)",
+          "docs": 3044,
+          "chars": 8652199,
+          "share_docs": 0.017418,
+          "share_chars": 0.022874
+        },
+        "control_chars": {
+          "rule": "control chars (v1)",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "empty_after_cleaning": {
+          "rule": "3/4 lines",
+          "docs": 10,
+          "chars": 5062,
+          "share_docs": 5.7e-05,
+          "share_chars": 1.3e-05
+        },
+        "no_letters": {
+          "rule": "5 script gate",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "script_share": {
+          "rule": "5 script gate",
+          "docs": 449,
+          "chars": 568949,
+          "share_docs": 0.002569,
+          "share_chars": 0.001504
+        },
+        "urdu_persian_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "urdu_uyghur_like": {
+          "rule": "6 Urdu check",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "wiki_markup": {
+          "rule": "8 wiki markup",
+          "docs": 24,
+          "chars": 186131,
+          "share_docs": 0.000137,
+          "share_chars": 0.000492
+        },
+        "repetition": {
+          "rule": "9 repetition",
+          "docs": 11,
+          "chars": 206917,
+          "share_docs": 6.3e-05,
+          "share_chars": 0.000547
+        },
+        "suite_after_cleaning": {
+          "rule": "1 protected suite",
+          "docs": 0,
+          "chars": 0,
+          "share_docs": 0.0,
+          "share_chars": 0.0
+        },
+        "slice1_duplicate": {
+          "rule": "EXP-046 safeguard 2 (already in v2-slice1)",
+          "docs": 78,
+          "chars": 267889,
+          "share_docs": 0.000446,
+          "share_chars": 0.000708
+        },
+        "near_duplicate": {
+          "rule": "2 duplicates",
+          "docs": 31,
+          "chars": 63948,
+          "share_docs": 0.000177,
+          "share_chars": 0.000169
+        }
+      },
+      "removed_lines": {
+        "boilerplate": {
+          "lines": 31960,
+          "chars": 2740319,
+          "share_chars": 0.007245
+        },
+        "foreign": {
+          "lines": 21527,
+          "chars": 2046082,
+          "share_chars": 0.005409
+        }
+      },
+      "kept": {
+        "docs": 171072,
+        "chars": 362910270,
+        "tokens": 194880551,
+        "share_docs": 0.978886,
+        "share_chars_of_input": 0.959427,
+        "by_type": {
+          "pdf": {
+            "docs": 20951,
+            "chars": 85707961,
+            "tokens": 44762862
+          },
+          "speech": {
+            "docs": 322,
+            "chars": 1947806,
+            "tokens": 1062078
+          },
+          "web": {
+            "docs": 149799,
+            "chars": 275254503,
+            "tokens": 149055611
+          }
+        }
+      },
+      "masked": {
+        "emails": 153,
+        "phones": 612,
+        "docs_masked": 557
+      },
+      "measured_only": {
+        "docs": {
+          "kept_docs_with_lines_removed": 28310,
+          "kept_under_200_chars": 602,
+          "kept_lla_3plus": 213,
+          "kept_docs_latin_fused_with_marks": 135,
+          "latin_fused_with_marks_occurrences": 175
+        },
+        "chars": {
+          "kept_under_200_chars": 94208,
+          "kept_lla_3plus": 1273612
+        }
+      },
+      "near_duplicates": {
+        "candidates_with_signature": 171086,
+        "removed": 31,
+        "clusters_with_removals": 26,
+        "clusters_note": "counted over the first 200 removed documents"
+      },
+      "suite": {
+        "touching_docs": 4,
+        "suite_documents_touched": 4,
+        "belebele_touching_docs": 0,
+        "output_hits": 0
+      },
+      "top_boilerplate_lines": [
+        {
+          "count": 5239,
+          "text": "This website follows the DNPA Code of Ethics."
+        },
+        {
+          "count": 2554,
+          "text": "."
+        },
+        {
+          "count": 1882,
+          "text": "Don't Miss!"
+        },
+        {
+          "count": 1346,
+          "text": "Read the latest and breaking Hindi news on amarujala. com. Get live Hindi news about India and the World from politics, ..."
+        },
+        {
+          "count": 1346,
+          "text": "हम डाटा संग्रह टूल्स, जैसे की कुकीज के माध्यम से आपकी जानकारी एकत्र करते हैं ताकि आपको बेहतर और व्यक्तिगत अनुभव प्रदान क..."
+        },
+        {
+          "count": 1216,
+          "text": "शॉर्टकटः मतभेद, समानता, समानता गुणांक, संदर्भ।"
+        },
+        {
+          "count": 998,
+          "text": "चर्चा में क्यों?"
+        },
+        {
+          "count": 850,
+          "text": "Get all India News in Hindi related to live update of politics, sports, entertainment, technology and education etc. Sta..."
+        },
+        {
+          "count": 817,
+          "text": "Disclaimer: लोकमत हिन्दी ने इस ख़बर को संपादित नहीं किया है। यह ख़बर पीटीआई-भाषा की फीड से प्रकाशित की गयी है।"
+        },
+        {
+          "count": 781,
+          "text": "Posted On:"
+        },
+        {
+          "count": 545,
+          "text": "ताजा गॉसिप के लिए हमें Facebook Messenger पर फॉलो करें।"
+        },
+        {
+          "count": 545,
+          "text": "बॉलीवुड, हॉलीवुड, साउथ, भोजपुरी और टीवी जगत की ताजा खबरों के लिए यहां क्लिक करें...बॉलीवुड लाइफ हिन्दी के फेसबुक पेज, ट्..."
+        },
+        {
+          "count": 473,
+          "text": "- Travel आखिर क्यों कोई नहीं कर पाया कैलाश पर्वत की चढ़ाई? क्या है इसका वैज्ञानिक कारण?"
+        },
+        {
+          "count": 463,
+          "text": "नई दिल्लीः"
+        },
+        {
+          "count": 391,
+          "text": "Quick links:"
+        },
+        {
+          "count": 335,
+          "text": "ये भी पढ़ेंः"
+        },
+        {
+          "count": 284,
+          "text": "आपकी स्किन और शरीर आपकी ही तरह अलग है। आप तक अपने आर्टिकल्स और सोशल मीडिया हैंडल्स के माध्यम से सही, सुरक्षित और विशेषज्..."
+        },
+        {
+          "count": 268,
+          "text": "ताज़ा समाचार और रोचक जानकारियों के लिए आप हमारे राज एक्सप्रेस यूट्यूब चैनल को सब्स्क्राइब कर सकते हैं। यूट्यूब पर @RajEx..."
+        },
+        {
+          "count": 256,
+          "text": "।5-क (क) - वन भूमि जिस पर अनु.जन. व अन्य परम्परागत वन निवासी (वनाधिकारों की मान्यत्ाा) अधि. - 2006 के अन्तर्गत वनाधिकार ..."
+        },
+        {
+          "count": 256,
+          "text": "।5-क (ख) - वन भूमि जिस पर अनु.जन. व अन्य परम्परागत वन निवासी (वनाधिकारों की मान्यत्ाा) अधि. - 2006 के अन्तर्गत वनाधिकार ..."
+        },
+        {
+          "count": 256,
+          "text": "।5-क (ग) - वन भूमि जिस पर अनु.जन. व अन्य परम्परागत वन निवासी (वनाधिकारों की मान्यत्ाा) अधि. - 2006 के अन्तर्गत वनाधिकार ..."
+        },
+        {
+          "count": 256,
+          "text": "।ग्राम का नाम :"
+        },
+        {
+          "count": 256,
+          "text": "।ग्राम क्रमांक :"
+        },
+        {
+          "count": 256,
+          "text": "।जनपद :"
+        },
+        {
+          "count": 256,
+          "text": "।तहसील :"
+        }
+      ],
+      "review": [],
+      "output": {
+        "path": "sangraha-verified-hin-data-2.jsonl.gz",
+        "sha256_gz": "2fb1d08e4ac7c05ccfa6307caa1502575dca08aac2cb996dc5596e4c12727aa6",
+        "sha256_jsonl": "6d9d00ad583c4ac5174aeecffa9c73254095b3801e69b62a05ed9f9c282a707c",
+        "bytes_gz": 210941900
+      },
+      "max_docs": null,
+      "seconds": 1076.0,
+      "pinned_sha256_verified": true
+    }
+  ],
+  "packed": [
+    {
+      "input": "en.jsonl.gz",
+      "output": {
+        "path": "en.bin",
+        "meta": "en.meta.json",
+        "sha256": "8fe8763256ae9e0dccd14697c6e9ce87c6956cd03d1fcdfaf2eacb11dff0d0c4",
+        "bytes": 1918619108,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 695973,
+      "source_tokens_v1": 958613581,
+      "tokens": 959309554,
+      "splits": {
+        "train": {
+          "docs": 692497,
+          "tokens": 954342847,
+          "bytes": 1842186186,
+          "chars": 1831826235
+        },
+        "val": {
+          "docs": 3476,
+          "tokens": 4966707,
+          "bytes": 9615539,
+          "chars": 9545559
+        }
+      },
+      "val_ids_sha256": "3e3d6d15cc2e52edf5c3816fbfd45a126be1c00422d231b8ede855891c7466c8",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "954342847 + 4966707 - 695973 == 958613581",
+        "file_scan": {
+          "tokens_scanned": 959309554,
+          "endoftext": 695973,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 239
+      },
+      "max_docs": null,
+      "seconds": 1066.4,
+      "language": "en",
+      "sources": [
+        "sangraha-verified-eng-data-1",
+        "sangraha-verified-eng-data-2"
+      ]
+    },
+    {
+      "input": "ur.jsonl.gz",
+      "output": {
+        "path": "ur.bin",
+        "meta": "ur.meta.json",
+        "sha256": "45b7bbe734fc7f447ed91cbf2b40f324dd0fbf2af4b82b0cb7bfa282f9e06ffe",
+        "bytes": 1292009966,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 382937,
+      "source_tokens_v1": 645622046,
+      "tokens": 646004983,
+      "splits": {
+        "train": {
+          "docs": 380989,
+          "tokens": 642837659,
+          "bytes": 1822407141,
+          "chars": 1032444351
+        },
+        "val": {
+          "docs": 1948,
+          "tokens": 3167324,
+          "bytes": 8993698,
+          "chars": 5093442
+        }
+      },
+      "val_ids_sha256": "c32d6f591d1302f06db0a1f0233768684806c8bec7f7e635fb16ad5d1187a779",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "642837659 + 3167324 - 382937 == 645622046",
+        "file_scan": {
+          "tokens_scanned": 646004983,
+          "endoftext": 382937,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 176
+      },
+      "max_docs": null,
+      "seconds": 1088.6,
+      "language": "ur",
+      "sources": [
+        "sangraha-verified-urd-data-1",
+        "sangraha-verified-urd-data-2"
+      ]
+    },
+    {
+      "input": "as.jsonl.gz",
+      "output": {
+        "path": "as.bin",
+        "meta": "as.meta.json",
+        "sha256": "d18482e719e316c3ebe0521156a4b8935e75e84e0ae629d4c184e7bee1fdfb7e",
+        "bytes": 619399194,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 208515,
+      "source_tokens_v1": 309491082,
+      "tokens": 309699597,
+      "splits": {
+        "train": {
+          "docs": 207523,
+          "tokens": 308157221,
+          "bytes": 1523967525,
+          "chars": 578186724
+        },
+        "val": {
+          "docs": 992,
+          "tokens": 1542376,
+          "bytes": 7617780,
+          "chars": 2898031
+        }
+      },
+      "val_ids_sha256": "2a4e8e6e9f272fa78f2582ae65f632c195874a5872630b5f774a0b08ca52ebda",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "308157221 + 1542376 - 208515 == 309491082",
+        "file_scan": {
+          "tokens_scanned": 309699597,
+          "endoftext": 208515,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 141
+      },
+      "max_docs": null,
+      "seconds": 638.3,
+      "language": "as",
+      "sources": [
+        "sangraha-verified-asm-data-1",
+        "sangraha-verified-asm-data-2"
+      ]
+    },
+    {
+      "input": "bn.jsonl.gz",
+      "output": {
+        "path": "bn.bin",
+        "meta": "bn.meta.json",
+        "sha256": "d7648839e19d79cc208b6275159e346d47e221833e460fe5450e1ee849c3987c",
+        "bytes": 808217494,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 298900,
+      "source_tokens_v1": 403809847,
+      "tokens": 404108747,
+      "splits": {
+        "train": {
+          "docs": 297389,
+          "tokens": 401948630,
+          "bytes": 1990606780,
+          "chars": 751040755
+        },
+        "val": {
+          "docs": 1511,
+          "tokens": 2160117,
+          "bytes": 10720923,
+          "chars": 4047734
+        }
+      },
+      "val_ids_sha256": "638f90489d09f32ffc6ccdae746da5a17111cca946b57c5ad71c6fd1b60a8030",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "401948630 + 2160117 - 298900 == 403809847",
+        "file_scan": {
+          "tokens_scanned": 404108747,
+          "endoftext": 298900,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 159
+      },
+      "max_docs": null,
+      "seconds": 1325.1,
+      "language": "bn",
+      "sources": [
+        "sangraha-verified-ben-data-1",
+        "sangraha-verified-ben-data-2"
+      ]
+    },
+    {
+      "input": "gu.jsonl.gz",
+      "output": {
+        "path": "gu.bin",
+        "meta": "gu.meta.json",
+        "sha256": "6625bb4f4c1f32918407bde394fdd6fa0311aea0b4e418b3a2d209aceda5976c",
+        "bytes": 807382572,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 298926,
+      "source_tokens_v1": 403392360,
+      "tokens": 403691286,
+      "splits": {
+        "train": {
+          "docs": 297420,
+          "tokens": 401701163,
+          "bytes": 1836431244,
+          "chars": 711068700
+        },
+        "val": {
+          "docs": 1506,
+          "tokens": 1990123,
+          "bytes": 9157481,
+          "chars": 3540932
+        }
+      },
+      "val_ids_sha256": "4d8e7a3b739da14e7c8600e14968ed72e4f03b1a01f48cfe3f695c46a6fc4c76",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "401701163 + 1990123 - 298926 == 403392360",
+        "file_scan": {
+          "tokens_scanned": 403691286,
+          "endoftext": 298926,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 159
+      },
+      "max_docs": null,
+      "seconds": 1415.8,
+      "language": "gu",
+      "sources": [
+        "sangraha-verified-guj-data-1",
+        "sangraha-verified-guj-data-2"
+      ]
+    },
+    {
+      "input": "hi.jsonl.gz",
+      "output": {
+        "path": "hi.bin",
+        "meta": "hi.meta.json",
+        "sha256": "51d935971295f42f608f0d332139a6d6e1288dd100f2a4c350a738b22bc4b3b5",
+        "bytes": 782313868,
+        "dtype": "uint16",
+        "byteorder": "little",
+        "layout": "train || val"
+      },
+      "docs": 342287,
+      "source_tokens_v1": 390814647,
+      "tokens": 391156934,
+      "splits": {
+        "train": {
+          "docs": 340576,
+          "tokens": 389219639,
+          "bytes": 1846360562,
+          "chars": 724233330
+        },
+        "val": {
+          "docs": 1711,
+          "tokens": 1937295,
+          "bytes": 9184539,
+          "chars": 3604731
+        }
+      },
+      "val_ids_sha256": "f69adcfba74be855e7cfbe2863dba870f2550035b4c69a3b4326204097a2c262",
+      "checks": {
+        "per_document_counts_equal_exp036": true,
+        "record_ids_unique": true,
+        "token_identity": "389219639 + 1937295 - 342287 == 390814647",
+        "file_scan": {
+          "tokens_scanned": 391156934,
+          "endoftext": 342287,
+          "ids_above_endoftext": 0,
+          "train_ends_with_endoftext": 1,
+          "val_ends_with_endoftext": 1
+        },
+        "decode_checked_docs": 168
+      },
+      "max_docs": null,
+      "seconds": 571.8,
+      "language": "hi",
+      "sources": [
+        "sangraha-verified-hin-data-1",
+        "sangraha-verified-hin-data-2"
+      ]
+    }
+  ],
+  "text_files": [
+    {
+      "language": "en",
+      "path": "en.jsonl.gz",
+      "sources": [
+        "sangraha-verified-eng-data-1",
+        "sangraha-verified-eng-data-2"
+      ],
+      "docs": 695973,
+      "tokens": 958613581,
+      "bytes": 773375092,
+      "sha256": "1c789516171477bd9ba10d33792e9198230a375db0d59f99cb9c484504312381"
+    },
+    {
+      "language": "ur",
+      "path": "ur.jsonl.gz",
+      "sources": [
+        "sangraha-verified-urd-data-1",
+        "sangraha-verified-urd-data-2"
+      ],
+      "docs": 382937,
+      "tokens": 645622046,
+      "bytes": 543541219,
+      "sha256": "6f1936fbb023f068428c016d53baece1e05ba2b080005181f42731cf5d1e2e52"
+    },
+    {
+      "language": "as",
+      "path": "as.jsonl.gz",
+      "sources": [
+        "sangraha-verified-asm-data-1",
+        "sangraha-verified-asm-data-2"
+      ],
+      "docs": 208515,
+      "tokens": 309491082,
+      "bytes": 351358205,
+      "sha256": "2a49a7d9750eb3021a84153c74c7e6c546559877a03d131558c2f56941c59dd1"
+    },
+    {
+      "language": "bn",
+      "path": "bn.jsonl.gz",
+      "sources": [
+        "sangraha-verified-ben-data-1",
+        "sangraha-verified-ben-data-2"
+      ],
+      "docs": 298900,
+      "tokens": 403809847,
+      "bytes": 444722978,
+      "sha256": "7e0e45bed3844b14fa95119a387c32583c6e348dd118c7224888adbf952b9aff"
+    },
+    {
+      "language": "gu",
+      "path": "gu.jsonl.gz",
+      "sources": [
+        "sangraha-verified-guj-data-1",
+        "sangraha-verified-guj-data-2"
+      ],
+      "docs": 298926,
+      "tokens": 403392360,
+      "bytes": 433593587,
+      "sha256": "1962d6f05c5a7ee5417ee1d7bfdacd7976fd8d626614ceb4352daf0dff5b5f10"
+    },
+    {
+      "language": "hi",
+      "path": "hi.jsonl.gz",
+      "sources": [
+        "sangraha-verified-hin-data-1",
+        "sangraha-verified-hin-data-2"
+      ],
+      "docs": 342287,
+      "tokens": 390814647,
+      "bytes": 423221679,
+      "sha256": "88996c027f11647ee86dbd2eb3f3cfeade70bc06543d76ca2b67c5fe066c37a2"
+    }
+  ],
+  "complete": true,
+  "stopped": null,
+  "done": [
+    "en",
+    "ur",
+    "as",
+    "bn",
+    "gu",
+    "hi"
+  ],
+  "not_done": [],
+  "totals": {
+    "docs": 2227538,
+    "tokens": 3113971101,
+    "train_tokens": 3098207159,
+    "val_tokens": 15763942,
+    "val_docs": 11144,
+    "text_bytes": 2969812760
+  },
+  "data_bytes": 9197767669,
+  "samples_written": 490,
+  "seconds": 8006.3,
+  "finished_at": "2026-10-07 19:03:24"
+}

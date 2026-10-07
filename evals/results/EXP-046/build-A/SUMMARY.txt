@@ -1,0 +1,90 @@
+EXP-046 build A - FrontierCorpus v2-slice2 (en, ur, as, bn, gu, hi)
+code commit d8bb772dcf507d7711ad7be975c1285a5d07260f   seconds 8006.3   stopped: no
+
+EXP-046 - FrontierCorpus v2 build on sangraha-verified-slice2 (ai4bharat/sangraha @ 8b813c3f62d3)
+complete: True   suite: CHECKED against frontier-heldout-v1 (3427 documents; 13-grams + exact + passages of 3-12 words; verified against SUITE.json) and Belebele (64,844 texts; 13-grams + exact)
+tokenizer: frontier-tokenizer-v1 counts (D-041), frontier-tokenizer-v2 packs (EXP-037)   config: 43ce349329a98770
+
+lang | input docs | kept docs | kept chars (share) | tokens (exact) | minutes
+  en |    349,525 |   348,027 |    917,758,437 (98.14%) |    477,413,028 | 41.3
+  en |    349,526 |   347,946 |    923,613,357 (98.16%) |    481,200,553 | 42.6
+  ur |    209,716 |   191,369 |    518,066,083 (90.94%) |    322,409,721 | 35.0
+  ur |    209,715 |   191,568 |    519,471,710 (90.90%) |    323,212,325 | 35.7
+  as |    110,238 |   104,291 |    291,105,350 (91.90%) |    154,994,462 | 21.7
+  as |    110,238 |   104,224 |    289,979,405 (91.79%) |    154,496,620 | 14.7
+  bn |    149,796 |   149,458 |    378,482,174 (98.55%) |    202,437,253 | 30.2
+  bn |    149,797 |   149,442 |    376,606,315 (98.58%) |    201,372,594 | 30.1
+  gu |    149,796 |   149,450 |    358,374,677 (98.70%) |    202,276,534 | 26.1
+  gu |    149,796 |   149,476 |    356,234,955 (98.74%) |    201,115,826 | 26.1
+  hi |    174,763 |   171,215 |    364,927,791 (95.24%) |    195,934,096 | 27.4
+  hi |    174,762 |   171,072 |    362,910,270 (95.94%) |    194,880,551 | 17.9
+ all |  2,287,668 | 2,227,538 |  5,657,530,524 (95.87%) |  3,111,743,563 |
+
+Removed documents per rule (docs / share of the file's characters):
+  empty [normalization (v1)]: bn 1/0.00%
+  suite_exact [1 protected suite]: 0
+  suite_ngram [1 protected suite]: en 1/0.00%, as 6/0.06%, as 3/0.01%, bn 1/0.00%, gu 2/0.01%, gu 2/0.02%, hi 4/0.03%, hi 4/0.01%
+  suite_short [1 protected suite]: en 4/0.00%, en 1/0.00%, ur 1/0.00%, as 1/0.00%, as 3/0.01%, bn 12/0.09%, bn 10/0.06%, gu 1/0.00%, hi 2/0.00%
+  exact_duplicate [2 duplicates]: en 88/0.01%, en 34/0.01%, hi 2,887/2.81%, hi 39/0.02%
+  cross_file_duplicate [2 duplicates (EXP-046: across the files of a language)]: en 122/0.02%, bn 1/0.00%, gu 1/0.00%, hi 3,044/2.29%
+  control_chars [control chars (v1)]: 0
+  empty_after_cleaning [3/4 lines]: en 96/0.01%, en 93/0.01%, ur 262/0.18%, ur 256/0.17%, as 5,020/6.35%, as 5,079/6.37%, bn 49/0.04%, bn 51/0.04%, gu 103/0.11%, gu 84/0.09%, hi 19/0.01%, hi 10/0.00%
+  no_letters [5 script gate]: ur 1/0.01%, ur 1/0.01%
+  script_share [5 script gate]: en 120/0.01%, en 137/0.01%, ur 229/0.06%, ur 279/0.08%, as 283/0.28%, as 328/0.34%, bn 252/0.15%, bn 270/0.17%, gu 228/0.11%, gu 218/0.11%, hi 434/0.16%, hi 449/0.15%
+  urdu_persian_like [6 Urdu check]: ur 17,615/8.49%, ur 17,383/8.51%
+  urdu_uyghur_like [6 Urdu check]: ur 221/0.10%, ur 202/0.10%
+  wiki_markup [8 wiki markup]: en 27/0.01%, en 27/0.01%, ur 13/0.00%, ur 20/0.01%, as 14/0.01%, as 17/0.05%, bn 20/0.02%, bn 17/0.02%, gu 11/0.01%, gu 5/0.01%, hi 20/0.03%, hi 24/0.05%
+  repetition [9 repetition]: en 4/0.01%, en 3/0.00%, ur 1/0.00%, ur 2/0.00%, hi 1/0.00%, hi 11/0.05%
+  suite_after_cleaning [1 protected suite]: 0
+  slice1_duplicate [EXP-046 safeguard 2 (already in v2-slice1)]: en 593/0.12%, en 621/0.13%, ur 2/0.00%, as 276/0.11%, as 247/0.10%, bn 1/0.00%, gu 1/0.00%, gu 1/0.00%, hi 153/0.26%, hi 78/0.07%
+  near_duplicate [2 duplicates]: en 566/0.15%, en 541/0.14%, ur 4/0.00%, ur 2/0.00%, as 347/0.13%, as 337/0.12%, bn 4/0.00%, bn 4/0.00%, gu 9/0.00%, hi 28/0.01%, hi 31/0.02%
+
+Removed lines (share of the file's characters):
+  boilerplate: en 0.99%, en 0.98%, ur 0.05%, ur 0.04%, as 0.60%, as 0.61%, bn 0.48%, bn 0.49%, gu 0.28%, gu 0.25%, hi 0.75%, hi 0.72%
+  foreign: en 0.41%, en 0.39%, ur 0.36%, ur 0.36%, as 6.81%, as 6.86%, bn 0.58%, bn 0.55%, gu 0.78%, gu 0.75%, hi 0.58%, hi 0.54%
+
+Masked (rule 10): en 1,445 e-mails/787 phones, en 1,454 e-mails/807 phones, ur 0 e-mails/575 phones, ur 1 e-mails/513 phones, as 57 e-mails/792 phones, as 67 e-mails/856 phones, bn 101 e-mails/649 phones, bn 126 e-mails/696 phones, gu 132 e-mails/1,105 phones, gu 127 e-mails/1,108 phones, hi 149 e-mails/690 phones, hi 153 e-mails/612 phones
+
+Measured only (nothing removed):
+  en: kept_docs_with_lines_removed 64,177, kept_under_200_chars 2,778
+  en: kept_docs_with_lines_removed 63,356, kept_under_200_chars 2,657
+  ur: kept_docs_with_lines_removed 13,572, kept_pashto_like 66, kept_under_200_chars 369
+  ur: kept_docs_with_lines_removed 13,506, kept_pashto_like 33, kept_under_200_chars 380
+  as: kept_docs_latin_fused_with_marks 421, kept_docs_with_lines_removed 20,912, kept_under_200_chars 1,429, latin_fused_with_marks_occurrences 582
+  as: kept_docs_latin_fused_with_marks 378, kept_docs_with_lines_removed 21,074, kept_under_200_chars 1,418, latin_fused_with_marks_occurrences 532
+  bn: kept_docs_latin_fused_with_marks 575, kept_docs_with_lines_removed 15,725, kept_under_200_chars 563, latin_fused_with_marks_occurrences 897
+  bn: kept_docs_latin_fused_with_marks 562, kept_docs_with_lines_removed 15,793, kept_under_200_chars 592, latin_fused_with_marks_occurrences 1,081
+  gu: kept_docs_latin_fused_with_marks 1,366, kept_docs_with_lines_removed 19,882, kept_under_200_chars 1,016, latin_fused_with_marks_occurrences 2,280
+  gu: kept_docs_latin_fused_with_marks 1,347, kept_docs_with_lines_removed 19,678, kept_under_200_chars 995, latin_fused_with_marks_occurrences 2,274
+  hi: kept_docs_latin_fused_with_marks 119, kept_docs_with_lines_removed 28,508, kept_lla_3plus 226, kept_under_200_chars 647, latin_fused_with_marks_occurrences 130
+  hi: kept_docs_latin_fused_with_marks 135, kept_docs_with_lines_removed 28,310, kept_lla_3plus 213, kept_under_200_chars 602, latin_fused_with_marks_occurrences 175
+
+REVIEW (a rule removed more than its pre-registered bound; read before accepting):
+  as: empty_after_cleaning 6.35% > 2.00%
+  as: empty_after_cleaning 6.37% > 2.00%
+
+Output suite hits: 0 (must be 0)
+
+Safeguards (EXP-046):
+lang | slice-1 docs read | slice1_duplicate | cross_file_duplicate | touching Belebele
+  en |           348,394 |            1,214 |                  122 |                 0
+  ur |           191,621 |                2 |                    0 |                 0
+  as |           104,386 |              523 |                    0 |                 0
+  bn |           149,458 |                1 |                    1 |                 0
+  gu |           149,466 |                2 |                    1 |                 0
+  hi |           171,199 |              231 |                3,044 |                 0
+
+Packed with frontier-tokenizer-v2 (train || val, one <|endoftext|> per document):
+lang | docs | val docs | train tokens | val tokens | check | text GB | tokens GB
+  en | 695,973 | 3,476 | 954,342,847 | 4,966,707 | OK | 0.77 | 1.92
+  ur | 382,937 | 1,948 | 642,837,659 | 3,167,324 | OK | 0.54 | 1.29
+  as | 208,515 | 992 | 308,157,221 | 1,542,376 | OK | 0.35 | 0.62
+  bn | 298,900 | 1,511 | 401,948,630 | 2,160,117 | OK | 0.44 | 0.81
+  gu | 298,926 | 1,506 | 401,701,163 | 1,990,123 | OK | 0.43 | 0.81
+  hi | 342,287 | 1,711 | 389,219,639 | 1,937,295 | OK | 0.42 | 0.78
+ all | 2,227,538 | 11,144 | 3,098,207,159 | 15,763,942
+
+languages done: en, ur, as, bn, gu, hi; not done: -
+data output: /kaggle/working/slice2-A (9.20 GB, stays on Kaggle)
+Samples of kept and removed documents: samples.jsonl (read before accepting; acceptance is a
+separate decision, as D-045 was for slice 1).

@@ -1,0 +1,183 @@
+{
+  "schema": "frontier-packed-manifest-v1",
+  "packed_id": "frontier-v2-sangraha-slice2-A@frontier-tokenizer-v2",
+  "corpus_id": "frontier-v2-sangraha-slice2",
+  "part": "A",
+  "exp_id": "EXP-046",
+  "complete": true,
+  "source": {
+    "dataset": "ai4bharat/sangraha",
+    "revision": "8b813c3f62d37b2fa174d68c31e8b35ae2fe85e8",
+    "slice_id": "sangraha-verified-slice2",
+    "pins": "corpora/frontier/v2/sangraha_slice2.json",
+    "license_id": "CC-BY-4.0",
+    "attribution": "Sangraha (AI4Bharat): Khan et al. 2024, IndicLLMSuite: A Blueprint for Creating Pre-training and Fine-Tuning Datasets for Indian Languages, ACL 2024 (arXiv:2403.06350). CC-BY-4.0."
+  },
+  "rules": "EXPERIMENTS.md EXP-036 (D-045 configuration) + EXP-046 safeguards; code: src/frontier_ai/corpus/slice_build.py, scripts/build_slice2.py",
+  "config_fingerprint": "43ce349329a98770",
+  "tokenizer": {
+    "name": "frontier-tokenizer-v1 counts (D-041), frontier-tokenizer-v2 packs (EXP-037)",
+    "v1_dir_sha256_16": "b39afa08fa86b0d1",
+    "v2_dir_sha256_16": "87bd6d31ae8723c2",
+    "vocab_size": 32896,
+    "endoftext_id": 32768,
+    "exact_count": true
+  },
+  "val_ppm": 5000,
+  "suite": "CHECKED against frontier-heldout-v1 (3427 documents; 13-grams + exact + passages of 3-12 words; verified against SUITE.json) and Belebele (64,844 texts; 13-grams + exact)",
+  "format": {
+    "dtype": "uint16",
+    "byteorder": "little",
+    "layout": "train || val",
+    "document_end": "<|endoftext|> (id 32768) after every document",
+    "reader": "frontier_ai.data.dataset.TokenDataset"
+  },
+  "files": [
+    {
+      "language": "en",
+      "path": "en.bin",
+      "meta": "en.meta.json",
+      "sha256": "8fe8763256ae9e0dccd14697c6e9ce87c6956cd03d1fcdfaf2eacb11dff0d0c4",
+      "bytes": 1918619108,
+      "docs": 695973,
+      "n_train": 954342847,
+      "n_val": 4966707,
+      "val_docs": 3476,
+      "val_ids_sha256": "3e3d6d15cc2e52edf5c3816fbfd45a126be1c00422d231b8ede855891c7466c8",
+      "sources": [
+        "sangraha-verified-eng-data-1",
+        "sangraha-verified-eng-data-2"
+      ],
+      "text": {
+        "path": "en.jsonl.gz",
+        "sha256": "1c789516171477bd9ba10d33792e9198230a375db0d59f99cb9c484504312381",
+        "bytes": 773375092,
+        "docs": 695973,
+        "tokens": 958613581
+      }
+    },
+    {
+      "language": "ur",
+      "path": "ur.bin",
+      "meta": "ur.meta.json",
+      "sha256": "45b7bbe734fc7f447ed91cbf2b40f324dd0fbf2af4b82b0cb7bfa282f9e06ffe",
+      "bytes": 1292009966,
+      "docs": 382937,
+      "n_train": 642837659,
+      "n_val": 3167324,
+      "val_docs": 1948,
+      "val_ids_sha256": "c32d6f591d1302f06db0a1f0233768684806c8bec7f7e635fb16ad5d1187a779",
+      "sources": [
+        "sangraha-verified-urd-data-1",
+        "sangraha-verified-urd-data-2"
+      ],
+      "text": {
+        "path": "ur.jsonl.gz",
+        "sha256": "6f1936fbb023f068428c016d53baece1e05ba2b080005181f42731cf5d1e2e52",
+        "bytes": 543541219,
+        "docs": 382937,
+        "tokens": 645622046
+      }
+    },
+    {
+      "language": "as",
+      "path": "as.bin",
+      "meta": "as.meta.json",
+      "sha256": "d18482e719e316c3ebe0521156a4b8935e75e84e0ae629d4c184e7bee1fdfb7e",
+      "bytes": 619399194,
+      "docs": 208515,
+      "n_train": 308157221,
+      "n_val": 1542376,
+      "val_docs": 992,
+      "val_ids_sha256": "2a4e8e6e9f272fa78f2582ae65f632c195874a5872630b5f774a0b08ca52ebda",
+      "sources": [
+        "sangraha-verified-asm-data-1",
+        "sangraha-verified-asm-data-2"
+      ],
+      "text": {
+        "path": "as.jsonl.gz",
+        "sha256": "2a49a7d9750eb3021a84153c74c7e6c546559877a03d131558c2f56941c59dd1",
+        "bytes": 351358205,
+        "docs": 208515,
+        "tokens": 309491082
+      }
+    },
+    {
+      "language": "bn",
+      "path": "bn.bin",
+      "meta": "bn.meta.json",
+      "sha256": "d7648839e19d79cc208b6275159e346d47e221833e460fe5450e1ee849c3987c",
+      "bytes": 808217494,
+      "docs": 298900,
+      "n_train": 401948630,
+      "n_val": 2160117,
+      "val_docs": 1511,
+      "val_ids_sha256": "638f90489d09f32ffc6ccdae746da5a17111cca946b57c5ad71c6fd1b60a8030",
+      "sources": [
+        "sangraha-verified-ben-data-1",
+        "sangraha-verified-ben-data-2"
+      ],
+      "text": {
+        "path": "bn.jsonl.gz",
+        "sha256": "7e0e45bed3844b14fa95119a387c32583c6e348dd118c7224888adbf952b9aff",
+        "bytes": 444722978,
+        "docs": 298900,
+        "tokens": 403809847
+      }
+    },
+    {
+      "language": "gu",
+      "path": "gu.bin",
+      "meta": "gu.meta.json",
+      "sha256": "6625bb4f4c1f32918407bde394fdd6fa0311aea0b4e418b3a2d209aceda5976c",
+      "bytes": 807382572,
+      "docs": 298926,
+      "n_train": 401701163,
+      "n_val": 1990123,
+      "val_docs": 1506,
+      "val_ids_sha256": "4d8e7a3b739da14e7c8600e14968ed72e4f03b1a01f48cfe3f695c46a6fc4c76",
+      "sources": [
+        "sangraha-verified-guj-data-1",
+        "sangraha-verified-guj-data-2"
+      ],
+      "text": {
+        "path": "gu.jsonl.gz",
+        "sha256": "1962d6f05c5a7ee5417ee1d7bfdacd7976fd8d626614ceb4352daf0dff5b5f10",
+        "bytes": 433593587,
+        "docs": 298926,
+        "tokens": 403392360
+      }
+    },
+    {
+      "language": "hi",
+      "path": "hi.bin",
+      "meta": "hi.meta.json",
+      "sha256": "51d935971295f42f608f0d332139a6d6e1288dd100f2a4c350a738b22bc4b3b5",
+      "bytes": 782313868,
+      "docs": 342287,
+      "n_train": 389219639,
+      "n_val": 1937295,
+      "val_docs": 1711,
+      "val_ids_sha256": "f69adcfba74be855e7cfbe2863dba870f2550035b4c69a3b4326204097a2c262",
+      "sources": [
+        "sangraha-verified-hin-data-1",
+        "sangraha-verified-hin-data-2"
+      ],
+      "text": {
+        "path": "hi.jsonl.gz",
+        "sha256": "88996c027f11647ee86dbd2eb3f3cfeade70bc06543d76ca2b67c5fe066c37a2",
+        "bytes": 423221679,
+        "docs": 342287,
+        "tokens": 390814647
+      }
+    }
+  ],
+  "totals": {
+    "docs": 2227538,
+    "tokens": 3113971101,
+    "train_tokens": 3098207159,
+    "val_tokens": 15763942,
+    "val_docs": 11144,
+    "text_bytes": 2969812760
+  }
+}
