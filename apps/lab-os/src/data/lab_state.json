@@ -4,9 +4,9 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "f4c469a638c14aaf2f4d1d59732ce7539a79f9b267475b9d75a7edde2bb1e82f",
+  "source_digest": "d399c9b0b9dd821a2ee8e8efcc416b94b97243f3043548abb198a05d0910c9d3",
   "sources": {
-    "EXPERIMENTS.md": "0cf01ad43cce5b1831c2225d902645686a884ad4e5b2d3f9a95c7113efc278ff",
+    "EXPERIMENTS.md": "10c22360a047a1be0f3bd24abf074d3ca47aa379979754d5a489de3dfaf60bf9",
     "DECISIONS.md": "86c2905b52bffe87121a58aec41bae63792562cb4ffdf4c02644d2a13101734d",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
     "lab/registry.json": "727bf20850a93892f5df8de79c5123da6355dfa88d58af5317d11c55718dac3c",
@@ -920,7 +920,7 @@
       "id": "EXP-046",
       "title": "Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions",
       "date": "2026-10-04",
-      "status": "approved 2026-10-04; step 1 (probe) done 2026-10-06; next: the two build kernels (A: en ur as bn gu hi; B: kn ml mr or pa ta te)",
+      "status": "approved 2026-10-04; step 1 (probe) done 2026-10-06; step 2 (build kernels A/B) implemented 2026-10-07, not run yet; next: part A between two EXP-043 sessions …",
       "category": "planned",
       "step": null,
       "summary": "EXP-042/D-049 showed that our 2.78 B training tokens support only a ~190 M model. A better model needs more data before it needs anything else. This plan measures how much more verified data exists and proposes the next build. It runs on Kaggle CPU sessions, so it does not load the founder's laptop and does not use …",

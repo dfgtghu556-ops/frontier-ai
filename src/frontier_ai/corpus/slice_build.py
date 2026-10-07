@@ -36,6 +36,16 @@ EXPERIMENTS.md):
                              document of each MinHash cluster (estimated Jaccard >= 0.8)
 ====  =====================  ==================================================================
 
+EXP-046 (v2-slice2) adds two optional checks, both off unless the caller passes them, so the
+slice-1 build is unchanged:
+
+* ``shared_exact``: rule 2a across files. A language built from several files passes the same set
+  to each; a document whose normalized text already appeared in an earlier file of the language is
+  removed as ``cross_file_duplicate``, and each file adds its own texts to the set.
+* ``exclude_final``: 16-byte blake2b digests of the final texts of documents that are already in an
+  earlier corpus (v2-slice1). A document whose exact output text is one of them is removed as
+  ``slice1_duplicate`` (checked after the second suite check, before tokens are counted).
+
 Near-duplicates are detected last, among documents that passed every other rule, so a cluster
 keeps a document that is actually in the corpus instead of one that a later rule removes. The
 second suite check exists because removing lines joins the words around them, which could in
@@ -69,7 +79,7 @@ import time
 import unicodedata
 from array import array
 from collections import Counter
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Collection, Iterable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -101,6 +111,7 @@ REASONS = (
     "suite_ngram",
     "suite_short",
     "exact_duplicate",
+    "cross_file_duplicate",
     "control_chars",
     "empty_after_cleaning",
     "no_letters",
@@ -110,6 +121,7 @@ REASONS = (
     "wiki_markup",
     "repetition",
     "suite_after_cleaning",
+    "slice1_duplicate",
     "near_duplicate",
 )
 RULE_OF_REASON = {
@@ -118,6 +130,7 @@ RULE_OF_REASON = {
     "suite_ngram": "1 protected suite",
     "suite_short": "1 protected suite",
     "exact_duplicate": "2 duplicates",
+    "cross_file_duplicate": "2 duplicates (EXP-046: across the files of a language)",
     "control_chars": "control chars (v1)",
     "empty_after_cleaning": "3/4 lines",
     "no_letters": "5 script gate",
@@ -127,6 +140,7 @@ RULE_OF_REASON = {
     "wiki_markup": "8 wiki markup",
     "repetition": "9 repetition",
     "suite_after_cleaning": "1 protected suite",
+    "slice1_duplicate": "EXP-046 safeguard 2 (already in v2-slice1)",
     "near_duplicate": "2 duplicates",
 }
 SUITE_REASONS = frozenset({"suite_exact", "suite_ngram", "suite_short", "suite_after_cleaning"})
@@ -420,11 +434,14 @@ def build_file(
     max_docs: int | None = None,
     progress: Callable[[str], None] | None = None,
     progress_every: int = 50_000,
+    shared_exact: set[bytes] | None = None,
+    exclude_final: Collection[bytes] | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Build one file -> (statistics, audit samples). ``rows()`` must yield the same rows each call.
 
     Writes ``out_path`` (``<lang>.jsonl.gz``) atomically via a ``.tmp`` file; a temporary candidate
-    file next to it is deleted at the end.
+    file next to it is deleted at the end. ``shared_exact`` and ``exclude_final``: see the module
+    docstring (EXP-046); ``shared_exact`` is updated with this file's texts.
     """
     cfg = config or BuildConfig()
     if short_index.min_words != cfg.short_suite_min_words:
@@ -527,6 +544,10 @@ def build_file(
                 removed.add("exact_duplicate", chars)
                 sample("exact_duplicate", row, doc_id, kind, text)
                 continue
+            if shared_exact is not None and digest in shared_exact:
+                removed.add("cross_file_duplicate", chars)
+                sample("cross_file_duplicate", row, doc_id, kind, text)
+                continue
             seen_exact.add(digest)
             if _control_ratio(text) > cfg.max_control_ratio:
                 removed.add("control_chars", chars)
@@ -614,6 +635,10 @@ def build_file(
                 suite_ids[hit.suite_doc_id] += 1
             if hit is not None or short:
                 removed.add("suite_after_cleaning", chars)
+                continue
+            if exclude_final is not None and text_digest(final) in exclude_final:
+                removed.add("slice1_duplicate", chars)
+                sample("slice1_duplicate", row, doc_id, kind, final)
                 continue
             tokens = token_counter.count(final)
             sig = mh.signature(final)
@@ -712,6 +737,8 @@ def build_file(
                 )
     tmp_out.replace(out_path)
     tmp_candidates.unlink()
+    if shared_exact is not None:
+        shared_exact |= seen_exact
     out_sha = _sha256_path(out_path)
 
     removed_rows = sum(removed.docs.values())
@@ -794,6 +821,8 @@ def build_file(
         "suite": {
             "touching_docs": sum(removed.docs[r] for r in SUITE_REASONS),
             "suite_documents_touched": len(suite_ids),
+            # EXP-046: Belebele texts join the guard with ids "belebele/..." (0 for slice 1)
+            "belebele_touching_docs": sum(c for k, c in suite_ids.items() if k.startswith("belebele/")),
             "output_hits": 0,  # every written text passed guard.check and short_index.find
         },
         "top_boilerplate_lines": [{"count": c, "text": excerpt(t, 120)} for c, t in top_lines],
@@ -816,6 +845,11 @@ def build_file(
     samples.extend(res_kept.items)
     samples.extend(res_kept_cleaned.items)
     return stats, samples
+
+
+def text_digest(text: str) -> bytes:
+    """16-byte blake2b of a text's UTF-8 bytes (rule 2a's digest; EXP-046's slice-1 comparison)."""
+    return hashlib.blake2b(text.encode("utf-8"), digest_size=16).digest()
 
 
 def _kept_sample(exp_id: str, source_id: str, language: str, row: int, payload: bytes) -> dict[str, Any]:

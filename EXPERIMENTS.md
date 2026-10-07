@@ -4424,3 +4424,54 @@ results in `evals/results/EXP-046/probe/` (results commit `1d3eabe`). It process
   input, shared with EXP-045's later evaluation session.
 
 **Status:** approved 2026-10-04; step 1 (probe) done 2026-10-06; next: the two build kernels (A: en ur as bn gu hi; B: kn ml mr or pa ta te)
+
+**Update (2026-10-07): step 2 implemented (the two build kernels A/B); not run yet.** Code only; no
+data was processed and no Kaggle session was used. New: `scripts/build_slice2.py` (the build),
+`src/frontier_ai/corpus/prior_docs.py` (reads the slice-1 token files back as document fingerprints),
+`scripts/kaggle/exp046_build_kernel.py`, `scripts/run_kaggle_exp046_build.ps1 -Part A|B` (through the
+shared runner: new `-Build` switch, CPU session, its own state folder `out\kaggle\EXP-046-build-<part>`).
+Changed: `src/frontier_ai/corpus/slice_build.py` gains two optional inputs and two removal reasons;
+with the defaults it behaves exactly as in slice 1 (the slice-1 build/pack tests pass unchanged).
+
+How each approved safeguard is implemented:
+
+| Safeguard | Implementation |
+|---|---|
+| 1. Same rules as slice 1 | Each pinned file goes through the same `build_file` (same `BuildConfig`, same order of rules) and the same `pack_file` (v2 tokenizer, same validation split). The two files of a language are built one after the other and their kept texts are joined into one `<lang>.jsonl.gz` / `<lang>.bin`. |
+| 2. Dedup against slice 1 | Each slice-1 token file (EXP-037; sha256 and document count checked against its manifest first) is decoded back to text, one fingerprint per document. A slice-2 document whose final text has a matching fingerprint is removed as `slice1_duplicate`. |
+| 3. Belebele in the protected set | The 13 pinned Belebele files (passages, questions, options) are added to the 13-gram + exact suite guard, next to the held-out suite. Removals that touch Belebele are counted separately (`belebele_touching_docs`). |
+| 4. Read samples before accepting | `samples.jsonl` (masked excerpts of kept and removed documents, per reason) is published; nothing is accepted before they are read. |
+
+Choices made while implementing (recorded here because they are not word-for-word the plan):
+
+- **Safeguard 2 compares texts, not token sequences.** The plan says "by token-sequence hash". The
+  build compares the slice-2 document's final text with slice-1 documents decoded from their tokens.
+  Encoding is deterministic, so two documents have the same token sequence exactly when they have the
+  same text; the test checks that decoding gives back every packed text exactly. This avoids encoding
+  every slice-2 document a second time, which would roughly double the slowest step.
+- **Cross-file duplicates.** Slice 1 had one file per language; slice 2 has two. An exact
+  duplicate (same normalized text) of a document kept from the language's first file is removed as
+  `cross_file_duplicate`. **Not done:** near-duplicates (MinHash) are found within each file only,
+  not across the two files and not against slice 1. This is the same rule as slice 1 applied per file.
+  Any near-duplicates left over across files are left in, and this limit is stated here.
+- **Belebele is not in the short-passage index** (3–12 word suite texts). The answer options are often
+  1–2 words, so that index would remove every document containing a common word.
+- **The held-out texts go to Kaggle** as a second PRIVATE dataset, `frontier-heldout-v1-text`
+  (exported on the PC by `scripts/export_heldout_text.py`, about 1 MB, uploaded once by the runner).
+  The build refuses to run without them, and checks them against SUITE.json. They are only used to
+  remove documents.
+- **Only the small reports come back.** The corpus (about 9 GB per part, estimate) stays on Kaggle as
+  the kernel's output under `slice2-<part>/`. The runner downloads only `EXP-046/build-<part>/`
+  (summary.json, SUMMARY.txt, manifest.json, samples.jsonl) into `evals/results/EXP-046/build-<part>/`.
+- **Time limit.** The build stops starting new languages at 11 hours. A language that is not finished
+  leaves no files and is listed as not done; `complete` is true only if every language of the part is
+  done. Run time is estimated at 4–6 hours per part (NOT VERIFIED).
+
+Tests: `tests/test_exp046.py` builds hi + ur from fake pinned files with fake slice-1 token files, fake
+Belebele (all 13 languages) and a fake suite. It checks each new removal reason and that the corpus files
+match the manifest. It checks that one and two worker processes give byte-identical files, that no
+protected text reaches `samples.jsonl`, and that the run stops cleanly on an edited held-out text, a
+wrong slice-1 file and the deadline. It also checks that the fingerprints recover every packed text.
+`tests/test_kaggle_exp038.py` checks the runner and kernel text.
+
+**Status:** approved 2026-10-04; step 1 (probe) done 2026-10-06; step 2 (build kernels A/B) implemented 2026-10-07, not run yet; next: part A between two EXP-043 sessions, then part B

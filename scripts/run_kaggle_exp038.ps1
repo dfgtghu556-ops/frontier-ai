@@ -66,7 +66,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -132,6 +132,18 @@ if ($Exp -eq "EXP-046") {
     $kernelSlug = "frontier-exp046-probe"
     $expectedRun = "the EXP-046 probe (CPU only, no GPU) should take about 15 minutes; not measured yet"
     $maxWaitHours = 2
+}
+if ($Exp -eq "EXP-046" -and $Build) {
+    # EXP-046 step 2: build part A or B of v2-slice2 on a Kaggle CPU session (run_kaggle_exp046_build.ps1);
+    # its own kernel, state and report folder, so the probe's state is never reused
+    $template = "scripts\kaggle\exp046_build_kernel.py"
+    $kernelSlug = "frontier-exp046-build-$($Build.ToLower())"
+    $outDir = "out\kaggle\EXP-046-build-$Build"
+    $statePath = "$outDir\state.json"
+    $log = "$outDir\run.log"
+    $reportPath = "$outDir\REPORT.txt"
+    $expectedRun = "EXP-046 build $Build (CPU only, no GPU) should take about 4 to 6 hours; not measured yet"
+    $maxWaitHours = 14
 }
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
@@ -329,12 +341,56 @@ if (-not $state.dataset_ready) {
     Save-State $state
 }
 Add-Report "PASS 3: private dataset $datasetId is ready on Kaggle"
+if ($Build) {
+    # EXP-046 build: the protected held-out texts (about 1 MB) as a second PRIVATE dataset, uploaded once.
+    # The build refuses to run without them; they are only used to REMOVE overlapping documents.
+    $heldSlug = "frontier-heldout-v1-text"
+    $heldId = "$user/$heldSlug"
+    $heldFile = "out\eval\heldout-v1.jsonl"
+    if (-not ($state.PSObject.Properties.Name -contains "heldout_ready")) {
+        $state | Add-Member -NotePropertyName heldout_ready -NotePropertyValue $false
+    }
+    if (-not $state.heldout_ready) {
+        $r = Invoke-Logged "$kaggle datasets status $heldId"
+        if ($r.Code -ne 0 -or -not (($r.Lines -join " ") -match "ready")) {
+            if (-not (Test-Path $heldFile)) {
+                $r = Invoke-Logged "$python scripts\export_heldout_text.py --out $heldFile"
+                if ($r.Code -ne 0 -or -not (Test-Path $heldFile)) { Stop-Run "could not export the held-out texts (see the lines above)" 2 }
+            }
+            $stage = "$outDir\heldout"
+            New-Item -ItemType Directory -Force $stage | Out-Null
+            Copy-Item $heldFile "$stage\heldout-v1.jsonl"
+            $meta = [ordered]@{
+                title = $heldSlug
+                id = $heldId
+                licenses = @(@{ name = "other" })
+                subtitle = "Protected evaluation texts of the frontier-ai project"
+                description = "PRIVATE. The protected held-out suite frontier-heldout-v1 (D-042) as text, checked against SUITE.json. Used only to remove overlapping documents from training data and for evaluation; never for training."
+            }
+            Write-Ascii "$stage\dataset-metadata.json" ($meta | ConvertTo-Json -Depth 5)
+            Add-Report "=== uploading the held-out texts (about 1 MB) as PRIVATE dataset $heldId - $(Get-Date -Format 'HH:mm:ss') ==="
+            $r = Invoke-Logged "$kaggle datasets create -p $stage"
+            if ($r.Code -ne 0) { Stop-Run "the held-out upload failed (see the lines above); run this line again to retry" 1 }
+            $ready = $false
+            for ($i = 0; $i -lt 60 -and -not $ready; $i++) {
+                Start-Sleep -Seconds 30
+                $r = Invoke-Logged "$kaggle datasets status $heldId"
+                $ready = ($r.Code -eq 0) -and (($r.Lines -join " ") -match "ready")
+            }
+            if (-not $ready) { Stop-Run "Kaggle has not finished processing the held-out dataset after 30 minutes; run this line again later" 1 }
+        }
+        $state.heldout_ready = $true
+        Save-State $state
+    }
+    Add-Report "PASS 3b: private held-out dataset $heldId is ready on Kaggle"
+}
 
 # --- 4) launch the kernel (once, or again with -Relaunch) ------------------------------------
 if ($launching) {
     $stage = "$outDir\kernel"
     New-Item -ItemType Directory -Force $stage | Out-Null
     $code = (Get-Content $template -Raw -Encoding UTF8).Replace("__PINNED_COMMIT__", $head)
+    if ($Build) { $code = $code.Replace("__BUILD_PART__", $Build) }
     Write-Ascii "$stage\run.py" $code
     $meta = [ordered]@{
         id = $kernelId
@@ -356,6 +412,7 @@ if ($launching) {
         $meta.Remove("machine_shape")
         Add-Report "INFO 4: $Exp runs on a Kaggle CPU session (no GPU is requested)"
     }
+    if ($Build) { $meta.dataset_sources = @($datasetId, $heldId) }  # + the held-out texts
     Write-Ascii "$stage\kernel-metadata.json" ($meta | ConvertTo-Json -Depth 5)
     $r = Invoke-Logged "$kaggle kernels push -p $stage"
     if ($r.Code -ne 0 -or (($r.Lines -join " ") -match "error")) { Stop-Run "Kaggle did not accept the kernel (see the lines above)" 1 }
@@ -408,6 +465,9 @@ if ($Exp -eq "EXP-043") {
     } else {
         Add-Report "PASS 5: downloaded only the small result files (--file-pattern)"
     }
+} elseif ($Build) {
+    # never the whole output (about 9 GB of corpus that stays on Kaggle): only the small report folder
+    $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/build-$Build/.*"
 } else {
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force"
 }
@@ -422,6 +482,7 @@ if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {
 }
 # EXP-046: the probe writes EXP-046\probe\ (later build steps get their own folders)
 if ($Exp -eq "EXP-046") { $resultDir = "$outputDir\$Exp\probe" }
+if ($Build) { $resultDir = "$outputDir\$Exp\build-$Build" }
 # EXP-045: since test 4 the kernel writes the coverage re-scan to EXP-045\coverage\
 if ($Exp -eq "EXP-045") { $resultDir = "$outputDir\$Exp\coverage" }
 $summaryPath = "$resultDir\summary.json"
@@ -476,6 +537,7 @@ if ($changed.Count -eq 0) {
     $msgText = "${Exp}: GPU results from one Kaggle T4 (commit $($state.pinned_commit.Substring(0, 7)); checkpoints stay on Kaggle)"
     if ($Exp -eq "EXP-045") { $msgText = "${Exp}: coverage re-scan results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     if ($Exp -eq "EXP-046") { $msgText = "${Exp}: probe results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
+    if ($Build) { $msgText = "${Exp}: build $Build reports (v2-slice2; the corpus stays on Kaggle) from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     $msgText | Set-Content -Path $msgFile -Encoding ASCII
     $r = Invoke-Logged "git commit -q -F $msgFile"
     if ($r.Code -ne 0) { Stop-Run "git commit failed: $($r.Lines -join ' | ')" 1 }

@@ -38,7 +38,7 @@ def test_runner_commits_only_the_exp038_results_folder():
     assert '$resultsPrefix = "evals/results/$Exp/"' in text
     assert (
         'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")]'
-        '[string]$Exp = "EXP-038", [switch]$Relaunch)' in text
+        '[string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build)' in text
     )
     assert "git add $resultsPrefix" in text
     assert re.findall(r'Invoke-Logged "(git add[^"]*)"', text) == ["git add $resultsPrefix"]
@@ -552,3 +552,67 @@ def test_exp046_probe_kernel_is_ascii_pinned_and_keeps_sangraha_out_of_the_outpu
     assert consts["PINS"] == "corpora/frontier/v2/sangraha_slice2.json"
     assert (ROOT / consts["PINS"]).is_file()
     assert "nvidia-smi\"]" not in source and "kernel_sources" not in source.split('"""', 2)[2]
+
+
+# ------------------------------------------------------------------------- EXP-046 build A/B --
+KERNEL_046B = ROOT / "scripts" / "kaggle" / "exp046_build_kernel.py"
+
+
+def test_exp046_build_wrapper_and_runner_block():
+    wrapper = (ROOT / "scripts" / "run_kaggle_exp046_build.ps1").read_text(encoding="ascii")
+    assert 'param([Parameter(Mandatory = $true)][ValidateSet("A", "B")][string]$Part, [switch]$Relaunch)' in wrapper
+    assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-046" -Build $Part -Relaunch:$Relaunch' in wrapper
+    text = _ps1()
+    i = text.index('if ($Exp -eq "EXP-046" -and $Build) {')
+    block = text[i : text.index("\n}\n", i)]
+    assert '$template = "scripts\\kaggle\\exp046_build_kernel.py"' in block
+    assert '$kernelSlug = "frontier-exp046-build-$($Build.ToLower())"' in block
+    # its own state/report folder: the probe's finished state is never reused
+    assert '$outDir = "out\\kaggle\\EXP-046-build-$Build"' in block and '$statePath = "$outDir\\state.json"' in block
+    assert "$maxWaitHours = 14" in block
+    assert text.index('if ($Exp -eq "EXP-046") {\n    # EXP-046 step 1') < i < text.index("New-Item -ItemType Directory -Force $outDir")
+    assert i < text.index('$kernelId = "$user/$kernelSlug"') and i < text.index("foreach ($f in @($python, $template")
+    # the part is filled in next to the commit
+    assert 'if ($Build) { $code = $code.Replace("__BUILD_PART__", $Build) }' in text
+    # the held-out texts: exported on the PC, uploaded once as a private dataset, mounted as a 2nd input
+    h = text.index('    $heldSlug = "frontier-heldout-v1-text"')
+    held = text[h : text.index('Add-Report "PASS 3b', h)]
+    assert "scripts\\export_heldout_text.py --out $heldFile" in held and "datasets create -p $stage" in held
+    assert "PRIVATE" in held and "$state.heldout_ready = $true" in held
+    assert text.index('Add-Report "PASS 3: private dataset') < h < text.index("PASS 4")
+    assert "if ($Build) { $meta.dataset_sources = @($datasetId, $heldId) }" in text
+    # CPU session like the probe
+    j = text.index('        machine_shape = "NvidiaTeslaT4"\n    }\n')
+    cpu = text[j : text.index('Write-Ascii "$stage\\kernel-metadata.json"', j)]
+    assert 'if ($Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {' in cpu and "dataset_sources = @($datasetId, $heldId)" in cpu
+    # only the small report folder is downloaded, never the corpus (about 9 GB)
+    d = text.index("} elseif ($Build) {")
+    dl = text[d : text.index("} else {", d)]
+    assert "--file-pattern EXP-046/build-$Build/.*" in dl
+    k = text.index('if ($Build) { $resultDir = "$outputDir\\$Exp\\build-$Build" }')
+    assert text.index('if ($Exp -eq "EXP-046") { $resultDir = "$outputDir\\$Exp\\probe" }') < k
+    assert k < text.index('$summaryPath = "$resultDir\\summary.json"')
+    assert 'if ($Build) { $msgText = "${Exp}: build $Build reports' in text
+
+
+def test_exp046_build_kernel_is_ascii_and_matches_the_build_script():
+    source = KERNEL_046B.read_text(encoding="ascii")
+    tree = ast.parse(source)
+    consts = {
+        n.targets[0].id: (n.value.args[0].value if isinstance(n.value, ast.Call) else n.value.value)
+        for n in tree.body
+        if isinstance(n, ast.Assign) and isinstance(n.value, (ast.Constant, ast.Call))
+    }
+    assert consts["COMMIT"] == "__PINNED_COMMIT__" and consts["PART"] == "__BUILD_PART__"
+    assert str(consts["SCRATCH"]).startswith("/tmp/") and str(consts["BELEBELE"]).startswith("/tmp/")
+    assert consts["HELDOUT_NAME"] == "heldout-v1.jsonl" and consts["WORKERS"] == 4
+    assert (ROOT / consts["MANIFEST"]).is_file()
+    assert 'WORKING / "EXP-046" / f"build-{PART}"' in source and 'WORKING / f"slice2-{PART}"' in source
+    # every flag the kernel passes exists in build_slice2.py
+    build = (ROOT / "scripts" / "build_slice2.py").read_text(encoding="utf-8")
+    call = source[source.index('str(SRC / "scripts" / "build_slice2.py")') : source.index("subprocess.run(cmd, cwd=SRC)")]
+    flags = re.findall(r'"(--[a-z0-9-]+)"', call)
+    assert flags == ["--part", "--tokens-dir", "--heldout-jsonl", "--belebele-dir", "--work", "--data-out", "--out", "--workers"]
+    assert flags and all(f'"{f}"' in build for f in flags), flags
+    assert "--no-verify" not in flags and "--max-docs" not in flags and "--languages" not in flags
+    assert "enable_gpu" not in source and "nvidia-smi" not in source
