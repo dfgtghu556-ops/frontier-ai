@@ -751,6 +751,11 @@ comes next. They also update the table in §3.
     (PaLM's rule), pre-registered in EXPERIMENTS before any model accuracy; third Belebele subset. Tokens
     only (words too slow). Writes evals/results/EXP-045/coverage/ and checks it reproduces test 4.
     Founder starts it once with `run_kaggle_exp045.ps1 -Relaunch` (Kaggle CPU, ~40 min NOT VERIFIED).
+  - **EXP-045 coverage re-scan done (2026-10-07, results `733e22f`):** reproduces test 4 exactly; 268 of
+    11,700 questions substantially present (2.3%), all via short answer options; no passage above 40%
+    coverage (most < 10%), no question above 67%. Belebele will be reported on all / 2,901 clean /
+    11,432 not substantially present. Next: EXP-046 build kernels A/B; EXP-043 session 4 after the
+    weekly GPU reset (Sat 2026-10-10 05:30 IST, NOT VERIFIED).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

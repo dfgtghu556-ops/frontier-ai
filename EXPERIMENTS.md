@@ -4206,6 +4206,67 @@ ran and before any model accuracy exists; it is not changed after seeing either.
 
 **Status:** approved 2026-10-04; test 4 done 2026-10-06 (75.2% of Belebele questions flagged, 2,901 clean); coverage re-scan approved 2026-10-06 and built 2026-10-07 (rule pre-registered: coverage >= 0.70), runs next on Kaggle CPU; tests 1-3 and 5 run after EXP-043
 
+**Update (2026-10-07): coverage re-scan done.** Kaggle CPU session, commit `bc9f320`, 01:25–02:05
+IST (about 40 minutes; scan 1,693 s). Results commit `733e22f`, in `evals/results/EXP-045/coverage/`:
+`summary.json`, `SUMMARY.txt`, `coverage.json`.
+
+**Reproduction check passed:** `reproduces_test4: true`. The re-scan's flags equal test 4's committed
+`contamination.json` exactly (8,799 of 11,700).
+
+**Result, by the pre-registered rule (coverage ≥ 0.70): 268 of 11,700 questions (2.3%) are
+substantially present**, so subset 3 keeps 11,432.
+
+| lang | flagged (test 4) | substantially present | remaining | max passage coverage |
+|---|---|---|---|---|
+| as | 515 | 9 | 891 | 10.9% |
+| bn | 626 | 12 | 888 | 10.4% |
+| en | 862 | 33 | 867 | 35.1% |
+| gu | 761 | 19 | 881 | 14.6% |
+| hi | 838 | 17 | 883 | 17.3% |
+| kn | 511 | 16 | 884 | 14.8% |
+| ml | 461 | 23 | 877 | 12.3% |
+| mr | 499 | 11 | 889 | 12.5% |
+| or | 636 | 9 | 891 | 13.2% |
+| pa | 849 | 22 | 878 | 17.3% |
+| ta | 524 | 10 | 890 | 16.9% |
+| te | 842 | 38 | 862 | 19.4% |
+| ur | 875 | 49 | 851 | 26.0% |
+| **all** | **8,799** | **268** | **11,432** | |
+
+How to read it (the maxima and the option breakdown below were computed from `coverage.json` by the
+agent):
+- **No passage and no question is substantially present.**
+  - Passages: of 6,344 (13 × 488), 1,847 share no 13-token run with the training data. Of the 4,497
+    that do, 4,306 have under 10% coverage and 191 have 10–40%. None reaches 40%; the highest is 35.1%
+    (en).
+  - Questions: the highest coverage is 66.7% (en), under the threshold.
+  - So test 4's 75% came mostly from **short shared fragments** (names, places, common phrases), not
+    from copied passages.
+- **All 268 questions come from answer options** (294 options).
+  - 152 of these options have only 1 or 2 distinct 13-token runs, i.e. they are 13–14 tokens long. One
+    or two matching runs give them 100% coverage.
+  - This is how the pre-registered rule works on short texts. The rule stands as written and is not
+    changed after seeing the result. But a short option matching is weak evidence of a copied
+    question.
+- **What the scan cannot see:**
+  - text in the training data that differs from the Belebele text by punctuation, spacing or
+    wording;
+  - the English source of a translated passage helping in another language.
+
+  So these coverages are lower bounds (NOT VERIFIED how much is missed).
+- **Consequences (by the pre-registered plan):** Belebele accuracy for the EXP-043 model is reported
+  three ways:
+  1. all 11,700 questions;
+  2. without test 4's flags (2,901, the strictest);
+  3. without the substantially present (11,432).
+
+  If (1) and (3) are close, verbatim copying did not inflate the score. (2) remains the strictest
+  check. No model accuracy exists yet.
+- **For EXP-046:** unchanged. Safeguard 3 still removes any slice-2 document sharing a 13-word run with
+  Belebele, so the next model needs no such subsets.
+
+**Status:** approved 2026-10-04; test 4 done 2026-10-06 (75.2% flagged, 2,901 clean); coverage re-scan done 2026-10-07 (268 of 11,700 substantially present, all via short options; no passage above 40%; reproduces test 4); tests 1-3 and 5 run after EXP-043
+
 ### EXP-046 — Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-046" before any code)
 
