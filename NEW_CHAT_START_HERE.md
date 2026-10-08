@@ -756,6 +756,14 @@ comes next. They also update the table in §3.
     coverage (most < 10%), no question above 67%. Belebele will be reported on all / 2,901 clean /
     11,432 not substantially present. Next: EXP-046 build kernels A/B; EXP-043 session 4 after the
     weekly GPU reset (Sat 2026-10-10 05:30 IST, NOT VERIFIED).
+  - **EXP-046 step 2 built (2026-10-07, `d8bb772`) and part A done (2026-10-08, results `a727b32`):**
+    scripts/build_slice2.py + run_kaggle_exp046_build.ps1 -Part A|B (Kaggle CPU; held-out texts
+    uploaded once as private dataset frontier-heldout-v1-text). Part A complete in 2 h 13 min: 6
+    languages, 2,227,538 docs, 3,098,207,159 training tokens; same config fingerprint as slice 1;
+    slice-1 duplicates removed (en 1,214, as 523, hi 231); 0 documents touched Belebele; the Assamese
+    REVIEW line is the slice-1 pattern. Samples read; not yet accepted. The corpus (9.20 GB) exists
+    only as the build-a kernel output: never relaunch part A. Next: part B, then one acceptance
+    decision for slice 2.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

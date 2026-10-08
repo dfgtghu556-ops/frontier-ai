@@ -4475,3 +4475,71 @@ wrong slice-1 file and the deadline. It also checks that the fingerprints recove
 `tests/test_kaggle_exp038.py` checks the runner and kernel text.
 
 **Status:** approved 2026-10-04; step 1 (probe) done 2026-10-06; step 2 (build kernels A/B) implemented 2026-10-07, not run yet; next: part A between two EXP-043 sessions, then part B
+
+**Update (2026-10-08): step 2, part A done on a Kaggle CPU session (not yet accepted).** Code commit
+`d8bb772`; reports in `evals/results/EXP-046/build-A/` (results commit `a727b32`). Kernel
+`frontier-exp046-build-a`, 4 workers, 8,006 s (2 h 13 min; the estimate was 4–6 h). `complete: True`:
+all 6 languages done (en ur as bn gu hi, 12 files), nothing stopped. Suite CHECKED against the held-out
+suite (3,427 documents, verified against SUITE.json) and Belebele (64,844 texts). Config fingerprint
+`43ce349329a98770` is the same as slice 1's (EXP-036): the rules are unchanged.
+
+| Lang | Docs kept (2 files) | Training tokens | Validation tokens | Text GB | Tokens GB |
+|---|---|---|---|---|---|
+| en | 695,973 | 954,342,847 | 4,966,707 | 0.77 | 1.92 |
+| ur | 382,937 | 642,837,659 | 3,167,324 | 0.54 | 1.29 |
+| as | 208,515 | 308,157,221 | 1,542,376 | 0.35 | 0.62 |
+| bn | 298,900 | 401,948,630 | 2,160,117 | 0.44 | 0.81 |
+| gu | 298,926 | 401,701,163 | 1,990,123 | 0.43 | 0.81 |
+| hi | 342,287 | 389,219,639 | 1,937,295 | 0.42 | 0.78 |
+| **all** | **2,227,538** | **3,098,207,159** | **15,763,942** | | 9.20 GB in total |
+
+Checked here from the published files: the manifest has 6 files, and every file's train + validation
+tokens equal its text tokens plus one `<|endoftext|>` per document. Each language joins its two
+pinned files. 2,287,668 input documents, of which 2,227,538 kept (95.87% of characters).
+
+Safeguards:
+
+| Lang | Slice-1 docs read | `slice1_duplicate` | `cross_file_duplicate` | Touching Belebele |
+|---|---|---|---|---|
+| en | 348,394 | 1,214 | 122 | 0 |
+| ur | 191,621 | 2 | 0 | 0 |
+| as | 104,386 | 523 | 0 | 0 |
+| bn | 149,458 | 1 | 1 | 0 |
+| gu | 149,466 | 2 | 1 | 0 |
+| hi | 171,199 | 231 | 3,044 | 0 |
+
+- The slice-1 document counts read back equal EXP-037's kept documents for all 6 languages.
+- **0 documents touched Belebele** under the 13-gram + exact guard. This agrees with the EXP-045
+  coverage re-scan on slice 1 (no Belebele passage above 40% token coverage). It is not separate proof:
+  the guard does not look at the short answer options (1–2 words), so EXP-045's option-level overlap
+  remains. Belebele is still reported 3 ways (all / clean / not substantially present).
+- Hindi duplicates are mostly one government-page template repeated thousands of times (2,887 exact
+  duplicates inside data-1, 3,044 more across files). Slice 1's Hindi file had 3,019.
+
+REVIEW line: Assamese `empty_after_cleaning` 6.35% and 6.37% (bound 2%). This is the same pattern as
+slice 1 (6.50%; D-045 explained it): all 8 samples are Latin-script texts in non-Indian languages
+(Bible translations, Kinyarwanda shop pages, romanized Bengali lyrics) that lose every line to the
+foreign-line rule. The removal is correct; only the label differs.
+
+Samples read (safeguard 4; 490 masked excerpts in `samples.jsonl`):
+- `slice1_duplicate` (29): repeated news reports, cookie / JavaScript notices and Assamese and
+  Hindi news items, all real repeats. One is a Marathi testimonial in the Hindi file. The script
+  gate cannot tell Marathi from Hindi (both Devanagari); this is the known D-045 "wrong language file"
+  loss.
+- `cross_file_duplicate` (10): JavaScript notices, the Hindi ministry template, one Bengali and one
+  Gujarati PDF page that appear in both files.
+- `kept` (72): news, opinion, literature and PDF books in the right language. Some Gujarati and
+  Assamese PDF text has OCR errors (known; OCR quality is still not measured). No problem found that
+  would block acceptance.
+- No protected text in the published samples (suite-touching documents are never sampled).
+
+Notes:
+- **The corpus exists only as the kernel's output** on Kaggle (`slice2-A/`, 9.20 GB). Running the
+  part-A kernel again would replace it, so part A must not be relaunched. If it is lost, it can be
+  rebuilt from the pins with the same commit (byte-identical in tests; about 2.2 h).
+- The runner's REPORT says "GPU run" / "GPU kernel" in a few fixed lines even for CPU sessions; the
+  session really was CPU only ("INFO 4"). This is a wording issue only; a fix needs approval.
+- v2-slice1 + part A = 2,783,830,088 + 3,098,207,159 = 5,882,037,247 training tokens, if both are
+  accepted.
+
+**Status:** approved 2026-10-04; step 1 (probe) done 2026-10-06; step 2 part A done 2026-10-08 (complete, 3,098,207,159 training tokens, samples read, not yet accepted); next: part B, then one acceptance decision for slice 2 (like D-045)
