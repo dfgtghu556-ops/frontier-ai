@@ -1924,7 +1924,7 @@ Commit `166a47f`; results in `evals/results/EXP-043/session-3/` (results commit 
 EXP-043 stays on two GPUs.
 
 ## D-051 — FrontierCorpus v2-slice2 (the EXP-046 build, parts A + B) is accepted as the second v2 corpus
-**Date:** 2026-10-08 · **Status:** proposed (awaiting the founder's decision; evidence EXP-046, D-045, D-046)
+**Date:** 2026-10-08 · **Status:** accepted (founder decision 2026-10-08: "approve D-051"; evidence EXP-046, D-045, D-046)
 
 **Decision (proposed):**
 1. The EXP-046 build of the second Sangraha Verified slice is accepted as **FrontierCorpus
@@ -1988,6 +1988,12 @@ sha256 and document count were verified; (3) Belebele in the protected set (0 do
 **Revisit when:** a v3 build is proposed; an error is found in the v2-slice2 text (for example a suite
 hit found later, or a slice-1 duplicate missed); a kernel output is lost; AI4Bharat changes the
 dataset's licence; or the law on training data changes (D-044).
+
+**Update (2026-10-08): approved.** The founder approved on 2026-10-08 ("approve D-051"). The proposal
+text above is unchanged. FrontierCorpus v2-slice2 (`frontier-v2-sangraha-slice2`) is accepted, as
+identified by the two manifests in point 2. Nothing else changes: no training starts, EXP-043
+continues on v2-slice1, and the build-a / build-b kernels must not be relaunched. A safer copy of
+the data, and any training on v2-slice2, each need their own approval.
 
 ---
 

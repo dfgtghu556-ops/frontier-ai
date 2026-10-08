@@ -770,6 +770,11 @@ comes next. They also update the table in §3.
     tokens (slice 1 + 2 = 8,159,265,692); 2,199 slice-1 duplicates removed; 0 docs touched Belebele;
     1,033 samples read. D-051 (accept v2-slice2) awaits the founder. Data only as the build-a/build-b
     kernel outputs: never relaunch either. Accepting starts no training.
+  - **D-051 approved (2026-10-08): v2-slice2 accepted; EXP-046 complete.** 4,400,859 docs,
+    5,375,435,604 training tokens (slice 1 + 2 = 8,159,265,692), manifests in
+    evals/results/EXP-046/build-{A,B}/. No training starts; EXP-043 stays on slice 1. Never relaunch
+    the build-a/build-b kernels (the data is their output). A backup copy and training on slice 2 each
+    need approval. Next: EXP-043 session 4 after the weekly reset (Sat 2026-10-10 05:30 IST, NOT VERIFIED).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

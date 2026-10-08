@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "ccc8f30b533c9e51a28688be3a0bf24810f22fcdd76da3f9e3ed09b197e4419a",
+  "source_digest": "8e5d0de8f67ac7b5b9ed2684f1df38eafeb9feec204700f3e140b270cf1a9c00",
   "sources": {
-    "EXPERIMENTS.md": "bc1f81bd30aa2c518eae978874127c61fa57266560644348b9c5456fc7c3215d",
-    "DECISIONS.md": "1dba85d2534ef25b278c54dac5c57174b6e0be9daad81c371ef63424e4e49f7d",
+    "EXPERIMENTS.md": "cd8c250465d92c5e75a279d96d3bb189e7590c2fd355338edcab40b158a61187",
+    "DECISIONS.md": "0674c257887402bc26c71402d2c65bbeafed6e35804af02e750c5a6265ca2ad1",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "6b51d31750d10be0211d0d49b5d81a546e8e4d1d34f4b34e197ff44b1d199063",
+    "lab/registry.json": "b9672c24397c79e361efc1bda9eeb0762cc558d44f9cda15d7d9b88c6f2e27c4",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -382,7 +382,7 @@
       "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0. Session 1 (2026-10-04): lr check done, bpb 0.8543 / 0.8172 / 0.8160 at 2.5e-4 / 5e-4 / 1e-3, no skipped steps; 5e-4 chosen by the pre-registered rule (within noise 0.0174 of the best -> the lower one); 9.27 GB peak, about 11,100 tokens/s, 8.05 GPU-h used. Session 2 = first main-run session and first real kernel_sources chain test. D-050 approved 2026-10-04 (\"APPROVE D-50\") and built 2026-10-05: gpu_pretrain.py --gpus 2 (torchrun worker, 16 x 1 per GPU, process 0 decides and writes, fallback to one GPU if the start fails); the kernel passes --gpus 2. One-GPU path bit-identical (CPU smoke hashes); tests/test_pretrain_ddp.py 6 passed; full suite 748 passed, 1 skipped. Whole-session two-GPU speed NOT VERIFIED. Correction 2026-10-05: session 2 had not been launched; the code now keeps the first main-run session (no checkpoint yet) on one GPU even with --gpus 2 (D-050 point 2), so two GPUs start from session 3. Session 2 (2026-10-06, commit 37788c7, results 1eeca41): main run steps 0 -> 20,594 on one GPU, 11,115 tokens/s (1.474 s/step), 9.27 GB, 7 skipped steps, checkpoint step 20,594; session-end full validation 0.7727 bpb mean (mid-run, not a result); 16.72 of 100 session-h used. Session 3 = first checkpoint load from the other kernel and first two-GPU session. Session 3 (2026-10-06, commit 166a47f, results d0c3655), the first on two GPUs: checkpoint 20,594 verified from kernel b and resumed; steps 20,594 -> 61,207; 22,030 tokens/s (0.744 s/step, 1.98x one GPU); 8.97 GB per GPU; 16 skipped steps; all D-050 revisit rules clear; session-end full validation 0.7199 bpb mean (mid-run, not a result); 25.38 of 100 session-h used."
     },
     {
-      "title": "Parallel work while EXP-043 runs: EXP-044 PASSED (D-050 built); EXP-045 test 4 + coverage done (75.2% share a fragment, 2.3% substantially present); EXP-046 slice 2 built (5.38 B tokens), D-051 proposed",
+      "title": "Parallel work while EXP-043 runs: EXP-044 PASSED (D-050 built); EXP-045 test 4 + coverage done (75.2% share a fragment, 2.3% substantially present); EXP-046 complete: v2-slice2 accepted (D-051, 5.38 B tokens)",
       "evidence": [
         "EXP-044",
         "EXP-045",
@@ -390,7 +390,8 @@
         "EXP-043",
         "D-047",
         "D-049",
-        "D-050"
+        "D-050",
+        "D-051"
       ],
       "evidence_files": [
         "scripts/gpu_ddp_check.py",
@@ -417,7 +418,7 @@
         "evals/results/EXP-046/build-A/summary.json",
         "evals/results/EXP-046/build-B/summary.json"
       ],
-      "note": "Founder 2026-10-04: \"approve EXP-044, EXP-045, EXP-046\". EXP-044 (step 13): DDP code with one-GPU behaviour unchanged (EXP-043 smoke hashes identical); CPU: 1 vs 2 processes give identical losses and weights (accumulation: 9.7e-17); the Kaggle check (about 1.5 GPU-h) runs between two EXP-043 sessions. EXP-045: Belebele (13 files pinned by hash), same-text bits, protected-suite bpb, 13-token contamination scan (Kaggle CPU, between EXP-043 sessions), everyday prompts, generate.py --interactive, fp16 copy; tests 1-3 and 5 run after EXP-043. EXP-046 step 1: data-1 + data-2 of the 13 languages pinned (26 files, 9,787,246,071 bytes; data-0 hashes cross-checked against slice 1; mal/data-1 is a half-size file, kept as pinned); the 15-minute probe (CPU, processes no data) runs between two EXP-043 sessions. Next: the build kernels, shaped by the probe's numbers. EXP-044 Kaggle check 2026-10-04 (commit 818bdf8): PASS on all rules: bpb 1.4319 (1 GPU) vs 1.4276 (2 GPUs), difference 0.0042 <= 0.01; 12,225 vs 21,882 tokens/s = 1.79x >= 1.4x; 8.98 GB per GPU; 0 skipped steps. D-050 proposed: the rest of the EXP-043 main run on both GPUs from the first session after it is built (session 2 stays on one GPU). EXP-046 probe 2026-10-06 (results 1d3eabe): Kaggle CPU 4 cores, 30 GiB, 20.96 GB output, ~45 MB/s download; slice-2 output estimate 16.4 GB -> two build kernels (A: en ur as bn gu hi; B: kn ml mr or pa ta te). EXP-045 test 4 2026-10-06 (results 0332f69): 8,799 of 11,700 Belebele questions share a 13-token run with the training tokens (mostly passages); 2,901 clean; coverage re-scan approved 2026-10-06 and built 2026-10-07: substantially present = >= 70% of a text's distinct 13-token runs in training (PaLM's rule, pre-registered before any model accuracy); third Belebele subset; results go to evals/results/EXP-045/coverage/ (Kaggle CPU, started with run_kaggle_exp045.ps1 -Relaunch). Coverage re-scan 2026-10-07 (results 733e22f): reproduces test 4 exactly; 268 of 11,700 questions substantially present, all via short options; no passage above 40% coverage, no question above 67%. EXP-046 step 2 built 2026-10-07 (d8bb772): scripts/build_slice2.py (same rules as slice 1; slice-1 duplicates removed via fingerprints of the EXP-037 token files; Belebele in the protected set; samples published), run_kaggle_exp046_build.ps1 -Part A|B. Part A 2026-10-08 (results a727b32): complete in 2 h 13 min on Kaggle CPU; en ur as bn gu hi, 2,227,538 docs, 3,098,207,159 training tokens, same config fingerprint as slice 1; slice1_duplicate en 1,214 / as 523 / hi 231; 0 docs touched Belebele; samples read; not yet accepted. Corpus (9.20 GB) only as the build-a kernel output. Next: part B. Part B 2026-10-08 (results 671b460): complete in 2 h 41 min; kn ml mr or pa ta te, 2,173,321 docs, 2,277,228,445 training tokens; no REVIEW line; same code and config as part A. Slice 2 total 4,400,859 docs, 5,375,435,604 training tokens; 2,199 slice-1 duplicates removed; 0 docs touched Belebele; samples read. D-051 (accept v2-slice2) proposed, awaiting the founder."
+      "note": "Founder 2026-10-04: \"approve EXP-044, EXP-045, EXP-046\". EXP-044 (step 13): DDP code with one-GPU behaviour unchanged (EXP-043 smoke hashes identical); CPU: 1 vs 2 processes give identical losses and weights (accumulation: 9.7e-17); the Kaggle check (about 1.5 GPU-h) runs between two EXP-043 sessions. EXP-045: Belebele (13 files pinned by hash), same-text bits, protected-suite bpb, 13-token contamination scan (Kaggle CPU, between EXP-043 sessions), everyday prompts, generate.py --interactive, fp16 copy; tests 1-3 and 5 run after EXP-043. EXP-046 step 1: data-1 + data-2 of the 13 languages pinned (26 files, 9,787,246,071 bytes; data-0 hashes cross-checked against slice 1; mal/data-1 is a half-size file, kept as pinned); the 15-minute probe (CPU, processes no data) runs between two EXP-043 sessions. Next: the build kernels, shaped by the probe's numbers. EXP-044 Kaggle check 2026-10-04 (commit 818bdf8): PASS on all rules: bpb 1.4319 (1 GPU) vs 1.4276 (2 GPUs), difference 0.0042 <= 0.01; 12,225 vs 21,882 tokens/s = 1.79x >= 1.4x; 8.98 GB per GPU; 0 skipped steps. D-050 proposed: the rest of the EXP-043 main run on both GPUs from the first session after it is built (session 2 stays on one GPU). EXP-046 probe 2026-10-06 (results 1d3eabe): Kaggle CPU 4 cores, 30 GiB, 20.96 GB output, ~45 MB/s download; slice-2 output estimate 16.4 GB -> two build kernels (A: en ur as bn gu hi; B: kn ml mr or pa ta te). EXP-045 test 4 2026-10-06 (results 0332f69): 8,799 of 11,700 Belebele questions share a 13-token run with the training tokens (mostly passages); 2,901 clean; coverage re-scan approved 2026-10-06 and built 2026-10-07: substantially present = >= 70% of a text's distinct 13-token runs in training (PaLM's rule, pre-registered before any model accuracy); third Belebele subset; results go to evals/results/EXP-045/coverage/ (Kaggle CPU, started with run_kaggle_exp045.ps1 -Relaunch). Coverage re-scan 2026-10-07 (results 733e22f): reproduces test 4 exactly; 268 of 11,700 questions substantially present, all via short options; no passage above 40% coverage, no question above 67%. EXP-046 step 2 built 2026-10-07 (d8bb772): scripts/build_slice2.py (same rules as slice 1; slice-1 duplicates removed via fingerprints of the EXP-037 token files; Belebele in the protected set; samples published), run_kaggle_exp046_build.ps1 -Part A|B. Part A 2026-10-08 (results a727b32): complete in 2 h 13 min on Kaggle CPU; en ur as bn gu hi, 2,227,538 docs, 3,098,207,159 training tokens, same config fingerprint as slice 1; slice1_duplicate en 1,214 / as 523 / hi 231; 0 docs touched Belebele; samples read; not yet accepted. Corpus (9.20 GB) only as the build-a kernel output. Next: part B. Part B 2026-10-08 (results 671b460): complete in 2 h 41 min; kn ml mr or pa ta te, 2,173,321 docs, 2,277,228,445 training tokens; no REVIEW line; same code and config as part A. Slice 2 total 4,400,859 docs, 5,375,435,604 training tokens; 2,199 slice-1 duplicates removed; 0 docs touched Belebele; samples read. D-051 (accept v2-slice2) proposed, awaiting the founder. D-051 approved 2026-10-08 (\"approve D-051\"): v2-slice2 accepted; EXP-046 complete; no training starts."
     }
   ],
   "experiments": [
@@ -924,8 +925,8 @@
       "id": "EXP-046",
       "title": "Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions",
       "date": "2026-10-04",
-      "status": "approved 2026-10-04; step 1 (probe) done 2026-10-06; step 2 done 2026-10-08 (part A + part B complete: 4,400,859 documents, 5,375,435,604 training tokens …",
-      "category": "planned",
+      "status": "complete 2026-10-08 (v2-slice2 built and accepted as D-051: 4,400,859 documents, 5,375,435,604 training tokens); using it for training needs its own approved …",
+      "category": "complete",
       "step": null,
       "summary": "EXP-042/D-049 showed that our 2.78 B training tokens support only a ~190 M model. A better model needs more data before it needs anything else. This plan measures how much more verified data exists and proposes the next build. It runs on Kaggle CPU sessions, so it does not load the founder's laptop and does not use …",
       "decisions": [
@@ -1561,8 +1562,8 @@
       "id": "D-051",
       "title": "FrontierCorpus v2-slice2 (the EXP-046 build, parts A + B) is accepted as the second v2 corpus",
       "date": "2026-10-08",
-      "status": "proposed (awaiting the founder's decision; evidence EXP-046, D-045, D-046)",
-      "category": "proposed",
+      "status": "accepted (founder decision 2026-10-08: \"approve D-051\"; evidence EXP-046, D-045, D-046)",
+      "category": "accepted",
       "summary": "",
       "experiments": [
         "EXP-043",

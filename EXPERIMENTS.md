@@ -4590,3 +4590,10 @@ validation tokens under Frontier Tokenizer v2. Manifests: `build-A/manifest.json
 `3782679f…`) and `build-B/manifest.json` (sha256 `542988db…`). Acceptance is proposed as D-051.
 
 **Status:** approved 2026-10-04; step 1 (probe) done 2026-10-06; step 2 done 2026-10-08 (part A + part B complete: 4,400,859 documents, 5,375,435,604 training tokens, samples read); next: founder decision on D-051 (accept v2-slice2)
+
+**Update (2026-10-08): slice 2 accepted (D-051).** The founder approved D-051 ("approve D-051"):
+the EXP-046 build (parts A + B) is FrontierCorpus v2-slice2, 4,400,859 documents and 5,375,435,604
+training tokens, identified by `build-A/manifest.json` and `build-B/manifest.json`. EXP-046 is complete.
+Accepting starts no training.
+
+**Status:** complete 2026-10-08 (v2-slice2 built and accepted as D-051: 4,400,859 documents, 5,375,435,604 training tokens); using it for training needs its own approved plan
