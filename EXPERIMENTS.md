@@ -4627,6 +4627,28 @@ Accepting starts no training.
 
 **Status:** complete 2026-10-08 (v2-slice2 built and accepted as D-051: 4,400,859 documents, 5,375,435,604 training tokens); using it for training needs its own approved plan
 
+**Update (2026-10-09): slice 2 backed up as two private Kaggle datasets (approved 2026-10-08, "approve 2
+3 4"; made by the founder in the Kaggle web interface from the notebook outputs).**
+
+| dataset (private) | made from | size Kaggle shows | kernel output size (build summary `data_bytes`) |
+|---|---|---|---|
+| `someshwar0112/frontier-v2-slice2-a` | `frontier-exp046-build-a` | 12.01 GB | 9,197,767,669 bytes (9.20 GB) |
+| `someshwar0112/frontier-v2-slice2-b` | `frontier-exp046-build-b` | 10.61 GB | 7,193,399,675 bytes (7.19 GB) |
+
+- **Why the datasets look bigger (likely, NOT VERIFIED):** Kaggle unzips compressed files (zip, rar, gz) when
+  they go into a dataset, and counts their unzipped size (Kaggle staff, product-feedback/43505). Each part
+  holds its text as `<lang>.jsonl.gz` (2,969,812,760 bytes in A, 2,615,795,892 in B). Unzipped text would
+  explain the extra 2.81 GB and 3.42 GB. Whether this also happens for datasets made from notebook output
+  is not confirmed.
+- **What this means:** the token files (`<lang>.bin` + `.meta.json`), which training reads, are not
+  compressed, so unzipping cannot change them. Their SHA-256 values are in
+  `evals/results/EXP-046/build-{A,B}/manifest.json`. If the text files were unzipped, their recorded
+  `.gz` SHA-256 values no longer apply to the dataset copies; the kernel outputs keep the original `.gz`
+  files.
+- **Integrity: NOT VERIFIED yet.** No file in either dataset has been checked against the manifests. Any
+  training plan that reads these datasets (EXP-047) must check every token file's SHA-256 before use, as
+  planned. The kernel outputs stay the primary copy: never relaunch build-a or build-b.
+
 ### EXP-047 — Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running anything needs a further "approve EXP-047" plus the founder's compute decision)
 

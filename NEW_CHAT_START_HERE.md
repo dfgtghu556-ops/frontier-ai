@@ -787,6 +787,11 @@ comes next. They also update the table in §3.
     no data. Both plans need their own approval before any code. (1) EXP-045 tests 1-3 and 5 wired:
     `run_kaggle_exp045_final.ps1` (refuses until EXP-043 is complete). Next: EXP-043 session 4 after the
     weekly reset (Sat 2026-10-10 05:30 IST, NOT VERIFIED).
+  - **Slice-2 backup made (2026-10-09):** private Kaggle datasets someshwar0112/frontier-v2-slice2-a
+    (Kaggle shows 12.01 GB) and -b (10.61 GB), made from the build-a/-b notebook outputs (9.20 / 7.19 GB).
+    The size gap is probably Kaggle unzipping the `<lang>.jsonl.gz` text files (NOT VERIFIED); the token
+    `.bin` files are uncompressed and unaffected. No file checked against the manifests yet: EXP-047 (if
+    approved) must SHA-256-check every token file. Kernel outputs stay primary; never relaunch build-a/-b.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 
