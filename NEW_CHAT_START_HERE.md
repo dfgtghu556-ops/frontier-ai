@@ -792,6 +792,9 @@ comes next. They also update the table in §3.
     The size gap is probably Kaggle unzipping the `<lang>.jsonl.gz` text files (NOT VERIFIED); the token
     `.bin` files are uncompressed and unaffected. No file checked against the manifests yet: EXP-047 (if
     approved) must SHA-256-check every token file. Kernel outputs stay primary; never relaunch build-a/-b.
+  - **Unzipping confirmed (2026-10-09):** the founder saw `.jsonl` (not `.jsonl.gz`) in the slice-2
+    backup, so Kaggle unzipped the text; the `.gz` hashes apply only to the kernel outputs. Token files
+    unaffected; their check in the datasets is still pending (EXP-047). Next: EXP-043 session 4.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

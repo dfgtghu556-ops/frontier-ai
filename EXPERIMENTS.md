@@ -4649,6 +4649,13 @@ Accepting starts no training.
   training plan that reads these datasets (EXP-047) must check every token file's SHA-256 before use, as
   planned. The kernel outputs stay the primary copy: never relaunch build-a or build-b.
 
+**Update (2026-10-09, later): the unzipping is confirmed.** The founder looked in `frontier-v2-slice2-a`
+→ `slice2-A`: the text files end in `.jsonl`, not `.jsonl.gz`. So Kaggle unzipped them, which explains
+why the dataset copies are bigger (exact file sizes not checked). Consequences: the dataset copies hold
+the text unzipped, so the `.gz` SHA-256 values in the manifests apply only to the kernel outputs; the token
+files are unaffected. Token-file integrity in the datasets is still NOT VERIFIED (checked by EXP-047 before
+use, if approved).
+
 ### EXP-047 — Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running anything needs a further "approve EXP-047" plus the founder's compute decision)
 
