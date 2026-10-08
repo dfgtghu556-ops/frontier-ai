@@ -4,9 +4,9 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "8e5d0de8f67ac7b5b9ed2684f1df38eafeb9feec204700f3e140b270cf1a9c00",
+  "source_digest": "a632184a3bbc1b1d6e4271cfacac4c96a699f285ee9bea50233ceb573cc36ab1",
   "sources": {
-    "EXPERIMENTS.md": "cd8c250465d92c5e75a279d96d3bb189e7590c2fd355338edcab40b158a61187",
+    "EXPERIMENTS.md": "b961a847707c7af273488b0131d4a2c1d85baed9b9cf2a2815980551af135bf3",
     "DECISIONS.md": "0674c257887402bc26c71402d2c65bbeafed6e35804af02e750c5a6265ca2ad1",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
     "lab/registry.json": "b9672c24397c79e361efc1bda9eeb0762cc558d44f9cda15d7d9b88c6f2e27c4",
@@ -937,6 +937,38 @@
       ],
       "line": 4270,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4270"
+    },
+    {
+      "id": "EXP-047",
+      "title": "Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2",
+      "date": "2026-10-08",
+      "status": "proposed (plan only; needs \"approve EXP-047\" and the founder's compute choice A/B/C before any code; the size is chosen after EXP-043's final result by the …",
+      "category": "planned",
+      "step": null,
+      "summary": "EXP-043 trains a 190 M model on 2.78 B tokens. D-051 added 5.38 B more verified tokens (8.16 B in total). The next model should be bigger and see all of it. This plan says how its size will be chosen (from evidence, not a fixed number), what it costs on each kind of hardware, and which code is needed. It is written …",
+      "decisions": [
+        "D-035",
+        "D-047",
+        "D-049",
+        "D-050",
+        "D-051"
+      ],
+      "line": 4601,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4601"
+    },
+    {
+      "id": "EXP-048",
+      "title": "Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)",
+      "date": "2026-10-08",
+      "status": "proposed (plan only; needs \"approve EXP-048\" before any code; no FineWeb-2 data enters the corpus without a separate decision)",
+      "category": "planned",
+      "step": null,
+      "summary": "better data is the strongest lever we control. Sangraha Verified is our only web source today. FineWeb-2 (Hugging Face, HuggingFaceFW/fineweb-2) is a large, openly documented multilingual web corpus. It is level B under D-044 (ODC-By 1.0 plus Common Crawl's terms of use). The question this experiment answers is not …",
+      "decisions": [
+        "D-044"
+      ],
+      "line": 4701,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4701"
     }
   ],
   "experiment_numbers_not_in_log": [

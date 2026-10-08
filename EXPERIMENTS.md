@@ -4597,3 +4597,166 @@ training tokens, identified by `build-A/manifest.json` and `build-B/manifest.jso
 Accepting starts no training.
 
 **Status:** complete 2026-10-08 (v2-slice2 built and accepted as D-051: 4,400,859 documents, 5,375,435,604 training tokens); using it for training needs its own approved plan
+
+### EXP-047 — Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2
+**Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running anything needs a further "approve EXP-047" plus the founder's compute decision)
+
+**Purpose (why this serves the mission):** EXP-043 trains a 190 M model on 2.78 B tokens. D-051 added
+5.38 B more verified tokens (8.16 B in total). The next model should be bigger and see all of it. This plan
+says how its size will be chosen (from evidence, not a fixed number), what it costs on each kind of
+hardware, and which code is needed. It is written now, while EXP-043 waits for GPU quota, so that the
+next run can start soon after EXP-043 ends. **This plan trains nothing.**
+
+**1. What the EXP-042 laws say for 8,159,265,692 training tokens** (computed 2026-10-08 with the
+repository's own `posthoc()` and `family()` from `scripts/plot_ladder.py`, `tokens_available` set to
+8.16 B; all of it is an extrapolation):
+- Compute-optimal budget for 8.16 B tokens (pre-registered D_opt law, D ∝ C^0.513): **C ≈ 3.07e19 FLOPs**
+  (8.1× EXP-043's 3.77e18).
+- Total-parameter law (post-hoc, passes its consistency test): **N_opt ≈ 568 M** (leave-one-out range
+  77 M – 9.1 B: very wide).
+- FLOP match inside our family: between **20 × 1280 (507 M)** and **22 × 1408 (665 M)**.
+- Non-embedding law (pre-registered, fails its consistency test, see D-049): 1.51 B non-embedding.
+  As in D-049 it gets the least weight.
+
+| family member | parameters | tokens per parameter | training FLOPs | predicted bpb (secondary fit, extrapolated) | 2×T4 hours (est.) | ≈ weeks of free quota (30 h/week, NOT VERIFIED) |
+|---|---|---|---|---|---|---|
+| 14 × 896 (EXP-043 size) | 190.1 M | 42.9 | 9.9e18 | 0.6715 | ≈ 103 | ≈ 3.4 |
+| 16 × 1024 | 272.8 M | 29.9 | 1.42e19 | 0.6659 | ≈ 147 | ≈ 4.9 |
+| 18 × 1152 | 377.7 M | 21.6 | 1.95e19 | 0.6615 | ≈ 202 | ≈ 6.7 |
+| 20 × 1280 | 507.5 M | 16.1 | 2.61e19 | 0.6580 | ≈ 271 | ≈ 9.0 |
+| 22 × 1408 | 664.9 M | 12.3 | 3.41e19 | 0.6552 | ≈ 353 | ≈ 11.8 |
+
+- Hours are scaled from EXP-043 session 3's measured 22,030 tokens/s at 190 M on two T4s (2.68e13 useful
+  FLOP/s), assuming the same efficiency at larger sizes. **NOT VERIFIED**; smaller micro-batches at larger
+  sizes would lower it. For comparison, EXP-043 at 2.78 B tokens predicts 0.683.
+- **Honest reading:** by the secondary fit, the gain from size is modest (0.6715 → 0.6552, about the size of
+  the seed noise 0.0174). More data helps the 190 M model too (0.683 → 0.6715). Bits per byte is not
+  intelligence. The larger gains in usefulness come later from data quality and post-training (steps
+  16–18, not approved now).
+
+**2. Memory on a T4 (the hard limit for the free path).** EXP-043 peaks at 9.0–9.3 GB per GPU at 190 M
+(micro-batch 16, limit 14.5 GB). Weights, gradients and Adam states alone take about 16 bytes per
+parameter: 4.4 GB at 273 M, 6.0 GB at 378 M, 8.1 GB at 507 M, 10.6 GB at 665 M. DDP keeps a full copy on
+each GPU. So 16 × 1024 and 18 × 1152 should fit with smaller micro-batches and gradient accumulation;
+20 × 1280 is borderline; 22 × 1408 would need sharded optimizer states (ZeRO/FSDP, not built). All
+**NOT VERIFIED**: the run starts with a memory probe, as EXP-043 did.
+
+**3. Compute options (spending is the founder's decision, standing rule):**
+
+| option | hardware | sizes it allows | time | cost |
+|---|---|---|---|---|
+| A | free Kaggle 2×T4 | up to 18 × 1152 (memory, quota) | 3.4–6.7 weeks of all free quota | ₹0 |
+| B | free Kaggle 2×T4 + sharded optimizer (new code) | up to 20 × 1280 | ≈ 9 weeks | ₹0 |
+| C | rented H100 (one) | 20 × 1280 or 22 × 1408 | ≈ 20–40 GPU-hours (assumes ≈ 40% of bf16 peak) | ≈ ₹1,300–3,700 / $40–160 at the prices seen 2026-10 (NOT VERIFIED now) |
+
+Option C also needs its own check of bf16 training (D-047 approved fp16 on T4 only) and a decision on
+where checkpoints live. Free-quota weeks also have to share with EXP-045's GPU session.
+
+**4. Pre-registered size rule (no fixed size in advance):**
+1. **Wait for EXP-043's final result.** The laws predicted 0.683 bpb for EXP-043. If its final validation bpb
+   is within 2 × seed noise (0.683 ± 0.035), the laws are trusted for sizing. Otherwise the laws are refit
+   with EXP-043 added as a fourth point, and the table above is recomputed before choosing.
+2. Then choose **the largest family member that is (a) not above the FLOP-match size, (b) fits in memory
+   by the probe, and (c) fits the compute budget the founder approves.** Near the flat optimum a smaller
+   choice costs little (D-049's logic), and a smaller model is cheaper to run afterwards.
+3. Learning rate: a short pre-registered check at the chosen size, like EXP-043 session 1 (the best rate
+   fell with size in EXP-042: 1e-3 → 5e-4).
+
+**5. Data and the code needed (built only after approval):**
+- **Data:** one pass over v2-slice1 + v2-slice2 (8,159,265,692 tokens), natural proportions, no
+  repetition. Slice 1 comes from the existing EXP-037 Kaggle dataset; slice 2 from the private backup
+  datasets (approved 2026-10-08), or from the `frontier-exp046-build-a/-b` kernel outputs if the backup
+  is not made.
+- **Loader:** `MultiTokenDataset` in `src/frontier_ai/data/multi.py` already reads a list of packed files
+  with natural sampling, but it names each file by its file name, so slice 1's and slice 2's file for the
+  same language would clash ("duplicate file name"). It needs slice-aware names, per-language validation
+  that combines both slices, and a SHA-256 check of each slice manifest before use (the D-051 hashes are
+  recorded).
+- **Validation:** the slice-1 validation set stays the main yardstick, so EXP-047 and EXP-043 compare on the
+  same text. Slice-2 validation is reported alongside.
+- **Memory:** gradient accumulation and the micro-batch memory probe already exist in
+  `scripts/gpu_pretrain.py` (EXP-043); only the options list changes. Sharded optimizer states only for
+  option B.
+- **Evaluation:** the EXP-045 protocol unchanged (bpb per language, the same Belebele reporting with and
+  without flagged questions), so the two models compare directly.
+- **Gate (proposed; final numbers fixed in the approved version):** final slice-1 validation bpb beats
+  EXP-043's final by more than the seed noise (0.0174), with no language worse by more than the noise.
+
+**6. Roadmap step 13 ("Validate distributed training") — where it stands:**
+- Done: DDP on two GPUs is validated by EXP-044 (PASS: agreement 0.0042 bpb, speed 1.79×) and used for
+  EXP-043 session 3 (D-050: 1.98×). Session 3 resumed a checkpoint written on one GPU, which is one of
+  Stage 5's exit criteria (resume from a different world size).
+- Not done: speed at 4 and 8 devices (needs rented hardware), and sharded optimizer states (needed above
+  about 500 M on T4).
+- This plan does not mark step 13 complete. A separate, small record can do that if the founder agrees
+  that 2-device validation is enough for our hardware.
+
+**Not in scope:** new data sources (EXP-048 measures FineWeb-2 separately), context length changes,
+tokenizer changes (D-035), SFT/RL/reasoning (guardrails), spending without the founder's decision.
+
+**Budget for writing this plan:** ₹0, no GPU, no laptop work.
+
+**Status:** proposed (plan only; needs "approve EXP-047" and the founder's compute choice A/B/C before any code; the size is chosen after EXP-043's final result by the rule in §4)
+
+### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
+**Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
+
+**Purpose (why this serves the mission):** better data is the strongest lever we control. Sangraha
+Verified is our only web source today. FineWeb-2 (Hugging Face, `HuggingFaceFW/fineweb-2`) is a large,
+openly documented multilingual web corpus. It is level B under D-044 (ODC-By 1.0 plus Common Crawl's
+terms of use). The question this experiment answers is **not** "is FineWeb-2 big" but **"how many new,
+clean documents would it add that Sangraha does not already give us, per language?"** Both are built
+from Common Crawl, so the overlap may be large. D-044 requires new level-B sources to come one at a
+time, each as its own experiment: this is that experiment for FineWeb-2.
+
+**Facts checked 2026-10-08 (dataset card and paper, arXiv 2506.20920):**
+- 96 Common Crawl snapshots (2013 – April 2024), about 20 TB, 1,870+ language-script subsets, each with a
+  published `_removed` subset (documents their filters dropped).
+- **No English:** FineWeb-2 covers non-English languages only; English is the original FineWeb. So this
+  measures 12 of our 13 languages; English stays from Sangraha.
+- Row counts seen in the dataset viewer (NOT VERIFIED until the pinned listing): `ben_Beng` about 15.2 M,
+  `asm_Beng` about 270 k.
+
+**What the kernel does (one Kaggle CPU session, no GPU, no laptop work):**
+1. **Pin and record:** the dataset revision (commit hash from the Hugging Face API), the licence text on that
+   revision, and the file list (name, size) of the 12 subsets (expected names such as `hin_Deva`,
+   `ben_Beng`, `asm_Beng`, `guj_Gujr`, `kan_Knda`, `mal_Mlym`, `mar_Deva`, `ory_Orya`, `pan_Guru`,
+   `tam_Taml`, `tel_Telu`, `urd_Arab`; the exact names are read from the listing, not assumed).
+   Romanized subsets (for example Hindi in Latin script) are listed if present but not measured: that is
+   a separate question.
+2. **Size per language:** total bytes and row counts from the parquet footers (no full download).
+3. **Quality sample:** from one pinned file per language, a fixed random sample (seed fixed in the code,
+   about 2,000 documents per language) goes through the **unchanged v2 build rules** (normalize, language
+   ID, quality rules, exact dedup). Measured: keep rate, removal reasons, Tokenizer v2 tokens per byte.
+4. **Overlap with what we already have:** each kept sample document's exact-text digest is compared with
+   the digests of v2-slice1 and v2-slice2 (`frontier_ai.corpus.prior_docs`, the EXP-046 safeguard, run on
+   the mounted slice token files). This finds identical documents only, so it is a **lower bound** on the
+   overlap. If both datasets carry source URLs, URL overlap is also counted (whether Sangraha Verified has
+   URLs is NOT VERIFIED). Near-duplicate detection (MinHash) is not built and is out of scope.
+5. **Protected-suite check:** the sample goes through the existing decontamination (protected suites
+   including Belebele and the short-document index), and the hit rate is reported.
+6. **Estimate:** per language, estimated **new clean tokens** = rows × keep rate × (1 − overlap) × tokens
+   per document, with the sampling error stated. All estimates are labelled NOT VERIFIED.
+7. **Read before deciding:** the report prints random kept, removed and overlapping documents per language
+   (short excerpts, with source attribution, as ODC-By requires), and the founder and I read them, as
+   for EXP-036 and EXP-046.
+
+The sample files are downloaded to `/tmp` with the repository's SHA-256-checked downloader and deleted
+after use. No FineWeb-2 corpus goes into any kernel output; only the report and short excerpts do.
+
+**What would make FineWeb-2 worth adding (stated now, before measuring):** it is worth a build proposal
+for a language if its estimated new clean tokens are large next to what remains unused in Sangraha
+Verified for that language (EXP-046 table: about 108 B tokens across 13 languages, but only about 0.47 B
+for Assamese and about 2 B for Odia and Punjabi). The low-resource languages are where it matters most.
+For high-resource languages, more Sangraha is the simpler choice.
+
+**What this experiment does not do:** it adds nothing to FrontierCorpus. Building a FineWeb-2 slice, and its
+mixing with Sangraha (a comparison experiment, not a fixed percentage), each need a separate decision. It
+also does not use the `_removed` subsets, raw Common Crawl, HPLT (level X until its licence is checked) or
+English FineWeb.
+
+**Where and cost:** Kaggle CPU session (4 cores, 30 GB RAM, 12 hours); estimated one session, NOT
+VERIFIED. ₹0, no GPU quota, no laptop work. It runs between two EXP-043 GPU sessions under the same runner
+guard as EXP-046.
+
+**Status:** proposed (plan only; needs "approve EXP-048" before any code; no FineWeb-2 data enters the corpus without a separate decision)
