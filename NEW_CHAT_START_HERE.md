@@ -795,6 +795,11 @@ comes next. They also update the table in §3.
   - **Unzipping confirmed (2026-10-09):** the founder saw `.jsonl` (not `.jsonl.gz`) in the slice-2
     backup, so Kaggle unzipped the text; the `.gz` hashes apply only to the kernel outputs. Token files
     unaffected; their check in the datasets is still pending (EXP-047). Next: EXP-043 session 4.
+  - **Founder "approve A B C" (2026-10-09):** A = three runner fixes (CPU kernels allowed during EXP-043
+    sessions; Kaggle's error copied into REPORT.txt; report header says CPU/GPU correctly); B = slice-2
+    backup check; C = build EXP-048 (FineWeb-2 measurement). D (EXP-047 step 1) and E (founder reads the
+    Hindi everyday prompts) were explained, not approved. **B built:** `run_kaggle_exp046_check.ps1`
+    (Kaggle CPU; token-file SHA-256 vs manifests, unzipped text vs the original .gz). Next: A, C.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

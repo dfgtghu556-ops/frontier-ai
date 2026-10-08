@@ -4656,6 +4656,25 @@ the text unzipped, so the `.gz` SHA-256 values in the manifests apply only to th
 files are unaffected. Token-file integrity in the datasets is still NOT VERIFIED (checked by EXP-047 before
 use, if approved).
 
+**Update (2026-10-09): backup check built (founder: "approve A B C"; B = this check, A = three runner
+fixes, C = building EXP-048; A and C follow separately).** Code: `scripts/check_slice2_backup.py`,
+`scripts/kaggle/exp046_check_kernel.py`, `scripts/run_kaggle_exp046_check.ps1` (the shared runner with
+`-Exp EXP-046 -Check`), `tests/test_exp046_check.py` (10 tests).
+
+One Kaggle CPU session (no GPU quota). It mounts the two backup datasets and, for comparison, the two build
+kernel outputs (read only, never relaunched). For each part it checks:
+- **Token files:** every `<lang>.bin` against the manifest's size and SHA-256.
+- **Meta files:** every `<lang>.meta.json` against the manifest's `n_train` / `n_val`, and byte for byte
+  against the original.
+- **Text files:** every unzipped `<lang>.jsonl` must equal the original `.jsonl.gz` unzipped. The original's
+  own SHA-256 is checked against the manifest first, and the document count is checked too.
+
+Without the originals, the text is only counted, and the verdict says so. The check only reads and hashes.
+Results go to `evals/results/EXP-046/backup-check/`. Kaggle mount paths and run time are NOT VERIFIED:
+the check stops with the paths it found if the layout differs.
+
+**Status:** complete 2026-10-08 (v2-slice2 built and accepted as D-051); backup made 2026-10-09 (private datasets frontier-v2-slice2-a/-b); backup check built 2026-10-09, runs next on a Kaggle CPU session
+
 ### EXP-047 — Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running anything needs a further "approve EXP-047" plus the founder's compute decision)
 

@@ -61,6 +61,10 @@
 # own state folder out\kaggle\EXP-045-final, the output of the EXP-043 kernel that ran the LAST session
 # (model_final.pt) and the private held-out texts dataset as inputs; it publishes evals/results/EXP-045/final/
 # and then downloads the fp16 model copy (about 0.38 GB, never committed), sha256 checked.
+# EXP-046 with -Check (scripts\run_kaggle_exp046_check.ps1; approved 2026-10-09) checks the slice-2 backup
+# datasets against the build manifests on ONE CPU session: its own kernel and state folder; inputs are the
+# founder's private datasets frontier-v2-slice2-a/-b and the build kernels' outputs; it publishes
+# evals/results/EXP-046/backup-check/.
 # If the final push is rejected because the branch moved meanwhile (seen once in EXP-038), it pulls
 # with --rebase once and pushes again; the results commit still touches only evals/results/<EXP>/.
 #
@@ -71,7 +75,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -151,6 +155,20 @@ if ($Exp -eq "EXP-046" -and $Build) {
     $maxWaitHours = 14
 }
 if ($Final -and $Exp -ne "EXP-045") { Write-Host "-Final is only for -Exp EXP-045"; exit 2 }
+if ($Check -and ($Exp -ne "EXP-046" -or $Build)) { Write-Host "-Check is only for -Exp EXP-046 (without -Build)"; exit 2 }
+if ($Check) {
+    # the slice-2 backup check (run_kaggle_exp046_check.ps1): a CPU session that only reads and hashes;
+    # its own kernel, state and report folder, so the probe's and the builds' states are never reused
+    $template = "scripts\kaggle\exp046_check_kernel.py"
+    $kernelSlug = "frontier-exp046-check"
+    $outDir = "out\kaggle\EXP-046-check"
+    $statePath = "$outDir\state.json"
+    $log = "$outDir\run.log"
+    $reportPath = "$outDir\REPORT.txt"
+    $dataFiles = @()  # the 13-language token files are not needed and not mounted
+    $expectedRun = "the backup check (CPU only, no GPU) should take under 1 hour; not measured yet"
+    $maxWaitHours = 3
+}
 if ($Final) {
     # EXP-045 tests 1-3 and 5: ONE GPU session after EXP-043 is complete (run_kaggle_exp045_final.ps1);
     # its own kernel, state and report folder, so the coverage re-scan's state is never reused
@@ -447,6 +465,11 @@ if ($launching) {
     }
     if ($Build) { $meta.dataset_sources = @($datasetId, $heldId) }  # + the held-out texts
     if ($Final) { $meta.dataset_sources = @($heldId) }  # test 1's texts only; the GPU stays on
+    if ($Check) {
+        # the backup (founder's private datasets) and the originals (build kernel outputs), read only
+        $meta.dataset_sources = @("$user/frontier-v2-slice2-a", "$user/frontier-v2-slice2-b")
+        $meta.kernel_sources = @("$user/frontier-exp046-build-a", "$user/frontier-exp046-build-b")
+    }
     Write-Ascii "$stage\kernel-metadata.json" ($meta | ConvertTo-Json -Depth 5)
     $r = Invoke-Logged "$kaggle kernels push -p $stage"
     if ($r.Code -ne 0 -or (($r.Lines -join " ") -match "error")) { Stop-Run "Kaggle did not accept the kernel (see the lines above)" 1 }
@@ -502,6 +525,8 @@ if ($Exp -eq "EXP-043") {
 } elseif ($Final) {
     # only the small result files; the fp16 copy is fetched after the push (step 7)
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-045/final/.*"
+} elseif ($Check) {
+    $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/backup-check/.*"
 } elseif ($Build) {
     # never the whole output (about 9 GB of corpus that stays on Kaggle): only the small report folder
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/build-$Build/.*"
@@ -520,6 +545,7 @@ if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {
 # EXP-046: the probe writes EXP-046\probe\ (later build steps get their own folders)
 if ($Exp -eq "EXP-046") { $resultDir = "$outputDir\$Exp\probe" }
 if ($Build) { $resultDir = "$outputDir\$Exp\build-$Build" }
+if ($Check) { $resultDir = "$outputDir\$Exp\backup-check" }
 # EXP-045: since test 4 the kernel writes the coverage re-scan to EXP-045\coverage\
 if ($Exp -eq "EXP-045") { $resultDir = "$outputDir\$Exp\coverage" }
 if ($Final) { $resultDir = "$outputDir\$Exp\final" }
@@ -576,6 +602,7 @@ if ($changed.Count -eq 0) {
     if ($Exp -eq "EXP-045") { $msgText = "${Exp}: coverage re-scan results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     if ($Exp -eq "EXP-046") { $msgText = "${Exp}: probe results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     if ($Final) { $msgText = "${Exp}: final evaluation of the EXP-043 model (tests 1-3 and 5) from one Kaggle GPU session (commit $($state.pinned_commit.Substring(0, 7)); the fp16 copy is not committed)" }
+    if ($Check) { $msgText = "${Exp}: slice-2 backup check from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)); only reads and hashes)" }
     if ($Build) { $msgText = "${Exp}: build $Build reports (v2-slice2; the corpus stays on Kaggle) from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     $msgText | Set-Content -Path $msgFile -Encoding ASCII
     $r = Invoke-Logged "git commit -q -F $msgFile"
