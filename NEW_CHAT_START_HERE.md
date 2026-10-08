@@ -764,6 +764,12 @@ comes next. They also update the table in §3.
     REVIEW line is the slice-1 pattern. Samples read; not yet accepted. The corpus (9.20 GB) exists
     only as the build-a kernel output: never relaunch part A. Next: part B, then one acceptance
     decision for slice 2.
+  - **EXP-046 part B done (2026-10-08, results `671b460`); slice 2 built; D-051 proposed:** part B
+    complete in 2 h 41 min (kn ml mr or pa ta te, 2,173,321 docs, 2,277,228,445 training tokens, no
+    REVIEW line, same code and config as part A). Slice 2 = 4,400,859 docs, 5,375,435,604 training
+    tokens (slice 1 + 2 = 8,159,265,692); 2,199 slice-1 duplicates removed; 0 docs touched Belebele;
+    1,033 samples read. D-051 (accept v2-slice2) awaits the founder. Data only as the build-a/build-b
+    kernel outputs: never relaunch either. Accepting starts no training.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

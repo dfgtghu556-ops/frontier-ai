@@ -4543,3 +4543,50 @@ Notes:
   accepted.
 
 **Status:** approved 2026-10-04; step 1 (probe) done 2026-10-06; step 2 part A done 2026-10-08 (complete, 3,098,207,159 training tokens, samples read, not yet accepted); next: part B, then one acceptance decision for slice 2 (like D-045)
+
+**Update (2026-10-08): step 2, part B done on a Kaggle CPU session; slice 2 is built (not yet
+accepted).** Code commit `487730c` (the build code is byte-identical to part A's: the same code
+fingerprints `slice_build b02a8fc5…`, `pack 4c7423ce…`, `prior_docs 6cfe18ea…`, `build_slice2
+df51ca6f…`); reports in `evals/results/EXP-046/build-B/` (results commit `671b460`). 9,688 s
+(2 h 41 min). `complete: True`: all 7 languages done (kn ml mr or pa ta te, 14 files). Same suite
+check and config fingerprint `43ce349329a98770`. **No REVIEW line.** Output suite hits: 0.
+
+| Lang | Docs kept (2 files) | Training tokens | Validation tokens | `slice1_duplicate` | `cross_file_duplicate` |
+|---|---|---|---|---|---|
+| kn | 334,490 | 318,993,784 | 1,605,916 | 112 | 0 |
+| ml | 252,310 | 203,779,723 | 1,070,506 | 37 | 1 |
+| mr | 348,988 | 359,949,609 | 1,800,036 | 9 | 0 |
+| or | 347,493 | 346,082,996 | 1,778,871 | 25 | 0 |
+| pa | 286,989 | 387,577,591 | 1,916,827 | 3 | 0 |
+| ta | 271,460 | 290,522,687 | 1,520,226 | 3 | 0 |
+| te | 331,591 | 370,322,055 | 1,873,875 | 37 | 0 |
+| **all** | **2,173,321** | **2,277,228,445** | **11,566,257** | 226 | 1 |
+
+- Checked here from the published files: 7 manifest entries, and every file's train + validation
+  tokens equal its text tokens plus one per document. The slice-1 documents read back (kn 173,555 …
+  te 174,147) equal EXP-037's kept documents, and every slice-1 file's sha256 was verified.
+- 0 documents touched Belebele. 7.19 GB of output stays on Kaggle (`slice2-B/`).
+- Values that look high have slice-1 precedents: Malayalam `repetition` 1.33% / 1.28% (slice 1:
+  1.46%; the samples are news items whose text is repeated many times within one page); Marathi
+  `kept_lla_3plus` about 148,600 per file (measured only; slice 1: 149,102).
+- Smaller inputs: ml data-1 (78,886 docs) is the known half-size file; ta data-2 has 122,120 docs as
+  pinned.
+
+Samples read (543 masked excerpts):
+- `slice1_duplicate` (46): Kannada film news, Malayalam news, Bible chapters (mr or te) and one
+  Marathi forum page that appears many times. Its copies differ in their raw text (so rule 2a misses
+  them) but are identical after line cleaning, and equal to a slice-1 document. One removed Odia
+  sample is English transliterated into Odia script, which is meaningless as Odia.
+- `cross_file_duplicate` (1): a 38,950-character Malayalam speech transcript present in both files.
+- `empty_after_cleaning` (kn, or): Latin-script Bible translations and shop pages in non-Indian
+  languages, the same pattern as Assamese, below the 2% bound here.
+- `kept` (84): news, film, sport, literature, scripture and PDF books in the right language and
+  script. Some PDF text has OCR errors (known, not measured). No problem found that would block
+  acceptance.
+
+**Slice 2 in total (A + B):** 13 languages, 26 pinned files, 4,469,872 input documents, **4,400,859
+documents kept**, 10,183,445,070 characters, **5,375,435,604 training tokens** and 27,330,199
+validation tokens under Frontier Tokenizer v2. Manifests: `build-A/manifest.json` (sha256
+`3782679f…`) and `build-B/manifest.json` (sha256 `542988db…`). Acceptance is proposed as D-051.
+
+**Status:** approved 2026-10-04; step 1 (probe) done 2026-10-06; step 2 done 2026-10-08 (part A + part B complete: 4,400,859 documents, 5,375,435,604 training tokens, samples read); next: founder decision on D-051 (accept v2-slice2)

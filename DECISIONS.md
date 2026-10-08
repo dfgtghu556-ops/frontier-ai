@@ -1923,6 +1923,74 @@ Commit `166a47f`; results in `evals/results/EXP-043/session-3/` (results commit 
   was verified, and it was resumed on two GPUs.
 EXP-043 stays on two GPUs.
 
+## D-051 — FrontierCorpus v2-slice2 (the EXP-046 build, parts A + B) is accepted as the second v2 corpus
+**Date:** 2026-10-08 · **Status:** proposed (awaiting the founder's decision; evidence EXP-046, D-045, D-046)
+
+**Decision (proposed):**
+1. The EXP-046 build of the second Sangraha Verified slice is accepted as **FrontierCorpus
+   v2-slice2** (`corpus_id` `frontier-v2-sangraha-slice2`): 13 languages, data-1 and data-2 of
+   each (26 pinned files), **4,400,859 documents**, 10,183,445,070 characters, **5,375,435,604
+   training tokens** and 27,330,199 validation tokens under Frontier Tokenizer v2.
+2. Its identity is the two committed manifests: `evals/results/EXP-046/build-A/manifest.json`
+   (sha256 `3782679fe4e71e45077692b42d63f303ecd0d1914c0d1a10da1f86495f376c42`; en ur as bn gu hi)
+   and `evals/results/EXP-046/build-B/manifest.json` (sha256
+   `542988db5717357d09a76c7384558b0c27cd2034d07d59e1a16b9092f83f7222`; kn ml mr or pa ta te). They
+   pin every text and token file by sha256, together with the input pins
+   (`corpora/frontier/v2/sangraha_slice2.json`, revision `8b813c3f`), config fingerprint
+   `43ce349329a98770` (the same as v2-slice1) and code fingerprints `slice_build b02a8fc5…`,
+   `pack 4c7423ce…`, `prior_docs 6cfe18ea…`, `build_slice2 df51ca6f…` (the same in both parts). A
+   file that does not match its manifest is not v2-slice2.
+3. v2-slice2 contains no document whose final text is in v2-slice1 (safeguard 2), so the two slices
+   can be used together without exact repeats: together **8,159,265,692 training tokens**
+   (2,783,830,088 + 5,375,435,604).
+4. The packed files keep the D-046 format (Frontier Tokenizer v2; train ‖ validation; one
+   `<|endoftext|>` per document), so the existing training code can read them.
+5. The build rules are frozen as they ran. Any change is a new pre-registered experiment and a new
+   corpus id; this record is then superseded, not edited.
+
+**Rationale:** every pre-registered check passed in both parts: 13/13 languages complete, nothing
+stopped; suite CHECKED against the held-out suite (verified against SUITE.json) and the 13 Belebele
+files; 0 suite hits in the written text; every removal has a reason; every token file's count
+matches its text. All four EXP-046 safeguards were applied and checked: (1) unchanged rules (same
+config fingerprint); (2) 2,199 documents already in v2-slice1 removed (1,973 in part A, 226 in part B), after each slice-1 file's
+sha256 and document count were verified; (3) Belebele in the protected set (0 documents touched it);
+(4) the 1,033 masked samples were read and showed no blocking problem. The only REVIEW lines
+(Assamese `empty_after_cleaning`, 6.35% / 6.37%) are the label shift already explained in D-045.
+
+**Alternatives considered:**
+- Accept part A now and part B later: rejected; both parts finished the same day under the same code,
+  and one decision keeps one corpus id.
+- Revise the rules first (for example near-duplicates across files, routing Marathi out of the Hindi
+  file): rejected for this version, for the same reason as in D-045. Each known loss is small and is
+  better handled as a separate, measured experiment.
+- Do not use slice 2 until a better source mix exists: rejected; more verified text in the same 13
+  languages is useful now, and how it is mixed is decided by experiment, not here.
+
+**Consequences accepted:**
+- **Known limits stay in this version.** Near-duplicates (MinHash) are removed within each file only,
+  not across the two files of a language and not against v2-slice1 (exact copies are removed
+  everywhere). The D-045 losses also apply: quoted text in another script is cut out; documents in
+  the wrong language file are removed, not moved; Hindi and Marathi share a script, so some Marathi
+  stays in the Hindi file. OCR quality of PDF text is still not measured. The Belebele guard does not
+  match the 1–2-word answer options, so EXP-045 keeps reporting Belebele three ways.
+- **Where the data is.** The text and token files exist only as the outputs of the Kaggle kernels
+  `frontier-exp046-build-a` (9.20 GB) and `frontier-exp046-build-b` (7.19 GB). Running either kernel
+  again would replace its output, so neither may be relaunched. If lost, both can be rebuilt from the
+  pins with the same commit (tests show byte-identical output; 2 h 13 min + 2 h 41 min on Kaggle CPU)
+  and checked against the manifests. A safer copy (for example a private Kaggle dataset made from
+  the kernel output, free) is a separate small step for the founder to approve.
+- **Accepting the corpus does not start any training.** Using v2-slice2 (for example after EXP-043
+  ends) needs its own approved plan; no fixed mixing percentages (mixtures are compared by
+  experiment). EXP-043 continues on v2-slice1 unchanged. The tokenizer stays frozen.
+- CC-BY-4.0 attribution travels with the data (`ATTRIBUTION.txt` in each output folder, the manifests
+  and every report). Level-B rules of D-044 apply unchanged. v2-slice1 (D-045, D-046) is not changed.
+
+**Revisit when:** a v3 build is proposed; an error is found in the v2-slice2 text (for example a suite
+hit found later, or a slice-1 duplicate missed); a kernel output is lost; AI4Bharat changes the
+dataset's licence; or the law on training data changes (D-044).
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 
