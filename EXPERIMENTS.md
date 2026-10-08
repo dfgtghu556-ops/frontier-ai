@@ -4267,6 +4267,35 @@ agent):
 
 **Status:** approved 2026-10-04; test 4 done 2026-10-06 (75.2% flagged, 2,901 clean); coverage re-scan done 2026-10-07 (268 of 11,700 substantially present, all via short options; no passage above 40%; reproduces test 4); tests 1-3 and 5 run after EXP-043
 
+**Update (2026-10-08): the GPU session for tests 1-3 and 5 is wired (founder: "approve 2 3 4" and the
+earlier approval of this plan; done now so it can start as soon as EXP-043 ends).** Code:
+`scripts/kaggle/exp045_final_kernel.py`, `scripts/run_kaggle_exp045_final.ps1` (the shared runner
+with `-Exp EXP-045 -Final`), `tests/test_exp045_final.py` (9 tests) and 4 updated runner assertions.
+No EXP-043 code or file was changed, and test 4's and the coverage re-scan's committed files are inputs
+only.
+
+How it works:
+- **Which model:** the runner finds the ONE published `evals/results/EXP-043/session-*` whose summary
+  says `complete`. Odd sessions ran on kernel `-a`, even ones on `-b`, so it mounts that kernel's output.
+  It refuses before EXP-043 is complete, and while an EXP-043 session is out (the existing guard).
+- **The kernel uses the weights only if their sha256 equals the one committed** in that complete summary.
+  Otherwise it stops.
+- **Test 1** uses the private dataset `frontier-heldout-v1-text`, which has been on Kaggle since the
+  EXP-046 builds (no new upload). If it is missing, test 1 is reported as NOT RUN, never estimated.
+- **Tests 2-3:** Belebele is downloaded into `/tmp` by pinned revision (never into the output). It is
+  reported on all questions, without test 4's flags, and without the coverage re-scan's
+  "substantially present" questions.
+- **Precision and limits:** fp16 autocast on the GPU, as planned. Its own kernel (`frontier-exp045-final`),
+  state folder (`out\kaggle\EXP-045-final`) and results folder (`evals/results/EXP-045/final/`).
+- **The fp16 copy (about 0.38 GB):** downloaded after the push into `out\` (never committed), sha256
+  checked.
+- **Time:** under 1 GPU-hour (NOT VERIFIED; cap 1, as planned).
+- **CPU check:** the kernel's exact command, with the real committed `contamination.json` and
+  `coverage.json`, ran end to end on a tiny model.
+- **Not tested here:** the Windows/Kaggle path itself (no PowerShell in the sandbox; static tests only).
+
+**Status:** approved 2026-10-04; test 4 done 2026-10-06; coverage re-scan done 2026-10-07; GPU session for tests 1-3 and 5 wired 2026-10-08 (`scripts\run_kaggle_exp045_final.ps1`), runs after EXP-043 is complete
+
 ### EXP-046 — Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-046" before any code)
 

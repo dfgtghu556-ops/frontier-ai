@@ -38,7 +38,7 @@ def test_runner_commits_only_the_exp038_results_folder():
     assert '$resultsPrefix = "evals/results/$Exp/"' in text
     assert (
         'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")]'
-        '[string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build)' in text
+        '[string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final)' in text
     )
     assert "git add $resultsPrefix" in text
     assert re.findall(r'Invoke-Logged "(git add[^"]*)"', text) == ["git add $resultsPrefix"]
@@ -468,7 +468,7 @@ def test_exp045_runs_on_a_cpu_session_between_exp043_sessions():
     i = text.index("        machine_shape = \"NvidiaTeslaT4\"\n    }\n")
     cpu = text[i : text.index("Write-Ascii \"$stage\\kernel-metadata.json\"", i)]
     assert '$meta.enable_gpu = $false' in cpu and '$meta.Remove("machine_shape")' in cpu
-    assert 'if ($Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {' in cpu
+    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046") {' in cpu
     # the same between-sessions guard as EXP-044
     g = text.index('if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046")) {')
     assert g < text.index("$kaggle kernels push -p $stage")
@@ -531,7 +531,7 @@ def test_exp046_probe_runs_on_a_cpu_session_between_exp043_sessions():
     # CPU session: the same switch as EXP-045 (no GPU requested)
     j = text.index('        machine_shape = "NvidiaTeslaT4"\n    }\n')
     cpu = text[j : text.index('Write-Ascii "$stage\\kernel-metadata.json"', j)]
-    assert 'if ($Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {' in cpu and "$meta.enable_gpu = $false" in cpu
+    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046") {' in cpu and "$meta.enable_gpu = $false" in cpu
     # the results folder is EXP-046\probe; publishing keeps the EXP-046 parent (-> evals/results/EXP-046/probe/)
     k = text.index('if ($Exp -eq "EXP-046") { $resultDir = "$outputDir\\$Exp\\probe" }')
     assert text.index("$publishSrc = $resultDir") < k < text.index('$summaryPath = "$resultDir\\summary.json"')
@@ -584,7 +584,7 @@ def test_exp046_build_wrapper_and_runner_block():
     # CPU session like the probe
     j = text.index('        machine_shape = "NvidiaTeslaT4"\n    }\n')
     cpu = text[j : text.index('Write-Ascii "$stage\\kernel-metadata.json"', j)]
-    assert 'if ($Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {' in cpu and "dataset_sources = @($datasetId, $heldId)" in cpu
+    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046") {' in cpu and "dataset_sources = @($datasetId, $heldId)" in cpu
     # only the small report folder is downloaded, never the corpus (about 9 GB)
     d = text.index("} elseif ($Build) {")
     dl = text[d : text.index("} else {", d)]

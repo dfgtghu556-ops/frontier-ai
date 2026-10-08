@@ -775,6 +775,18 @@ comes next. They also update the table in §3.
     evals/results/EXP-046/build-{A,B}/. No training starts; EXP-043 stays on slice 1. Never relaunch
     the build-a/build-b kernels (the data is their output). A backup copy and training on slice 2 each
     need approval. Next: EXP-043 session 4 after the weekly reset (Sat 2026-10-10 05:30 IST, NOT VERIFIED).
+  - **Founder "approve 2 3 4" (2026-10-08): parallel work while waiting for GPU quota.**
+    (2) Back up slice 2 as two PRIVATE Kaggle datasets made from the build-a / build-b notebook outputs
+    (Kaggle UI: notebook -> Output -> New Dataset; one dataset per notebook); suggested names
+    frontier-v2-slice2-a / -b; the founder does the clicks, then pastes the dataset URLs to record.
+    (3) EXP-047 proposed: plan for the next base model on slice 1 + 2 (8.16 B tokens); the EXP-042 laws give
+    ~507-665 M (20x1280 / 22x1408) as compute-optimal, but free 2xT4 fits up to ~18x1152 (378 M,
+    ~202 h); the size is chosen after EXP-043's final bpb by a pre-registered rule; compute A/B/C is the
+    founder's choice. (4) EXP-048 proposed: measure FineWeb-2 (12 Indic languages; no English in FineWeb-2)
+    on one Kaggle CPU session: size, keep rate, exact overlap with slices 1-2, decontamination; adds
+    no data. Both plans need their own approval before any code. (1) EXP-045 tests 1-3 and 5 wired:
+    `run_kaggle_exp045_final.ps1` (refuses until EXP-043 is complete). Next: EXP-043 session 4 after the
+    weekly reset (Sat 2026-10-10 05:30 IST, NOT VERIFIED).
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

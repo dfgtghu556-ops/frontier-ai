@@ -56,6 +56,11 @@
 # once into out\kaggle\EXP-043\ (never committed) and its sha256 checked. (3) If a session's
 # checkpoint-chain check failed, its results are NOT published (the session number does not
 # advance, so a retry reads the same checkpoint again).
+# EXP-045 with -Final (scripts\run_kaggle_exp045_final.ps1; tests 1-3 and 5 of the approved EXP-045 plan)
+# runs ONE GPU session after EXP-043 is complete: its own kernel <username>/frontier-$expSlug-final, its
+# own state folder out\kaggle\EXP-045-final, the output of the EXP-043 kernel that ran the LAST session
+# (model_final.pt) and the private held-out texts dataset as inputs; it publishes evals/results/EXP-045/final/
+# and then downloads the fp16 model copy (about 0.38 GB, never committed), sha256 checked.
 # If the final push is rejected because the branch moved meanwhile (seen once in EXP-038), it pulls
 # with --rebase once and pushes again; the results commit still touches only evals/results/<EXP>/.
 #
@@ -66,7 +71,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -144,6 +149,20 @@ if ($Exp -eq "EXP-046" -and $Build) {
     $reportPath = "$outDir\REPORT.txt"
     $expectedRun = "EXP-046 build $Build (CPU only, no GPU) should take about 4 to 6 hours; not measured yet"
     $maxWaitHours = 14
+}
+if ($Final -and $Exp -ne "EXP-045") { Write-Host "-Final is only for -Exp EXP-045"; exit 2 }
+if ($Final) {
+    # EXP-045 tests 1-3 and 5: ONE GPU session after EXP-043 is complete (run_kaggle_exp045_final.ps1);
+    # its own kernel, state and report folder, so the coverage re-scan's state is never reused
+    $template = "scripts\kaggle\exp045_final_kernel.py"
+    $kernelSlug = "frontier-$expSlug-final"
+    $outDir = "out\kaggle\EXP-045-final"
+    $statePath = "$outDir\state.json"
+    $log = "$outDir\run.log"
+    $reportPath = "$outDir\REPORT.txt"
+    $dataFiles = @()  # the 13-language token files are not needed and not mounted
+    $expectedRun = "the EXP-045 final evaluation (one GPU) should take under 1 hour; not measured yet"
+    $maxWaitHours = 4
 }
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
@@ -297,6 +316,19 @@ if ($Exp -eq "EXP-043") {
     $kernelSlug = $state.kernel_slug
     $kernelId = "$user/$kernelSlug"
 }
+if ($Final -and $launching) {
+    # the model is EXP-043's model_final.pt, in the output of the kernel that ran the LAST session (odd
+    # session numbers ran on -a, even ones on -b); refuse before EXP-043 is complete
+    $done = @(Get-ChildItem "evals\results\EXP-043" -Directory -Filter "session-*" -ErrorAction SilentlyContinue | Where-Object {
+        (Test-Path "$($_.FullName)\summary.json") -and ((Get-Content "$($_.FullName)\summary.json" -Raw -Encoding UTF8 | ConvertFrom-Json).complete)
+    })
+    if ($done.Count -ne 1) { Stop-Run "EXP-043 is not complete yet (no published session says complete); the final evaluation runs only after its last session" 2 }
+    $finalNo = [int]($done[0].Name.Substring(8))
+    $finalKernel = "a"
+    if ($finalNo % 2 -eq 0) { $finalKernel = "b" }
+    $kernelSources = @("$user/frontier-exp043-$finalKernel")
+    Add-Report "INFO 2c: EXP-043 finished in session $finalNo; the evaluation reads the output of $user/frontier-exp043-$finalKernel"
+}
 $r = Invoke-Logged "$kaggle kernels list --mine"
 if ($r.Code -ne 0) { Stop-Run "Kaggle refused the login (token or username wrong?). Check them, then run this line again" 2 }
 Add-Report "PASS 2b: logged in to Kaggle as $user"
@@ -341,9 +373,10 @@ if (-not $state.dataset_ready) {
     Save-State $state
 }
 Add-Report "PASS 3: private dataset $datasetId is ready on Kaggle"
-if ($Build) {
+if ($Build -or $Final) {
     # EXP-046 build: the protected held-out texts (about 1 MB) as a second PRIVATE dataset, uploaded once.
     # The build refuses to run without them; they are only used to REMOVE overlapping documents.
+    # EXP-045 -Final reads the same dataset (already on Kaggle since the builds) for test 1 only.
     $heldSlug = "frontier-heldout-v1-text"
     $heldId = "$user/$heldSlug"
     $heldFile = "out\eval\heldout-v1.jsonl"
@@ -406,13 +439,14 @@ if ($launching) {
         kernel_sources = $kernelSources
         machine_shape = "NvidiaTeslaT4"
     }
-    if ($Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {
+    if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046") {
         # a CPU session (4 cores, 30 GB): no GPU, so no GPU quota
         $meta.enable_gpu = $false
         $meta.Remove("machine_shape")
         Add-Report "INFO 4: $Exp runs on a Kaggle CPU session (no GPU is requested)"
     }
     if ($Build) { $meta.dataset_sources = @($datasetId, $heldId) }  # + the held-out texts
+    if ($Final) { $meta.dataset_sources = @($heldId) }  # test 1's texts only; the GPU stays on
     Write-Ascii "$stage\kernel-metadata.json" ($meta | ConvertTo-Json -Depth 5)
     $r = Invoke-Logged "$kaggle kernels push -p $stage"
     if ($r.Code -ne 0 -or (($r.Lines -join " ") -match "error")) { Stop-Run "Kaggle did not accept the kernel (see the lines above)" 1 }
@@ -465,6 +499,9 @@ if ($Exp -eq "EXP-043") {
     } else {
         Add-Report "PASS 5: downloaded only the small result files (--file-pattern)"
     }
+} elseif ($Final) {
+    # only the small result files; the fp16 copy is fetched after the push (step 7)
+    $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-045/final/.*"
 } elseif ($Build) {
     # never the whole output (about 9 GB of corpus that stays on Kaggle): only the small report folder
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/build-$Build/.*"
@@ -485,6 +522,7 @@ if ($Exp -eq "EXP-046") { $resultDir = "$outputDir\$Exp\probe" }
 if ($Build) { $resultDir = "$outputDir\$Exp\build-$Build" }
 # EXP-045: since test 4 the kernel writes the coverage re-scan to EXP-045\coverage\
 if ($Exp -eq "EXP-045") { $resultDir = "$outputDir\$Exp\coverage" }
+if ($Final) { $resultDir = "$outputDir\$Exp\final" }
 $summaryPath = "$resultDir\summary.json"
 if (-not (Test-Path $summaryPath)) {
     Add-Report "FAIL 5a: the kernel left no summary.json. Last 60 lines of the kernel log:"
@@ -537,6 +575,7 @@ if ($changed.Count -eq 0) {
     $msgText = "${Exp}: GPU results from one Kaggle T4 (commit $($state.pinned_commit.Substring(0, 7)); checkpoints stay on Kaggle)"
     if ($Exp -eq "EXP-045") { $msgText = "${Exp}: coverage re-scan results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     if ($Exp -eq "EXP-046") { $msgText = "${Exp}: probe results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
+    if ($Final) { $msgText = "${Exp}: final evaluation of the EXP-043 model (tests 1-3 and 5) from one Kaggle GPU session (commit $($state.pinned_commit.Substring(0, 7)); the fp16 copy is not committed)" }
     if ($Build) { $msgText = "${Exp}: build $Build reports (v2-slice2; the corpus stays on Kaggle) from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     $msgText | Set-Content -Path $msgFile -Encoding ASCII
     $r = Invoke-Logged "git commit -q -F $msgFile"
@@ -568,6 +607,18 @@ if ($r.Code -ne 0) {
     exit 1
 }
 Add-Report "PASS 6d: pushed to origin/$branch"
+if ($Final -and $summary.fp16_copy) {
+    # the weights-only fp16 copy (about 0.38 GB), once, into out\ (never committed); sha256 checked
+    $fp = "$outputDir\exp045_fp16\$($summary.fp16_copy.file)"
+    if (-not (Test-Path $fp)) { Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern exp045_fp16/.*" | Out-Null }
+    if (Test-Path $fp) {
+        $h = (Get-FileHash -Algorithm SHA256 $fp).Hash
+        if ($h -ieq $summary.fp16_copy.sha256) { Add-Report "PASS 7: fp16 model copy downloaded to $fp (sha256 matches)" }
+        else { Add-Report "FAIL 7: fp16 copy sha256 $h does not match the summary ($($summary.fp16_copy.sha256))" }
+    } else {
+        Add-Report "INFO 7: the fp16 copy could not be downloaded now; it stays in the Kaggle output of $kernelId"
+    }
+}
 if ($Exp -eq "EXP-042") {
     # this session is safely on GitHub: forget its commit, so the same line launches the next session
     $state.pinned_commit = ""
