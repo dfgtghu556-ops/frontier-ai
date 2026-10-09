@@ -800,6 +800,11 @@ comes next. They also update the table in §3.
     backup check; C = build EXP-048 (FineWeb-2 measurement). D (EXP-047 step 1) and E (founder reads the
     Hindi everyday prompts) were explained, not approved. **B built:** `run_kaggle_exp046_check.ps1`
     (Kaggle CPU; token-file SHA-256 vs manifests, unzipped text vs the original .gz). Next: A, C.
+  - **Backup check done (2026-10-09, results `0ff179f`):** all 13 token files + meta in the backup
+    datasets match the manifests (training data fully backed up, verified). The backup TEXT files hold
+    only the data-1 half: Kaggle's auto-unzip kept only the first gzip member of each two-member
+    `<lang>.jsonl.gz` (counts equal data-1 kept docs exactly). Originals intact; build-a/-b outputs stay
+    primary for text. Mount paths: /kaggle/input/datasets/<user>/<name>/, /kaggle/input/notebooks/<user>/<kernel>/.
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

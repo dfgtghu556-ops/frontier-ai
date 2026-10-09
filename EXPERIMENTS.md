@@ -4675,6 +4675,30 @@ the check stops with the paths it found if the layout differs.
 
 **Status:** complete 2026-10-08 (v2-slice2 built and accepted as D-051); backup made 2026-10-09 (private datasets frontier-v2-slice2-a/-b); backup check built 2026-10-09, runs next on a Kaggle CPU session
 
+**Update (2026-10-09): backup check run (Kaggle CPU, commit `b606207`, results `0ff179f` in
+`evals/results/EXP-046/backup-check/`; 221 s of checking).** Verdict as printed: "FAIL: token files match,
+but at least one text file differs".
+
+- **Token files: all 13 match.** Every `<lang>.bin` in the two backup datasets has the manifest's size and
+  SHA-256. Every `<lang>.meta.json` has the manifest's `n_train` / `n_val` and is byte-identical to the
+  original. So **the backup holds the complete training data, verified.**
+- **Originals intact:** all 13 original `.jsonl.gz` files in the build kernel outputs match their manifest
+  SHA-256.
+- **Text files in the backup are incomplete.** Each holds exactly the documents kept from the first
+  Sangraha file, `data-1`; the `data-2` documents are missing. Every language's line count equals its `data-1`
+  kept count in the build summary (en 348,027; ur 191,369; as 104,291; bn 149,458; gu 149,450;
+  hi 171,215; kn 161,003; ml 78,468; mr 174,498; or 173,774; pa 137,597; ta 149,555; te 157,494).
+- **Cause:** the build writes each `<lang>.jsonl.gz` as two gzip members joined together, one per Sangraha
+  file. That is valid gzip, and Python reads both. Kaggle's automatic unzipping kept only the first member,
+  without any warning. That the backup's text equals member 1 byte for byte is NOT VERIFIED; only the
+  counts were compared.
+- **Where the network paths were:** datasets under `/kaggle/input/datasets/<user>/<name>/`, kernel outputs
+  under `/kaggle/input/notebooks/<user>/<kernel>/` (recorded in the summary).
+- **What this means:** the backup is good for training (the token files) but not as a text backup. The
+  complete text exists only in the build kernel outputs, so those stay primary: never relaunch
+  build-a/-b. A complete text backup, and a build change to single-member gzip for future slices, would
+  each need approval.
+
 ### EXP-047 — Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running anything needs a further "approve EXP-047" plus the founder's compute decision)
 
