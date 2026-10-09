@@ -169,6 +169,16 @@ def run_verify(input_dir: Path, workers: int) -> dict[str, Any]:
     if not rec.get("verdict", "").startswith("PASS"):
         raise SystemExit(f"{REWRITE_SUMMARY} did not pass; nothing to verify")
     rows_in = [r for p in rec["parts"] for r in p["languages"]]
+    mounted = sorted(str(d) for d in input_dir.rglob("*") if d.is_dir() and d.name == DATASET)
+    if not mounted:
+        # Kaggle starts the kernel even when the dataset is missing; say so in the summary
+        return {
+            "mode": "verify",
+            "dataset": DATASET,
+            "rewrite_summary_sha256": cb.sha256_file(REWRITE_SUMMARY),
+            "languages": [],
+            "verdict": f"FAIL: the dataset {DATASET} is not mounted (does it exist, and was it ready?)",
+        }
     with ThreadPoolExecutor(max_workers=workers) as pool:
         rows = list(pool.map(lambda r: verify_language(r, input_dir), rows_in))
     ok = len(rows) == LANGUAGES and all(r["ok"] for r in rows)

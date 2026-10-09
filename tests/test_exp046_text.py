@@ -225,7 +225,9 @@ def test_runner_text_wiring():
     rw = text[j : text.index("\n    }\n", j)]
     assert "$meta.dataset_sources = @()" in rw
     assert '$meta.kernel_sources = @("$user/frontier-exp046-build-a", "$user/frontier-exp046-build-b")' in rw
-    assert 'if ($TextStep -eq "verify") { $meta.dataset_sources = @("$user/frontier-v2-slice2-text") }' in text
+    assert (
+        'if ($TextStep -eq "verify") { $meta.dataset_sources = @("$user/frontier-v2-slice2-text") }' in text
+    )
     # never the 5.6 GB of text: only the small report folder is downloaded
     dl = re.findall(r'\} elseif \(\$TextStep\) \{\n(?:\s*#[^\n]*\n)?\s*\$r = Invoke-Logged "([^"]+)"', text)
     assert dl == [
@@ -239,7 +241,9 @@ def test_runner_text_wiring():
 def test_wrapper():
     text = WRAPPER.read_text(encoding="ascii")
     assert "param([switch]$Verify, [switch]$Relaunch)" in text
-    assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-046" -TextStep $step -Relaunch:$Relaunch' in text
+    assert (
+        '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-046" -TextStep $step -Relaunch:$Relaunch' in text
+    )
     assert 'if ($Verify) { $step = "verify" }' in text and "exit $LASTEXITCODE" in text
 
 
@@ -250,3 +254,26 @@ def test_runner_tells_the_founder_how_to_make_the_dataset():
     assert 'StartsWith("PASS")' in block and "Output tab" in block and "New Dataset" in block
     assert "frontier-v2-slice2-text" in block and "run_kaggle_exp046_text.ps1 -Verify" in block
     assert i < text.index('Add-Report "RESULT: COMPLETE - finished')
+
+
+def test_verify_reports_a_missing_dataset_clearly(tmp_path, monkeypatch):
+    # 2026-10-09: the verify kernel started before the dataset existed; Kaggle mounted nothing
+    _, _, out, _ = _rewrite(tmp_path, monkeypatch)
+    monkeypatch.setattr(tb, "REWRITE_SUMMARY", out / "summary.json")
+    empty = tmp_path / "kaggle-input"
+    empty.mkdir()
+    vout = tmp_path / "verify"
+    assert tb.main(["verify", "--input-dir", str(empty), "--out", str(vout)]) == 1
+    s = json.loads((vout / "summary.json").read_text(encoding="utf-8"))
+    assert s["verdict"].startswith("FAIL: the dataset frontier-v2-slice2-text is not mounted")
+    assert s["languages"] == [] and s["complete"]
+
+
+def test_runner_checks_the_dataset_before_starting_verify():
+    text = RUNNER.read_text(encoding="ascii")
+    i = text.index('if ($TextStep -eq "verify") {\n        # Kaggle starts a kernel even when')
+    block = text[i : text.index("\n    }\n", i)]
+    assert '$r = Invoke-Logged "$kaggle datasets status $textId"' in block
+    assert '-match "ready"' in block and "Stop-Run" in block and "-Relaunch" in block
+    assert '$textId = "$user/frontier-v2-slice2-text"' in block
+    assert i < text.index('$r = Invoke-Logged "$kaggle kernels push -p $stage"')  # before any kernel starts

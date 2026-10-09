@@ -826,6 +826,9 @@ comes next. They also update the table in §3.
   - **Text rewrite PASS (2026-10-09, results `37d5de8`):** all 13 slice-2 text files rewritten as single-member
     gzip on Kaggle CPU (1,247 s), same content, full document counts, 5.59 GB. Next: founder makes the private
     dataset `frontier-v2-slice2-text` from the kernel's Output tab, then runs `run_kaggle_exp046_text.ps1 -Verify`.
+  - **First -Verify (2026-10-09) had no inputs:** started 2 min after the rewrite, before the dataset existed;
+    Kaggle mounts nothing for a missing dataset source but starts anyway. The runner now checks the dataset is
+    ready before launching verify. Next: the founder makes the dataset, then `run_kaggle_exp046_text.ps1 -Verify -Relaunch`.
 
 
 ## 9. The prompt the operator pastes into a new Arena chat

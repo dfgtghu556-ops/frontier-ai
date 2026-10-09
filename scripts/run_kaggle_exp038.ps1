@@ -514,6 +514,17 @@ if ($launching) {
         $meta.kernel_sources = @("$user/frontier-exp046-build-a", "$user/frontier-exp046-build-b")
     }
     if ($TextStep -eq "verify") { $meta.dataset_sources = @("$user/frontier-v2-slice2-text") }  # the new dataset only
+    if ($TextStep -eq "verify") {
+        # Kaggle starts a kernel even when a dataset source does not exist (it mounts nothing; seen
+        # 2026-10-09), so the founder's dataset must exist and be ready BEFORE the verify kernel starts
+        $textId = "$user/frontier-v2-slice2-text"
+        $r = Invoke-Logged "$kaggle datasets status $textId"
+        if ($r.Code -ne 0 -or -not (($r.Lines -join " ") -match "ready")) {
+            Add-Tail $r
+            Stop-Run "the dataset $textId does not exist or is not ready yet. Make it from the Output tab of https://www.kaggle.com/code/$user/frontier-exp046-text-rewrite (title exactly frontier-v2-slice2-text, Private), wait until Kaggle shows it ready, then run this line again with -Relaunch (no kernel was started now)" 2
+        }
+        Add-Report "PASS 4a: private dataset $textId is ready on Kaggle"
+    }
     Write-Ascii "$stage\kernel-metadata.json" ($meta | ConvertTo-Json -Depth 5)
     $r = Invoke-Logged "$kaggle kernels push -p $stage"
     if ($r.Code -ne 0 -or (($r.Lines -join " ") -match "error")) { Add-Tail $r; Stop-Run "Kaggle did not accept the kernel (Kaggle's message is above)" 1 }

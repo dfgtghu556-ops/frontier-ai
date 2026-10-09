@@ -4,9 +4,9 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "07316e606d6421feba7117517edbc6d0a78fa33f5a64e7fa6fb7dbf3f426fa7b",
+  "source_digest": "80d88c6fe74ab8673a77fe536c5a2445a91dca654c1c78435533987624c8cf8e",
   "sources": {
-    "EXPERIMENTS.md": "e4b0beaed365de3e0116f9962ec379108e36c9a9e578b8bee86ddb4172b762ff",
+    "EXPERIMENTS.md": "2b4618f8b82c8c61dd7e1c8fe015566479283720ff2a073a108851807e79f316",
     "DECISIONS.md": "0674c257887402bc26c71402d2c65bbeafed6e35804af02e750c5a6265ca2ad1",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
     "lab/registry.json": "54be232130b65911a3282e040623693fbf2b5fa36c6f654fe06c0b5cb9f28f78",
@@ -971,8 +971,8 @@
         "D-050",
         "D-051"
       ],
-      "line": 4744,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4744"
+      "line": 4755,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4755"
     },
     {
       "id": "EXP-048",
@@ -985,8 +985,8 @@
       "decisions": [
         "D-044"
       ],
-      "line": 4862,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4862"
+      "line": 4873,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4873"
     }
   ],
   "experiment_numbers_not_in_log": [
