@@ -4726,6 +4726,21 @@ but at least one text file differs".
 
 **Status:** complete (D-051 accepted v2-slice2); backup: token files verified 2026-10-09; complete text backup built 2026-10-09 (`scripts\run_kaggle_exp046_text.ps1`), not run yet; builder writes single-member gzip since 2026-10-09
 
+**Note 2026-10-09: text rewrite done (results `37d5de8`; kernel commit e3fc9f8; one Kaggle CPU session).**
+- **VERDICT: PASS.** All 13 originals matched their manifest SHA-256 and had 2 gzip members each.
+- Each new file has 1 member, the same unzipped SHA-256 as its original (read back), and line counts
+  equal to the manifest docs (e.g. en 695,973; te 331,591).
+- Size: 5,585,603,281 bytes as gzip; 24,158,602,634 bytes unzipped.
+- Work time 1,247 s (A 624 s, B 623 s, 4 threads), well under the 2-hour estimate.
+- The first waiting attempt stopped on the runner's `$text`/`-Text` name clash (fixed in `6631798`);
+  the same kernel was collected, not relaunched.
+- The files are in the kernel output `/kaggle/working/slice2-text/`.
+- Next: the founder makes the private dataset `frontier-v2-slice2-text` from that output, then runs
+  `-Verify`. Until that passes, the full text exists only in kernel outputs (build-a/-b and this
+  rewrite kernel); none of them is ever relaunched.
+
+**Status:** complete (D-051 accepted v2-slice2); backup: token files verified 2026-10-09; complete text rewritten as single-member gzip 2026-10-09 (PASS); dataset frontier-v2-slice2-text and -Verify pending; builder writes single-member gzip since 2026-10-09
+
 ### EXP-047 — Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running anything needs a further "approve EXP-047" plus the founder's compute decision)
 

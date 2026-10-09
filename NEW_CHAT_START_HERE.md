@@ -823,6 +823,9 @@ comes next. They also update the table in §3.
     re-validated the new `[ValidateSet] $Text` parameter. Renamed to `-TextStep`; a test now forbids any
     script variable that reuses a parameter name. The launched kernel (commit e3fc9f8) keeps running; the
     same line, run again after `git pull`, waits for it and collects it (no relaunch).
+  - **Text rewrite PASS (2026-10-09, results `37d5de8`):** all 13 slice-2 text files rewritten as single-member
+    gzip on Kaggle CPU (1,247 s), same content, full document counts, 5.59 GB. Next: founder makes the private
+    dataset `frontier-v2-slice2-text` from the kernel's Output tab, then runs `run_kaggle_exp046_text.ps1 -Verify`.
 
 
 ## 9. The prompt the operator pastes into a new Arena chat
