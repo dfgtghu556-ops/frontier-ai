@@ -11,6 +11,9 @@
 # Start it only BETWEEN two EXP-043 sessions (the runner refuses while one is launched and not yet
 # collected).
 #
+# UPDATE 2026-10-09 (runner fix A1): this is a CPU-only run, so it may now also start while an
+# EXP-043 session is running (it uses no GPU quota and commits only its own results folder).
+#
 # Usage (from the repo root):
 #   powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp046_check.ps1
 # If the laptop was switched off: run the same line again - it continues.

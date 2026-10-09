@@ -182,6 +182,11 @@ if ($Final) {
     $expectedRun = "the EXP-045 final evaluation (one GPU) should take under 1 hour; not measured yet"
     $maxWaitHours = 4
 }
+# CPU-only runs (EXP-045 coverage, EXP-046 probe/builds/check) say so in the report (fix A3, 2026-10-09)
+$cpuOnly = (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046")
+$runKind = "GPU run on a free Kaggle T4 machine"
+$runWord = "GPU"
+if ($cpuOnly) { $runKind = "CPU run on a free Kaggle CPU session, no GPU quota"; $runWord = "CPU" }
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
 $report = New-Object System.Collections.Generic.List[string]
@@ -191,6 +196,14 @@ function Save-Report {
     Write-Host ""
     Write-Host "Report written to $reportPath (opening it in Notepad)."
     try { Start-Process notepad.exe -ArgumentList $reportPath } catch { }
+}
+# Kaggle's own words go into the report too, not only into run.log (fix A2, 2026-10-09)
+function Add-Tail($res, [int]$n = 15) {
+    $tail = @($res.Lines | Where-Object { "$_".Trim() -ne "" } | Select-Object -Last $n)
+    if ($tail.Count -gt 0) {
+        $report.Add("  Last lines from the command:")
+        foreach ($line in $tail) { $report.Add("  | $line") }
+    }
 }
 function Stop-Run([string]$why, [int]$code) {
     Add-Report "RESULT: STOPPED - $why"
@@ -223,7 +236,7 @@ function Save-State($s) { $s | ConvertTo-Json | Set-Content -Path $statePath -En
 # Kaggle's tool reads its JSON files with Python; they must not start with a byte-order mark.
 function Write-Ascii([string]$path, [string]$text) { [System.IO.File]::WriteAllText((Join-Path (Get-Location) $path), $text) }
 
-Add-Report "REPORT $Exp (GPU run on one free Kaggle T4) - started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+Add-Report "REPORT $Exp ($runKind) - started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Add-Report ""
 $state = Read-State
 
@@ -243,12 +256,17 @@ Add-Report "PASS 1c: .venv and scripts found"
 
 $launching = (-not $state.pinned_commit) -or $Relaunch
 if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046")) {
-    # EXP-044/045/046 run only BETWEEN EXP-043 sessions: never while one is launched and not yet collected
+    # GPU runs (EXP-044, EXP-045 -Final) start only BETWEEN EXP-043 sessions: never while one is launched
+    # and not yet collected. CPU-only runs may start alongside since 2026-10-09 (fix A1): they use no GPU
+    # quota and commit only their own results folder. If both runners publish in the same minute, the
+    # second one stops safely ("unexpected changes") and the same line is simply run again.
     $s43 = "out\kaggle\EXP-043\state.json"
-    if ((Test-Path $s43) -and ((Get-Content $s43 -Raw -Encoding UTF8 | ConvertFrom-Json).pinned_commit)) {
+    $out43 = (Test-Path $s43) -and ((Get-Content $s43 -Raw -Encoding UTF8 | ConvertFrom-Json).pinned_commit)
+    if ($out43 -and -not $cpuOnly) {
         Stop-Run "an EXP-043 session is launched and not yet collected. Run scripts\run_kaggle_exp043.ps1 first (it waits for that session); start $Exp after its report" 2
     }
-    Add-Report "PASS 1d0: no EXP-043 session is running ($Exp runs between sessions)"
+    if ($out43) { Add-Report "INFO 1d0: an EXP-043 session is running; $Exp uses only a CPU session, so it runs alongside" }
+    else { Add-Report "PASS 1d0: no EXP-043 session is running" }
 }
 if ($launching) {
     $r = Invoke-Logged "git fetch -q origin $branch"
@@ -273,7 +291,8 @@ if (-not $state.dataset_ready) {
         $actual = (Get-FileHash -Algorithm SHA256 "$dataDir\$b").Hash
         if ($actual -ine $expected) { Stop-Run "$b fingerprint $actual does not match the EXP-037 manifest ($expected)" 2 }
     }
-    Add-Report "PASS 1e: $($bins.Count) token file(s) match their EXP-037 fingerprints ($($bins -join ', '))"
+    if ($bins.Count -gt 0) { Add-Report "PASS 1e: $($bins.Count) token file(s) match their EXP-037 fingerprints ($($bins -join ', '))" }
+    else { Add-Report "INFO 1e: this run needs no token files from this PC" }
 }
 
 # --- 2) Kaggle access ------------------------------------------------------------------------
@@ -376,7 +395,7 @@ if (-not $state.dataset_ready) {
         Add-Report ""
         Add-Report "=== uploading $($dataFiles.Count) files ($uploadSize) as PRIVATE dataset $datasetId - $(Get-Date -Format 'HH:mm:ss') ==="
         $r = Invoke-Logged "$kaggle datasets create -p $stage"
-        if ($r.Code -ne 0) { Stop-Run "the dataset upload failed (see the lines above); run this line again to retry" 1 }
+        if ($r.Code -ne 0) { Add-Tail $r; Stop-Run "the dataset upload failed; run this line again to retry" 1 }
         $ready = $false
         $readyChecks = 60  # every 30 seconds: 30 minutes (EXP-040's 5.6 GB: 90 minutes)
         if ($dataFiles.Count -gt 2) { $readyChecks = 180 }
@@ -406,7 +425,7 @@ if ($Build -or $Final) {
         if ($r.Code -ne 0 -or -not (($r.Lines -join " ") -match "ready")) {
             if (-not (Test-Path $heldFile)) {
                 $r = Invoke-Logged "$python scripts\export_heldout_text.py --out $heldFile"
-                if ($r.Code -ne 0 -or -not (Test-Path $heldFile)) { Stop-Run "could not export the held-out texts (see the lines above)" 2 }
+                if ($r.Code -ne 0 -or -not (Test-Path $heldFile)) { Add-Tail $r; Stop-Run "could not export the held-out texts" 2 }
             }
             $stage = "$outDir\heldout"
             New-Item -ItemType Directory -Force $stage | Out-Null
@@ -421,7 +440,7 @@ if ($Build -or $Final) {
             Write-Ascii "$stage\dataset-metadata.json" ($meta | ConvertTo-Json -Depth 5)
             Add-Report "=== uploading the held-out texts (about 1 MB) as PRIVATE dataset $heldId - $(Get-Date -Format 'HH:mm:ss') ==="
             $r = Invoke-Logged "$kaggle datasets create -p $stage"
-            if ($r.Code -ne 0) { Stop-Run "the held-out upload failed (see the lines above); run this line again to retry" 1 }
+            if ($r.Code -ne 0) { Add-Tail $r; Stop-Run "the held-out upload failed; run this line again to retry" 1 }
             $ready = $false
             for ($i = 0; $i -lt 60 -and -not $ready; $i++) {
                 Start-Sleep -Seconds 30
@@ -472,14 +491,14 @@ if ($launching) {
     }
     Write-Ascii "$stage\kernel-metadata.json" ($meta | ConvertTo-Json -Depth 5)
     $r = Invoke-Logged "$kaggle kernels push -p $stage"
-    if ($r.Code -ne 0 -or (($r.Lines -join " ") -match "error")) { Stop-Run "Kaggle did not accept the kernel (see the lines above)" 1 }
+    if ($r.Code -ne 0 -or (($r.Lines -join " ") -match "error")) { Add-Tail $r; Stop-Run "Kaggle did not accept the kernel (Kaggle's message is above)" 1 }
     $state.pinned_commit = $head
     $state.pushed_at = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
     Save-State $state
-    Add-Report "PASS 4: GPU kernel $kernelId launched at $($state.pushed_at) with commit $($head.Substring(0, 7))"
+    Add-Report "PASS 4: $runWord kernel $kernelId launched at $($state.pushed_at) with commit $($head.Substring(0, 7))"
     Add-Report "       (you can watch it at https://www.kaggle.com/code/$kernelId - not needed)"
 } else {
-    Add-Report "PASS 4: GPU kernel $kernelId was launched earlier ($($state.pushed_at), commit $($state.pinned_commit.Substring(0, 7)))"
+    Add-Report "PASS 4: $runWord kernel $kernelId was launched earlier ($($state.pushed_at), commit $($state.pinned_commit.Substring(0, 7)))"
 }
 
 # --- 5) wait for the kernel, fetch and check its results -------------------------------------
@@ -488,7 +507,7 @@ try {
     & powercfg /change hibernate-timeout-ac 0
 } catch { }
 Add-Report ""
-Add-Report "=== waiting for the GPU run (checks every 10 minutes; $expectedRun). Leave the PC on and online. ==="
+Add-Report "=== waiting for the $runWord run (checks every 10 minutes; $expectedRun). Leave the PC on and online. ==="
 $deadline = (Get-Date).AddHours($maxWaitHours)
 $status = ""
 while ($true) {
@@ -500,7 +519,7 @@ while ($true) {
         if ($text -match "error|cancel") { $status = "error"; break }
     }
     if ((Get-Date) -gt $deadline) {
-        Stop-Run "the GPU run has not finished after $maxWaitHours hours of waiting; run this line again later" 1
+        Stop-Run "the $runWord run has not finished after $maxWaitHours hours of waiting; run this line again later" 1
     }
     Write-Host "  $(Get-Date -Format 'HH:mm') still running - next check in 10 minutes"
     Start-Sleep -Seconds $pollSeconds
@@ -533,7 +552,7 @@ if ($Exp -eq "EXP-043") {
 } else {
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force"
 }
-if ($r.Code -ne 0) { Stop-Run "downloading the kernel output failed; run this line again" 1 }
+if ($r.Code -ne 0) { Add-Tail $r; Stop-Run "downloading the kernel output failed; run this line again" 1 }
 $resultDir = "$outputDir\$Exp"
 $publishSrc = $resultDir
 if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {
@@ -554,7 +573,7 @@ if (-not (Test-Path $summaryPath)) {
     Add-Report "FAIL 5a: the kernel left no summary.json. Last 60 lines of the kernel log:"
     $klog = Get-ChildItem $outputDir -Filter "*.log" | Select-Object -First 1
     if ($klog) { foreach ($line in (Get-Content $klog.FullName -Tail 60 -Encoding UTF8)) { $report.Add("  $line") } }
-    Stop-Run "the GPU run produced no results (after fixing, the chat will tell you to add -Relaunch)" 1
+    Stop-Run "the $runWord run produced no results (after fixing, the chat will tell you to add -Relaunch)" 1
 }
 $summary = Get-Content $summaryPath -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($summary.smoke) { Stop-Run "summary.json is a smoke test, not a GPU result" 1 }

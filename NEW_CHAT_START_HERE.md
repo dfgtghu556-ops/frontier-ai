@@ -805,6 +805,13 @@ comes next. They also update the table in §3.
     only the data-1 half: Kaggle's auto-unzip kept only the first gzip member of each two-member
     `<lang>.jsonl.gz` (counts equal data-1 kept docs exactly). Originals intact; build-a/-b outputs stay
     primary for text. Mount paths: /kaggle/input/datasets/<user>/<name>/, /kaggle/input/notebooks/<user>/<kernel>/.
+  - **Runner fix A built (2026-10-09):** `run_kaggle_exp038.ps1` now (1) lets CPU-only runs (EXP-045
+    coverage, EXP-046 probe/builds/check) start while an EXP-043 session is out; GPU runs (EXP-044,
+    EXP-045 `-Final`) still refuse; (2) copies Kaggle's last lines into REPORT.txt when an upload,
+    export, kernel push or download fails; (3) says "CPU run"/"GPU run" correctly and drops the
+    "0 token file(s) match" line. Static tests `tests/test_runner_fixes.py`; NOT run on Windows yet.
+    That Kaggle allows a CPU session alongside a running GPU session is NOT VERIFIED. Next: C (EXP-048).
+
 
 ## 9. The prompt the operator pastes into a new Arena chat
 

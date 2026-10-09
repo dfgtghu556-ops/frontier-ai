@@ -10,6 +10,9 @@
 # same line again", and before running that line. The runner refuses while an EXP-043 session is
 # launched but not yet collected.
 #
+# UPDATE 2026-10-09 (runner fix A1): this is a CPU-only run, so it may now also start while an
+# EXP-043 session is running (it uses no GPU quota and commits only its own results folder).
+#
 # Usage (from the repo root):
 #   powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp045.ps1
 # If the laptop was switched off: run the same line again - it continues.
