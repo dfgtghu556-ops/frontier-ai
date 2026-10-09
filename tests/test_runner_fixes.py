@@ -69,3 +69,21 @@ def test_a3_report_names_the_run_correctly():
     assert not any(re.search(r"\bGPU kernel\b", x) or "the GPU run" in x for x in printed)
     assert "PASS 4: $runWord kernel $kernelId launched at" in text
     assert "INFO 1e: this run needs no token files from this PC" in text
+
+
+def test_no_variable_reuses_a_parameter_name():
+    """PowerShell names are case-insensitive: `$text = ...` in a script with a `[ValidateSet] $Text`
+    parameter re-validates the new value and stops the script (founder's run, 2026-10-09). No script
+    may assign to a variable that is also one of its parameters."""
+    for ps1 in sorted((ROOT / "scripts").glob("*.ps1")):
+        text = ps1.read_text(encoding="ascii")
+        m = re.search(r"^param\((.*)\)\s*$", text, flags=re.M)
+        if not m:
+            continue
+        names = re.findall(r"\$(\w+)", m.group(1))
+        for line in text.splitlines():
+            if line.lstrip().startswith(("function ", "#", "param(")):
+                continue
+            for name in names:
+                pat = rf"(?i)(^|[\s;({{])\${name}\s*=(?!=)|foreach\s*\(\s*\${name}\s+in\b"
+                assert not re.search(pat, line), f"{ps1.name}: {line.strip()}"

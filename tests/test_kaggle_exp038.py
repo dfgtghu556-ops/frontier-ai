@@ -38,7 +38,7 @@ def test_runner_commits_only_the_exp038_results_folder():
     assert '$resultsPrefix = "evals/results/$Exp/"' in text
     assert (
         'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")]'
-        '[string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check, [ValidateSet("rewrite", "verify")][string]$Text)' in text
+        '[string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check, [ValidateSet("rewrite", "verify")][string]$TextStep)' in text
     )
     assert "git add $resultsPrefix" in text
     assert re.findall(r'Invoke-Logged "(git add[^"]*)"', text) == ["git add $resultsPrefix"]

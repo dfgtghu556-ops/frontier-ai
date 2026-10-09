@@ -26,5 +26,5 @@ param([switch]$Verify, [switch]$Relaunch)
 
 $step = "rewrite"
 if ($Verify) { $step = "verify" }
-& "$PSScriptRoot\run_kaggle_exp038.ps1" -Exp "EXP-046" -Text $step -Relaunch:$Relaunch
+& "$PSScriptRoot\run_kaggle_exp038.ps1" -Exp "EXP-046" -TextStep $step -Relaunch:$Relaunch
 exit $LASTEXITCODE

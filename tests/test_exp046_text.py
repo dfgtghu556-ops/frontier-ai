@@ -210,42 +210,42 @@ def test_kernels(mode):
 
 def test_runner_text_wiring():
     text = RUNNER.read_text(encoding="ascii")
-    assert '[switch]$Check, [ValidateSet("rewrite", "verify")][string]$Text)' in text
-    assert 'if ($Text -and ($Exp -ne "EXP-046" -or $Build -or $Check)) {' in text
-    i = text.index("if ($Text) {\n    # the complete slice-2 text backup")
+    assert '[switch]$Check, [ValidateSet("rewrite", "verify")][string]$TextStep)' in text
+    assert 'if ($TextStep -and ($Exp -ne "EXP-046" -or $Build -or $Check)) {' in text
+    i = text.index("if ($TextStep) {\n    # the complete slice-2 text backup")
     block = text[i : text.index("\n}\n", i)]
     for needle in (
-        '$template = "scripts\\kaggle\\exp046_text_${Text}_kernel.py"',
-        '$kernelSlug = "frontier-exp046-text-$Text"',
-        '$outDir = "out\\kaggle\\EXP-046-text-$Text"',
+        '$template = "scripts\\kaggle\\exp046_text_${TextStep}_kernel.py"',
+        '$kernelSlug = "frontier-exp046-text-$TextStep"',
+        '$outDir = "out\\kaggle\\EXP-046-text-$TextStep"',
         "$dataFiles = @()",
     ):
         assert needle in block, needle
-    j = text.index('if ($Text -eq "rewrite") {')
+    j = text.index('if ($TextStep -eq "rewrite") {')
     rw = text[j : text.index("\n    }\n", j)]
     assert "$meta.dataset_sources = @()" in rw
     assert '$meta.kernel_sources = @("$user/frontier-exp046-build-a", "$user/frontier-exp046-build-b")' in rw
-    assert 'if ($Text -eq "verify") { $meta.dataset_sources = @("$user/frontier-v2-slice2-text") }' in text
+    assert 'if ($TextStep -eq "verify") { $meta.dataset_sources = @("$user/frontier-v2-slice2-text") }' in text
     # never the 5.6 GB of text: only the small report folder is downloaded
-    dl = re.findall(r'\} elseif \(\$Text\) \{\n(?:\s*#[^\n]*\n)?\s*\$r = Invoke-Logged "([^"]+)"', text)
+    dl = re.findall(r'\} elseif \(\$TextStep\) \{\n(?:\s*#[^\n]*\n)?\s*\$r = Invoke-Logged "([^"]+)"', text)
     assert dl == [
-        "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/text-$Text/.*"
+        "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/text-$TextStep/.*"
     ]
-    assert 'if ($Text) { $resultDir = "$outputDir\\$Exp\\text-$Text" }' in text
-    assert text.index('if ($Exp -eq "EXP-046") { $resultDir =') < text.index("if ($Text) { $resultDir =")
-    assert 'if ($Text) { $msgText = "${Exp}: slice-2 text backup, $Text step' in text
+    assert 'if ($TextStep) { $resultDir = "$outputDir\\$Exp\\text-$TextStep" }' in text
+    assert text.index('if ($Exp -eq "EXP-046") { $resultDir =') < text.index("if ($TextStep) { $resultDir =")
+    assert 'if ($TextStep) { $msgText = "${Exp}: slice-2 text backup, $TextStep step' in text
 
 
 def test_wrapper():
     text = WRAPPER.read_text(encoding="ascii")
     assert "param([switch]$Verify, [switch]$Relaunch)" in text
-    assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-046" -Text $step -Relaunch:$Relaunch' in text
+    assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-046" -TextStep $step -Relaunch:$Relaunch' in text
     assert 'if ($Verify) { $step = "verify" }' in text and "exit $LASTEXITCODE" in text
 
 
 def test_runner_tells_the_founder_how_to_make_the_dataset():
     text = RUNNER.read_text(encoding="ascii")
-    i = text.index('if ($Text -eq "rewrite") {\n    Add-Report ""')
+    i = text.index('if ($TextStep -eq "rewrite") {\n    Add-Report ""')
     block = text[i : text.index("\n}\n", i)]
     assert 'StartsWith("PASS")' in block and "Output tab" in block and "New Dataset" in block
     assert "frontier-v2-slice2-text" in block and "run_kaggle_exp046_text.ps1 -Verify" in block

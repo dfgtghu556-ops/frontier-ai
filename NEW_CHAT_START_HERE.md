@@ -818,6 +818,11 @@ comes next. They also update the table in §3.
     and runs it with `-Verify`. **D built:** `src/frontier_ai/data/slices.py` loads slice 1 + 2 with pinned
     manifests (8,159,265,692 training tokens), not wired into training. Next: C (EXP-048); EXP-043 session 4
     after the weekly reset.
+  - **Runner bug fixed (2026-10-09):** the founder's first `run_kaggle_exp046_text.ps1` launched the rewrite
+    kernel, then stopped while waiting: PowerShell names are case-insensitive, so the runner's `$text = ...`
+    re-validated the new `[ValidateSet] $Text` parameter. Renamed to `-TextStep`; a test now forbids any
+    script variable that reuses a parameter name. The launched kernel (commit e3fc9f8) keeps running; the
+    same line, run again after `git pull`, waits for it and collects it (no relaunch).
 
 
 ## 9. The prompt the operator pastes into a new Arena chat
