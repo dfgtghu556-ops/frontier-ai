@@ -1,0 +1,22 @@
+EXP-046 slice-2 backup check (2026-10-09T00:24:30Z)
+VERDICT: FAIL: token files match, but at least one text file differs
+
+Part A: backup /kaggle/input/datasets/someshwar0112/frontier-v2-slice2-a/slice2-A; original /kaggle/input/notebooks/someshwar0112/frontier-exp046-build-a/slice2-A
+   en  bin ok (1,918,619,108 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (348,027 documents)
+   ur  bin ok (1,292,009,966 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (191,369 documents)
+   as  bin ok (619,399,194 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (104,291 documents)
+   bn  bin ok (808,217,494 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (149,458 documents)
+   gu  bin ok (807,382,572 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (149,450 documents)
+   hi  bin ok (782,313,868 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (171,215 documents)
+  (116.7 s)
+Part B: backup /kaggle/input/datasets/someshwar0112/frontier-v2-slice2-b/slice2-B; original /kaggle/input/notebooks/someshwar0112/frontier-exp046-build-b/slice2-B
+   kn  bin ok (641,199,400 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (161,003 documents)
+   ml  bin ok (409,700,458 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (78,468 documents)
+   mr  bin ok (723,499,290 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (174,498 documents)
+   or  bin ok (695,723,734 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (173,774 documents)
+   pa  bin ok (778,988,836 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (137,597 documents)
+   ta  bin ok (584,085,826 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (149,555 documents)
+   te  bin ok (744,391,860 bytes)  meta ok (n_train/n_val match; identical to the original)  text unzipped by Kaggle: BAD (157,494 documents)
+  (104.3 s)
+
+Nothing was changed or copied; only reading and hashing.

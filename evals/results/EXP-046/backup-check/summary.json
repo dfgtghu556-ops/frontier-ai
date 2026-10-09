@@ -1,0 +1,327 @@
+{
+  "schema": "frontier-exp046-backup-check-v1",
+  "exp_id": "EXP-046",
+  "smoke": false,
+  "complete": true,
+  "created_utc": "2026-10-09T00:24:30Z",
+  "parts": [
+    {
+      "part": "A",
+      "manifest": "evals/results/EXP-046/build-A/manifest.json",
+      "manifest_sha256": "3782679fe4e71e45077692b42d63f303ecd0d1914c0d1a10da1f86495f376c42",
+      "backup_dir": "/kaggle/input/datasets/someshwar0112/frontier-v2-slice2-a/slice2-A",
+      "original_dir": "/kaggle/input/notebooks/someshwar0112/frontier-exp046-build-a/slice2-A",
+      "languages": [
+        {
+          "language": "en",
+          "bin": {
+            "bytes": 1918619108,
+            "sha256": "8fe8763256ae9e0dccd14697c6e9ce87c6956cd03d1fcdfaf2eacb11dff0d0c4",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "12081a8453a2715d8ce63c775c5b3d026e1e6b1a0271d669d22514ad1885bf5e",
+            "lines": 348027,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "ur",
+          "bin": {
+            "bytes": 1292009966,
+            "sha256": "45b7bbe734fc7f447ed91cbf2b40f324dd0fbf2af4b82b0cb7bfa282f9e06ffe",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "20db1e9702abb568e6ec0b96cf8d4efeca48eb7d5339afe8e9b0e63eea0e6cc9",
+            "lines": 191369,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "as",
+          "bin": {
+            "bytes": 619399194,
+            "sha256": "d18482e719e316c3ebe0521156a4b8935e75e84e0ae629d4c184e7bee1fdfb7e",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "ed0f5ff601c119a27d4f6fdc7c239c4c2641147e120947036ac9f4d061b80ab5",
+            "lines": 104291,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "bn",
+          "bin": {
+            "bytes": 808217494,
+            "sha256": "d7648839e19d79cc208b6275159e346d47e221833e460fe5450e1ee849c3987c",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "8127f91c3b95120cd75145f9a1449b34419496e4e0a5dd8bb7b1dbdd3c359a48",
+            "lines": 149458,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "gu",
+          "bin": {
+            "bytes": 807382572,
+            "sha256": "6625bb4f4c1f32918407bde394fdd6fa0311aea0b4e418b3a2d209aceda5976c",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "a6534d5b0d89e8500634039e763fa2c5b82c96a5c0993f7a846b0ce435ad4468",
+            "lines": 149450,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "hi",
+          "bin": {
+            "bytes": 782313868,
+            "sha256": "51d935971295f42f608f0d332139a6d6e1288dd100f2a4c350a738b22bc4b3b5",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "318b58a41cebc6d76f0c9c2d721d2fa6ce71c48bbdcc3afc2c68b25cc6cfa76d",
+            "lines": 171215,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        }
+      ],
+      "token_files_ok": true,
+      "text_ok": false,
+      "text_fully_compared": true,
+      "seconds": 116.7
+    },
+    {
+      "part": "B",
+      "manifest": "evals/results/EXP-046/build-B/manifest.json",
+      "manifest_sha256": "542988db5717357d09a76c7384558b0c27cd2034d07d59e1a16b9092f83f7222",
+      "backup_dir": "/kaggle/input/datasets/someshwar0112/frontier-v2-slice2-b/slice2-B",
+      "original_dir": "/kaggle/input/notebooks/someshwar0112/frontier-exp046-build-b/slice2-B",
+      "languages": [
+        {
+          "language": "kn",
+          "bin": {
+            "bytes": 641199400,
+            "sha256": "9154e5310c8482b0046b711492159df250f09c809cc166381175c58999b7ef2b",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "b082ef1054a55485bd858c452a49e953ac60c3676c5c7bbffca7174d475e6ac0",
+            "lines": 161003,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "ml",
+          "bin": {
+            "bytes": 409700458,
+            "sha256": "d5a03f087e523ef51179f3b72e03a80a22a76a3762e0adc27d6894881e11f73c",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "0b8a6783ff6ae0f3e962d41811e14e3a146108cf8f7799d3a0011adf5dae9c22",
+            "lines": 78468,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "mr",
+          "bin": {
+            "bytes": 723499290,
+            "sha256": "1f0d3e0d70bea6edb1a2d7ac20ac9fea23c993678a8a80f53a2c0d954db786de",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "0b851206cbc28dc78c1200619887ae3ab94f1ffc491676993d192b65edc1d5f9",
+            "lines": 174498,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "or",
+          "bin": {
+            "bytes": 695723734,
+            "sha256": "310788655d9594b60d2a91eaf5be16aa9d5a130b96ac6616c8b1aa9455c83792",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "b493fb10180b5a38f5df10799637bbd4255c32858cca96030dd3be611be6487f",
+            "lines": 173774,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "pa",
+          "bin": {
+            "bytes": 778988836,
+            "sha256": "7552a9b838ab7249b6a2c25fa0943f23da2eeffa1422bc72526a38f4106efd5b",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "a398bead9d24e6b69e3489d5db52983f36f64cd81352280b81b1cc2e69cae66b",
+            "lines": 137597,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "ta",
+          "bin": {
+            "bytes": 584085826,
+            "sha256": "3e1c914e4b2a2da8552d276375cb6ab4c4b147213a5603d12520124e3f281b1d",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "1fea78fb6ffe6fef6f5a33aa6d228beb0a403979da50bfaa78b991f999aefbcd",
+            "lines": 149555,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        },
+        {
+          "language": "te",
+          "bin": {
+            "bytes": 744391860,
+            "sha256": "f0c280470640484e070f2f6a94f104926f4d9488159f15f143a621ad653567c5",
+            "ok": true
+          },
+          "meta": {
+            "ok": true,
+            "note": "n_train/n_val match; identical to the original"
+          },
+          "text": {
+            "form": "unzipped by Kaggle",
+            "sha256_unzipped": "ef2825655966f662571f42b3f8440df36750b964a5619ce0aeb9244a64d1ad2b",
+            "lines": 157494,
+            "original_gz_sha256_ok": true,
+            "identical_to_original_unzipped": false,
+            "ok": false,
+            "full": true
+          },
+          "ok": false
+        }
+      ],
+      "token_files_ok": true,
+      "text_ok": false,
+      "text_fully_compared": true,
+      "seconds": 104.3
+    }
+  ],
+  "verdict": "FAIL: token files match, but at least one text file differs",
+  "seconds": 221.2,
+  "environment": {
+    "code_commit": "b606207f91ea7559c0d6a58f8c9501e34dd1fce0",
+    "python": "3.13.15"
+  }
+}
