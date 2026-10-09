@@ -22,8 +22,9 @@ configuration), plus four safeguards:
 
 Part A = en ur as bn gu hi, part B = kn ml mr or pa ta te (EXP-046 probe, 2026-10-06). Each language
 is one task: download its two pinned parquet files (verified by size and SHA-256), build them in
-order, join the two outputs into ``<data-out>/<lang>.jsonl.gz`` and pack that with Frontier
-Tokenizer v2 into ``<lang>.bin`` + ``<lang>.meta.json`` (``frontier_ai.corpus.pack``, the EXP-037
+order, join the two outputs into ``<data-out>/<lang>.jsonl.gz`` (one gzip member since
+2026-10-09) and pack that with Frontier Tokenizer v2 into ``<lang>.bin`` + ``<lang>.meta.json``
+(``frontier_ai.corpus.pack``, the EXP-037
 format: uint16, ``train || val``, one ``<|endoftext|>`` per document, the same validation rule).
 Parquet files are deleted after use; Sangraha text goes only into the (private) data output.
 
@@ -52,6 +53,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from frontier_ai.corpus.decontaminate import ShortSuiteIndex, SuiteGuard, heldout_pairs  # noqa: E402
+from frontier_ai.corpus.gzjoin import write_single_member  # noqa: E402
 from frontier_ai.corpus.normalize import normalize_text  # noqa: E402
 from frontier_ai.corpus.sangraha import (  # noqa: E402
     PinnedFile,
@@ -235,14 +237,11 @@ def _language(task: dict[str, Any]) -> dict[str, Any]:
             f"[slice2] {pf.source_id}: kept {stats['kept']['docs']:,} of {stats['input']['docs']:,} docs, "
             f"{stats['kept']['tokens']:,} tokens ({stats['seconds'] / 60:.1f} min)"
         )
-    # join the two outputs (gzip members concatenate into one valid gzip file)
+    # join the two outputs into ONE gzip member (changed 2026-10-09, backup item b2): v2-slice2 joined
+    # them byte for byte (two members), and Kaggle's dataset unzip kept only the first member. The
+    # unzipped content is unchanged; only the .gz bytes (and so their SHA-256) differ from v2-slice2's.
     text_path = data_out / f"{lang}.jsonl.gz"
-    tmp = text_path.with_name(text_path.name + ".tmp")
-    with open(tmp, "wb") as out:
-        for part in parts:
-            with open(part, "rb") as fh:
-                shutil.copyfileobj(fh, out, 1 << 20)
-    tmp.replace(text_path)
+    write_single_member(parts, text_path)
     for part in parts:
         part.unlink()
     docs = sum(s["kept"]["docs"] for s in built)

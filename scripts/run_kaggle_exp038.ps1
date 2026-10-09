@@ -65,6 +65,11 @@
 # datasets against the build manifests on ONE CPU session: its own kernel and state folder; inputs are the
 # founder's private datasets frontier-v2-slice2-a/-b and the build kernels' outputs; it publishes
 # evals/results/EXP-046/backup-check/.
+# EXP-046 with -Text rewrite|verify (scripts\run_kaggle_exp046_text.ps1; approved 2026-10-09, "DO ALL")
+# makes a COMPLETE copy of the slice-2 text on ONE CPU session each: "rewrite" mounts the build kernels'
+# outputs and writes the 13 text files as one gzip member each (they stay on Kaggle; the founder makes
+# the dataset frontier-v2-slice2-text from that output); "verify" mounts that dataset and checks it.
+# Each has its own kernel and state folder; they publish evals/results/EXP-046/text-rewrite|text-verify/.
 # If the final push is rejected because the branch moved meanwhile (seen once in EXP-038), it pulls
 # with --rebase once and pushes again; the results commit still touches only evals/results/<EXP>/.
 #
@@ -75,7 +80,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check, [ValidateSet("rewrite", "verify")][string]$Text)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -156,6 +161,20 @@ if ($Exp -eq "EXP-046" -and $Build) {
 }
 if ($Final -and $Exp -ne "EXP-045") { Write-Host "-Final is only for -Exp EXP-045"; exit 2 }
 if ($Check -and ($Exp -ne "EXP-046" -or $Build)) { Write-Host "-Check is only for -Exp EXP-046 (without -Build)"; exit 2 }
+if ($Text -and ($Exp -ne "EXP-046" -or $Build -or $Check)) { Write-Host "-Text is only for -Exp EXP-046 (without -Build or -Check)"; exit 2 }
+if ($Text) {
+    # the complete slice-2 text backup (run_kaggle_exp046_text.ps1): CPU sessions; its own kernels,
+    # states and report folders (one per step), so no earlier EXP-046 state is ever reused
+    $template = "scripts\kaggle\exp046_text_${Text}_kernel.py"
+    $kernelSlug = "frontier-exp046-text-$Text"
+    $outDir = "out\kaggle\EXP-046-text-$Text"
+    $statePath = "$outDir\state.json"
+    $log = "$outDir\run.log"
+    $reportPath = "$outDir\REPORT.txt"
+    $dataFiles = @()  # the 13-language token files are not needed and not mounted
+    $expectedRun = "the text $Text step (CPU only, no GPU) should take under 2 hours; not measured yet"
+    $maxWaitHours = 5
+}
 if ($Check) {
     # the slice-2 backup check (run_kaggle_exp046_check.ps1): a CPU session that only reads and hashes;
     # its own kernel, state and report folder, so the probe's and the builds' states are never reused
@@ -489,6 +508,12 @@ if ($launching) {
         $meta.dataset_sources = @("$user/frontier-v2-slice2-a", "$user/frontier-v2-slice2-b")
         $meta.kernel_sources = @("$user/frontier-exp046-build-a", "$user/frontier-exp046-build-b")
     }
+    if ($Text -eq "rewrite") {
+        # only the originals (build kernel outputs, read only): the one full copy of the text
+        $meta.dataset_sources = @()
+        $meta.kernel_sources = @("$user/frontier-exp046-build-a", "$user/frontier-exp046-build-b")
+    }
+    if ($Text -eq "verify") { $meta.dataset_sources = @("$user/frontier-v2-slice2-text") }  # the new dataset only
     Write-Ascii "$stage\kernel-metadata.json" ($meta | ConvertTo-Json -Depth 5)
     $r = Invoke-Logged "$kaggle kernels push -p $stage"
     if ($r.Code -ne 0 -or (($r.Lines -join " ") -match "error")) { Add-Tail $r; Stop-Run "Kaggle did not accept the kernel (Kaggle's message is above)" 1 }
@@ -546,6 +571,9 @@ if ($Exp -eq "EXP-043") {
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-045/final/.*"
 } elseif ($Check) {
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/backup-check/.*"
+} elseif ($Text) {
+    # never the 13 text files (about 5.6 GB that stay on Kaggle): only the small report folder
+    $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/text-$Text/.*"
 } elseif ($Build) {
     # never the whole output (about 9 GB of corpus that stays on Kaggle): only the small report folder
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/build-$Build/.*"
@@ -565,6 +593,7 @@ if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {
 if ($Exp -eq "EXP-046") { $resultDir = "$outputDir\$Exp\probe" }
 if ($Build) { $resultDir = "$outputDir\$Exp\build-$Build" }
 if ($Check) { $resultDir = "$outputDir\$Exp\backup-check" }
+if ($Text) { $resultDir = "$outputDir\$Exp\text-$Text" }
 # EXP-045: since test 4 the kernel writes the coverage re-scan to EXP-045\coverage\
 if ($Exp -eq "EXP-045") { $resultDir = "$outputDir\$Exp\coverage" }
 if ($Final) { $resultDir = "$outputDir\$Exp\final" }
@@ -622,6 +651,7 @@ if ($changed.Count -eq 0) {
     if ($Exp -eq "EXP-046") { $msgText = "${Exp}: probe results from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     if ($Final) { $msgText = "${Exp}: final evaluation of the EXP-043 model (tests 1-3 and 5) from one Kaggle GPU session (commit $($state.pinned_commit.Substring(0, 7)); the fp16 copy is not committed)" }
     if ($Check) { $msgText = "${Exp}: slice-2 backup check from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)); only reads and hashes)" }
+    if ($Text) { $msgText = "${Exp}: slice-2 text backup, $Text step, from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)); the text stays on Kaggle)" }
     if ($Build) { $msgText = "${Exp}: build $Build reports (v2-slice2; the corpus stays on Kaggle) from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     $msgText | Set-Content -Path $msgFile -Encoding ASCII
     $r = Invoke-Logged "git commit -q -F $msgFile"
@@ -708,6 +738,18 @@ if ($Exp -eq "EXP-043") {
             Add-Report "TRAINING: learning-rate check: $($summary.lr_choice.reason)"
         }
         Add-Report "NEXT: after pasting this report into the Arena chat, run the same line again (session $($summary.session + 1))."
+    }
+}
+if ($Text -eq "rewrite") {
+    Add-Report ""
+    Add-Report "VERDICT: $($summary.verdict)"
+    if (($summary.verdict -as [string]).StartsWith("PASS")) {
+        # the founder's one manual step: a private dataset from this kernel's output (Kaggle web page)
+        Add-Report "NEXT (on kaggle.com, about 5 minutes of clicks; the copy itself may take longer):"
+        Add-Report "  1. Open https://www.kaggle.com/code/$kernelId and click the Output tab."
+        Add-Report "  2. Click New Dataset. Title: frontier-v2-slice2-text  (exactly this). Keep it Private. Create."
+        Add-Report "  3. When Kaggle shows the dataset as ready, run:"
+        Add-Report "     powershell -ExecutionPolicy Bypass -File scripts\run_kaggle_exp046_text.ps1 -Verify"
     }
 }
 Add-Report ""

@@ -25,13 +25,17 @@ from .dataset import TokenDataset
 class MultiTokenDataset:
     """Packed token files with natural (size-proportional) sampling across files."""
 
-    def __init__(self, paths: Sequence[str | Path]) -> None:
+    def __init__(self, paths: Sequence[str | Path], names: Sequence[str] | None = None) -> None:
+        """``names`` (EXP-047, optional): one name per file, e.g. ``s1/hi`` and ``s2a/hi`` when two
+        slices hold a file of the same name. Default: the file name without suffix (EXP-040..043)."""
         if not paths:
             raise ValueError("MultiTokenDataset needs at least one token file")
+        if names is not None and len(names) != len(paths):
+            raise ValueError(f"{len(names)} names for {len(paths)} files")
         self.parts: dict[str, TokenDataset] = {}
-        for p in paths:
+        for i, p in enumerate(paths):
             ds = TokenDataset(p)
-            name = Path(p).stem
+            name = Path(p).stem if names is None else names[i]
             if name in self.parts:
                 raise ValueError(f"duplicate file name {name!r}")
             self.parts[name] = ds

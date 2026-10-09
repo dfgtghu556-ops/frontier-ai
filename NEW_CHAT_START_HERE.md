@@ -811,6 +811,13 @@ comes next. They also update the table in §3.
     export, kernel push or download fails; (3) says "CPU run"/"GPU run" correctly and drops the
     "0 token file(s) match" line. Static tests `tests/test_runner_fixes.py`; NOT run on Windows yet.
     That Kaggle allows a CPU session alongside a running GPU session is NOT VERIFIED. Next: C (EXP-048).
+  - **Founder answers (2026-10-09):** "E theek hai" (the 5 Hindi everyday prompts are natural; recorded in
+    EXP-045); backup "DO ALL"; "approve D". **b2 built:** `build_slice2.py` writes single-member gzip
+    (`corpus/gzjoin.py`). **b built:** `scripts\run_kaggle_exp046_text.ps1` rewrites the 13 slice-2 text
+    files as single-member gzip on Kaggle CPU, then the founder makes the dataset `frontier-v2-slice2-text`
+    and runs it with `-Verify`. **D built:** `src/frontier_ai/data/slices.py` loads slice 1 + 2 with pinned
+    manifests (8,159,265,692 training tokens), not wired into training. Next: C (EXP-048); EXP-043 session 4
+    after the weekly reset.
 
 
 ## 9. The prompt the operator pastes into a new Arena chat

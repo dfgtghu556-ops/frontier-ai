@@ -4296,6 +4296,13 @@ How it works:
 
 **Status:** approved 2026-10-04; test 4 done 2026-10-06; coverage re-scan done 2026-10-07; GPU session for tests 1-3 and 5 wired 2026-10-08 (`scripts\run_kaggle_exp045_final.ps1`), runs after EXP-043 is complete
 
+**Note 2026-10-09 (founder answer "E theek hai"):** the founder, a native Hindi speaker, read the 5 Hindi
+everyday-v1 prompts (`आज मौसम` · `हर सुबह मैं` · `हमारे गाँव में` · `चाय बनाने के लिए पहले` · `भारत एक ऐसा देश है`)
+and confirmed them as natural Hindi. Limitation 6 now holds for the other 12 languages only; the
+Hindi prompts are confirmed by one native speaker. `everyday-v1.json` is unchanged.
+
+**Status:** approved 2026-10-04; test 4 done 2026-10-06; coverage re-scan done 2026-10-07; GPU session for tests 1-3 and 5 wired 2026-10-08 (`scripts\run_kaggle_exp045_final.ps1`), runs after EXP-043 is complete; Hindi everyday prompts confirmed by the founder 2026-10-09
+
 ### EXP-046 — Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-046" before any code)
 
@@ -4699,6 +4706,26 @@ but at least one text file differs".
   build-a/-b. A complete text backup, and a build change to single-member gzip for future slices, would
   each need approval.
 
+**Note 2026-10-09: complete text backup and single-member build (founder "DO ALL": items b and b2).**
+- **b2, built:** `scripts/build_slice2.py` now joins a language's two parts into ONE gzip member
+  (`src/frontier_ai/corpus/gzjoin.py`, `write_single_member`) instead of byte-for-byte concatenation.
+  The unzipped text is the same; only the `.gz` bytes and their SHA-256 differ, so future slices are
+  safe from Kaggle's first-member-only unzip. v2-slice2's recorded manifests and hashes are unchanged
+  and stay valid for the existing build outputs.
+- **b, built (not run yet):** `scripts/slice2_text_backup.py`, plus two Kaggle kernels and
+  `scripts\run_kaggle_exp046_text.ps1`. They run on two CPU sessions (₹0) and do three things:
+  1. **rewrite:** mounts the build-a/-b outputs, checks each original against its manifest SHA-256,
+     and writes the 13 text files as one gzip member each. Each file is read back: one member, the
+     same unzipped SHA-256, lines = manifest docs.
+  2. **The founder** makes the private dataset `frontier-v2-slice2-text` from that output.
+  3. **`-Verify`:** checks every file in the dataset against the rewrite's recorded unzipped SHA-256
+     and line count.
+  Tests: `tests/test_exp046_text.py`, which also shows that a first-member-only reader now gets the
+  full text and that the old two-member files fail verification. Kaggle's handling of single-member
+  gzip and the run times are NOT VERIFIED until the runs.
+
+**Status:** complete (D-051 accepted v2-slice2); backup: token files verified 2026-10-09; complete text backup built 2026-10-09 (`scripts\run_kaggle_exp046_text.ps1`), not run yet; builder writes single-member gzip since 2026-10-09
+
 ### EXP-047 — Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running anything needs a further "approve EXP-047" plus the founder's compute decision)
 
@@ -4798,6 +4825,24 @@ tokenizer changes (D-035), SFT/RL/reasoning (guardrails), spending without the f
 **Budget for writing this plan:** ₹0, no GPU, no laptop work.
 
 **Status:** proposed (plan only; needs "approve EXP-047" and the founder's compute choice A/B/C before any code; the size is chosen after EXP-043's final result by the rule in §4)
+
+**Note 2026-10-09: step 1 approved and built (founder "approve D"; code only, no training, ₹0).** It
+implements §5's loader item:
+- `src/frontier_ai/data/slices.py` pins the three manifests by SHA-256: slice 1 (EXP-037)
+  `b43c0d91…`; slice 2 A `3782679f…` and B `542988db…` (D-051).
+- It checks every token file against its manifest (size and meta `n_train`/`n_val`; the full SHA-256
+  is optional).
+- It names parts `<slice>/<lang>` (`s1/hi`, `s2a/hi`, …), so both slices load as one
+  `MultiTokenDataset` (new optional `names`; the default is unchanged, so EXP-043's names and one-pass
+  order stay the same).
+- It finds each slice's folder under `/kaggle/input`, and pools validation per language across slices
+  (`combine_bpb`, EXP-043's pooled formula). Slice-1 per-part numbers stay the main yardstick.
+- Test against the committed manifests: 2,783,830,088 + 5,375,435,604 = 8,159,265,692 training tokens,
+  the same 13 languages in both slices (`tests/test_slices.py`).
+- Not wired into `scripts/gpu_pretrain.py`, and nothing trains. The rest of EXP-047 (size, compute
+  option A/B/C, the run) still needs "approve EXP-047" after EXP-043's final result.
+
+**Status:** proposed; step 1 (slice-aware loader and manifest checks, code only) approved and built 2026-10-09; the run itself needs "approve EXP-047" and the founder's compute choice A/B/C; the size is chosen after EXP-043's final result by the rule in §4
 
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
