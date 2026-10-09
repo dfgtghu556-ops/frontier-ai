@@ -1,0 +1,20 @@
+EXP-046 slice-2 text backup, rewrite (2026-10-09T12:53:31Z)
+VERDICT: PASS: all 13 text files rewritten as one gzip member each (same content, all documents)
+
+Part A: original /kaggle/input/notebooks/someshwar0112/frontier-exp046-build-a/slice2-A (624.2 s)
+   en  ok  original members 2, new members 1, 695,973 documents (manifest 695,973), 773,375,907 bytes
+   ur  ok  original members 2, new members 1, 382,937 documents (manifest 382,937), 543,541,443 bytes
+   as  ok  original members 2, new members 1, 208,515 documents (manifest 208,515), 351,356,152 bytes
+   bn  ok  original members 2, new members 1, 298,900 documents (manifest 298,900), 444,723,161 bytes
+   gu  ok  original members 2, new members 1, 298,926 documents (manifest 298,926), 433,593,281 bytes
+   hi  ok  original members 2, new members 1, 342,287 documents (manifest 342,287), 423,223,645 bytes
+Part B: original /kaggle/input/notebooks/someshwar0112/frontier-exp046-build-b/slice2-B (623.1 s)
+   kn  ok  original members 2, new members 1, 334,490 documents (manifest 334,490), 392,305,724 bytes
+   ml  ok  original members 2, new members 1, 252,310 documents (manifest 252,310), 257,527,108 bytes
+   mr  ok  original members 2, new members 1, 348,988 documents (manifest 348,988), 433,341,838 bytes
+   or  ok  original members 2, new members 1, 347,493 documents (manifest 347,493), 389,012,001 bytes
+   pa  ok  original members 2, new members 1, 286,989 documents (manifest 286,989), 400,097,254 bytes
+   ta  ok  original members 2, new members 1, 271,460 documents (manifest 271,460), 343,591,656 bytes
+   te  ok  original members 2, new members 1, 331,591 documents (manifest 331,591), 399,914,111 bytes
+
+New files: /kaggle/working/slice2-text (make the dataset frontier-v2-slice2-text from this kernel's output).
