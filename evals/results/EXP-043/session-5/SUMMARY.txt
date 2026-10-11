@@ -1,0 +1,22 @@
+EXP-043 - train the step-12 model (D-049), session 5
+started 2026-10-11 13:34:35  finished 2026-10-11 22:14:03
+elapsed 519.5 min; GPU-hours before this session 34.04
+Part 0: data files 13/13 (sha256 checked); tests 46 passed in 14.34s; one-step float64 check pass=True
+Checkpoint chain: checkpoint of step 100,653 verified (sha256 of 5 files)
+One-pass order: 5,437,162 windows, 169,911 steps, fingerprint 19199520944bc37b...
+Micro-batch: 16 x 2 accumulation (chosen in an earlier session)
+
+Learning-rate check (6,104 steps each, same first 100 M tokens):
+         lr session status                        mean bpb  minutes
+    0.00025       1 done                            0.8543    160.2
+     0.0005       1 done                            0.8172    159.8
+      0.001       1 done                            0.8160    159.5
+  Chosen learning rate: 0.0005  (lowest mean bpb 0.8160 at 0.001; 0.0005 is within the noise 0.0174 so the lower one is chosen)
+
+Main run: steps 100,653 -> 141,459 of 169,911 at lr 0.0005; session end: time budget of this session
+  21,993 tokens/s; peak memory 8.97 GB
+  skipped fp16 steps this session: 16
+  trained on 2 GPU(s): 16 x 1 per GPU; peak memory per GPU [8.969, 8.969] GB  [two GPUs (Tesla T4 x 2; D-050)]
+  sampled validation loss: 130000: 1.9339, 131000: 1.9413, 132000: 1.9735, 133000: 1.8852, 134000: 1.9194, 135000: 1.9303, 136000: 1.8975, 137000: 1.9303, 138000: 1.9299, 139000: 1.9171, 140000: 1.9275, 141000: 1.8922
+  full validation at session end: mean 0.6430 bpb (token-weighted 0.7238, pooled 0.6440)
+Checkpoint for the next session: step 141,459 (made in session 5)
