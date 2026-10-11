@@ -829,6 +829,11 @@ comes next. They also update the table in §3.
   - **First -Verify (2026-10-09) had no inputs:** started 2 min after the rewrite, before the dataset existed;
     Kaggle mounts nothing for a missing dataset source but starts anyway. The runner now checks the dataset is
     ready before launching verify. Next: the founder makes the dataset, then `run_kaggle_exp046_text.ps1 -Verify -Relaunch`.
+  - **EXP-048 built (2026-10-11; "approve A B C", item C):** FineWeb-2 measurement for the 12 Indian languages,
+    `scripts/measure_fineweb2.py` + `scripts/kaggle/exp048_kernel.py`; the founder runs
+    `scripts\run_kaggle_exp048.ps1` (one Kaggle CPU session, may run alongside EXP-043, uses only datasets already
+    on Kaggle). Results land in `evals/results/EXP-048/`. Adds nothing to the corpus; a FineWeb-2 build needs its
+    own decision. Same day: EXP-043 session 4 and the text `-Verify -Relaunch` were started by the founder.
 
 
 ## 9. The prompt the operator pastes into a new Arena chat

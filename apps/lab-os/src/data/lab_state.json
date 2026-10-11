@@ -4,9 +4,9 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "80d88c6fe74ab8673a77fe536c5a2445a91dca654c1c78435533987624c8cf8e",
+  "source_digest": "80c3305a6573a3373bc706732ab862e318a9a2769dfa35965a8fcf497a0d70b7",
   "sources": {
-    "EXPERIMENTS.md": "2b4618f8b82c8c61dd7e1c8fe015566479283720ff2a073a108851807e79f316",
+    "EXPERIMENTS.md": "b9928c2b0ff2304623e9f4c2a874736b5a40acf9d03547b1c925c1b3a72b5483",
     "DECISIONS.md": "0674c257887402bc26c71402d2c65bbeafed6e35804af02e750c5a6265ca2ad1",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
     "lab/registry.json": "54be232130b65911a3282e040623693fbf2b5fa36c6f654fe06c0b5cb9f28f78",
@@ -978,12 +978,13 @@
       "id": "EXP-048",
       "title": "Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)",
       "date": "2026-10-08",
-      "status": "proposed (plan only; needs \"approve EXP-048\" before any code; no FineWeb-2 data enters the corpus without a separate decision)",
-      "category": "planned",
+      "status": "built (code and tests; not run yet; the founder runs scripts\\run_kaggle_exp048.ps1; adds nothing to the corpus)",
+      "category": "other",
       "step": null,
       "summary": "better data is the strongest lever we control. Sangraha Verified is our only web source today. FineWeb-2 (Hugging Face, HuggingFaceFW/fineweb-2) is a large, openly documented multilingual web corpus. It is level B under D-044 (ODC-By 1.0 plus Common Crawl's terms of use). The question this experiment answers is not …",
       "decisions": [
-        "D-044"
+        "D-044",
+        "D-045"
       ],
       "line": 4873,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4873"

@@ -198,7 +198,7 @@ def test_runner_check_block():
     meta = text[j : text.index('Write-Ascii "$stage\\kernel-metadata.json"', j)]
     assert '$meta.dataset_sources = @("$user/frontier-v2-slice2-a", "$user/frontier-v2-slice2-b")' in meta
     assert '$meta.kernel_sources = @("$user/frontier-exp046-build-a", "$user/frontier-exp046-build-b")' in meta
-    assert '$Exp -eq "EXP-046") {' in meta and "$meta.enable_gpu = $false" in meta
+    assert '$Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {' in meta and "$meta.enable_gpu = $false" in meta
     # only the small report folder is downloaded; results under EXP-046\backup-check
     d = text.index("} elseif ($Check) {")
     assert "--file-pattern EXP-046/backup-check/.*" in text[d : text.index("} elseif ($Build) {", d)]

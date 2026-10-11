@@ -218,9 +218,9 @@ def test_runner_final_inputs_gpu_and_downloads():
     # GPU stays on: the CPU switch excludes -Final
     j = text.index('        machine_shape = "NvidiaTeslaT4"\n    }\n')
     meta = text[j : text.index('Write-Ascii "$stage\\kernel-metadata.json"', j)]
-    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046") {' in meta
+    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {' in meta
     assert "if ($Final) { $meta.dataset_sources = @($heldId) }" in meta
-    assert "if ($Build -or $Final) {\n    # EXP-046 build: the protected held-out texts" in text
+    assert 'if ($Build -or $Final -or $Exp -eq "EXP-048") {\n    # EXP-046 build: the protected held-out texts' in text
     # only the small result files first; never the whole output
     d = text.index("} elseif ($Final) {")
     assert "--file-pattern EXP-045/final/.*" in text[d : text.index("} elseif ($Build) {", d)]

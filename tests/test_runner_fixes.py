@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "scripts" / "run_kaggle_exp038.ps1"
-CPU_EXPR = '(($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046")'
+CPU_EXPR = '(($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048")'
 
 
 def _text() -> str:
@@ -27,7 +27,7 @@ def test_a1_cpu_runs_may_start_alongside_but_gpu_runs_may_not():
     j = text.index('        machine_shape = "NvidiaTeslaT4"\n    }\n')
     assert f"if {CPU_EXPR} {{" in text[j : j + 400]
     g = text.index(
-        'if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046")) {'
+        'if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048")) {'
     )
     assert text.index("$cpuOnly = ") < g  # defined before the guard uses it
     block = text[g : text.index("\n}\n", g)]

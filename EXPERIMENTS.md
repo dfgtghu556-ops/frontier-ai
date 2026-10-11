@@ -4932,3 +4932,37 @@ VERIFIED. ₹0, no GPU quota, no laptop work. It runs between two EXP-043 GPU se
 guard as EXP-046.
 
 **Status:** proposed (plan only; needs "approve EXP-048" before any code; no FineWeb-2 data enters the corpus without a separate decision)
+
+**Note (2026-10-11): built (approval: "approve A B C" of 2026-10-09, item C = build EXP-048).** Code:
+`scripts/measure_fineweb2.py`, kernel `scripts/kaggle/exp048_kernel.py`, one-line runner
+`scripts/run_kaggle_exp048.ps1` (through the shared `run_kaggle_exp038.ps1` with `-Exp EXP-048`: CPU session,
+may run alongside an EXP-043 session; inputs are the datasets already on Kaggle: v2-slice1 tokens, v2-slice2 A
+and B, and the held-out texts; nothing is uploaded; only `EXP-048/` comes back to `evals/results/EXP-048/`).
+Tests: `tests/test_exp048.py` (11, offline with a fake Hugging Face server) plus the runner's pinned static tests
+updated. How the plan's steps are carried out:
+
+- **Pin:** the revision is read from the Hugging Face API at run time (checked 2026-10-11:
+  `af9c13333eb981300149d5ca60a8e9d659b276b9`, last modified 2025-10-27; the run records what it sees) with
+  the licence from that revision's dataset card and the card's SHA-256. Every train file is listed with its
+  size and SHA-256 (the API's `lfs.oid`). Subsets are matched by ISO 639-3 code AND our script
+  (e.g. `hin_Deva`); romanized/other-script and `_removed` subsets are listed, never measured.
+- **Rows two ways:** the dataset-viewer `/size` service and the parquet footers of every train file (HTTP Range,
+  no full download); the report says whether they agree.
+- **Sample:** one train file per language (fixed hash of the subset name), downloaded with the SHA-256-checked
+  downloader to `/tmp`, deleted after use; 2,000 rows by a fixed integer hash (seed 48).
+- **Rules + overlap + protected suites in one pass:** the unchanged `build_file` (D-045 config) with the
+  held-out + Belebele guard and `exclude_final` = exact-text digests of the language's v2-slice1 and v2-slice2
+  documents (token files checked against the pinned manifests, full SHA-256, first). "Already in our corpus" =
+  would pass every rule and is identical to a slice-1/2 document. The plan's "rows x keep rate x (1 - overlap) x
+  tokens" is computed as rows x (new kept / sampled) x mean v2 tokens per new kept document (the same quantity),
+  with a 95% interval for sampling error; labelled NOT VERIFIED.
+- **Known bias, stated before the run:** 2,000 documents from one file give the in-file boilerplate and
+  near-duplicate rules far less repetition to find than a full build, so the keep rate is likely an upper bound.
+  Overlap is exact text only (a lower bound). URL overlap is not measured.
+- **Samples:** masked excerpts (<= 400 characters, as for EXP-046) with the source URL (e-mails/phones in URLs
+  masked) and the ODC-By attribution, for reading before any decision.
+
+Run time NOT VERIFIED (estimate 1 to 3 hours on one CPU session; about 40 GB downloaded in total, mostly the
+4.8 GB Hindi/Bengali-size files). The decision rule above is unchanged.
+
+**Status:** built (code and tests; not run yet; the founder runs `scripts\run_kaggle_exp048.ps1`; adds nothing to the corpus)

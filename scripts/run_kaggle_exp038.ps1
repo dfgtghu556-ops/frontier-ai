@@ -80,7 +80,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check, [ValidateSet("rewrite", "verify")][string]$TextStep)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046", "EXP-048")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check, [ValidateSet("rewrite", "verify")][string]$TextStep)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -108,7 +108,7 @@ $datasetSubtitle = "Hindi training tokens for the frontier-ai project (EXP-037)"
 $datasetText = "Hindi part of FrontierCorpus v2-slice1"
 $uploadSize = "about 400 MB"
 $expectedRun = "EXP-038 took about 80 minutes, EXP-039 should be shorter"
-if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {
+if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {
     $datasetSlug = "frontier-v2-tok2-13lang"
     $dataFiles = @()
     foreach ($f in (Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json).files) { $dataFiles += @($f.path, $f.meta) }
@@ -159,6 +159,17 @@ if ($Exp -eq "EXP-046" -and $Build) {
     $expectedRun = "EXP-046 build $Build (CPU only, no GPU) should take about 4 to 6 hours; not measured yet"
     $maxWaitHours = 14
 }
+if ($Exp -eq "EXP-048") {
+    # EXP-048 (approved 2026-10-09, "approve A B C"): measure FineWeb-2 on a Kaggle CPU session
+    # (run_kaggle_exp048.ps1). Reads the slice-1/slice-2 token datasets and the held-out texts that are
+    # already on Kaggle (nothing is uploaded) and downloads one FineWeb-2 file per language into /tmp.
+    $template = "scripts\kaggle\exp048_kernel.py"
+    $kernelSlug = "frontier-exp048"
+    $dataFiles = @()
+    $expectedRun = "EXP-048 (CPU only, no GPU) should take about 1 to 3 hours; not measured yet"
+    $maxWaitHours = 13
+}
+if ($Exp -eq "EXP-048" -and ($Build -or $Final -or $Check -or $TextStep)) { Write-Host "EXP-048 takes no -Build, -Final, -Check or -TextStep"; exit 2 }
 if ($Final -and $Exp -ne "EXP-045") { Write-Host "-Final is only for -Exp EXP-045"; exit 2 }
 if ($Check -and ($Exp -ne "EXP-046" -or $Build)) { Write-Host "-Check is only for -Exp EXP-046 (without -Build)"; exit 2 }
 if ($TextStep -and ($Exp -ne "EXP-046" -or $Build -or $Check)) { Write-Host "-TextStep is only for -Exp EXP-046 (without -Build or -Check)"; exit 2 }
@@ -202,7 +213,7 @@ if ($Final) {
     $maxWaitHours = 4
 }
 # CPU-only runs (EXP-045 coverage, EXP-046 probe/builds/check) say so in the report (fix A3, 2026-10-09)
-$cpuOnly = (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046")
+$cpuOnly = (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048")
 $runKind = "GPU run on a free Kaggle T4 machine"
 $runWord = "GPU"
 if ($cpuOnly) { $runKind = "CPU run on a free Kaggle CPU session, no GPU quota"; $runWord = "CPU" }
@@ -274,7 +285,7 @@ foreach ($f in @($python, $template, $manifestPath, "scripts\gpu_bringup.py", "s
 Add-Report "PASS 1c: .venv and scripts found"
 
 $launching = (-not $state.pinned_commit) -or $Relaunch
-if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046")) {
+if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048")) {
     # GPU runs (EXP-044, EXP-045 -Final) start only BETWEEN EXP-043 sessions: never while one is launched
     # and not yet collected. CPU-only runs may start alongside since 2026-10-09 (fix A1): they use no GPU
     # quota and commit only their own results folder. If both runners publish in the same minute, the
@@ -429,7 +440,7 @@ if (-not $state.dataset_ready) {
     Save-State $state
 }
 Add-Report "PASS 3: private dataset $datasetId is ready on Kaggle"
-if ($Build -or $Final) {
+if ($Build -or $Final -or $Exp -eq "EXP-048") {
     # EXP-046 build: the protected held-out texts (about 1 MB) as a second PRIVATE dataset, uploaded once.
     # The build refuses to run without them; they are only used to REMOVE overlapping documents.
     # EXP-045 -Final reads the same dataset (already on Kaggle since the builds) for test 1 only.
@@ -495,7 +506,7 @@ if ($launching) {
         kernel_sources = $kernelSources
         machine_shape = "NvidiaTeslaT4"
     }
-    if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046") {
+    if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {
         # a CPU session (4 cores, 30 GB): no GPU, so no GPU quota
         $meta.enable_gpu = $false
         $meta.Remove("machine_shape")
@@ -503,6 +514,10 @@ if ($launching) {
     }
     if ($Build) { $meta.dataset_sources = @($datasetId, $heldId) }  # + the held-out texts
     if ($Final) { $meta.dataset_sources = @($heldId) }  # test 1's texts only; the GPU stays on
+    if ($Exp -eq "EXP-048") {
+        # slice 1 + slice 2 (to find documents we already have) and the held-out texts, read only
+        $meta.dataset_sources = @($datasetId, $heldId, "$user/frontier-v2-slice2-a", "$user/frontier-v2-slice2-b")
+    }
     if ($Check) {
         # the backup (founder's private datasets) and the originals (build kernel outputs), read only
         $meta.dataset_sources = @("$user/frontier-v2-slice2-a", "$user/frontier-v2-slice2-b")
@@ -585,6 +600,8 @@ if ($Exp -eq "EXP-043") {
 } elseif ($TextStep) {
     # never the 13 text files (about 5.6 GB that stay on Kaggle): only the small report folder
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/text-$TextStep/.*"
+} elseif ($Exp -eq "EXP-048") {
+    $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-048/.*"
 } elseif ($Build) {
     # never the whole output (about 9 GB of corpus that stays on Kaggle): only the small report folder
     $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-046/build-$Build/.*"
@@ -663,6 +680,7 @@ if ($changed.Count -eq 0) {
     if ($Final) { $msgText = "${Exp}: final evaluation of the EXP-043 model (tests 1-3 and 5) from one Kaggle GPU session (commit $($state.pinned_commit.Substring(0, 7)); the fp16 copy is not committed)" }
     if ($Check) { $msgText = "${Exp}: slice-2 backup check from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)); only reads and hashes)" }
     if ($TextStep) { $msgText = "${Exp}: slice-2 text backup, $TextStep step, from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)); the text stays on Kaggle)" }
+    if ($Exp -eq "EXP-048") { $msgText = "${Exp}: FineWeb-2 measurement from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)); adds nothing to the corpus)" }
     if ($Build) { $msgText = "${Exp}: build $Build reports (v2-slice2; the corpus stays on Kaggle) from one Kaggle CPU session (commit $($state.pinned_commit.Substring(0, 7)))" }
     $msgText | Set-Content -Path $msgFile -Encoding ASCII
     $r = Invoke-Logged "git commit -q -F $msgFile"

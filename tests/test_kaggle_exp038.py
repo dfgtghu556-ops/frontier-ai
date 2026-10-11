@@ -37,7 +37,7 @@ def test_runner_commits_only_the_exp038_results_folder():
     text = _ps1()
     assert '$resultsPrefix = "evals/results/$Exp/"' in text
     assert (
-        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046")]'
+        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046", "EXP-048")]'
         '[string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check, [ValidateSet("rewrite", "verify")][string]$TextStep)' in text
     )
     assert "git add $resultsPrefix" in text
@@ -156,7 +156,7 @@ def test_exp039_wrapper_reuses_the_runner_and_the_dataset():
     # only EXP-040 (all 13 languages) switches to another dataset
     assert text.count("$datasetSlug = ") == 2
     assert (
-        'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {\n'
+        'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {\n'
         '    $datasetSlug = "frontier-v2-tok2-13lang"' in text
     )
     assert '$dataFiles = @("hi.bin", "hi.meta.json")' in text
@@ -231,7 +231,7 @@ def test_exp041_wrapper_reuses_the_13_language_dataset():
     wrapper = PS1_041.read_text(encoding="ascii")
     assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-041" -Relaunch:$Relaunch' in wrapper
     text = _ps1()
-    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {' in text  # no new upload
+    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {' in text  # no new upload
     assert 'if ($Exp -eq "EXP-041") {\n    $expectedRun' in text and "$maxWaitHours = 7" in text
 
 
@@ -271,7 +271,7 @@ def test_exp042_wrapper_reuses_the_13_language_dataset_and_waits_long_enough():
     wrapper = PS1_042.read_text(encoding="ascii")
     assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-042" -Relaunch:$Relaunch' in wrapper
     text = _ps1()
-    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046") {' in text
+    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {' in text
     block = text[text.index('if ($Exp -eq "EXP-042") {\n    $expectedRun') :]
     assert "$maxWaitHours = 11" in block.split("}")[0]  # 9-hour kernel + queueing and download
 
@@ -424,7 +424,7 @@ def test_exp044_wrapper_reuses_the_13_language_dataset_and_waits_long_enough():
 
 def test_exp044_refuses_to_start_while_an_exp043_session_is_out():
     text = _ps1()
-    i = text.index('if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046")) {')
+    i = text.index('if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048")) {')
     block = text[i : text.index("\n}\n", i)]
     assert '$s43 = "out\\kaggle\\EXP-043\\state.json"' in block
     assert ".pinned_commit" in block and "Stop-Run" in block
@@ -468,9 +468,9 @@ def test_exp045_runs_on_a_cpu_session_between_exp043_sessions():
     i = text.index("        machine_shape = \"NvidiaTeslaT4\"\n    }\n")
     cpu = text[i : text.index("Write-Ascii \"$stage\\kernel-metadata.json\"", i)]
     assert '$meta.enable_gpu = $false' in cpu and '$meta.Remove("machine_shape")' in cpu
-    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046") {' in cpu
+    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {' in cpu
     # the same between-sessions guard as EXP-044
-    g = text.index('if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046")) {')
+    g = text.index('if ($launching -and ($Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048")) {')
     assert g < text.index("$kaggle kernels push -p $stage")
     assert "frontier-exp045" not in text
 
@@ -531,7 +531,7 @@ def test_exp046_probe_runs_on_a_cpu_session_between_exp043_sessions():
     # CPU session: the same switch as EXP-045 (no GPU requested)
     j = text.index('        machine_shape = "NvidiaTeslaT4"\n    }\n')
     cpu = text[j : text.index('Write-Ascii "$stage\\kernel-metadata.json"', j)]
-    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046") {' in cpu and "$meta.enable_gpu = $false" in cpu
+    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {' in cpu and "$meta.enable_gpu = $false" in cpu
     # the results folder is EXP-046\probe; publishing keeps the EXP-046 parent (-> evals/results/EXP-046/probe/)
     k = text.index('if ($Exp -eq "EXP-046") { $resultDir = "$outputDir\\$Exp\\probe" }')
     assert text.index("$publishSrc = $resultDir") < k < text.index('$summaryPath = "$resultDir\\summary.json"')
@@ -584,7 +584,7 @@ def test_exp046_build_wrapper_and_runner_block():
     # CPU session like the probe
     j = text.index('        machine_shape = "NvidiaTeslaT4"\n    }\n')
     cpu = text[j : text.index('Write-Ascii "$stage\\kernel-metadata.json"', j)]
-    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046") {' in cpu and "dataset_sources = @($datasetId, $heldId)" in cpu
+    assert 'if (($Exp -eq "EXP-045" -and -not $Final) -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {' in cpu and "dataset_sources = @($datasetId, $heldId)" in cpu
     # only the small report folder is downloaded, never the corpus (about 9 GB)
     d = text.index("} elseif ($Build) {")
     dl = text[d : text.index("} else {", d)]
