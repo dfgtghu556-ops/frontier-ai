@@ -1,0 +1,161 @@
+{
+  "schema": "frontier-exp046-text-backup-v1",
+  "exp_id": "EXP-046",
+  "smoke": false,
+  "complete": true,
+  "created_utc": "2026-10-11T03:50:54Z",
+  "mode": "verify",
+  "dataset": "frontier-v2-slice2-text",
+  "rewrite_summary_sha256": "64fbd92ab8120367f1ae710d3f400100704895f52513614722105aa5cc836d1f",
+  "languages": [
+    {
+      "language": "en",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/en.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "ea6590300d9109b6b236661b8c85c70ab637f03cd71d2789acc898952f8d28f2",
+        "bytes": 2048697597,
+        "lines": 695973
+      },
+      "ok": true
+    },
+    {
+      "language": "ur",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/ur.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "d51eac0117619820697c0dfaa41126bfbca4545c6e7822a5471e709fa66fc5b2",
+        "bytes": 1939018077,
+        "lines": 382937
+      },
+      "ok": true
+    },
+    {
+      "language": "as",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/as.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "2e80fb2f3f05341950428361721c746d2cd82f8e7917313da3f3c0c3098a1ba0",
+        "bytes": 1591003991,
+        "lines": 208515
+      },
+      "ok": true
+    },
+    {
+      "language": "bn",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/bn.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "6aacdd59d6b9a0517f9c275d223bf8c2b9494d9276e9e29471f150ec0b4f9d53",
+        "bytes": 2085121086,
+        "lines": 298900
+      },
+      "ok": true
+    },
+    {
+      "language": "gu",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/gu.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "c916e907711310b29db8e27fb218915a1019ccee78525c6f3bf66b09b8f98a3a",
+        "bytes": 1929607795,
+        "lines": 298926
+      },
+      "ok": true
+    },
+    {
+      "language": "hi",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/hi.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "f37a80bffd6287d5d3f52084cf4bd6984baccb7cd328cbc60a787201f0f6bb33",
+        "bytes": 1951126529,
+        "lines": 342287
+      },
+      "ok": true
+    },
+    {
+      "language": "kn",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/kn.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "b1f36efcb7a75d25646c095d5340620c15188bb97f714391753e0c2eb6519ff8",
+        "bytes": 1883155043,
+        "lines": 334490
+      },
+      "ok": true
+    },
+    {
+      "language": "ml",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/ml.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "2b3ba942b53e0537c8500d168065e849790fad4be96b5723a2c99b220fa59c3f",
+        "bytes": 1316098588,
+        "lines": 252310
+      },
+      "ok": true
+    },
+    {
+      "language": "mr",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/mr.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "77ded44727de7f0ada6a9692b6e8bfde627cde079a55b4d8127657650c885afa",
+        "bytes": 2060075467,
+        "lines": 348988
+      },
+      "ok": true
+    },
+    {
+      "language": "or",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/or.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "60f21ee389c3c759ef979eea1507ecca3a343f2962eed8ee2453aa005522d41c",
+        "bytes": 1818559911,
+        "lines": 347493
+      },
+      "ok": true
+    },
+    {
+      "language": "pa",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/pa.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "43ba90827b3f5c20d8c478a4abf26ea175076bc498c865a19bde795afa72b2df",
+        "bytes": 1807783087,
+        "lines": 286989
+      },
+      "ok": true
+    },
+    {
+      "language": "ta",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/ta.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "4a612964c85b35e620213df8f2fb9c8b07aaa00e5a3d5b667279a0bf8ed59ce5",
+        "bytes": 1875918755,
+        "lines": 271460
+      },
+      "ok": true
+    },
+    {
+      "language": "te",
+      "file": "/kaggle/input/frontier-v2-slice2-text/slice2-text/te.jsonl",
+      "form": "unzipped by Kaggle",
+      "found": {
+        "sha256": "798796f6934e643b2a7c5d9255c8a98a2f733f73197c63a0fce52d4f8dbc373a",
+        "bytes": 1852436708,
+        "lines": 331591
+      },
+      "ok": true
+    }
+  ],
+  "verdict": "PASS: the dataset holds all 13 text files in full (same content as the build outputs)",
+  "environment": {
+    "code_commit": "71bd885c7a79fdceabc3c19498b87a3442d56a4d",
+    "python": "3.13.15"
+  },
+  "seconds": 88.0
+}

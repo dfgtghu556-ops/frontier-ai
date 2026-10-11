@@ -1,0 +1,18 @@
+EXP-046 slice-2 text backup, verify (2026-10-11T03:50:54Z)
+VERDICT: PASS: the dataset holds all 13 text files in full (same content as the build outputs)
+
+   en  ok  unzipped by Kaggle, 695,973 documents
+   ur  ok  unzipped by Kaggle, 382,937 documents
+   as  ok  unzipped by Kaggle, 208,515 documents
+   bn  ok  unzipped by Kaggle, 298,900 documents
+   gu  ok  unzipped by Kaggle, 298,926 documents
+   hi  ok  unzipped by Kaggle, 342,287 documents
+   kn  ok  unzipped by Kaggle, 334,490 documents
+   ml  ok  unzipped by Kaggle, 252,310 documents
+   mr  ok  unzipped by Kaggle, 348,988 documents
+   or  ok  unzipped by Kaggle, 347,493 documents
+   pa  ok  unzipped by Kaggle, 286,989 documents
+   ta  ok  unzipped by Kaggle, 271,460 documents
+   te  ok  unzipped by Kaggle, 331,591 documents
+
+Nothing was changed; only reading and hashing.
