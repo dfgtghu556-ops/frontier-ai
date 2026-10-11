@@ -4752,6 +4752,17 @@ but at least one text file differs".
   - The verify script writes a FAIL summary ("not mounted") instead of exiting without one.
 - Next: the founder makes the dataset, waits until it is ready, then runs `-Verify -Relaunch`.
 
+**Note (2026-10-11): text backup verify PASS** (results `dc7b42f`, `evals/results/EXP-046/text-verify/`;
+kernel commit `71bd885`; 88 s on one Kaggle CPU session).
+- The founder's private dataset `frontier-v2-slice2-text` holds all 13 text files in full.
+- Kaggle had unzipped every file. For each language, the SHA-256 of the unzipped text and its line count
+  equal the values the rewrite step recorded (which were checked against the build outputs, `37d5de8`).
+- Document counts equal the slice-2 manifests (en 695,973 ... te 331,591).
+- The dataset was mounted at `/kaggle/input/frontier-v2-slice2-text/` (not under `/kaggle/input/datasets/<user>/`
+  as seen for other datasets); the scripts search for files, so both layouts work.
+- So v2-slice2 now has a second full copy of its text, independent of the build kernels' outputs.
+  Nothing was changed; only reading and hashing.
+
 ### EXP-047 — Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running anything needs a further "approve EXP-047" plus the founder's compute decision)
 

@@ -834,6 +834,8 @@ comes next. They also update the table in §3.
     `scripts\run_kaggle_exp048.ps1` (one Kaggle CPU session, may run alongside EXP-043, uses only datasets already
     on Kaggle). Results land in `evals/results/EXP-048/`. Adds nothing to the corpus; a FineWeb-2 build needs its
     own decision. Same day: EXP-043 session 4 and the text `-Verify -Relaunch` were started by the founder.
+  - **Text backup verify PASS (2026-10-11, results `dc7b42f`):** dataset `frontier-v2-slice2-text` holds all 13
+    files in full (unzipped SHA-256 and line counts equal the rewrite's records). The slice-2 text backup is done.
 
 
 ## 9. The prompt the operator pastes into a new Arena chat
