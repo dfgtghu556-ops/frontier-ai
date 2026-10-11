@@ -1,0 +1,1205 @@
+{
+  "schema": "frontier-exp048-fineweb2-measure-v1",
+  "exp_id": "EXP-048",
+  "smoke": false,
+  "complete": true,
+  "created_utc": "2026-10-11T07:41:17Z",
+  "pin": {
+    "dataset": "HuggingFaceFW/fineweb-2",
+    "revision": "af9c13333eb981300149d5ca60a8e9d659b276b9",
+    "last_modified": "2025-10-27T18:32:07.000Z",
+    "license_card": "odc-by",
+    "license_api": "odc-by",
+    "readme_sha256": "08d38a7e5cb7aae4b6fcc284fec4dd636ea653e4e5e74ef66a60d9616005b090"
+  },
+  "subset_count_in_listing": 3783,
+  "sample_per_language": 2000,
+  "seed": 48,
+  "config": {
+    "boilerplate_min_repeats": 100,
+    "min_declared_share": 0.6,
+    "urdu_min_letters": 50,
+    "wiki_marker_limit": 2,
+    "min_repetition_ratio": 0.3,
+    "repetition_min_tokens": 8,
+    "max_control_ratio": 0.02,
+    "near_dup_threshold": 0.8,
+    "near_dup_bands": 16,
+    "minhash_perm": 128,
+    "minhash_shingle": 5,
+    "minhash_seed": 35,
+    "short_suite_min_words": 3,
+    "normalization": "nfc"
+  },
+  "suite": {
+    "suite_id": "frontier-heldout-v1",
+    "heldout_docs": 3427,
+    "belebele": {
+      "dataset": "facebook/belebele",
+      "revision": "7899cdfa4e1e0d733fd77c848e2c273cb1d32be2",
+      "files_verified": true,
+      "texts": 64844,
+      "texts_per_language": {
+        "as": 4988,
+        "bn": 4988,
+        "en": 4988,
+        "gu": 4988,
+        "hi": 4988,
+        "kn": 4988,
+        "ml": 4988,
+        "mr": 4988,
+        "or": 4988,
+        "pa": 4988,
+        "ta": 4988,
+        "te": 4988,
+        "ur": 4988
+      },
+      "guarded_by": "13-word runs and exact text (not the 3-12-word short-passage index)"
+    }
+  },
+  "slices": [
+    {
+      "name": "s1",
+      "manifest_sha256": "b43c0d91c74efc7cb7a7c2480b190a95a44c34fc35427d4d5c13514f6ff6a11b",
+      "dir": "/kaggle/input/datasets/someshwar0112/frontier-v2-tok2-13lang",
+      "full_sha256_checked": true
+    },
+    {
+      "name": "s2a",
+      "manifest_sha256": "3782679fe4e71e45077692b42d63f303ecd0d1914c0d1a10da1f86495f376c42",
+      "dir": "/kaggle/input/datasets/someshwar0112/frontier-v2-slice2-a/slice2-A",
+      "full_sha256_checked": true
+    },
+    {
+      "name": "s2b",
+      "manifest_sha256": "542988db5717357d09a76c7384558b0c27cd2034d07d59e1a16b9092f83f7222",
+      "dir": "/kaggle/input/datasets/someshwar0112/frontier-v2-slice2-b/slice2-B",
+      "full_sha256_checked": true
+    }
+  ],
+  "languages": [
+    {
+      "language": "ur",
+      "measure": [
+        "urd_Arab"
+      ],
+      "listed_not_measured": [
+        "urd_Latn"
+      ],
+      "removed_subsets_present": [
+        "urd_Arab_removed",
+        "urd_Latn_removed"
+      ],
+      "subset": "urd_Arab",
+      "files": [
+        {
+          "path": "data/urd_Arab/train/000_00000.parquet",
+          "size": 4844148326,
+          "sha256": "a3e64b92cb606bca9ef522bb82d15828beef4825e8998bb43f6e142cc947338d",
+          "rows_footer": 3262000
+        },
+        {
+          "path": "data/urd_Arab/train/001_00000.parquet",
+          "size": 2024610997,
+          "sha256": "a356fe5d478be9bbb3887cbc1ca338f8455e071041352f2023ac7a54799375e2",
+          "rows_footer": 1547542
+        }
+      ],
+      "viewer": {
+        "train_rows": 4809542,
+        "train_parquet_bytes": 6868759323,
+        "partial": false
+      },
+      "train_rows_footers": 4809542,
+      "train_bytes": 6868759323,
+      "rows_agree": true,
+      "train_rows_used": 4809542,
+      "sample_file": {
+        "path": "data/urd_Arab/train/000_00000.parquet",
+        "size": 4844148326,
+        "sha256": "a3e64b92cb606bca9ef522bb82d15828beef4825e8998bb43f6e142cc947338d",
+        "download": "downloaded",
+        "seconds": 73.9,
+        "rows": 3262000,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 574558,
+        "seconds": 58.9,
+        "slices": [
+          "s1",
+          "s2a"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 2000,
+        "already_in_slice1_or_2": 0,
+        "overlap_share_of_survivors": 0.0,
+        "removed": {},
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 3220454,
+        "sampled_docs_bytes": 9280240,
+        "sampled_tokens_per_byte": 0.3470227063093196,
+        "kept_docs_tokens": 3200493,
+        "kept_docs_bytes": 9245089,
+        "kept_tokens_per_byte": 0.3461830383677215,
+        "fineweb2_total_tokens_before_our_rules_est": 7744454386.034
+      },
+      "estimate": {
+        "keep_rate_new": 1.0,
+        "mean_v2_tokens_per_kept_doc": 1600.2465,
+        "new_clean_v2_tokens": 7696452752.103,
+        "ci95": [
+          7030713794.443516,
+          8362191709.762484
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "as",
+      "measure": [
+        "asm_Beng"
+      ],
+      "listed_not_measured": [
+        "asm_Latn"
+      ],
+      "removed_subsets_present": [
+        "asm_Beng_removed",
+        "asm_Latn_removed"
+      ],
+      "subset": "asm_Beng",
+      "files": [
+        {
+          "path": "data/asm_Beng/train/000_00000.parquet",
+          "size": 385383719,
+          "sha256": "66c64bd424c0084aee17ec4936a21d6e0b307b068f2fd29bf8acd60204a4891b",
+          "rows_footer": 267371
+        }
+      ],
+      "viewer": {
+        "train_rows": 267371,
+        "train_parquet_bytes": 385383719,
+        "partial": false
+      },
+      "train_rows_footers": 267371,
+      "train_bytes": 385383719,
+      "rows_agree": true,
+      "train_rows_used": 267371,
+      "sample_file": {
+        "path": "data/asm_Beng/train/000_00000.parquet",
+        "size": 385383719,
+        "sha256": "66c64bd424c0084aee17ec4936a21d6e0b307b068f2fd29bf8acd60204a4891b",
+        "download": "downloaded",
+        "seconds": 6.9,
+        "rows": 267371,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 312647,
+        "seconds": 43.7,
+        "slices": [
+          "s1",
+          "s2a"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1892,
+        "already_in_slice1_or_2": 104,
+        "overlap_share_of_survivors": 0.052104208416833664,
+        "removed": {
+          "script_share": 1,
+          "wiki_markup": 3,
+          "slice1_duplicate": 104
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 2260860,
+        "sampled_docs_bytes": 11183907,
+        "sampled_tokens_per_byte": 0.20215296854668052,
+        "kept_docs_tokens": 2166051,
+        "kept_docs_bytes": 10808849,
+        "kept_tokens_per_byte": 0.20039608287616933,
+        "fineweb2_total_tokens_before_our_rules_est": 302244199.53000003
+      },
+      "estimate": {
+        "keep_rate_new": 0.946,
+        "mean_v2_tokens_per_kept_doc": 1144.8472515856238,
+        "new_clean_v2_tokens": 289569610.9605,
+        "ci95": [
+          247830504.433066,
+          331308717.487934
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "bn",
+      "measure": [
+        "ben_Beng"
+      ],
+      "listed_not_measured": [
+        "ben_Latn"
+      ],
+      "removed_subsets_present": [
+        "ben_Beng_removed",
+        "ben_Latn_removed"
+      ],
+      "subset": "ben_Beng",
+      "files": [
+        {
+          "path": "data/ben_Beng/train/000_00000.parquet",
+          "size": 4843454638,
+          "sha256": "c726acf370c13ee5aad1e5a6e9949d83654f4b231ef7a03754ced5c1e3b8e755",
+          "rows_footer": 2912000
+        },
+        {
+          "path": "data/ben_Beng/train/001_00000.parquet",
+          "size": 4844220493,
+          "sha256": "95951eb45b30abd90e4d637870f79ed0dcd2c109da2c5affcbab9dd2b846bacf",
+          "rows_footer": 3070000
+        },
+        {
+          "path": "data/ben_Beng/train/002_00000.parquet",
+          "size": 4844693262,
+          "sha256": "39b546cea7fff4b007e872287053ec6f8b82920ac331d217ba5c306feaf9c5ff",
+          "rows_footer": 3131000
+        },
+        {
+          "path": "data/ben_Beng/train/003_00000.parquet",
+          "size": 4843890412,
+          "sha256": "678b254ff74b9d3da614aa1fb1fe0b91a20712863ee83881bd48c55a518d818e",
+          "rows_footer": 3146000
+        },
+        {
+          "path": "data/ben_Beng/train/004_00000.parquet",
+          "size": 4518694895,
+          "sha256": "a2fe9d8564319a5faef13caa7be323fe7c6478744982d62ad7e1bfbbf1b73d02",
+          "rows_footer": 2926742
+        }
+      ],
+      "viewer": {
+        "train_rows": 15185742,
+        "train_parquet_bytes": 23894953700,
+        "partial": false
+      },
+      "train_rows_footers": 15185742,
+      "train_bytes": 23894953700,
+      "rows_agree": true,
+      "train_rows_used": 15185742,
+      "sample_file": {
+        "path": "data/ben_Beng/train/001_00000.parquet",
+        "size": 4844220493,
+        "sha256": "95951eb45b30abd90e4d637870f79ed0dcd2c109da2c5affcbab9dd2b846bacf",
+        "download": "downloaded",
+        "seconds": 81.3,
+        "rows": 3070000,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 448355,
+        "seconds": 56.7,
+        "slices": [
+          "s1",
+          "s2a"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1993,
+        "already_in_slice1_or_2": 2,
+        "overlap_share_of_survivors": 0.0010025062656641604,
+        "removed": {
+          "script_share": 5,
+          "slice1_duplicate": 2
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 2416116,
+        "sampled_docs_bytes": 11783037,
+        "sampled_tokens_per_byte": 0.2050503618040069,
+        "kept_docs_tokens": 2376904,
+        "kept_docs_bytes": 11701660,
+        "kept_tokens_per_byte": 0.20312536853745536,
+        "fineweb2_total_tokens_before_our_rules_est": 18345257109.036
+      },
+      "estimate": {
+        "keep_rate_new": 0.9965,
+        "mean_v2_tokens_per_kept_doc": 1192.626191670848,
+        "new_clean_v2_tokens": 18047525451.384,
+        "ci95": [
+          17081963438.175316,
+          19013087464.59268
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "gu",
+      "measure": [
+        "guj_Gujr"
+      ],
+      "listed_not_measured": [
+        "guj_Latn"
+      ],
+      "removed_subsets_present": [
+        "guj_Gujr_removed",
+        "guj_Latn_removed"
+      ],
+      "subset": "guj_Gujr",
+      "files": [
+        {
+          "path": "data/guj_Gujr/train/000_00000.parquet",
+          "size": 3338859951,
+          "sha256": "5e884b2b98852d93ff645edea973b8d7c59a120c082274f1025da81d56be3933",
+          "rows_footer": 2127094
+        }
+      ],
+      "viewer": {
+        "train_rows": 2127094,
+        "train_parquet_bytes": 3338859951,
+        "partial": false
+      },
+      "train_rows_footers": 2127094,
+      "train_bytes": 3338859951,
+      "rows_agree": true,
+      "train_rows_used": 2127094,
+      "sample_file": {
+        "path": "data/guj_Gujr/train/000_00000.parquet",
+        "size": 3338859951,
+        "sha256": "5e884b2b98852d93ff645edea973b8d7c59a120c082274f1025da81d56be3933",
+        "download": "downloaded",
+        "seconds": 56.2,
+        "rows": 2127094,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 448392,
+        "seconds": 63.8,
+        "slices": [
+          "s1",
+          "s2a"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1988,
+        "already_in_slice1_or_2": 9,
+        "overlap_share_of_survivors": 0.004506760140210316,
+        "removed": {
+          "script_share": 3,
+          "slice1_duplicate": 9
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 2550487,
+        "sampled_docs_bytes": 11617065,
+        "sampled_tokens_per_byte": 0.21954658943545552,
+        "kept_docs_tokens": 2482755,
+        "kept_docs_bytes": 11462744,
+        "kept_tokens_per_byte": 0.216593426495436,
+        "fineweb2_total_tokens_before_our_rules_est": 2712562797.389
+      },
+      "estimate": {
+        "keep_rate_new": 0.994,
+        "mean_v2_tokens_per_kept_doc": 1248.8707243460765,
+        "new_clean_v2_tokens": 2640526631.985,
+        "ci95": [
+          2482153911.976046,
+          2798899351.993954
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "hi",
+      "measure": [
+        "hin_Deva"
+      ],
+      "listed_not_measured": [
+        "hin_Latn"
+      ],
+      "removed_subsets_present": [
+        "hin_Deva_removed",
+        "hin_Latn_removed"
+      ],
+      "subset": "hin_Deva",
+      "files": [
+        {
+          "path": "data/hin_Deva/train/000_00000.parquet",
+          "size": 4841503429,
+          "sha256": "071a6d4cc4b5a21fed9531b2de1bdc8b4be16d38fc35dde41f73b0bd7263adad",
+          "rows_footer": 2910000
+        },
+        {
+          "path": "data/hin_Deva/train/001_00000.parquet",
+          "size": 4842875999,
+          "sha256": "10d86a072f18c9aff3e2ae074e596b679f2367b17b3123630f46cbfa5e79a8ab",
+          "rows_footer": 3036000
+        },
+        {
+          "path": "data/hin_Deva/train/002_00000.parquet",
+          "size": 4842697318,
+          "sha256": "91cdda0e838d74d96f47a26c8c3ca2c9f7db5cc8dca4c47aa03517f2cbea9313",
+          "rows_footer": 3105000
+        },
+        {
+          "path": "data/hin_Deva/train/003_00000.parquet",
+          "size": 4843415205,
+          "sha256": "71fa95960b105446047ccd1e6166f761d1d41be0da00bf0a27767f84d90d4851",
+          "rows_footer": 3157000
+        },
+        {
+          "path": "data/hin_Deva/train/004_00000.parquet",
+          "size": 4842882177,
+          "sha256": "2ddb5b674ffda7b4576231ebf18d1f5fb1d34d37d3eb4703ff8fd57656516a5d",
+          "rows_footer": 3190000
+        },
+        {
+          "path": "data/hin_Deva/train/005_00000.parquet",
+          "size": 4843441900,
+          "sha256": "d32df7050cde7f4f50e07c933e9ec08467eade43c6ed3c8da457af3e9e4f0a11",
+          "rows_footer": 3218000
+        },
+        {
+          "path": "data/hin_Deva/train/006_00000.parquet",
+          "size": 4844220906,
+          "sha256": "3015d4e47055c89edb46b2ec1c5233609a5200d94e6f3c0fad712ee18b12c923",
+          "rows_footer": 3232000
+        },
+        {
+          "path": "data/hin_Deva/train/007_00000.parquet",
+          "size": 371931782,
+          "sha256": "ebfeaaebb55fa2cfd9ec362029782c7b65dc2a1e1c1382a00e55f36811c762fb",
+          "rows_footer": 247985
+        }
+      ],
+      "viewer": {
+        "train_rows": 22095985,
+        "train_parquet_bytes": 34272968716,
+        "partial": false
+      },
+      "train_rows_footers": 22095985,
+      "train_bytes": 34272968716,
+      "rows_agree": true,
+      "train_rows_used": 22095985,
+      "sample_file": {
+        "path": "data/hin_Deva/train/005_00000.parquet",
+        "size": 4843441900,
+        "sha256": "d32df7050cde7f4f50e07c933e9ec08467eade43c6ed3c8da457af3e9e4f0a11",
+        "download": "downloaded",
+        "seconds": 82.1,
+        "rows": 3218000,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 513472,
+        "seconds": 70.2,
+        "slices": [
+          "s1",
+          "s2a"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1991,
+        "already_in_slice1_or_2": 2,
+        "overlap_share_of_survivors": 0.0010035122930255895,
+        "removed": {
+          "script_share": 7,
+          "slice1_duplicate": 2
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 2414653,
+        "sampled_docs_bytes": 11091632,
+        "sampled_tokens_per_byte": 0.2177004249690217,
+        "kept_docs_tokens": 2339475,
+        "kept_docs_bytes": 10936199,
+        "kept_tokens_per_byte": 0.21392030265725778,
+        "fineweb2_total_tokens_before_our_rules_est": 26677068234.102497
+      },
+      "estimate": {
+        "keep_rate_new": 0.9955,
+        "mean_v2_tokens_per_kept_doc": 1175.0251130085385,
+        "new_clean_v2_tokens": 25846502253.937504,
+        "ci95": [
+          24663236658.400135,
+          27029767849.474873
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "kn",
+      "measure": [
+        "kan_Knda"
+      ],
+      "listed_not_measured": [
+        "kan_Latn"
+      ],
+      "removed_subsets_present": [
+        "kan_Knda_removed",
+        "kan_Latn_removed"
+      ],
+      "subset": "kan_Knda",
+      "files": [
+        {
+          "path": "data/kan_Knda/train/000_00000.parquet",
+          "size": 3526351166,
+          "sha256": "6d854c6d09e67aada142aeb5e1895de3b170872288c7c8d18ed0292f5e91d80c",
+          "rows_footer": 2390982
+        }
+      ],
+      "viewer": {
+        "train_rows": 2390982,
+        "train_parquet_bytes": 3526351166,
+        "partial": false
+      },
+      "train_rows_footers": 2390982,
+      "train_bytes": 3526351166,
+      "rows_agree": true,
+      "train_rows_used": 2390982,
+      "sample_file": {
+        "path": "data/kan_Knda/train/000_00000.parquet",
+        "size": 3526351166,
+        "sha256": "6d854c6d09e67aada142aeb5e1895de3b170872288c7c8d18ed0292f5e91d80c",
+        "download": "downloaded",
+        "seconds": 66.6,
+        "rows": 2390982,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 508002,
+        "seconds": 59.7,
+        "slices": [
+          "s1",
+          "s2b"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1995,
+        "already_in_slice1_or_2": 3,
+        "overlap_share_of_survivors": 0.0015015015015015015,
+        "removed": {
+          "script_share": 2,
+          "slice1_duplicate": 3
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 2051071,
+        "sampled_docs_bytes": 11437174,
+        "sampled_tokens_per_byte": 0.17933372352296117,
+        "kept_docs_tokens": 2001301,
+        "kept_docs_bytes": 11344788,
+        "kept_tokens_per_byte": 0.1764070866727523,
+        "fineweb2_total_tokens_before_our_rules_est": 2452036920.861
+      },
+      "estimate": {
+        "keep_rate_new": 0.9975,
+        "mean_v2_tokens_per_kept_doc": 1003.1583959899749,
+        "new_clean_v2_tokens": 2392537333.791,
+        "ci95": [
+          2277688574.3445134,
+          2507386093.2374864
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "ml",
+      "measure": [
+        "mal_Mlym"
+      ],
+      "listed_not_measured": [
+        "mal_Latn"
+      ],
+      "removed_subsets_present": [
+        "mal_Latn_removed",
+        "mal_Mlym_removed"
+      ],
+      "subset": "mal_Mlym",
+      "files": [
+        {
+          "path": "data/mal_Mlym/train/000_00000.parquet",
+          "size": 4839367922,
+          "sha256": "331fc3681b71e051bd1ca4fb9a1129395c5652057d3b79f32773d107be40b659",
+          "rows_footer": 2678000
+        },
+        {
+          "path": "data/mal_Mlym/train/001_00000.parquet",
+          "size": 1075973726,
+          "sha256": "3688ef1a29ec09b904e8baecf5071337cc8de30069067d0fde607eb02ca7e27f",
+          "rows_footer": 644526
+        }
+      ],
+      "viewer": {
+        "train_rows": 3322526,
+        "train_parquet_bytes": 5915341648,
+        "partial": false
+      },
+      "train_rows_footers": 3322526,
+      "train_bytes": 5915341648,
+      "rows_agree": true,
+      "train_rows_used": 3322526,
+      "sample_file": {
+        "path": "data/mal_Mlym/train/000_00000.parquet",
+        "size": 4839367922,
+        "sha256": "331fc3681b71e051bd1ca4fb9a1129395c5652057d3b79f32773d107be40b659",
+        "download": "downloaded",
+        "seconds": 82.1,
+        "rows": 2678000,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 426124,
+        "seconds": 44.2,
+        "slices": [
+          "s1",
+          "s2b"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1993,
+        "already_in_slice1_or_2": 2,
+        "overlap_share_of_survivors": 0.0010025062656641604,
+        "removed": {
+          "suite_ngram": 1,
+          "script_share": 4,
+          "slice1_duplicate": 2
+        },
+        "suite_hits": {
+          "touching_docs": 1,
+          "suite_documents_touched": 1,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 2500884,
+        "sampled_docs_bytes": 15097710,
+        "sampled_tokens_per_byte": 0.16564657818967246,
+        "kept_docs_tokens": 2411852,
+        "kept_docs_bytes": 14914819,
+        "kept_tokens_per_byte": 0.16170843239867677,
+        "fineweb2_total_tokens_before_our_rules_est": 4154626056.492
+      },
+      "estimate": {
+        "keep_rate_new": 0.9965,
+        "mean_v2_tokens_per_kept_doc": 1210.1615654791772,
+        "new_clean_v2_tokens": 4006720489.076,
+        "ci95": [
+          3562378218.9193835,
+          4451062759.232617
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "mr",
+      "measure": [
+        "mar_Deva"
+      ],
+      "listed_not_measured": [
+        "mar_Latn"
+      ],
+      "removed_subsets_present": [
+        "mar_Deva_removed",
+        "mar_Latn_removed"
+      ],
+      "subset": "mar_Deva",
+      "files": [
+        {
+          "path": "data/mar_Deva/train/000_00000.parquet",
+          "size": 4842568266,
+          "sha256": "5efc60996fea47e541e00fe742dfb0b43e78a41e7bd942866ab7d4714414d8f7",
+          "rows_footer": 2957000
+        },
+        {
+          "path": "data/mar_Deva/train/001_00000.parquet",
+          "size": 1435954530,
+          "sha256": "d4cad97c53a906f1faa9b566ae1b8674e5a18ccd9982bd94e8540f5475fd5fbb",
+          "rows_footer": 955702
+        }
+      ],
+      "viewer": {
+        "train_rows": 3912702,
+        "train_parquet_bytes": 6278522796,
+        "partial": false
+      },
+      "train_rows_footers": 3912702,
+      "train_bytes": 6278522796,
+      "rows_agree": true,
+      "train_rows_used": 3912702,
+      "sample_file": {
+        "path": "data/mar_Deva/train/001_00000.parquet",
+        "size": 1435954530,
+        "sha256": "d4cad97c53a906f1faa9b566ae1b8674e5a18ccd9982bd94e8540f5475fd5fbb",
+        "download": "downloaded",
+        "seconds": 21.4,
+        "rows": 955702,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 523472,
+        "seconds": 66.1,
+        "slices": [
+          "s1",
+          "s2b"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1994,
+        "already_in_slice1_or_2": 5,
+        "overlap_share_of_survivors": 0.0025012506253126563,
+        "removed": {
+          "script_share": 1,
+          "slice1_duplicate": 5
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 2115975,
+        "sampled_docs_bytes": 11244425,
+        "sampled_tokens_per_byte": 0.18817992027160127,
+        "kept_docs_tokens": 2041471,
+        "kept_docs_bytes": 11105368,
+        "kept_tokens_per_byte": 0.18382740670998027,
+        "fineweb2_total_tokens_before_our_rules_est": 4139589807.225
+      },
+      "estimate": {
+        "keep_rate_new": 0.997,
+        "mean_v2_tokens_per_kept_doc": 1023.8069207622868,
+        "new_clean_v2_tokens": 3993833832.3209996,
+        "ci95": [
+          3833767086.522687,
+          4153900578.1193123
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "or",
+      "measure": [
+        "ory_Orya"
+      ],
+      "listed_not_measured": [
+        "ory_Latn"
+      ],
+      "removed_subsets_present": [
+        "ory_Latn_removed",
+        "ory_Orya_removed"
+      ],
+      "subset": "ory_Orya",
+      "files": [
+        {
+          "path": "data/ory_Orya/train/000_00000.parquet",
+          "size": 1373319465,
+          "sha256": "68ae1e7ae91cc4d501e842b4bc20be35b0304785a72ca91090a3c4606d0ee7c0",
+          "rows_footer": 1298188
+        }
+      ],
+      "viewer": {
+        "train_rows": 1298188,
+        "train_parquet_bytes": 1373319465,
+        "partial": false
+      },
+      "train_rows_footers": 1298188,
+      "train_bytes": 1373319465,
+      "rows_agree": true,
+      "train_rows_used": 1298188,
+      "sample_file": {
+        "path": "data/ory_Orya/train/000_00000.parquet",
+        "size": 1373319465,
+        "sha256": "68ae1e7ae91cc4d501e842b4bc20be35b0304785a72ca91090a3c4606d0ee7c0",
+        "download": "downloaded",
+        "seconds": 20.0,
+        "rows": 1298188,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 536225,
+        "seconds": 60.4,
+        "slices": [
+          "s1",
+          "s2b"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1976,
+        "already_in_slice1_or_2": 24,
+        "overlap_share_of_survivors": 0.012,
+        "removed": {
+          "slice1_duplicate": 24
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 1702998,
+        "sampled_docs_bytes": 8571724,
+        "sampled_tokens_per_byte": 0.19867625229183766,
+        "kept_docs_tokens": 1668467,
+        "kept_docs_bytes": 8447315,
+        "kept_tokens_per_byte": 0.19751447649341833,
+        "fineweb2_total_tokens_before_our_rules_est": 1105405783.812
+      },
+      "estimate": {
+        "keep_rate_new": 0.988,
+        "mean_v2_tokens_per_kept_doc": 844.3658906882591,
+        "new_clean_v2_tokens": 1082991918.898,
+        "ci95": [
+          1031508832.5092168,
+          1134475005.2867832
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "pa",
+      "measure": [
+        "pan_Guru"
+      ],
+      "listed_not_measured": [
+        "pan_Latn"
+      ],
+      "removed_subsets_present": [
+        "pan_Guru_removed",
+        "pan_Latn_removed"
+      ],
+      "subset": "pan_Guru",
+      "files": [
+        {
+          "path": "data/pan_Guru/train/000_00000.parquet",
+          "size": 1577744291,
+          "sha256": "7ab7af6765b185d9650e9700c554cb38710bc34831e2516c1775f9607b061a42",
+          "rows_footer": 944160
+        }
+      ],
+      "viewer": {
+        "train_rows": 944160,
+        "train_parquet_bytes": 1577744291,
+        "partial": false
+      },
+      "train_rows_footers": 944160,
+      "train_bytes": 1577744291,
+      "rows_agree": true,
+      "train_rows_used": 944160,
+      "sample_file": {
+        "path": "data/pan_Guru/train/000_00000.parquet",
+        "size": 1577744291,
+        "sha256": "7ab7af6765b185d9650e9700c554cb38710bc34831e2516c1775f9607b061a42",
+        "download": "downloaded",
+        "seconds": 22.0,
+        "rows": 944160,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 436384,
+        "seconds": 62.9,
+        "slices": [
+          "s1",
+          "s2b"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1991,
+        "already_in_slice1_or_2": 5,
+        "overlap_share_of_survivors": 0.00250501002004008,
+        "removed": {
+          "script_share": 3,
+          "slice1_duplicate": 5,
+          "near_duplicate": 1
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 2812098,
+        "sampled_docs_bytes": 12442883,
+        "sampled_tokens_per_byte": 0.22600051772567498,
+        "kept_docs_tokens": 2712875,
+        "kept_docs_bytes": 12225016,
+        "kept_tokens_per_byte": 0.22191177500299386,
+        "fineweb2_total_tokens_before_our_rules_est": 1327535223.84
+      },
+      "estimate": {
+        "keep_rate_new": 0.9955,
+        "mean_v2_tokens_per_kept_doc": 1362.5690607734807,
+        "new_clean_v2_tokens": 1280694030.0,
+        "ci95": [
+          1186932303.5822253,
+          1374455756.4177747
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "ta",
+      "measure": [
+        "tam_Taml"
+      ],
+      "listed_not_measured": [
+        "tam_Latn"
+      ],
+      "removed_subsets_present": [
+        "tam_Latn_removed",
+        "tam_Taml_removed"
+      ],
+      "subset": "tam_Taml",
+      "files": [
+        {
+          "path": "data/tam_Taml/train/000_00000.parquet",
+          "size": 4839351972,
+          "sha256": "6f3ffaf159af7d80a0a5b248a772dd7beffce266c682b509be7baead0cd676cd",
+          "rows_footer": 2598000
+        },
+        {
+          "path": "data/tam_Taml/train/001_00000.parquet",
+          "size": 4599030259,
+          "sha256": "2a660abecaa2a7ebfb2a85a78e3f7f9065561516ec2cb20f0ba7d1811ee7c75d",
+          "rows_footer": 2930854
+        }
+      ],
+      "viewer": {
+        "train_rows": 5528854,
+        "train_parquet_bytes": 9438382231,
+        "partial": false
+      },
+      "train_rows_footers": 5528854,
+      "train_bytes": 9438382231,
+      "rows_agree": true,
+      "train_rows_used": 5528854,
+      "sample_file": {
+        "path": "data/tam_Taml/train/001_00000.parquet",
+        "size": 4599030259,
+        "sha256": "2a660abecaa2a7ebfb2a85a78e3f7f9065561516ec2cb20f0ba7d1811ee7c75d",
+        "download": "downloaded",
+        "seconds": 82.9,
+        "rows": 2930854,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 420984,
+        "seconds": 57.7,
+        "slices": [
+          "s1",
+          "s2b"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1994,
+        "already_in_slice1_or_2": 4,
+        "overlap_share_of_survivors": 0.002002002002002002,
+        "removed": {
+          "script_share": 2,
+          "slice1_duplicate": 4
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 2030024,
+        "sampled_docs_bytes": 12549807,
+        "sampled_tokens_per_byte": 0.16175738798214187,
+        "kept_docs_tokens": 1985370,
+        "kept_docs_bytes": 12464040,
+        "kept_tokens_per_byte": 0.1592878392559716,
+        "fineweb2_total_tokens_before_our_rules_est": 5611853156.248
+      },
+      "estimate": {
+        "keep_rate_new": 0.997,
+        "mean_v2_tokens_per_kept_doc": 995.6720160481444,
+        "new_clean_v2_tokens": 5488410432.99,
+        "ci95": [
+          5197390906.336779,
+          5779429959.643221
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    },
+    {
+      "language": "te",
+      "measure": [
+        "tel_Telu"
+      ],
+      "listed_not_measured": [
+        "tel_Latn"
+      ],
+      "removed_subsets_present": [
+        "tel_Latn_removed",
+        "tel_Telu_removed"
+      ],
+      "subset": "tel_Telu",
+      "files": [
+        {
+          "path": "data/tel_Telu/train/000_00000.parquet",
+          "size": 3950350913,
+          "sha256": "3a5174294035125d86a354ab8853b667daca3d99800fcab4a4d882958604288e",
+          "rows_footer": 1964395
+        }
+      ],
+      "viewer": {
+        "train_rows": 1964395,
+        "train_parquet_bytes": 3950350913,
+        "partial": false
+      },
+      "train_rows_footers": 1964395,
+      "train_bytes": 3950350913,
+      "rows_agree": true,
+      "train_rows_used": 1964395,
+      "sample_file": {
+        "path": "data/tel_Telu/train/000_00000.parquet",
+        "size": 3950350913,
+        "sha256": "3a5174294035125d86a354ab8853b667daca3d99800fcab4a4d882958604288e",
+        "download": "downloaded",
+        "seconds": 57.3,
+        "rows": 1964395,
+        "sampled": 2000,
+        "deleted_after_use": true
+      },
+      "prior": {
+        "distinct_texts": 505722,
+        "seconds": 65.6,
+        "slices": [
+          "s1",
+          "s2b"
+        ]
+      },
+      "rules": {
+        "sampled": 2000,
+        "kept_new": 1988,
+        "already_in_slice1_or_2": 5,
+        "overlap_share_of_survivors": 0.002508780732563974,
+        "removed": {
+          "script_share": 7,
+          "slice1_duplicate": 5
+        },
+        "suite_hits": {
+          "touching_docs": 0,
+          "suite_documents_touched": 0,
+          "belebele_touching_docs": 0,
+          "output_hits": 0
+        },
+        "config_fingerprint": "43ce349329a98770"
+      },
+      "tokens_v2": {
+        "sampled_docs_tokens": 3391361,
+        "sampled_docs_bytes": 15593121,
+        "sampled_tokens_per_byte": 0.2174908409932816,
+        "kept_docs_tokens": 3277622,
+        "kept_docs_bytes": 15349777,
+        "kept_tokens_per_byte": 0.21352896527421864,
+        "fineweb2_total_tokens_before_our_rules_est": 3330986295.7974997
+      },
+      "estimate": {
+        "keep_rate_new": 0.994,
+        "mean_v2_tokens_per_kept_doc": 1648.7032193158955,
+        "new_clean_v2_tokens": 3219272134.345,
+        "ci95": [
+          3034953060.6282644,
+          3403591208.061735
+        ],
+        "label": "NOT VERIFIED: estimate from a sample of one file"
+      }
+    }
+  ],
+  "limits": [
+    "2,000 documents from ONE file per language: in-file boilerplate and near-duplicate rules see far less repetition than in a full build, so the keep rate is likely an upper bound.",
+    "Overlap = identical text only (a lower bound); near-duplicates of slice 1/2 are not found.",
+    "URL overlap not measured (whether Sangraha Verified keeps source URLs is NOT VERIFIED).",
+    "FineWeb-2 has no English; English stays from Sangraha.",
+    "Estimates use train rows x keep rate x mean tokens; the interval covers sampling error only."
+  ],
+  "attribution": "FineWeb-2 (Hugging Face): Penedo et al. 2025, FineWeb2: One Pipeline to Scale Them All (arXiv:2506.20920). ODC-By 1.0; also subject to the Common Crawl Terms of Use.",
+  "verdict": "MEASURED 12 of 12 languages (estimates NOT VERIFIED; read samples.jsonl before any decision)",
+  "environment": {
+    "code_commit": "d85f51c972c29ae1e23b60216952e77980af6778",
+    "python": "3.13.15"
+  },
+  "seconds": 2710.6
+}
