@@ -836,6 +836,11 @@ comes next. They also update the table in §3.
     own decision. Same day: EXP-043 session 4 and the text `-Verify -Relaunch` were started by the founder.
   - **Text backup verify PASS (2026-10-11, results `dc7b42f`):** dataset `frontier-v2-slice2-text` holds all 13
     files in full (unzipped SHA-256 and line counts equal the rewrite's records). The slice-2 text backup is done.
+  - **EXP-048 complete (2026-10-11, results `588010a`):** FineWeb-2 measured for 12 languages: about 76 B new
+    clean v2 tokens (upper-bound estimate, NOT VERIFIED) vs about 78 B unused Sangraha. Keep rate about 99%,
+    exact overlap with slices 1/2 0-5%. Only Assamese meets the pre-stated rule (Sangraha's 3 Assamese files are
+    all used; FineWeb-2 could add up to 0.29 B). 3 of 72 kept excerpts look machine-translated. Nothing added;
+    an Assamese FineWeb-2 build would need its own experiment and decision (not proposed now).
 
 
 ## 9. The prompt the operator pastes into a new Arena chat

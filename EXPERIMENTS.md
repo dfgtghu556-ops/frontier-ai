@@ -4979,3 +4979,61 @@ Run time NOT VERIFIED (estimate 1 to 3 hours on one CPU session; about 40 GB dow
 4.8 GB Hindi/Bengali-size files). The decision rule above is unchanged.
 
 **Status:** built (code and tests; not run yet; the founder runs `scripts\run_kaggle_exp048.ps1`; adds nothing to the corpus)
+
+**Result (2026-10-11; results `588010a`, `evals/results/EXP-048/`; kernel commit `d85f51c`; one Kaggle CPU
+session, 2,711 s of measuring, 1 h on Kaggle in total; ran alongside EXP-043 session 4).**
+
+Checks that passed: FineWeb-2 revision `af9c13333eb981300149d5ca60a8e9d659b276b9`, licence `odc-by` (dataset
+card and API agree); 3,783 subsets in the listing; train rows from the size service and from the parquet
+footers agree for all 12 languages (63,847,541 rows, 100.8 GB); every sample file matched its SHA-256 and was
+deleted; slices s1, s2a, s2b checked file by file (full SHA-256) before use; protected suite (3,427 held-out
+documents) + Belebele (64,844 texts) guarded the sample.
+
+| lang | train rows | kept new / 2,000 | identical to slice 1/2 | other removals | est. new clean v2 tokens (B, 95%) | Sangraha full (B, EXP-046 est.) | already in slices 1+2 (B) | Sangraha unused (B, est.) |
+|---|---|---|---|---|---|---|---|---|
+| ur | 4,809,542 | 2,000 | 0 | 0 | 7.70 (7.03–8.36) | 8.4 | 0.97 | ≈ 7.4 |
+| as | 267,371 | 1,892 | 104 | 4 | **0.29 (0.25–0.33)** | 0.47 | 0.47 | **≈ 0 (all 3 files used)** |
+| bn | 15,185,742 | 1,993 | 2 | 5 | 18.05 (17.08–19.01) | 15.4 | 0.61 | ≈ 14.8 |
+| gu | 2,127,094 | 1,988 | 9 | 3 | 2.64 (2.48–2.80) | 5.4 | 0.61 | ≈ 4.8 |
+| hi | 22,095,985 | 1,991 | 2 | 7 | 25.85 (24.66–27.03) | 19.5 | 0.59 | ≈ 18.9 |
+| kn | 2,390,982 | 1,995 | 3 | 2 | 2.39 (2.28–2.51) | 3.5 | 0.49 | ≈ 3.0 |
+| ml | 3,322,526 | 1,993 | 2 | 5 | 4.01 (3.56–4.45) | 5.1 | 0.35 | ≈ 4.8 |
+| mr | 3,912,702 | 1,994 | 5 | 1 | 3.99 (3.83–4.15) | 6.1 | 0.54 | ≈ 5.6 |
+| or | 1,298,188 | 1,976 | 24 | 0 | 1.08 (1.03–1.13) | 2.0 | 0.54 | ≈ 1.5 |
+| pa | 944,160 | 1,991 | 5 | 4 | 1.28 (1.19–1.37) | 2.4 | 0.59 | ≈ 1.8 |
+| ta | 5,528,854 | 1,994 | 4 | 2 | 5.49 (5.20–5.78) | 8.4 | 0.45 | ≈ 8.0 |
+| te | 1,964,395 | 1,988 | 5 | 7 | 3.22 (3.03–3.40) | 7.9 | 0.57 | ≈ 7.3 |
+| **12 langs** | **63,847,541** | **23,795 / 24,000** | **165** | **40** | **≈ 76 (sum of ranges 71.6–80.3)** | **84.5** | **6.76** | **≈ 78** |
+
+"Already in slices 1+2" = training + validation tokens from the three pinned manifests; "Sangraha unused" = the
+EXP-046 full-size estimate minus that (NOT VERIFIED, like the estimate). Other removals: script share 35,
+wiki markup 3, near-duplicate 1, protected suite 1 (Malayalam, a 13-word run).
+
+**What I read in the samples (285 excerpts):**
+- Language is right: all 10 kept Assamese excerpts contain the Assamese-only letters ৰ/ৱ, none of the 10
+  Bengali ones do; all 10 Urdu excerpts contain Urdu letters (ٹ ڈ ڑ ں ے ھ).
+- Mostly news sites, as in Sangraha; much of the Bengali is from Bangladesh sites.
+- **Machine-translated pages pass our rules:** 3 of the 72 kept excerpts look machine-translated (language-code
+  subdomains `pa.lawyers.cafe`, `gu.bjmmecgroup.com`, `ta.arzimagina.com`, the last one translated from an
+  Indonesian health site). Our D-045 rules have no check for this; a FineWeb-2 build would need one.
+- The documents identical to slice 1/2 come from the same news sites (`assam.nenow.in`, `kanaknews.com`, ...),
+  so the two datasets crawl the same sites: real overlap (same page, slightly different text) is likely much
+  larger than the exact-text 0–5% measured.
+
+**Against the decision rule stated before measuring:**
+- **Correction to the plan's wording:** the plan said "only about 0.47 B [unused] for Assamese"; 0.47 B was
+  Sangraha's FULL Assamese size, and slices 1 + 2 already use all three Assamese files (data-0, data-1, data-2).
+- **Assamese is the one language that meets the rule:** Sangraha Verified has no Assamese left, and FineWeb-2
+  could add up to about 0.29 B tokens (about 60% more Assamese; an upper bound for the two reasons above).
+- **Odia and Punjabi do not:** FineWeb-2 (1.08 B, 1.28 B) is smaller than the unused Sangraha (≈ 1.5 B, ≈ 1.8 B).
+- **The other nine:** FineWeb-2 is 0.4–1.4× the unused Sangraha, which is already far more than free compute can
+  train on (EXP-046: the next model wants about 8 B tokens; slices 1 + 2 hold 8.16 B). More Sangraha stays the
+  simpler choice there.
+- So: FineWeb-2 is a credible reserve of roughly the same size as the unused Sangraha (≈ 76 B vs ≈ 78 B, both
+  upper-bound estimates), not needed now. Data is not the current bottleneck; compute is.
+
+**Possible next step (NOT proposed for now, needs its own experiment and decision):** an Assamese-only FineWeb-2
+build with near-duplicate removal against slices 1 + 2 and a machine-translation check, only when a model is
+trained where more Assamese matters. Nothing from FineWeb-2 enters FrontierCorpus without that decision.
+
+**Status:** complete (measured 12 of 12 languages; estimates NOT VERIFIED; only Assamese meets the stated rule; nothing added to the corpus)
