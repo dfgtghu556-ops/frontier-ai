@@ -4763,6 +4763,8 @@ kernel commit `71bd885`; 88 s on one Kaggle CPU session).
 - So v2-slice2 now has a second full copy of its text, independent of the build kernels' outputs.
   Nothing was changed; only reading and hashing.
 
+**Status:** complete (D-051 accepted v2-slice2); backup complete: token files verified 2026-10-09; complete text rewritten as single-member gzip and verified in dataset frontier-v2-slice2-text 2026-10-11 (PASS)
+
 ### EXP-047 — Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running anything needs a further "approve EXP-047" plus the founder's compute decision)
 
