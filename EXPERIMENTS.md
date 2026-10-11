@@ -3895,6 +3895,32 @@ in `evals/results/EXP-043/session-3/` (results commit `d0c3655`).
 
 **Status:** running — sessions 1–3 complete (main run at step 61,207 of 169,911; session 3 on two GPUs at 1.98×); next: session 4
 
+**Update (2026-10-11): session 4 complete (two GPUs).** Commit `71bd885`; results in
+`evals/results/EXP-043/session-4/` (results commit `8c11805`). Same setup and one-pass order
+(fingerprint) as sessions 1–3.
+- **Chain:** the step-61,207 checkpoint (kernel `frontier-exp043-a`) was found, its sha256 (5 files)
+  verified, and resumed on two GPUs (no fallback, no failure).
+- **Steps 61,207 → 100,653 (39,446 this session; 59.2% of the pass done)**, 1,649,098,752 tokens seen
+  in total. The session ended at its time budget; no stop rule fired.
+- **Speed:** 21,261 tokens/s (0.771 s per step): 1.91× session 2's one-GPU speed, 3.5% slower than
+  session 3. Memory 8.97 GB per GPU.
+- **Health:** 17 skipped fp16 steps (0.04%), no bad evaluations. Sampled validation loss 2.164
+  (step 62,000) → 2.025 (step 100,000); the best so far is 2.0106 (step 90,000).
+- **Checkpoint:** step 100,653 (`model.pt` `9b962e37…`); periodic saves every 5,000 steps from 65,000
+  to 100,000.
+- **Full validation at the session end (still mid-run, not a result):** mean **0.6828 bpb**
+  (token-weighted 0.7680, pooled 0.6838), down 0.0371 from session 3. All 13 languages improved (by
+  0.028 for ta up to 0.076 for en; hi 0.6016). The gate (final mean < 0.7562) and the comparison with
+  the predicted 0.683 are judged only on the final score at the end of the pass.
+- **Time:** 8.66 session-hours, 34.04 of the 100-hour cap used. 69,258 steps remain: about 14.8 h of
+  training at this speed, so **2 more sessions** (5 full; 6 shorter, with the final evaluation).
+- **D-050 revisit rules clear** (skipped steps, no hang, speed ≥ 1.4×): the run stays on two GPUs.
+- **Code for session 5:** the branch now also holds the EXP-047 runner (`b629b7b`), which added hooks to
+  `scripts/gpu_pretrain.py` whose defaults are the old code; EXP-043's tests pass unchanged, so the
+  plan and setup are the same (a changed setup would be refused by `load_sessions`).
+
+**Status:** running — sessions 1–4 complete (main run at step 100,653 of 169,911; two GPUs); next: session 5 (about 2 sessions left)
+
 ### EXP-044 — Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-044" before any code)
 

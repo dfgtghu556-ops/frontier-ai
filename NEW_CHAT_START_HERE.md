@@ -846,6 +846,9 @@ comes next. They also update the table in §3.
     EXP-043 runner through hooks in `scripts/gpu_pretrain.py` whose defaults keep EXP-043 unchanged (its tests pass).
     Slice-1 validation every session; slice 2 and pooled at the end; gate vs EXP-043's final (proposed). Kernel and
     runner wait for the size and compute choice. Tests: `tests/test_pretrain_exp047.py`.
+  - **EXP-043 session 4 complete (2026-10-11, results `8c11805`):** steps 61,207 → 100,653 of 169,911 on two
+    GPUs (21,261 tokens/s, 17 skipped steps, no stop rule); session-end full validation 0.6828 bpb mean (mid-run,
+    not a result; all 13 languages improved). 34.04 of 100 session-hours used; about 2 sessions left. Next: session 5.
 
 
 ## 9. The prompt the operator pastes into a new Arena chat
