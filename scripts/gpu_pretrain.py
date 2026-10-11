@@ -75,6 +75,9 @@ DDP_DIR = "ddp"  # under --scratch: in.json, worker.log, first_step.json, done.j
 DDP_GRACE_MIN = 90.0  # after the training deadline: session-end evaluation, final files, start-up
 DDP_NCCL_TIMEOUT_MIN = 60.0
 _FIRST_STEP_MARKER: Path | None = None  # set in the worker on process 0
+# The script torchrun starts for the two-GPU main run. EXP-047 (scripts/pretrain_exp047.py) reuses this
+# runner and points it at its own script; EXP-043 always uses this file.
+WORKER_SCRIPT = SCRIPTS / "gpu_pretrain.py"
 
 MODEL_FULL = {"n_layer": 14, "n_head": 14, "n_embd": 896, "block_size": 512, "pos": "rope", "n_kv_head": 2}
 MODEL_SMOKE = {"n_layer": 2, "n_head": 4, "n_embd": 32, "block_size": 16, "pos": "rope", "n_kv_head": 2}
@@ -265,6 +268,27 @@ def render(d: dict[str, Any]) -> str:
             out.append(f"  model_final.pt sha256 {f['model_final']['sha256']}")
     out.append("")
     return "\n".join(out)
+
+
+# ------------------------------------------------- data (hooks for EXP-047) --
+# EXP-043 reads the 13 EXP-037 files named in --manifest. scripts/pretrain_exp047.py replaces these two
+# functions (and score_all, final_scores, final_checks, make_samples, render) for its own run only.
+def part0_data(args: argparse.Namespace, rep: Report) -> MultiTokenDataset | None:
+    """Part 0: check the data files (sha256), the GPU and the tests; then open the training data."""
+    return la.part0(
+        args,
+        rep,
+        la.CHECK_SHAPE_SMOKE if args.smoke else la.CHECK_SHAPE_FULL,
+        la_plan(args),
+        device_check=False,
+        extra_tests=("tests/test_onepass_sampler.py",),
+    )
+
+
+def open_base(args: argparse.Namespace) -> MultiTokenDataset:
+    """The training data again, already checked by Part 0 (the two-GPU worker opens it itself)."""
+    manifest = json.loads((ROOT / args.manifest).read_text(encoding="utf-8"))
+    return MultiTokenDataset([Path(args.data_dir) / f["path"] for f in manifest["files"]])
 
 
 # ---------------------------------------------------------- previous state --
@@ -479,6 +503,13 @@ def reference_bpb(setup: dict) -> dict[str, float]:
             if r.get("name") == setup["reference_run"] and r.get("session") == d["session"]:
                 return r["bpb"]
     return {}
+
+
+def final_scores(
+    model: torch.nn.Module, ds: MultiTokenDataset, session_eval: dict, block: int, setup: dict, device, amp
+) -> dict:
+    """The scores of the finished model. EXP-043: the session-end full validation itself."""
+    return session_eval
 
 
 def final_checks(scores: dict, setup: dict) -> dict[str, Any]:
@@ -747,10 +778,10 @@ def run_main(
         m["session_eval_minutes"] = round((time.time() - t_eval) / 60, 2)
         rep.save()
     if trainer.state.step >= total and not rep.data.get("stop_rule"):
-        final: dict[str, Any] = {
-            "scores": m["session_eval"],
-            "checks": final_checks(m["session_eval"], setup),
-        }
+        scores = final_scores(
+            model, ops.base, m["session_eval"], cfg.model.block_size, setup, trainer.device, amp
+        )
+        final: dict[str, Any] = {"scores": scores, "checks": final_checks(scores, setup)}
         rep.data["final"] = final
         rows = make_samples(model, ops.base, setup, trainer.device)
         (rep.out / "samples.jsonl").write_text(
@@ -810,14 +841,7 @@ def run_session(
         if not chain["ok"] and (needs_chain or st["checkpoint"] is not None):
             rep.data["stopped"] = "Part 0 checkpoint chain: " + chain["result"]
             return
-        base = la.part0(
-            args,
-            rep,
-            la.CHECK_SHAPE_SMOKE if args.smoke else la.CHECK_SHAPE_FULL,
-            la_plan(args),
-            device_check=False,
-            extra_tests=("tests/test_onepass_sampler.py",),
-        )
+        base = part0_data(args, rep)
         if base is None:
             return
         gb._say("Part 0: one-step float64 check, D-048 architecture")
@@ -945,7 +969,7 @@ def run_main_two_gpus(
     rep.save()
     gb.reset_backend()
     cmd = [sys.executable, "-m", "torch.distributed.run", "--standalone", "--nnodes", "1"]
-    cmd += ["--nproc_per_node", "2", str(SCRIPTS / "gpu_pretrain.py"), "--ddp-worker", str(wdir / "in.json")]
+    cmd += ["--nproc_per_node", "2", str(WORKER_SCRIPT), "--ddp-worker", str(wdir / "in.json")]
     env = {**os.environ, "OMP_NUM_THREADS": os.environ.get("OMP_NUM_THREADS", "1")}
     if args.smoke:  # the CPU test stays on CPU even on a GPU machine
         env["CUDA_VISIBLE_DEVICES"] = ""
@@ -1021,8 +1045,7 @@ def ddp_worker(path: Path) -> int:
             raise RuntimeError("test: the two-GPU start fails")
         if dd.world() != 2:
             raise RuntimeError(f"expected 2 processes, got {dd.world()}")
-        manifest = json.loads((ROOT / args.manifest).read_text(encoding="utf-8"))
-        base = MultiTokenDataset([Path(args.data_dir) / f["path"] for f in manifest["files"]])
+        base = open_base(args)
         ops = OnePassDataset(base, setup["model"]["block_size"], setup["order_seed"])
         if ops.fingerprint() != payload["rep_data"]["order"]["fingerprint"]:
             raise RuntimeError("the worker's one-pass order differs from the session's")

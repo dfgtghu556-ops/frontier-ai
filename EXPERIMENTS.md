@@ -4883,6 +4883,37 @@ implements §5's loader item:
 
 **Status:** proposed; step 1 (slice-aware loader and manifest checks, code only) approved and built 2026-10-09; the run itself needs "approve EXP-047" and the founder's compute choice A/B/C; the size is chosen after EXP-043's final result by the rule in §4
 
+**Note 2026-10-11: EXP-047 code built (founder "approve EXP-047 code"; code only, no training, no GPU, ₹0).**
+- `scripts/pretrain_exp047.py` reuses the EXP-043 runner and swaps in the EXP-047 parts only while it runs:
+  - **Data:** the three pinned slices (26 files named `<slice>/<lang>`). Part 0 checks each manifest's pinned
+    SHA-256 and each file's size, meta counts and full SHA-256. One pass = 15,936,053 windows of 512 tokens =
+    498,001 steps of 32 windows (computed from the pinned manifests, checked in a test).
+  - **Model:** the family member given by `--size` (14x896, 16x1024, 18x1152, 20x1280, 22x1408). Parameter
+    counts equal the §1 table (190.1 / 272.8 / 377.7 / 507.5 / 664.9 M, checked in a test). `--size` and
+    `--cap-hours` have **no default**; both are written into every session's setup, so a later session with
+    another size or cap is refused.
+  - **Same as EXP-043:** learning-rate check (2.5e-4, 5e-4, 1e-3; 6,104 steps each; same rule and extensions),
+    32 windows per step, warmup, stop rules, checkpoint chain with SHA-256, two GPUs (D-050). The memory probe
+    also tries micro-batch 4 x 8. Session-end reserve 45 minutes (EXP-043: 30) for a larger model's validation.
+  - **Validation:** every session ends with full slice-1 validation (the yardstick, §5). Scoring slice 2 too at
+    every session end would cost roughly 2.9 x as much each time (41.8 M vs 14.5 M validation tokens), so the
+    session that finishes the pass scores slice 2 and both slices pooled per language once (reported, not gated).
+  - **Gate (proposed; numbers fixed in the approved version):** final slice-1 mean bpb below EXP-043's final
+    minus 0.0174, and no language worse than EXP-043's final by more than 0.0174. If EXP-043's final is not in
+    the repository, the gate says NOT DECIDED.
+- `scripts/gpu_pretrain.py`: four hooks whose defaults are the old code (two-GPU worker script, Part 0 data, the
+  worker's data, final scores). EXP-043's own tests pass unchanged (25 tests incl. the 3-session chain and the
+  two-process run), so EXP-043 sessions 5-6 run exactly as before.
+- `tests/test_pretrain_exp047.py` (12 CPU tests): three sessions on three tiny slices (learning-rate check; one
+  process; two processes to the end of the pass with slice-1, slice-2 and pooled scores), gate pass and both
+  ways to fail, refusal of a changed data file, an edited manifest and another size, and a check that the setup
+  differs from EXP-043's only in the EXP-047 keys. Full suite: 823 passed, 1 skipped (CPU).
+- **Not built:** the Kaggle kernel and runner (they need the size and compute choice), a sharded optimizer
+  (option B, not chosen). **Memory, NOT VERIFIED:** the probe runs on one GPU; two-GPU training adds DDP's
+  gradient buffers, so the first two-GPU session's measured peak memory is the real check.
+
+**Status:** proposed; step 1 (slice-aware loader) built 2026-10-09; runner code and tests built 2026-10-11 (founder "approve EXP-047 code"; no training); the run itself needs "approve EXP-047", the founder's compute choice A/B/C and the size chosen after EXP-043's final result by the rule in §4
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 

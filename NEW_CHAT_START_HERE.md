@@ -841,6 +841,11 @@ comes next. They also update the table in §3.
     exact overlap with slices 1/2 0-5%. Only Assamese meets the pre-stated rule (Sangraha's 3 Assamese files are
     all used; FineWeb-2 could add up to 0.29 B). 3 of 72 kept excerpts look machine-translated. Nothing added;
     an Assamese FineWeb-2 build would need its own experiment and decision (not proposed now).
+  - **EXP-047 code built (2026-10-11, founder "approve EXP-047 code"; no training):** `scripts/pretrain_exp047.py`
+    trains a family member (`--size`, no default) over slices 1 + 2 (26 pinned files, 498,001 steps), reusing the
+    EXP-043 runner through hooks in `scripts/gpu_pretrain.py` whose defaults keep EXP-043 unchanged (its tests pass).
+    Slice-1 validation every session; slice 2 and pooled at the end; gate vs EXP-043's final (proposed). Kernel and
+    runner wait for the size and compute choice. Tests: `tests/test_pretrain_exp047.py`.
 
 
 ## 9. The prompt the operator pastes into a new Arena chat
