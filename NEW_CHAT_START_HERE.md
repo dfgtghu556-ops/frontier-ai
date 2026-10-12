@@ -858,6 +858,11 @@ comes next. They also update the table in §3.
     better than the predicted 0.683 ("not consistent"). 49.60 of 100 session-hours, ₹0. `model_final.pt` sha256
     `5494c028…` (not in git; on Kaggle kernel b and the founder's PC). Roadmap step 12 complete. Next: EXP-045
     final (`scripts\run_kaggle_exp045_final.ps1`); EXP-047 §4 now needs a refit of the laws before sizing.
+  - **EXP-045 COMPLETE (2026-10-12, results `0827cbe`):** baseline of the EXP-043 model. Protected suite 0.9099
+    bpb (short documents; not comparable with validation). Belebele at chance in 12 of 13 languages (as expected for
+    190 M); Tamil 29.1% is above chance by the rule but not without flagged questions. Same-passages bits vs English
+    1.20× (hi) to 1.58× (as). Stray Latin "Li…" fragments in 11 of 208 samples (cause NOT VERIFIED). fp16 weights on
+    the founder's PC. Next: EXP-047 decision (the §4 refit first).
 
 
 ## 9. The prompt the operator pastes into a new Arena chat

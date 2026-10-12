@@ -4409,6 +4409,71 @@ Hindi prompts are confirmed by one native speaker. `everyday-v1.json` is unchang
 
 **Status:** approved 2026-10-04; test 4 done 2026-10-06; coverage re-scan done 2026-10-07; GPU session for tests 1-3 and 5 wired 2026-10-08 (`scripts\run_kaggle_exp045_final.ps1`), runs after EXP-043 is complete; Hindi everyday prompts confirmed by the founder 2026-10-09
 
+**Result (2026-10-12): tests 1, 2, 3 and 5 done on the EXP-043 final model — the baseline later models must
+beat.** One Kaggle T4 session, commit `2d9c6a5`, results in `evals/results/EXP-045/final/` (`SUMMARY.txt`,
+`summary.json`, `belebele_items.jsonl`, `samples.jsonl`; results commit `0827cbe`). Model `model_final.pt`
+sha256 `5494c028…` (step 169,911), fp16 autocast. 843 s of evaluation (about 40 minutes of kernel time with
+set-up), within the 1 GPU-hour cap.
+
+**Test 1 — protected suite `frontier-heldout-v1` (3,427 documents; identity PASS, every document matches the
+suite hashes):** **0.9099 bits per byte** over all languages. Per language: as 0.943 · bn 0.918 · en 1.927 · gu 0.935 · hi 0.880 · kn 0.767 · ml 0.825 · mr 0.709 · or 0.905 · pa 0.920 · ta 0.605 · te 0.920 · ur 1.440.
+These are higher than EXP-043's validation numbers (0.6283 mean) and are not comparable with them: the
+suite's documents are short (59 bytes per English document up to 654 for Tamil, so most tokens are
+predicted with little context) and come from the frozen D-042 split, not the EXP-037 validation split. The
+number is the fixed baseline for this suite.
+
+**Test 2 — Belebele (900 questions per language, chance 25%, 95% Wilson interval; pre-registered: "above
+chance" only if the whole interval is above 25%; honest expectation "close to chance").** Reported three
+ways (all questions; without the questions flagged by test 4; without the 2.3% "substantially present"):
+
+| language | all 900 | above chance | without flagged (n: accuracy) | without substantially present (n: accuracy) |
+|---|---|---|---|---|
+| as | 26.6% [23.8, 29.5] | no | 385: 26.0% [21.8, 30.6] | 891: 26.5% |
+| bn | 26.1% [23.3, 29.1] | no | 274: 26.3% [21.4, 31.8] | 888: 26.4% |
+| en | 26.6% [23.8, 29.5] | no | 38: 23.7% [13.0, 39.2] | 867: 25.7% |
+| gu | 26.3% [23.6, 29.3] | no | 139: 31.7% [24.5, 39.8] | 881: 26.3% |
+| hi | 24.7% [22.0, 27.6] | no | 62: 29.0% [19.2, 41.3] | 883: 24.5% |
+| kn | 24.7% [22.0, 27.6] | no | 389: 25.7% [21.6, 30.3] | 884: 24.7% |
+| ml | 24.8% [22.1, 27.7] | no | 439: 25.7% [21.9, 30.0] | 877: 24.4% |
+| mr | 27.4% [24.6, 30.5] | no | 401: 29.2% [24.9, 33.8] | 889: 27.7% |
+| or | 25.9% [23.1, 28.8] | no | 264: 27.3% [22.3, 32.9] | 891: 25.7% |
+| pa | 25.7% [22.9, 28.6] | no | 51: 29.4% [18.7, 43.0] | 878: 25.4% |
+| ta | 29.1% [26.2, 32.2] | **yes** | 376: 27.7% [23.4, 32.4] | 890: 29.0% |
+| te | 24.4% [21.7, 27.4] | no | 58: 25.9% [16.3, 38.4] | 862: 24.7% |
+| ur | 26.7% [23.9, 29.7] | no | 25: 36.0% [20.2, 55.5] | 851: 26.3% |
+
+- **12 of 13 languages are at chance; Tamil is above chance by the rule** (29.1%, [26.2, 32.2]). Without its
+  flagged questions Tamil is 27.7% [23.4, 32.4] (n = 376), no longer above chance, so the effect is small and
+  not robust. The expectation (close to chance for a 190 M base model) is confirmed.
+- Descriptive only (not pre-registered): all 11,700 questions pooled give 26.1% [25.3, 26.9].
+- "Without flagged" leaves few questions in some languages (ur 25, en 38, pa 51, te 58, hi 62), so those
+  intervals are very wide; the 36.0% for Urdu (9 of 25) means nothing.
+
+**Test 3 — the same 488 passages in every language (total bits relative to English, lower = the model
+knows the language better):** en 1.00× · hi 1.20× · ta 1.24× · mr 1.25× · gu 1.25× · te 1.28× · kn 1.32× · ml 1.34× · or 1.35× · ur 1.35× · pa 1.42× · bn 1.43× · as 1.58×. English needs the fewest bits (it is also the largest training share,
+17%); among the Indian languages Hindi is easiest and Assamese hardest (1.58×). Shares alone do not explain
+the order (Malayalam has the smallest share, 5.0%, and is 1.34×).
+
+**Test 5 — samples (130 = 13 languages × the 5 everyday-v1 prompts × greedy / temperature 0.8):** greedy
+continuations are often fluent news-style text (Hindi "आज मौसम" → "विभाग ने बताया कि प्रदेश में आज दिन का
+न्यूनतम तापमान 24 डिग्री सेल्सियस दर्ज किया गया है"; Tamil "இன்றைய வானிலை" → a weather-bureau rain
+forecast), but loop on everyday first-person prompts ("हर सुबह मैं … मैं अपने घर पर ही था और मैं अपने घर पर ही
+था") and get everyday facts wrong (tea starts with lemon juice). **Observation, cause NOT VERIFIED:** 11 of
+the 208 continuations of EXP-043 and EXP-045 (all at temperature 0.8, 9 languages) contain stray Latin
+fragments such as "Library", "Li-setto", "Liquidity" inside Indian-language text; worth a look at the
+training data or the tokenizer before the next model.
+
+**What this means:** the model has learned the languages' surface (spelling, grammar, news phrasing) but
+not reading comprehension, which is what the pre-registered expectation said for this size. These numbers
+are the baseline: EXP-047 and later models are compared on the same suite, the same Belebele scoring and the
+same 488 passages.
+
+**Also delivered:** the fp16 weights (`model_fp16.pt`, 380,164,099 bytes, sha256 `11290598…`) are on the
+founder's PC (`out\kaggle\EXP-045-final\output\exp045_fp16\model_fp16.pt`, sha256 matched), for
+`scripts/generate.py --weights … --interactive` (speed on the i3-4030U NOT VERIFIED).
+
+**Status:** complete (tests 1-5 done; Belebele at chance in 12 of 13 languages, Tamil above chance by the rule but not without flagged questions; protected suite 0.9099 bpb; baseline recorded)
+
 ### EXP-046 — Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-046" before any code)
 
