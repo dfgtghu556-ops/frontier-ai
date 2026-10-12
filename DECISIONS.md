@@ -2028,6 +2028,13 @@ mostly used by EXP-047 for about ten weeks.
 slower than the estimate (more than 20%, which would mean about two extra weeks); a free or paid GPU
 option changes; or the learning-rate check or the stop rules end the run early.
 
+**Update (2026-10-13): how point 3 was carried out (EXP-047 note 2026-10-13).** The kernel, runner and
+probe are built. The sharded optimizer is not built, because the memory probe, the learning-rate check
+and the first main-run session all run on one GPU, so sharding cannot decide whether 20 × 1280 fits. The
+probe (session 1, memory only) decides. If no micro-batch fits, the session stops before training and the
+choice (18 × 1152, or a two-GPU learning-rate check with sharding) comes back to the founder, instead of
+the automatic fallback in point 2. The decision text above is unchanged.
+
 ---
 
 ## Open items to decide later (not yet decisions)

@@ -5157,6 +5157,37 @@ starts it):
 
 **Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); building the sharded optimizer, probe, kernel and runner (no GPU use yet)
 
+**Note 2026-10-13: Kaggle kernel and runner built (D-052); the sharded optimizer is not built, and why.**
+- **Built:** `scripts/kaggle/exp047_kernel.py` and `scripts/run_kaggle_exp047.ps1` (the shared runner
+  with `-Exp EXP-047`). They work like EXP-043's: one launch = one session of at most 9 hours; two private
+  kernels `frontier-exp047-a` / `-b` take turns and read each other's checkpoint; only the result files
+  come back; `model_final.pt` (about 2 GB) is downloaded once at the end. The kernels mount the
+  13-language EXP-037 dataset (slice 1) and the founder's two slice-2 backups, whose token files matched
+  the manifests in the EXP-046 backup check. The runner refuses to launch unless both slice-2 datasets
+  are ready on Kaggle. Typed values: `--size 20x1280` and `--cap-hours 380` (the 314-hour estimate
+  plus 20%, D-052's revisit trigger).
+- **Session 1 is short (about 30–45 minutes, NOT VERIFIED):** Part 0 (every manifest and token file
+  checked) and the memory probe only (`--max-runs 0`), then it stops. So whether 20 × 1280 fits is known
+  before the long sessions. The learning-rate check starts in session 2: at this size, about one
+  learning-rate run (≈7 hours, estimated) fits in a session. CPU test:
+  `test_first_kaggle_session_is_probe_only_then_the_check_continues`.
+- **Predictions in the code:** `pretrain_exp047.FAMILY` now holds the refit's pre-registered predictions
+  and hours (20 × 1280: 0.6138, ≈314 h), replacing the §1 values before any EXP-047 session ran. Check 2
+  ("consistent with the prediction") uses 0.6138 ± 0.03. The gate is unchanged (0.6109).
+- **Why no sharded optimizer (ZeRO-1):** in the runner the memory probe runs once, in session 1, on one
+  GPU, and its micro-batch is used for every session. The learning-rate check and the first main-run
+  session also run on one GPU (D-050). Sharding the optimizer across two GPUs therefore cannot change
+  whether 20 × 1280 fits. Estimate from EXP-043's measured peak (9.26 GB at micro-batch 16 for 190 M;
+  NOT VERIFIED for 507 M): weights + gradients + AdamW moments 8.1 GB, plus activations ≈2.5 GB at
+  micro-batch 4 (≈10.6 GB) or ≈5 GB at micro-batch 8 (≈13.1 GB), against the 14.5 GB limit. So it
+  probably fits at micro-batch 8 or 4 without sharding. The probe decides.
+- **If the probe finds no micro-batch that fits:** the session stops before any training, and the choice
+  comes back to the founder. D-052's automatic fallback to 18 × 1152 assumed sharding had been built and
+  tried; the other way out is a two-GPU learning-rate check with sharding (new code). Nothing changes
+  silently.
+
+**Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); kernel and runner built 2026-10-13 (session 1 = memory probe only); next: the founder starts session 1; the sharded optimizer is not built (not needed unless the probe fails)
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 
