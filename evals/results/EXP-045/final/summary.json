@@ -1,0 +1,713 @@
+{
+  "schema": "frontier-exp045-eval-v1",
+  "exp_id": "EXP-045",
+  "smoke": false,
+  "complete": true,
+  "limit": null,
+  "created_utc": "2026-10-12T16:29:25Z",
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.39",
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "cuda_available": true,
+    "device_count": 2,
+    "gpu_name": "Tesla T4",
+    "gpu_memory_gb": 14.56,
+    "compute_capability": "7.5",
+    "bf16_supported": true,
+    "matmul_tf32": false,
+    "driver": "580.178.04",
+    "code_commit": "2d9c6a5d114e14f44e25100284b0da8ebca29fbd"
+  },
+  "device": "cuda",
+  "amp": "fp16",
+  "model": {
+    "exp_id": "EXP-043",
+    "step": 169911,
+    "source": "weights",
+    "file": "model_final.pt",
+    "sha256": "5494c0285091917737c4e0dde29789239ba67265ae0bb3be6293c20f5c11bccf",
+    "n_params": 190064000,
+    "block_size": 512
+  },
+  "belebele": {
+    "repo": "facebook/belebele",
+    "revision": "7899cdfa4e1e0d733fd77c848e2c273cb1d32be2",
+    "license": "CC BY-SA 4.0 (test set; the Belebele training set is CC BY-NC and is NOT used)"
+  },
+  "tests": {
+    "1_heldout": {
+      "status": "RUN",
+      "suite_id": "frontier-heldout-v1",
+      "suite_fingerprint": "a488b2aa41f9e861fa279a67e1fb6d98a610b4e8eebe554b9cfad262fc628a2f",
+      "identity": "PASS (every document matches the suite hashes)",
+      "protocol": "each text scored as one document: <|endoftext|> + text tokens, every text token scored once (overlapping windows with stride block/2 if longer than the context); bits / UTF-8 bytes",
+      "documents": 3427,
+      "windowed_documents": 7,
+      "bpb_all": 0.9099108170051873,
+      "per_language": {
+        "as": {
+          "documents": 236,
+          "bits": 54210.397562674414,
+          "bytes": 57471,
+          "bpb": 0.9432652566107153
+        },
+        "bn": {
+          "documents": 408,
+          "bits": 47143.553088782886,
+          "bytes": 51369,
+          "bpb": 0.9177432515482662
+        },
+        "en": {
+          "documents": 574,
+          "bits": 65660.15829469098,
+          "bytes": 34082,
+          "bpb": 1.9265347777328494
+        },
+        "gu": {
+          "documents": 190,
+          "bits": 72136.21176718407,
+          "bytes": 77151,
+          "bpb": 0.9350003469453937
+        },
+        "hi": {
+          "documents": 551,
+          "bits": 166911.50777180452,
+          "bytes": 189687,
+          "bpb": 0.8799311907078742
+        },
+        "kn": {
+          "documents": 269,
+          "bits": 78744.75056568487,
+          "bytes": 102639,
+          "bpb": 0.767201069434473
+        },
+        "ml": {
+          "documents": 226,
+          "bits": 105618.87340448773,
+          "bytes": 127950,
+          "bpb": 0.8254698976513305
+        },
+        "mr": {
+          "documents": 158,
+          "bits": 51978.41950140731,
+          "bytes": 73311,
+          "bpb": 0.7090125561158259
+        },
+        "or": {
+          "documents": 176,
+          "bits": 42552.77339217944,
+          "bytes": 47021,
+          "bpb": 0.9049738072814156
+        },
+        "pa": {
+          "documents": 249,
+          "bits": 93403.7108428946,
+          "bytes": 101508,
+          "bpb": 0.9201610793523131
+        },
+        "ta": {
+          "documents": 103,
+          "bits": 40790.96173727781,
+          "bytes": 67395,
+          "bpb": 0.6052520474408756
+        },
+        "te": {
+          "documents": 148,
+          "bits": 64767.410951949954,
+          "bytes": 70397,
+          "bpb": 0.9200308386998018
+        },
+        "ur": {
+          "documents": 139,
+          "bits": 70554.97038699775,
+          "bytes": 48994,
+          "bpb": 1.4400736903906142
+        }
+      },
+      "seconds": 11.9
+    },
+    "2_belebele": {
+      "protocol": "zero-shot; text = passage + '\\n' + question + '\\n' + option (pieces tokenized separately, Frontier Tokenizer v2 encode_ordinary), preceded by <|endoftext|> unless the passage was cut; score = summed log-probability of the option tokens / option UTF-8 bytes; answer = highest score (ties: lowest option number); passage cut from the left if the text exceeds the context",
+      "chance": 0.25,
+      "contamination": "applied",
+      "coverage": "applied",
+      "per_language": {
+        "as": {
+          "questions": 900,
+          "correct": 239,
+          "accuracy": 0.26555555555555554,
+          "wilson95": [
+            0.23774358358410824,
+            0.29536037410487265
+          ],
+          "above_chance": false,
+          "passages_cut": 26,
+          "without_flagged": {
+            "questions": 385,
+            "correct": 100,
+            "accuracy": 0.2597402597402597,
+            "wilson95": [
+              0.21846561736739445,
+              0.3057620702843259
+            ],
+            "above_chance": false,
+            "flagged_removed": 515
+          },
+          "without_substantially_present": {
+            "questions": 891,
+            "correct": 236,
+            "accuracy": 0.2648709315375982,
+            "wilson95": [
+              0.2369509767286617,
+              0.29480965430848594
+            ],
+            "above_chance": false,
+            "removed": 9
+          },
+          "seconds": 39.0
+        },
+        "bn": {
+          "questions": 900,
+          "correct": 235,
+          "accuracy": 0.2611111111111111,
+          "wilson95": [
+            0.23347296710191806,
+            0.29077988078021894
+          ],
+          "above_chance": false,
+          "passages_cut": 21,
+          "without_flagged": {
+            "questions": 274,
+            "correct": 72,
+            "accuracy": 0.26277372262773724,
+            "wilson95": [
+              0.21419615968872635,
+              0.317911105541637
+            ],
+            "above_chance": false,
+            "flagged_removed": 626
+          },
+          "without_substantially_present": {
+            "questions": 888,
+            "correct": 234,
+            "accuracy": 0.2635135135135135,
+            "wilson95": [
+              0.235601538273967,
+              0.29346274120528343
+            ],
+            "above_chance": false,
+            "removed": 12
+          },
+          "seconds": 42.6
+        },
+        "en": {
+          "questions": 900,
+          "correct": 239,
+          "accuracy": 0.26555555555555554,
+          "wilson95": [
+            0.23774358358410824,
+            0.29536037410487265
+          ],
+          "above_chance": false,
+          "passages_cut": 11,
+          "without_flagged": {
+            "questions": 38,
+            "correct": 9,
+            "accuracy": 0.23684210526315788,
+            "wilson95": [
+              0.12993707017054082,
+              0.39206812363239807
+            ],
+            "above_chance": false,
+            "flagged_removed": 862
+          },
+          "without_substantially_present": {
+            "questions": 867,
+            "correct": 223,
+            "accuracy": 0.25720876585928487,
+            "wilson95": [
+              0.22922949857526684,
+              0.28733003618766895
+            ],
+            "above_chance": false,
+            "removed": 33
+          },
+          "seconds": 42.5
+        },
+        "gu": {
+          "questions": 900,
+          "correct": 237,
+          "accuracy": 0.2633333333333333,
+          "wilson95": [
+            0.23560780719878047,
+            0.29307059558677845
+          ],
+          "above_chance": false,
+          "passages_cut": 21,
+          "without_flagged": {
+            "questions": 139,
+            "correct": 44,
+            "accuracy": 0.31654676258992803,
+            "wilson95": [
+              0.2450438911370324,
+              0.397916910152324
+            ],
+            "above_chance": false,
+            "flagged_removed": 761
+          },
+          "without_substantially_present": {
+            "questions": 881,
+            "correct": 232,
+            "accuracy": 0.2633371169125993,
+            "wilson95": [
+              0.23532582475677044,
+              0.2934033098886919
+            ],
+            "above_chance": false,
+            "removed": 19
+          },
+          "seconds": 45.1
+        },
+        "hi": {
+          "questions": 900,
+          "correct": 222,
+          "accuracy": 0.24666666666666667,
+          "wilson95": [
+            0.219619874966438,
+            0.27586686604345606
+          ],
+          "above_chance": false,
+          "passages_cut": 17,
+          "without_flagged": {
+            "questions": 62,
+            "correct": 18,
+            "accuracy": 0.2903225806451613,
+            "wilson95": [
+              0.1922355728861953,
+              0.4128764573498641
+            ],
+            "above_chance": false,
+            "flagged_removed": 838
+          },
+          "without_substantially_present": {
+            "questions": 883,
+            "correct": 216,
+            "accuracy": 0.24462061155152887,
+            "wilson95": [
+              0.2174138157742674,
+              0.2740398194676712
+            ],
+            "above_chance": false,
+            "removed": 17
+          },
+          "seconds": 45.9
+        },
+        "kn": {
+          "questions": 900,
+          "correct": 222,
+          "accuracy": 0.24666666666666667,
+          "wilson95": [
+            0.219619874966438,
+            0.27586686604345606
+          ],
+          "above_chance": false,
+          "passages_cut": 8,
+          "without_flagged": {
+            "questions": 389,
+            "correct": 100,
+            "accuracy": 0.2570694087403599,
+            "wilson95": [
+              0.21616427848256836,
+              0.3027256050664441
+            ],
+            "above_chance": false,
+            "flagged_removed": 511
+          },
+          "without_substantially_present": {
+            "questions": 884,
+            "correct": 218,
+            "accuracy": 0.24660633484162897,
+            "wilson95": [
+              0.2193288751764114,
+              0.27607653133043125
+            ],
+            "above_chance": false,
+            "removed": 16
+          },
+          "seconds": 43.9
+        },
+        "ml": {
+          "questions": 900,
+          "correct": 223,
+          "accuracy": 0.2477777777777778,
+          "wilson95": [
+            0.22068403036598797,
+            0.2770154880956171
+          ],
+          "above_chance": false,
+          "passages_cut": 10,
+          "without_flagged": {
+            "questions": 439,
+            "correct": 113,
+            "accuracy": 0.25740318906605925,
+            "wilson95": [
+              0.21873329881609,
+              0.3002819249002527
+            ],
+            "above_chance": false,
+            "flagged_removed": 461
+          },
+          "without_substantially_present": {
+            "questions": 877,
+            "correct": 214,
+            "accuracy": 0.24401368301026224,
+            "wilson95": [
+              0.216744383654039,
+              0.2735157585046427
+            ],
+            "above_chance": false,
+            "removed": 23
+          },
+          "seconds": 44.8
+        },
+        "mr": {
+          "questions": 900,
+          "correct": 247,
+          "accuracy": 0.27444444444444444,
+          "wilson95": [
+            0.24629590475175817,
+            0.3045102725509106
+          ],
+          "above_chance": false,
+          "passages_cut": 6,
+          "without_flagged": {
+            "questions": 401,
+            "correct": 117,
+            "accuracy": 0.29177057356608477,
+            "wilson95": [
+              0.24942177739597027,
+              0.3380710636621759
+            ],
+            "above_chance": false,
+            "flagged_removed": 499
+          },
+          "without_substantially_present": {
+            "questions": 889,
+            "correct": 246,
+            "accuracy": 0.27671541057367827,
+            "wilson95": [
+              0.24831550313783637,
+              0.3070366861249967
+            ],
+            "above_chance": false,
+            "removed": 11
+          },
+          "seconds": 42.0
+        },
+        "or": {
+          "questions": 900,
+          "correct": 233,
+          "accuracy": 0.2588888888888889,
+          "wilson95": [
+            0.23133907095471987,
+            0.288488222023995
+          ],
+          "above_chance": false,
+          "passages_cut": 18,
+          "without_flagged": {
+            "questions": 264,
+            "correct": 72,
+            "accuracy": 0.2727272727272727,
+            "wilson95": [
+              0.2225511646715541,
+              0.32942260171860815
+            ],
+            "above_chance": false,
+            "flagged_removed": 636
+          },
+          "without_substantially_present": {
+            "questions": 891,
+            "correct": 229,
+            "accuracy": 0.2570145903479237,
+            "wilson95": [
+              0.22940720740081708,
+              0.28670819412444526
+            ],
+            "above_chance": false,
+            "removed": 9
+          },
+          "seconds": 46.5
+        },
+        "pa": {
+          "questions": 900,
+          "correct": 231,
+          "accuracy": 0.25666666666666665,
+          "wilson95": [
+            0.22920612659652387,
+            0.286195611478769
+          ],
+          "above_chance": false,
+          "passages_cut": 43,
+          "without_flagged": {
+            "questions": 51,
+            "correct": 15,
+            "accuracy": 0.29411764705882354,
+            "wilson95": [
+              0.1870872642013547,
+              0.4299907557568642
+            ],
+            "above_chance": false,
+            "flagged_removed": 849
+          },
+          "without_substantially_present": {
+            "questions": 878,
+            "correct": 223,
+            "accuracy": 0.2539863325740319,
+            "wilson95": [
+              0.22630831056670025,
+              0.2838077134885501
+            ],
+            "above_chance": false,
+            "removed": 22
+          },
+          "seconds": 49.5
+        },
+        "ta": {
+          "questions": 900,
+          "correct": 262,
+          "accuracy": 0.2911111111111111,
+          "wilson95": [
+            0.26237002198566844,
+            0.32162781709266514
+          ],
+          "above_chance": true,
+          "passages_cut": 12,
+          "without_flagged": {
+            "questions": 376,
+            "correct": 104,
+            "accuracy": 0.2765957446808511,
+            "wilson95": [
+              0.23381418163487938,
+              0.3238960258774997
+            ],
+            "above_chance": false,
+            "flagged_removed": 524
+          },
+          "without_substantially_present": {
+            "questions": 890,
+            "correct": 258,
+            "accuracy": 0.2898876404494382,
+            "wilson95": [
+              0.26103315072817795,
+              0.3205481282455635
+            ],
+            "above_chance": true,
+            "removed": 10
+          },
+          "seconds": 45.8
+        },
+        "te": {
+          "questions": 900,
+          "correct": 220,
+          "accuracy": 0.24444444444444444,
+          "wilson95": [
+            0.21749231403725006,
+            0.273568872069222
+          ],
+          "above_chance": false,
+          "passages_cut": 33,
+          "without_flagged": {
+            "questions": 58,
+            "correct": 15,
+            "accuracy": 0.25862068965517243,
+            "wilson95": [
+              0.16345545204296963,
+              0.38377385764740424
+            ],
+            "above_chance": false,
+            "flagged_removed": 842
+          },
+          "without_substantially_present": {
+            "questions": 862,
+            "correct": 213,
+            "accuracy": 0.2470997679814385,
+            "wilson95": [
+              0.2194700242274267,
+              0.27697358498268543
+            ],
+            "above_chance": false,
+            "removed": 38
+          },
+          "seconds": 49.9
+        },
+        "ur": {
+          "questions": 900,
+          "correct": 240,
+          "accuracy": 0.26666666666666666,
+          "wilson95": [
+            0.23881182053832284,
+            0.29650491460236905
+          ],
+          "above_chance": false,
+          "passages_cut": 49,
+          "without_flagged": {
+            "questions": 25,
+            "correct": 9,
+            "accuracy": 0.36,
+            "wilson95": [
+              0.20247880774458224,
+              0.5548150225183514
+            ],
+            "above_chance": false,
+            "flagged_removed": 875
+          },
+          "without_substantially_present": {
+            "questions": 851,
+            "correct": 224,
+            "accuracy": 0.26321974148061106,
+            "wilson95": [
+              0.23474344052475263,
+              0.293824113327908
+            ],
+            "above_chance": false,
+            "removed": 49
+          },
+          "seconds": 50.3
+        }
+      },
+      "seconds": 587.8
+    },
+    "3_parallel": {
+      "protocol": "each text scored as one document: <|endoftext|> + text tokens, every text token scored once (overlapping windows with stride block/2 if longer than the context); bits / UTF-8 bytes",
+      "passages": 488,
+      "passages_per_language": {
+        "as": 488,
+        "bn": 488,
+        "en": 488,
+        "gu": 488,
+        "hi": 488,
+        "kn": 488,
+        "ml": 488,
+        "mr": 488,
+        "or": 488,
+        "pa": 488,
+        "ta": 488,
+        "te": 488,
+        "ur": 488
+      },
+      "per_language": {
+        "as": {
+          "bits": 480242.2852799817,
+          "bytes": 591355,
+          "bpb": 0.812104886709306,
+          "windowed": 6,
+          "bits_vs_en": 1.582908513614429
+        },
+        "bn": {
+          "bits": 432652.8276651825,
+          "bytes": 606358,
+          "bpb": 0.7135270379300389,
+          "windowed": 3,
+          "bits_vs_en": 1.4260506942892497
+        },
+        "en": {
+          "bits": 303392.31935987994,
+          "bytes": 232257,
+          "bpb": 1.3062784732424855,
+          "windowed": 1,
+          "bits_vs_en": 1.0
+        },
+        "gu": {
+          "bits": 380253.3769383158,
+          "bytes": 581634,
+          "bpb": 0.6537674498710802,
+          "windowed": 5,
+          "bits_vs_en": 1.2533388377814019
+        },
+        "hi": {
+          "bits": 363741.28240895143,
+          "bytes": 591983,
+          "bpb": 0.6144454864564547,
+          "windowed": 4,
+          "bits_vs_en": 1.1989139447445483
+        },
+        "kn": {
+          "bits": 401632.74687891535,
+          "bytes": 657964,
+          "bpb": 0.6104175105004458,
+          "windowed": 1,
+          "bits_vs_en": 1.3238065740303198
+        },
+        "ml": {
+          "bits": 407135.68119701196,
+          "bytes": 721398,
+          "bpb": 0.564370404682314,
+          "windowed": 1,
+          "bits_vs_en": 1.3419445886303834
+        },
+        "mr": {
+          "bits": 379679.8528928301,
+          "bytes": 620298,
+          "bpb": 0.6120926601292123,
+          "windowed": 1,
+          "bits_vs_en": 1.2514484667703762
+        },
+        "or": {
+          "bits": 408414.059934993,
+          "bytes": 635083,
+          "bpb": 0.6430876907978846,
+          "windowed": 3,
+          "bits_vs_en": 1.3461582046529583
+        },
+        "pa": {
+          "bits": 430553.6472486225,
+          "bytes": 601657,
+          "bpb": 0.7156131271615264,
+          "windowed": 9,
+          "bits_vs_en": 1.4191316647601269
+        },
+        "ta": {
+          "bits": 376959.2447122283,
+          "bytes": 736936,
+          "bpb": 0.5115223638310902,
+          "windowed": 2,
+          "bits_vs_en": 1.2424811725872476
+        },
+        "te": {
+          "bits": 388619.2316699474,
+          "bytes": 622306,
+          "bpb": 0.624482540213251,
+          "windowed": 8,
+          "bits_vs_en": 1.2809132165569834
+        },
+        "ur": {
+          "bits": 408608.3295999879,
+          "bytes": 407693,
+          "bpb": 1.0022451442629328,
+          "windowed": 9,
+          "bits_vs_en": 1.3467985295807772
+        }
+      },
+      "seconds": 79.3
+    },
+    "5_samples": {
+      "prompt_set": "everyday-v1",
+      "rows": 130,
+      "sample_new_tokens": 64,
+      "sample_temperature": 0.8,
+      "sample_seed": 1,
+      "batch_size": 16,
+      "seconds": 151.2
+    }
+  },
+  "numpy": "2.1.3",
+  "fp16_copy": {
+    "file": "model_fp16.pt",
+    "sha256": "112905986f713ead0b996d3c22343b8e206403e563bdf4c42158e87bc78b17fd",
+    "bytes": 380164099,
+    "format": "frontier-weights-fp16-v1"
+  },
+  "seconds": 843.2
+}

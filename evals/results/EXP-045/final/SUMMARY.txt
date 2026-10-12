@@ -1,0 +1,40 @@
+EXP-045 evaluation of model_final.pt (step 169911)
+code commit 2d9c6a5d114e14f44e25100284b0da8ebca29fbd | device cuda | amp fp16
+
+1. Protected suite frontier-heldout-v1 (bits per byte, lower is better)
+   identity: PASS (every document matches the suite hashes); all languages: 0.9099
+   as 0.943  bn 0.918  en 1.927  gu 0.935  hi 0.880  kn 0.767  ml 0.825  mr 0.709  or 0.905  pa 0.920  ta 0.605  te 0.920  ur 1.440
+
+2. Belebele reading comprehension (chance 25%; 'above' = whole 95% interval above 25%)
+   as   26.6%  [23.8, 29.5]  not above chance | without 515 flagged:  26.0% | without 9 substantially present:  26.5% | 26 passages cut
+   bn   26.1%  [23.3, 29.1]  not above chance | without 626 flagged:  26.3% | without 12 substantially present:  26.4% | 21 passages cut
+   en   26.6%  [23.8, 29.5]  not above chance | without 862 flagged:  23.7% | without 33 substantially present:  25.7% | 11 passages cut
+   gu   26.3%  [23.6, 29.3]  not above chance | without 761 flagged:  31.7% | without 19 substantially present:  26.3% | 21 passages cut
+   hi   24.7%  [22.0, 27.6]  not above chance | without 838 flagged:  29.0% | without 17 substantially present:  24.5% | 17 passages cut
+   kn   24.7%  [22.0, 27.6]  not above chance | without 511 flagged:  25.7% | without 16 substantially present:  24.7% | 8 passages cut
+   ml   24.8%  [22.1, 27.7]  not above chance | without 461 flagged:  25.7% | without 23 substantially present:  24.4% | 10 passages cut
+   mr   27.4%  [24.6, 30.5]  not above chance | without 499 flagged:  29.2% | without 11 substantially present:  27.7% | 6 passages cut
+   or   25.9%  [23.1, 28.8]  not above chance | without 636 flagged:  27.3% | without 9 substantially present:  25.7% | 18 passages cut
+   pa   25.7%  [22.9, 28.6]  not above chance | without 849 flagged:  29.4% | without 22 substantially present:  25.4% | 43 passages cut
+   ta   29.1%  [26.2, 32.2]  above chance | without 524 flagged:  27.7% | without 10 substantially present:  29.0% | 12 passages cut
+   te   24.4%  [21.7, 27.4]  not above chance | without 842 flagged:  25.9% | without 38 substantially present:  24.7% | 33 passages cut
+   ur   26.7%  [23.9, 29.7]  not above chance | without 875 flagged:  36.0% | without 49 substantially present:  26.3% | 49 passages cut
+   contamination: applied
+
+3. The same 488 passages in every language (total bits; relative to English)
+   as       480,242 bits   1.58x  (0.812 bits/byte)
+   bn       432,653 bits   1.43x  (0.714 bits/byte)
+   en       303,392 bits   1.00x  (1.306 bits/byte)
+   gu       380,253 bits   1.25x  (0.654 bits/byte)
+   hi       363,741 bits   1.20x  (0.614 bits/byte)
+   kn       401,633 bits   1.32x  (0.610 bits/byte)
+   ml       407,136 bits   1.34x  (0.564 bits/byte)
+   mr       379,680 bits   1.25x  (0.612 bits/byte)
+   or       408,414 bits   1.35x  (0.643 bits/byte)
+   pa       430,554 bits   1.42x  (0.716 bits/byte)
+   ta       376,959 bits   1.24x  (0.512 bits/byte)
+   te       388,619 bits   1.28x  (0.624 bits/byte)
+   ur       408,608 bits   1.35x  (1.002 bits/byte)
+
+5. Samples: 130 continuations in samples.jsonl (for reading)
+fp16 copy: model_fp16.pt (0.38 GB) sha256 112905986f713ead0b996d3c22343b8e206403e563bdf4c42158e87bc78b17fd
