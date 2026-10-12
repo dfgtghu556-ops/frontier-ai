@@ -1,0 +1,11 @@
+EXP-047 - train the next base model (20x1280, v2-slice1 + v2-slice2), session 1
+started 2026-10-12 19:38:49  finished 2026-10-12 19:47:34
+elapsed 8.7 min; GPU-hours before this session 0.00
+Part 0: data files 26/26 (sha256 checked); tests 54 passed in 15.22s; one-step float64 check pass=True
+Checkpoint chain: first session, nothing to check
+One-pass order: 15,936,053 windows, 498,001 steps, fingerprint e654b9592bbff0aa...
+Micro-batch: 4 x 8 accumulation (peak 11.33 GB < 14.5 GB)
+  Not decided yet: grid runs still to do: [0.00025, 0.0005, 0.001]
+  slice s1: 13 files, 2,783,830,088 training tokens
+  slice s2a: 6 files, 3,098,207,159 training tokens
+  slice s2b: 7 files, 2,277,228,445 training tokens

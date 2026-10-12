@@ -1,0 +1,334 @@
+{
+  "schema": "frontier-pretrain-v1",
+  "exp_id": "EXP-047",
+  "smoke": false,
+  "complete": false,
+  "started_at": "2026-10-12 19:38:49",
+  "part": "auto",
+  "session": 1,
+  "setup": {
+    "model": {
+      "n_layer": 20,
+      "n_head": 20,
+      "n_embd": 1280,
+      "block_size": 512,
+      "pos": "rope",
+      "n_kv_head": 2
+    },
+    "windows_per_step": 32,
+    "expected_windows": 15936053,
+    "expected_steps": 498001,
+    "seed": 1,
+    "order_seed": 1,
+    "lr_grid": [
+      0.00025,
+      0.0005,
+      0.001
+    ],
+    "lr_extension": {
+      "low": 0.000125,
+      "high": 0.002
+    },
+    "lr_check_steps": 6104,
+    "warmup": 1000,
+    "min_lr_ratio": 0.1,
+    "eval_every": 1000,
+    "eval_iters": 20,
+    "eval_batch": 16,
+    "save_every": 5000,
+    "skip_window": 2000,
+    "max_skipped": 0.05,
+    "diverge_nats": 0.1,
+    "diverge_evals": 3,
+    "mem_limit_gb": 14.5,
+    "micro_options": [
+      [
+        16,
+        2
+      ],
+      [
+        8,
+        4
+      ],
+      [
+        4,
+        8
+      ]
+    ],
+    "total_cap_hours": 380.0,
+    "reserve_minutes": 45.0,
+    "min_train_minutes": 30.0,
+    "noise": 0.0174,
+    "predicted_bpb": 0.6138,
+    "consistent_band": 0.03,
+    "sample_prompt_tokens": 32,
+    "sample_new_tokens": 128,
+    "sample_prompts_per_language": 3,
+    "sample_temperature": 0.8,
+    "size": "20x1280",
+    "slices": [
+      {
+        "name": "s1",
+        "manifest": "evals/results/EXP-037/manifest.json",
+        "manifest_sha256": "b43c0d91c74efc7cb7a7c2480b190a95a44c34fc35427d4d5c13514f6ff6a11b"
+      },
+      {
+        "name": "s2a",
+        "manifest": "evals/results/EXP-046/build-A/manifest.json",
+        "manifest_sha256": "3782679fe4e71e45077692b42d63f303ecd0d1914c0d1a10da1f86495f376c42"
+      },
+      {
+        "name": "s2b",
+        "manifest": "evals/results/EXP-046/build-B/manifest.json",
+        "manifest_sha256": "542988db5717357d09a76c7384558b0c27cd2034d07d59e1a16b9092f83f7222"
+      }
+    ],
+    "yardstick": "s1 validation: mean of per-language bpb, equal weight",
+    "reference_dir": "evals/results/EXP-043"
+  },
+  "hours_before": 0.0,
+  "session_hours": 9.0,
+  "previous_sessions": [],
+  "lr_runs": [],
+  "precision": "fp16 + GradScaler + torch.compile (D-047)",
+  "primary_metric": "mean of per-language validation bits per byte, equal weight",
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.39",
+    "torch": "2.11.0+cu128",
+    "cuda": "12.8",
+    "cuda_available": true,
+    "device_count": 2,
+    "gpu_name": "Tesla T4",
+    "gpu_memory_gb": 14.56,
+    "compute_capability": "7.5",
+    "bf16_supported": true,
+    "matmul_tf32": false,
+    "driver": "580.178.04",
+    "code_commit": "e1fb8878e44556bea922d5105bed0fe39fcc751f"
+  },
+  "checkpoint": null,
+  "chain_check": {
+    "result": "first session, nothing to check",
+    "ok": true
+  },
+  "elapsed_min": 8.7,
+  "part0": {
+    "sha256_checked": true,
+    "files_expected": 26,
+    "files_ok": 26,
+    "problems": [],
+    "slices": [
+      {
+        "name": "s1",
+        "description": "v2-slice1 (EXP-037; 2,783,830,088 training tokens)",
+        "manifest": "evals/results/EXP-037/manifest.json",
+        "manifest_sha256": "b43c0d91c74efc7cb7a7c2480b190a95a44c34fc35427d4d5c13514f6ff6a11b",
+        "data_dir": "/kaggle/input/datasets/someshwar0112/frontier-v2-tok2-13lang",
+        "files": 13,
+        "train_tokens": 2783830088,
+        "val_tokens": 14516321,
+        "full_sha256_checked": true
+      },
+      {
+        "name": "s2a",
+        "description": "v2-slice2 part A (EXP-046 / D-051: en ur as bn gu hi)",
+        "manifest": "evals/results/EXP-046/build-A/manifest.json",
+        "manifest_sha256": "3782679fe4e71e45077692b42d63f303ecd0d1914c0d1a10da1f86495f376c42",
+        "data_dir": "/kaggle/input/datasets/someshwar0112/frontier-v2-slice2-a/slice2-A",
+        "files": 6,
+        "train_tokens": 3098207159,
+        "val_tokens": 15763942,
+        "full_sha256_checked": true
+      },
+      {
+        "name": "s2b",
+        "description": "v2-slice2 part B (EXP-046 / D-051: kn ml mr or pa ta te)",
+        "manifest": "evals/results/EXP-046/build-B/manifest.json",
+        "manifest_sha256": "542988db5717357d09a76c7384558b0c27cd2034d07d59e1a16b9092f83f7222",
+        "data_dir": "/kaggle/input/datasets/someshwar0112/frontier-v2-slice2-b/slice2-B",
+        "files": 7,
+        "train_tokens": 2277228445,
+        "val_tokens": 11566257,
+        "full_sha256_checked": true
+      }
+    ],
+    "train_tokens": 8159265692,
+    "val_tokens": 41846520,
+    "tests_pass": true,
+    "tests_line": "54 passed in 15.22s",
+    "one_step_check": {
+      "pass": true,
+      "arch": "rope_gqa2",
+      "devices": [
+        "cpu",
+        "cuda"
+      ],
+      "states": [
+        1,
+        11,
+        21,
+        31,
+        41,
+        50
+      ],
+      "max_loss_diff": 8.881784197001252e-16,
+      "max_grad_rel_diff": 8.117429719822752e-15,
+      "tolerance_loss": 1e-12,
+      "tolerance_grad_rel": 1e-10,
+      "rows": [
+        {
+          "state": 1,
+          "loss_cpu": 10.47331410577651,
+          "loss_gpu": 10.47331410577651,
+          "loss_diff": 0.0,
+          "grad_rel_diff": 7.580486818032779e-16,
+          "grad_norm": 7.952767972223307
+        },
+        {
+          "state": 11,
+          "loss_cpu": 8.899538404808023,
+          "loss_gpu": 8.899538404808023,
+          "loss_diff": 0.0,
+          "grad_rel_diff": 1.3270969698024497e-15,
+          "grad_norm": 3.3429154273925317
+        },
+        {
+          "state": 21,
+          "loss_cpu": 7.050199127145864,
+          "loss_gpu": 7.050199127145864,
+          "loss_diff": 0.0,
+          "grad_rel_diff": 1.2871896137479882e-15,
+          "grad_norm": 3.011455162878181
+        },
+        {
+          "state": 31,
+          "loss_cpu": 6.815172887319359,
+          "loss_gpu": 6.815172887319358,
+          "loss_diff": 8.881784197001252e-16,
+          "grad_rel_diff": 1.4215478349504163e-15,
+          "grad_norm": 0.514633379662172
+        },
+        {
+          "state": 41,
+          "loss_cpu": 6.56611598942968,
+          "loss_gpu": 6.56611598942968,
+          "loss_diff": 0.0,
+          "grad_rel_diff": 3.279471083904455e-15,
+          "grad_norm": 0.36106901051608936
+        },
+        {
+          "state": 50,
+          "loss_cpu": 6.665398289336686,
+          "loss_gpu": 6.665398289336685,
+          "loss_diff": 8.881784197001252e-16,
+          "grad_rel_diff": 8.117429719822752e-15,
+          "grad_norm": 0.46893887554644426
+        }
+      ]
+    }
+  },
+  "languages": [
+    "s1/as",
+    "s1/bn",
+    "s1/en",
+    "s1/gu",
+    "s1/hi",
+    "s1/kn",
+    "s1/ml",
+    "s1/mr",
+    "s1/or",
+    "s1/pa",
+    "s1/ta",
+    "s1/te",
+    "s1/ur",
+    "s2a/en",
+    "s2a/ur",
+    "s2a/as",
+    "s2a/bn",
+    "s2a/gu",
+    "s2a/hi",
+    "s2b/kn",
+    "s2b/ml",
+    "s2b/mr",
+    "s2b/or",
+    "s2b/pa",
+    "s2b/ta",
+    "s2b/te"
+  ],
+  "sampling_weights": {
+    "s1/as": 0.01901,
+    "s1/bn": 0.024634,
+    "s1/en": 0.05841,
+    "s1/gu": 0.024614,
+    "s1/hi": 0.024041,
+    "s1/kn": 0.020272,
+    "s1/ml": 0.017197,
+    "s1/mr": 0.0221,
+    "s1/or": 0.023005,
+    "s1/pa": 0.024885,
+    "s1/ta": 0.019668,
+    "s1/te": 0.023917,
+    "s1/ur": 0.039434,
+    "s2a/en": 0.116964,
+    "s2a/ur": 0.078786,
+    "s2a/as": 0.037768,
+    "s2a/bn": 0.049263,
+    "s2a/gu": 0.049233,
+    "s2a/hi": 0.047703,
+    "s2b/kn": 0.039096,
+    "s2b/ml": 0.024975,
+    "s2b/mr": 0.044115,
+    "s2b/or": 0.042416,
+    "s2b/pa": 0.047502,
+    "s2b/ta": 0.035606,
+    "s2b/te": 0.045387
+  },
+  "order": {
+    "n_windows": 15936053,
+    "steps_per_pass": 498001,
+    "dropped_windows": 21,
+    "fingerprint": "e654b9592bbff0aa74ad585f83ca9b73f28a418524061421aac5bbe6a3737da5"
+  },
+  "micro": [
+    4,
+    8
+  ],
+  "micro_note": "peak 11.33 GB < 14.5 GB",
+  "memory_probes": [
+    {
+      "micro": [
+        16,
+        2
+      ],
+      "peak_gb": null,
+      "error": "OutOfMemoryError: CUDA out of memory. Tried to allocate 514.00 MiB. GPU 0 has a total capacity of 14.56 GiB of which 4.81 MiB is free. Including non-PyTorch memory, this process has 14.55 GiB memory in use. Of the allocated memory 14.23 GiB is allocated by PyTorch, and 142.38 MiB is reserved by PyTorch but unallocate"
+    },
+    {
+      "micro": [
+        8,
+        4
+      ],
+      "peak_gb": null,
+      "error": "OutOfMemoryError: CUDA out of memory. Tried to allocate 82.00 MiB. GPU 0 has a total capacity of 14.56 GiB of which 6.81 MiB is free. Including non-PyTorch memory, this process has 14.55 GiB memory in use. Of the allocated memory 13.84 GiB is allocated by PyTorch, and 541.73 MiB is reserved by PyTorch but unallocated"
+    },
+    {
+      "micro": [
+        4,
+        8
+      ],
+      "peak_gb": 11.328,
+      "error": null
+    }
+  ],
+  "lr_choice": {
+    "decided": false,
+    "next": [
+      0.00025,
+      0.0005,
+      0.001
+    ],
+    "reason": "grid runs still to do: [0.00025, 0.0005, 0.001]"
+  },
+  "finished_at": "2026-10-12 19:47:34"
+}
