@@ -9,10 +9,13 @@ on one T4 GPU, and the kernel runs exactly the pinned commit with arguments the 
 from __future__ import annotations
 
 import ast
+import json
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PS1 = ROOT / "scripts" / "run_kaggle_exp038.ps1"
@@ -628,7 +631,7 @@ def test_exp047_wrapper_reuses_the_datasets_and_waits_long_enough():
     assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-047" -Relaunch:$Relaunch' in wrapper
     text = _ps1()
     block = text[text.index('if ($Exp -eq "EXP-047") {\n    $expectedRun') :]
-    assert "$maxWaitHours = 11" in block.split("}")[0]
+    assert "$maxWaitHours = 13" in block.split("}")[0]  # learning-rate sessions may last up to 11 hours
 
 
 def test_exp047_runner_alternates_two_kernels_and_mounts_both_slices():
@@ -707,3 +710,45 @@ def test_exp047_kernel_types_the_approved_size_and_cap():
     assert consts["SIZE"] in px.FAMILY and float(consts["CAP_HOURS"]) >= px.FAMILY[consts["SIZE"]][3]
     res = subprocess.run([sys.executable, str(KERNEL_047)], capture_output=True, text=True, timeout=60)
     assert res.returncode != 0 and "placeholder" in (res.stderr + res.stdout)
+
+
+def _kernel047():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("exp047_kernel", KERNEL_047)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)  # defines functions only; main() runs under __main__
+    return mod
+
+
+def _session(prev, n, runs=(), decided=False):
+    d = prev / f"session-{n}"
+    d.mkdir(parents=True)
+    summary = {
+        "session": n,
+        "lr_choice": {"decided": decided},
+        "lr_runs": [{"session": s, "status": "done", "minutes": m} for s, m in runs],
+    }
+    (d / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
+
+
+def test_exp047_learning_rate_sessions_are_long_enough_for_the_next_run(tmp_path):
+    k = _kernel047()
+    prev = tmp_path / "EXP-047"
+    assert k.session_hours(prev) == "9.0"  # nothing yet (session 1: the memory probe)
+    _session(prev, 1)
+    assert k.session_hours(prev) == "9.0"  # probe only: no run to measure yet
+    _session(prev, 2, runs=[(2, 420.0)])  # 7 h: 1.1 x 7 + 0.5 = 8.2 h -> 9 hours are enough
+    assert k.session_hours(prev) == "9.0"
+    _session(prev, 3, runs=[(2, 420.0), (3, 480.0)])  # 8 h: 1.1 x 8 + 0.5 = 9.3 h (9 hours would stall)
+    assert float(k.session_hours(prev)) == pytest.approx(9.3, abs=0.01)
+    _session(prev, 4, runs=[(2, 420.0), (3, 480.0), (4, 700.0)])
+    assert k.session_hours(prev) == "11.00"  # never beyond 11 hours (Kaggle stops at 12)
+    _session(prev, 5, decided=True)
+    assert k.session_hours(prev) == "9.0"  # the main run: 9-hour sessions
+    # a stalled learning-rate session is not followed by "run the same line again"
+    text = _ps1()
+    i = text.index('elseif ($summary.lr_note -and $newRuns.Count -eq 0) {')
+    stall = text[i : text.index("} else {", i)]
+    assert "Do NOT run the line again" in stall and "run the same line again" not in stall
+    assert '$newRuns = @($summary.lr_runs | Where-Object { $_.session -eq $summary.session })' in text

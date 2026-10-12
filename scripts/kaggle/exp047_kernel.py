@@ -27,6 +27,7 @@ No credentials are needed or used: the repository is public and nothing is pushe
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -39,7 +40,9 @@ CHAIN_OUT = Path("/kaggle/working/exp047_chain")
 FINAL_DIR = Path("/kaggle/working/exp047_final")
 INPUT = Path("/kaggle/input")  # the three datasets and the other kernel's output (the checkpoint)
 SCRATCH = Path("/tmp/exp047")
-MAX_HOURS = "9.0"  # one session; Kaggle stops a session at 12 hours
+MAX_HOURS = "9.0"  # one session; Kaggle stops a session at 12 hours (longer only for the LR check, below)
+LR_SESSION_MAX = 11.0  # hours: below Kaggle's 12-hour limit (clone, install and upload need minutes)
+PART0_MARGIN = 0.5  # hours: Part 0 (22 GB of SHA-256, tests, one-step check) before a learning-rate run
 SIZE = "20x1280"  # D-052 (EXP-047 section 4 rule after the 2026-10-12 refit)
 CAP_HOURS = "380"  # D-052: about 314 estimated session-hours + 20% (its revisit trigger)
 PREVIOUS_DIR = "evals/results/EXP-047"
@@ -49,6 +52,33 @@ PROBE_ONLY_FIRST = ["--max-runs", "0"]  # session 1: Part 0 + memory probe, then
 def sh(cmd: list[str], **kw) -> None:
     print("+", " ".join(cmd), flush=True)
     subprocess.run(cmd, check=True, **kw)
+
+
+def session_hours(prev: Path) -> str:
+    """--max-hours of this session (EXP-047 note 2026-10-13).
+
+    The runner starts the next learning-rate run only if 1.1 x the longest finished run still fits in the
+    session. At 20 x 1280 a run is estimated at about 7 hours (NOT VERIFIED); a 9-hour session would refuse
+    every further run if one took more than about 7.9 hours. So while the check is not decided, the
+    session is made long enough for that rule plus Part 0, never shorter than 9 and never longer than 11
+    hours. Otherwise 9 hours (three sessions fit in a week of about 30 free hours, NOT VERIFIED)."""
+    sessions = [
+        json.loads(f.read_text(encoding="utf-8")) for f in sorted(prev.glob("session-*/summary.json"))
+    ]
+    if any((d.get("lr_choice") or {}).get("decided") for d in sessions):
+        return MAX_HOURS
+    minutes = [
+        r["minutes"]
+        for d in sessions
+        for r in d.get("lr_runs", [])
+        if r.get("session") == d.get("session") and r.get("status") == "done" and r.get("minutes")
+    ]
+    if not minutes:
+        return MAX_HOURS
+    need = 1.1 * max(minutes) / 60 + PART0_MARGIN
+    if need <= float(MAX_HOURS):
+        return MAX_HOURS
+    return f"{min(LR_SESSION_MAX, need):.2f}"
 
 
 def main() -> int:
@@ -93,7 +123,7 @@ def main() -> int:
         "--exp-id",
         "EXP-047",
         "--max-hours",
-        MAX_HOURS,
+        session_hours(SRC / PREVIOUS_DIR),
         "--gpus",
         "2",
     ]

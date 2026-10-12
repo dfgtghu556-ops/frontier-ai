@@ -137,8 +137,8 @@ if ($Exp -eq "EXP-043") {
     $maxWaitHours = 11
 }
 if ($Exp -eq "EXP-047") {
-    $expectedRun = "one EXP-047 session takes at most 9 hours; about 36-40 sessions in total"
-    $maxWaitHours = 11
+    $expectedRun = "one EXP-047 session takes at most 9 hours (learning-rate sessions up to 11); about 36-40 sessions in total"
+    $maxWaitHours = 13
 }
 if ($Exp -eq "EXP-044") {
     $expectedRun = "EXP-044 is expected to take about 1.5 hours, at most 2"
@@ -846,12 +846,18 @@ if ($Exp -eq "EXP-047") {
     } elseif ($summary.complete) {
         Add-Report "TRAINING: COMPLETE after session $($summary.session) - the one pass is finished; no more sessions are needed."
     } else {
+        if ($summary.micro) { Add-Report "MEMORY: micro-batch $($summary.micro -join ' x ') ($($summary.micro_note))" }
+        $newRuns = @($summary.lr_runs | Where-Object { $_.session -eq $summary.session })
         if ($summary.main) {
             Add-Report "TRAINING: step $($summary.main.end_step) of $($summary.main.total_steps) done."
+            Add-Report "NEXT: after pasting this report into the Arena chat, run the same line again (session $($summary.session + 1))."
+        } elseif ($summary.lr_note -and $newRuns.Count -eq 0) {
+            # no learning-rate run fitted in this session: running again would only repeat that
+            Add-Report "TRAINING: no learning-rate run fitted in this session ($($summary.lr_note)). Do NOT run the line again until the chat says so; paste this report into the Arena chat."
         } else {
             Add-Report "TRAINING: learning-rate check: $($summary.lr_choice.reason)"
+            Add-Report "NEXT: after pasting this report into the Arena chat, run the same line again (session $($summary.session + 1))."
         }
-        Add-Report "NEXT: after pasting this report into the Arena chat, run the same line again (session $($summary.session + 1))."
     }
 }
 if ($TextStep -eq "rewrite") {

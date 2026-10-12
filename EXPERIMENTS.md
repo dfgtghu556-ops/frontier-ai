@@ -5188,6 +5188,27 @@ starts it):
 
 **Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); kernel and runner built 2026-10-13 (session 1 = memory probe only); next: the founder starts session 1; the sharded optimizer is not built (not needed unless the probe fails)
 
+**Note (2026-10-13, later; kernel and runner hardening, no GPU, defaults and EXP-043 unchanged):**
+- **Risk found: the learning-rate check could stall.** The runner starts another learning-rate run only
+  if 1.1 × the longest finished run still fits before the session deadline. At 20 × 1280 one run is
+  estimated at about 7 hours on one T4 (NOT VERIFIED). In a 9-hour session, a run longer than about
+  7.9 hours would make every later session refuse to start a run: sessions would end with nothing done,
+  forever. EXP-043 never met this case, because all three of its runs fitted in session 1.
+- **Fix (EXP-047 kernel only):** while the check is not decided, a session's length is 1.1 × the
+  longest finished run + 0.5 hour (for Part 0), at least 9 and at most 11 hours (Kaggle stops at 12).
+  Otherwise it stays 9 hours. The runner now waits up to 13 hours for a session, not 11.
+- **Alarm (shared runner, EXP-047 part only):** if a session fits no learning-rate run, REPORT.txt says
+  "Do NOT run the line again" instead of "run the same line again". It also prints the micro-batch
+  that was chosen.
+- **Tested on CPU (smoke model):** a probe-only session, then one learning-rate run per session, each
+  session continuing the last one's checkpoint chain until the choice is decided. The deciding session
+  went on into the main run, with the decided learning rate, as in EXP-043 when time is left. The next
+  session resumed from the chain and finished the one pass, with the final checks
+  (`tests/test_pretrain_exp047.py`). The session-length rule is tested with made-up session records
+  (`tests/test_kaggle_exp038.py`).
+
+**Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); kernel and runner built 2026-10-13 (session 1 = memory probe only; learning-rate sessions up to 11 hours so the check cannot stall); next: the founder starts session 1; the sharded optimizer is not built (not needed unless the probe fails)
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 

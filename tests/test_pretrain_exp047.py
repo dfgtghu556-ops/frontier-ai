@@ -331,5 +331,36 @@ def test_first_kaggle_session_is_probe_only_then_the_check_continues(langs, tmp_
         s2 = _summary(res, 2)
         assert s2["micro"] == s1["micro"] and s2["micro_note"] == "chosen in an earlier session"
         assert not s2.get("stopped") and len(s2["lr_runs"]) == 1 and s2["lr_runs"][0]["session"] == 2
+        # one learning-rate run per session (as on one T4), each session continuing the last one's chain,
+        # until the choice is decided; at most one extension run is allowed, so 5 sessions are enough
+        n = 2
+        while not _summary(res, n)["lr_choice"]["decided"]:
+            assert n < 5, "the learning-rate check did not decide within 4 one-run sessions"
+            chain_in, chain_out = tmp_path / f"c{n}", tmp_path / f"c{n + 1}"
+            argv = ("--part", "auto", "--max-runs", "1", "--session-steps", "50")
+            assert _run(tmp_path, res, chain_in, chain_out, *argv) == 0
+            n += 1
+            s = _summary(res, n)
+            assert not s.get("stopped") and not s.get("stop_rule")
+            assert [r["session"] for r in s["lr_runs"]].count(n) == 1  # exactly one new run here
+        runs = _summary(res, n)["lr_runs"]
+        assert [r["session"] for r in runs] == list(range(2, n + 1)) and all(
+            r["status"] == "done" for r in runs
+        )
+        assert len({r["lr"] for r in runs}) == len(runs)  # no learning rate was run twice
+        # the deciding session goes on into the main run when time is left (as in EXP-043), with the
+        # decided learning rate; the next session resumes it from the chain and finishes the one pass
+        d = _summary(res, n)
+        assert (
+            d["main"]["lr"] == d["lr_choice"]["lr"] and d["main"]["end_step"] == 50 and not d.get("complete")
+        )
+        chain_in, chain_out = tmp_path / f"c{n}", tmp_path / f"c{n + 1}"
+        assert _run(tmp_path, res, chain_in, chain_out, "--part", "auto") == 0
+        m = _summary(res, n + 1)
+        assert not m.get("stopped") and m["chain_check"]["ok"] and m["complete"]
+        assert (
+            m["main"]["lr"] == d["lr_choice"]["lr"] and m["main"]["end_step"] == m["order"]["steps_per_pass"]
+        )
+        assert m["final"]["checks"]["check1_gate"].startswith("NOT DECIDED")  # no EXP-043 final in the test
     finally:
         mp.undo()
