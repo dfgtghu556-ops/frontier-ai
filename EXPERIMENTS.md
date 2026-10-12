@@ -3946,6 +3946,61 @@ GPUs, same memory), as the unchanged EXP-043 tests predicted.
 
 **Status:** running — sessions 1–5 complete (main run at step 141,459 of 169,911; two GPUs); next: session 6, which should finish the pass
 
+**Result (2026-10-12): session 6 complete — the one pass is finished; gate PASS.** Commit `f3006f5`;
+results in `evals/results/EXP-043/session-6/` (`SUMMARY.txt`, `summary.json`, `samples.jsonl`; results
+commit `5309abd`). Same setup and one-pass order (fingerprint) as sessions 1–5.
+- **Session 6:** the step-141,459 checkpoint (kernel `frontier-exp043-a`) was verified (sha256, 5 files)
+  and resumed on two GPUs; steps 141,459 → 169,911 (28,452); session end "one pass complete". Every
+  512-token window was used once: 2,783,821,824 tokens seen (169,911 × 32 × 512). 19,571 tokens/s
+  (0.837 s per step, 1.76× one GPU; slower than sessions 3–5, reason not known). 10 skipped fp16 steps
+  (66 in the whole run, 0.04%); no stop rule fired in any session. Sampled validation loss 1.908
+  (step 142,000) → 1.830 (step 169,911).
+- **Final full validation (the pre-registered primary metric):** mean **0.6283 bpb** (token-weighted
+  0.7068, pooled 0.6292).
+
+| language | EXP-043 final bpb | C3-s3 (best EXP-042 run) | difference |
+|---|---|---|---|
+| as | 0.6027 | 0.7424 | −0.1398 |
+| bn | 0.5735 | 0.7053 | −0.1318 |
+| en | 1.2195 | 1.5181 | −0.2986 |
+| gu | 0.6527 | 0.7910 | −0.1384 |
+| hi | 0.5536 | 0.6845 | −0.1309 |
+| kn | 0.5227 | 0.6475 | −0.1248 |
+| ml | 0.4709 | 0.5853 | −0.1144 |
+| mr | 0.5102 | 0.6373 | −0.1271 |
+| or | 0.5787 | 0.7063 | −0.1276 |
+| pa | 0.5924 | 0.7230 | −0.1306 |
+| ta | 0.4663 | 0.5769 | −0.1106 |
+| te | 0.5740 | 0.7092 | −0.1352 |
+| ur | 0.8503 | 1.0299 | −0.1795 |
+
+- **Check 1 (gate): PASS** — mean 0.6283 < 0.7562 (C3-s3 0.7736 minus the seed noise 0.0174).
+- **Check 2 (prediction): not consistent** — 0.6283 vs the predicted 0.683 ± 0.03: **0.055 better** than
+  the EXP-042 secondary fit predicted. That fit came from runs at up to 1e17 FLOPs; EXP-043 used about
+  3.2e18 (6 × 190 M × 2.78 B), about 30× more, so the extrapolation was too pessimistic here. Why exactly is
+  NOT VERIFIED.
+- **Check 3:** 13 of 13 languages below C3-s3 (by 0.111 for ta up to 0.299 for en).
+- **Cost:** 6 sessions, 49.60 of the 100 session-hour cap (the plan estimated about 85 GPU-hours and about
+  9 sessions; two GPUs from session 3, D-050), ₹0.
+- **Weights:** `model_final.pt` (weights only, fp32), sha256 `5494c0285091917737c4e0dde29789239ba67265ae0bb3be6293c20f5c11bccf`,
+  878,191,613 bytes, 190,064,000 parameters, step 169,911. Not in git; in kernel `frontier-exp043-b`'s output,
+  and on the founder's PC (`out\kaggle\EXP-043\output-f3006f5\exp043_final\model_final.pt`, sha256 matched
+  by the runner).
+- **Samples (78 = 13 languages × 3 prompts × greedy / temperature 0.8; read, not scored):** fluent,
+  grammatical sentences in the news register (e.g. Hindi: "…ने बताया कि अयोध्या में कोरोना वायरस के बढ़ते
+  प्रकोप के कारण अयोध्या में 10 दिन के लिए लॉकडाउन लगा दिया गया है"). Typical small-base-model faults:
+  greedy outputs fall into repetition loops; facts are invented ("The ICC World Cup 2007 is set to be held in
+  India"); at temperature 0.8 the text drifts and sometimes slips in a word in another script. It is a base
+  model: it continues text, it does not follow instructions or chat.
+- **What this does and does not show:** the gate compares bits per byte on held-out text from the same
+  sources as the training data. It is not a benchmark and says nothing yet about usefulness or about
+  closeness to ChatGPT/Claude-class models. The first external test is EXP-045 (Belebele etc.; approved
+  2026-10-04), which can run now.
+- **Consequences:** D-050's revisit rules stayed clear to the end. For EXP-047, §4 step 1 now applies: 0.6283
+  is outside 0.683 ± 0.035, so the laws are refit with EXP-043 as a fourth point before a size is chosen.
+
+**Status:** complete — PASS (final mean 0.6283 bpb < gate 0.7562; 13 of 13 languages below C3-s3); prediction 0.683 not consistent (0.055 better); 49.60 of 100 session-hours, ₹0
+
 ### EXP-044 — Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-044" before any code)
 
@@ -4964,6 +5019,15 @@ implements §5's loader item:
   gradient buffers, so the first two-GPU session's measured peak memory is the real check.
 
 **Status:** proposed; step 1 (slice-aware loader) built 2026-10-09; runner code and tests built 2026-10-11 (founder "approve EXP-047 code"; no training); the run itself needs "approve EXP-047", the founder's compute choice A/B/C and the size chosen after EXP-043's final result by the rule in §4
+
+**Note 2026-10-12: EXP-043's final result is in — 0.6283 bpb (§4 step 1 applies).** It is outside the band
+0.683 ± 0.035, so before any size is chosen the laws are refit with EXP-043 as a fourth point and the §1
+table is recomputed. The §1 predictions as written (0.6552–0.6715 at 8.16 B tokens) are all above what the
+190 M model already reached on 2.78 B tokens, so they cannot be used as they stand. The gate's reference is
+now known: EXP-047's final slice-1 mean must be below 0.6283 − 0.0174 = **0.6109**, with no language worse
+than EXP-043's final by more than 0.0174 (`scripts/pretrain_exp047.py` reads these from
+`evals/results/EXP-043/session-6/`). Nothing else changes; the run still needs "approve EXP-047" and the
+compute choice.
 
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")

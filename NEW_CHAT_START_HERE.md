@@ -853,6 +853,11 @@ comes next. They also update the table in §3.
     GPUs (21,993 tokens/s, 16 skipped steps, no stop rule; first session on code with the EXP-047 hooks, same
     behaviour); session-end full validation 0.6430 bpb mean (mid-run, not a result; all 13 languages improved).
     42.70 of 100 session-hours used. Next: session 6, which should finish the pass and give the final result.
+  - **EXP-043 COMPLETE — gate PASS (2026-10-12, results `5309abd`):** session 6 finished the one pass (step
+    169,911; 2,783,821,824 tokens). Final mean **0.6283 bpb** (< 0.7562; 13 of 13 languages below C3-s3); 0.055
+    better than the predicted 0.683 ("not consistent"). 49.60 of 100 session-hours, ₹0. `model_final.pt` sha256
+    `5494c028…` (not in git; on Kaggle kernel b and the founder's PC). Roadmap step 12 complete. Next: EXP-045
+    final (`scripts\run_kaggle_exp045_final.ps1`); EXP-047 §4 now needs a refit of the laws before sizing.
 
 
 ## 9. The prompt the operator pastes into a new Arena chat

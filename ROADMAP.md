@@ -170,6 +170,13 @@
   the protected suite and a contamination check, plus a "try the model" tool) and EXP-046 (next
   data: about 8 B tokens from Sangraha Verified, of an estimated ~108 B available, built on Kaggle
   CPU sessions). All three are proposals awaiting approval.
+- **Update (2026-10-12, EXP-043 complete): step 12 is complete.** The first serious Frontier base model
+  (14 × 896, 190 M parameters) finished one full pass over the 2.78 B training tokens in 6 free Kaggle
+  sessions (49.6 of the 100 GPU-hour cap, two T4s from session 3). Final validation **0.6283 bits per
+  byte**, below the pre-registered gate (0.7562) and better than predicted (0.683), with all 13 languages
+  better than the best scaling-ladder run. It is a base model (it continues text; no instructions or chat),
+  and this number is not yet a benchmark: EXP-045 (Belebele and the other approved tests) is the first
+  external check. The weights (`model_final.pt`, sha256 `5494c028…`) stay out of git.
 - **North star (founder, 2026-09-27):** build, from scratch, a model family that can
   compete with the leading AI systems (e.g. ChatGPT, Claude) and become the best model in
   India (MASTER_CONTEXT §1). Every step is judged by how it moves us toward that goal, and
