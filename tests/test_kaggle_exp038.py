@@ -37,7 +37,7 @@ def test_runner_commits_only_the_exp038_results_folder():
     text = _ps1()
     assert '$resultsPrefix = "evals/results/$Exp/"' in text
     assert (
-        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046", "EXP-048")]'
+        'param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046", "EXP-047", "EXP-048")]'
         '[string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check, [ValidateSet("rewrite", "verify")][string]$TextStep)' in text
     )
     assert "git add $resultsPrefix" in text
@@ -156,7 +156,7 @@ def test_exp039_wrapper_reuses_the_runner_and_the_dataset():
     # only EXP-040 (all 13 languages) switches to another dataset
     assert text.count("$datasetSlug = ") == 2
     assert (
-        'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {\n'
+        'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-047" -or $Exp -eq "EXP-048") {\n'
         '    $datasetSlug = "frontier-v2-tok2-13lang"' in text
     )
     assert '$dataFiles = @("hi.bin", "hi.meta.json")' in text
@@ -231,7 +231,7 @@ def test_exp041_wrapper_reuses_the_13_language_dataset():
     wrapper = PS1_041.read_text(encoding="ascii")
     assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-041" -Relaunch:$Relaunch' in wrapper
     text = _ps1()
-    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {' in text  # no new upload
+    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-047" -or $Exp -eq "EXP-048") {' in text  # no new upload
     assert 'if ($Exp -eq "EXP-041") {\n    $expectedRun' in text and "$maxWaitHours = 7" in text
 
 
@@ -271,7 +271,7 @@ def test_exp042_wrapper_reuses_the_13_language_dataset_and_waits_long_enough():
     wrapper = PS1_042.read_text(encoding="ascii")
     assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-042" -Relaunch:$Relaunch' in wrapper
     text = _ps1()
-    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {' in text
+    assert 'if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-047" -or $Exp -eq "EXP-048") {' in text
     block = text[text.index('if ($Exp -eq "EXP-042") {\n    $expectedRun') :]
     assert "$maxWaitHours = 11" in block.split("}")[0]  # 9-hour kernel + queueing and download
 
@@ -288,8 +288,8 @@ def test_exp042_runner_publishes_one_session_and_then_forgets_the_commit():
     push_ok = text.index('Add-Report "PASS 6d: pushed to origin/$branch"')
     forget = text.index('$state.pinned_commit = ""', text.index('if ($Exp -eq "EXP-042") {\n    # this session'))
     assert push_ok < forget
-    # EXP-043 forgets it after the push too, and (unpublished) after a failed checkpoint-chain check
-    assert text.count('$state.pinned_commit = ""') == 3
+    # EXP-043 and EXP-047 forget it after the push too, and (unpublished) after a failed chain check
+    assert text.count('$state.pinned_commit = ""') == 4
     assert "run the same line again (session $($summary.session + 1))" in text
     # still only new files under evals/results/EXP-042/ may be committed
     assert '$bad = @($changed | Where-Object { -not $_.StartsWith("?? $resultsPrefix") })' in text
@@ -616,3 +616,94 @@ def test_exp046_build_kernel_is_ascii_and_matches_the_build_script():
     assert flags and all(f'"{f}"' in build for f in flags), flags
     assert "--no-verify" not in flags and "--max-docs" not in flags and "--languages" not in flags
     assert "enable_gpu" not in source and "nvidia-smi" not in source
+
+
+# ------------------------------------------------------------------------------------ EXP-047 --
+PS1_047 = ROOT / "scripts" / "run_kaggle_exp047.ps1"
+KERNEL_047 = ROOT / "scripts" / "kaggle" / "exp047_kernel.py"
+
+
+def test_exp047_wrapper_reuses_the_datasets_and_waits_long_enough():
+    wrapper = PS1_047.read_text(encoding="ascii")
+    assert '& "$PSScriptRoot\\run_kaggle_exp038.ps1" -Exp "EXP-047" -Relaunch:$Relaunch' in wrapper
+    text = _ps1()
+    block = text[text.index('if ($Exp -eq "EXP-047") {\n    $expectedRun') :]
+    assert "$maxWaitHours = 11" in block.split("}")[0]
+
+
+def test_exp047_runner_alternates_two_kernels_and_mounts_both_slices():
+    text = _ps1()
+    block = text[text.index("$kernelSources = @()") : text.index("# --- 3)")]
+    i = block.index('if ($Exp -eq "EXP-047") {')
+    b47 = block[i : block.index("if ($Final -and $launching) {", i)]
+    assert '$state.kernel_slug = "frontier-exp047-$own"' in b47
+    assert 'if ($sessionNo -gt 1) { $kernelSources = @("$user/frontier-exp047-$other") }' in b47
+    assert 'Get-ChildItem "evals\\results\\EXP-047" -Directory -Filter "session-*"' in b47
+    assert b47.index("if ($launching) {") < b47.index("$sessionNo =")
+    assert 'frontier-exp047-$own") }' not in b47  # a kernel never reads itself
+    # slice 1 + the two slice-2 backups; both must be ready before the push (Kaggle mounts nothing otherwise)
+    j = text.index('$slice2Ids = @("$user/frontier-v2-slice2-a", "$user/frontier-v2-slice2-b")')
+    push = text.index('Invoke-Logged "$kaggle kernels push -p $stage"')
+    k = text.index("$meta.dataset_sources = @($datasetId) + $slice2Ids")
+    assert j < k < push
+    assert "Stop-Run" in text[j:k] and "datasets status $sid" in text[j:k]
+
+
+def test_exp047_runner_downloads_results_publishes_and_never_publishes_a_failed_chain():
+    text = _ps1()
+    assert 'if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-047") { $outputDir = ' in text
+    i = text.index("--file-pattern EXP-047/.*")
+    assert "downloading the whole output (about 6.1 GB) instead" in text[i : i + 700]
+    assert 'if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-047") {\n    # the kernel writes' in text
+    chain = text.index('($Exp -eq "EXP-043" -or $Exp -eq "EXP-047") -and $summary.chain_check')
+    assert chain < text.index("scripts\\publish_eval_results.py --exp-id")
+    start = text.index('if ($Exp -eq "EXP-047") {\n    # as EXP-043: this session is safely on GitHub')
+    assert text.index('Add-Report "PASS 6d: pushed to origin/$branch"') < start
+    end = text[start : text.index('if ($TextStep -eq "rewrite") {', start)]
+    assert '$mf47 = "$outputDir\\exp047_final\\model_final.pt"' in end
+    assert "--file-pattern exp047_final/.*" in end and "Get-FileHash -Algorithm SHA256 $mf47" in end
+    assert "A STOP RULE FIRED" in end and "run the same line again (session $($summary.session + 1))" in end
+
+
+def test_exp047_kernel_types_the_approved_size_and_cap():
+    tree = ast.parse(KERNEL_047.read_text(encoding="ascii"))
+    consts = {
+        n.targets[0].id: (n.value.args[0].value if isinstance(n.value, ast.Call) else n.value.value)
+        for n in tree.body
+        if isinstance(n, ast.Assign) and isinstance(n.value, (ast.Constant, ast.Call))
+    }
+    assert consts["COMMIT"] == "__PINNED_COMMIT__" and float(consts["MAX_HOURS"]) <= 9.0
+    assert consts["SIZE"] == "20x1280" and consts["CAP_HOURS"] == "380"  # D-052
+    assert consts["OUT"] == "/kaggle/working/EXP-047" and str(consts["SCRATCH"]).startswith("/tmp/")
+    assert consts["CHAIN_OUT"] == "/kaggle/working/exp047_chain"
+    assert consts["FINAL_DIR"] == "/kaggle/working/exp047_final" and consts["INPUT"] == "/kaggle/input"
+    assert consts["PREVIOUS_DIR"] == "evals/results/EXP-047"
+    text = KERNEL_047.read_text(encoding="ascii")
+    assert '"pretrain_exp047.py"' in text and '"--part",\n        "auto"' in text and '"EXP-047"' in text
+    assert '"--gpus",\n        "2",\n    ]' in text  # D-050 as EXP-043
+    flags = set(re.findall(r'"(--[a-z-]+)"', text)) - {"--quiet", "--no-deps"}
+    assert flags == {
+        "--size", "--cap-hours", "--data-dir", "--part", "--out", "--prev-dir", "--chain-in", "--chain-out",
+        "--final-dir", "--scratch", "--exp-id", "--max-hours", "--gpus", "--max-runs",
+    }  # fmt: skip
+    # session 1 only (no committed EXP-047 session yet): Part 0 + memory probe, no learning-rate run
+    assert consts["PREVIOUS_DIR"] + '").glob("session-*/summary.json")' not in text  # uses the constant
+    assert 'if not list((SRC / PREVIOUS_DIR).glob("session-*/summary.json")):\n        cmd += PROBE_ONLY_FIRST' in text
+    assert "--max-runs" in (ROOT / "scripts" / "gpu_pretrain.py").read_text(encoding="utf-8")  # hidden flag
+    flags.discard("--max-runs")
+    helps = ""
+    for script in ("gpu_pretrain.py", "pretrain_exp047.py"):
+        helps += subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / script), "--help"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        ).stdout
+    for flag in flags:
+        assert flag in helps, flag
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import pretrain_exp047 as px  # the typed size is a family member; the cap covers its estimate
+
+    assert consts["SIZE"] in px.FAMILY and float(consts["CAP_HOURS"]) >= px.FAMILY[consts["SIZE"]][3]
+    res = subprocess.run([sys.executable, str(KERNEL_047)], capture_output=True, text=True, timeout=60)
+    assert res.returncode != 0 and "placeholder" in (res.stderr + res.stdout)

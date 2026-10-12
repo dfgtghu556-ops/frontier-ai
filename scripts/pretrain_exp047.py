@@ -26,8 +26,10 @@ script runs; EXP-043 itself is unchanged (its hooks keep their defaults, ``tests
 - **Gate (proposed; numbers fixed in the approved version):** final slice-1 mean bpb below EXP-043's final
   minus the seed noise 0.0174, and no language worse than EXP-043's final by more than the noise.
 
-Not here (not approved): a sharded optimizer (compute option B), the Kaggle kernel and runner (they need
-the size and compute choice), and any training.
+Approved 2026-10-12 (D-052): option B, size 20x1280, gate 0.6109. The Kaggle kernel
+(``scripts/kaggle/exp047_kernel.py``) and runner (``scripts/run_kaggle_exp047.ps1``) type those values.
+A sharded optimizer is not built (EXP-047 note 2026-10-13: the one-GPU memory probe, learning-rate check
+and first main session decide whether the size fits, and sharding cannot help them).
 
 CPU test of the whole flow: ``--smoke`` (tests/test_pretrain_exp047.py).
 """
@@ -62,12 +64,15 @@ TEST_SLICES_ENV = "FRONTIER_EXP047_TEST_SLICES"  # CPU tests only (honoured with
 
 # EXP-047 section 1: (layers, width, predicted bpb at 8.16 B tokens [EXP-042 secondary fit, extrapolated,
 # recomputed if section 4 refits the laws], estimated 2xT4 hours [NOT VERIFIED]).
+# (layers, width, predicted bpb, 2xT4 session-hours): the section 4 refit of 2026-10-12, pre-registered method
+# (evals/results/EXP-047/refit/refit.json, "pred_refit" and "t4.total_h"); it replaced the section 1 values
+# (0.6715 ... 0.6552) before any EXP-047 session ran.
 FAMILY: dict[str, tuple[int, int, float, int]] = {
-    "14x896": (14, 896, 0.6715, 103),
-    "16x1024": (16, 1024, 0.6659, 147),
-    "18x1152": (18, 1152, 0.6615, 202),
-    "20x1280": (20, 1280, 0.6580, 271),
-    "22x1408": (22, 1408, 0.6552, 353),
+    "14x896": (14, 896, 0.6333, 122),
+    "16x1024": (16, 1024, 0.6254, 172),
+    "18x1152": (18, 1152, 0.6190, 236),
+    "20x1280": (20, 1280, 0.6138, 314),
+    "22x1408": (22, 1408, 0.6095, 408),
 }
 EXPECTED_WINDOWS = 15_936_053  # sum over the 26 files of (n_train - 1) // 512 (pinned manifests)
 EXPECTED_STEPS = 498_001  # EXPECTED_WINDOWS // 32

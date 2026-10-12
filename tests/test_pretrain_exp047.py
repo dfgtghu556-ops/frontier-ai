@@ -159,7 +159,7 @@ def test_setup_changes_only_the_exp047_parts():
         "model", "expected_windows", "expected_steps", "micro_options", "total_cap_hours", "reserve_minutes",
         "predicted_bpb", "reference_run", "reference_bpb", "size", "slices", "yardstick", "reference_dir",
     }  # fmt: skip
-    assert s["model"]["n_layer"] == 20 and s["predicted_bpb"] == 0.6580 and s["total_cap_hours"] == 271.0
+    assert s["model"]["n_layer"] == 20 and s["predicted_bpb"] == 0.6138 and s["total_cap_hours"] == 271.0
     assert all(accum % 2 == 0 for _, accum in s["micro_options"])  # splits over two GPUs
     assert all(micro * accum == s["windows_per_step"] == 32 for micro, accum in s["micro_options"])
     assert [x["manifest_sha256"] for x in s["slices"]] == [x.manifest_sha256 for x in sl.EXP047_SLICES]
@@ -307,3 +307,29 @@ def test_changed_data_is_refused_before_training(langs, tmp_path, monkeypatch):
     res2 = tmp_path / "res2"
     assert _run(tmp_path, res2, tmp_path / "none", tmp_path / "c1", "--part", "lrcheck") == 1
     assert "recorded value" in _summary(res2, 1)["stopped"]
+
+
+def test_first_kaggle_session_is_probe_only_then_the_check_continues(langs, tmp_path):
+    """The EXP-047 kernel's session 1 (``--max-runs 0``, EXP-047 note 2026-10-13): Part 0 and the memory
+    probe, no learning-rate run, nothing stopped; session 2 (``--part auto``, as on Kaggle) reuses the
+    micro-batch and starts the learning-rate check."""
+    mp = pytest.MonkeyPatch()
+    mp.setenv(px.TEST_SLICES_ENV, json.dumps(_make_slices(langs, tmp_path)))
+    mp.setenv("CUDA_VISIBLE_DEVICES", "")
+    mp.setenv("OMP_NUM_THREADS", "1")
+    res = tmp_path / "res"
+    try:
+        assert (
+            _run(tmp_path, res, tmp_path / "nothing", tmp_path / "c1", "--part", "auto", "--max-runs", "0")
+            == 0
+        )
+        s1 = _summary(res, 1)
+        assert s1["micro"] and s1["micro_note"] and not s1.get("stopped") and not s1.get("stop_rule")
+        assert s1["lr_runs"] == [] and not s1["lr_choice"]["decided"] and not s1.get("complete")
+        assert not s1.get("main")
+        assert _run(tmp_path, res, tmp_path / "c1", tmp_path / "c2", "--part", "auto", "--max-runs", "1") == 0
+        s2 = _summary(res, 2)
+        assert s2["micro"] == s1["micro"] and s2["micro_note"] == "chosen in an earlier session"
+        assert not s2.get("stopped") and len(s2["lr_runs"]) == 1 and s2["lr_runs"][0]["session"] == 2
+    finally:
+        mp.undo()

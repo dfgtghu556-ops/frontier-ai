@@ -101,3 +101,13 @@ def test_flop_match_unchanged(committed):
 
 def test_report_rendered_from_json(committed):
     assert (rf.OUT_DIR / "REFIT.txt").read_text(encoding="utf-8") == rf.render(committed)
+
+
+def test_exp047_runner_uses_the_refit(committed):
+    """pretrain_exp047.FAMILY (prediction for check 2, hours) = the refit's pre-registered rows."""
+    import pretrain_exp047 as px
+
+    for r in committed["rows"]:
+        layers, width, pred, hours = px.FAMILY[f"{r['layers']}x{r['width']}"]
+        assert (layers, width) == (r["layers"], r["width"])
+        assert pred == round(r["pred_refit"], 4) and hours == round(r["t4"]["total_h"])

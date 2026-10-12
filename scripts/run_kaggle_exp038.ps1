@@ -70,6 +70,12 @@
 # outputs and writes the 13 text files as one gzip member each (they stay on Kaggle; the founder makes
 # the dataset frontier-v2-slice2-text from that output); "verify" mounts that dataset and checks it.
 # Each has its own kernel and state folder; they publish evals/results/EXP-046/text-rewrite|text-verify/.
+# EXP-047 (the next base model, D-052: 20 x 1280; scripts\run_kaggle_exp047.ps1) works like EXP-043: one
+# launch = one session of at most 9 hours; two private kernels <username>/frontier-exp047-a (odd session
+# numbers) and -b (even) take turns and read each other's output (the checkpoint, about 6.1 GB); only the
+# small result files are downloaded; model_final.pt (about 2 GB) is downloaded once at the end, never
+# committed; a failed checkpoint-chain check is not published. Its kernels also mount the founder's two
+# v2-slice2 backup datasets (frontier-v2-slice2-a/-b), which must be ready on Kaggle before a launch.
 # If the final push is rejected because the branch moved meanwhile (seen once in EXP-038), it pulls
 # with --rebase once and pushes again; the results commit still touches only evals/results/<EXP>/.
 #
@@ -80,7 +86,7 @@
 #
 # ASCII-only on purpose (Windows PowerShell 5.1 reads BOM-less scripts with the ANSI code page).
 
-param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046", "EXP-048")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check, [ValidateSet("rewrite", "verify")][string]$TextStep)
+param([ValidateSet("EXP-038", "EXP-039", "EXP-040", "EXP-041", "EXP-042", "EXP-043", "EXP-044", "EXP-045", "EXP-046", "EXP-047", "EXP-048")][string]$Exp = "EXP-038", [switch]$Relaunch, [ValidateSet("A", "B")][string]$Build, [switch]$Final, [switch]$Check, [ValidateSet("rewrite", "verify")][string]$TextStep)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
@@ -108,7 +114,7 @@ $datasetSubtitle = "Hindi training tokens for the frontier-ai project (EXP-037)"
 $datasetText = "Hindi part of FrontierCorpus v2-slice1"
 $uploadSize = "about 400 MB"
 $expectedRun = "EXP-038 took about 80 minutes, EXP-039 should be shorter"
-if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-048") {
+if ($Exp -eq "EXP-040" -or $Exp -eq "EXP-041" -or $Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-044" -or $Exp -eq "EXP-045" -or $Exp -eq "EXP-046" -or $Exp -eq "EXP-047" -or $Exp -eq "EXP-048") {
     $datasetSlug = "frontier-v2-tok2-13lang"
     $dataFiles = @()
     foreach ($f in (Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json).files) { $dataFiles += @($f.path, $f.meta) }
@@ -128,6 +134,10 @@ if ($Exp -eq "EXP-042") {
 }
 if ($Exp -eq "EXP-043") {
     $expectedRun = "one EXP-043 session takes at most 9 hours; about 10 sessions in total"
+    $maxWaitHours = 11
+}
+if ($Exp -eq "EXP-047") {
+    $expectedRun = "one EXP-047 session takes at most 9 hours; about 36-40 sessions in total"
     $maxWaitHours = 11
 }
 if ($Exp -eq "EXP-044") {
@@ -383,6 +393,25 @@ if ($Exp -eq "EXP-043") {
     $kernelSlug = $state.kernel_slug
     $kernelId = "$user/$kernelSlug"
 }
+if ($Exp -eq "EXP-047") {
+    # as EXP-043: two kernels take turns, so that each session reads the OTHER kernel's output
+    if (-not ($state.PSObject.Properties.Name -contains "kernel_slug")) {
+        $state | Add-Member -NotePropertyName kernel_slug -NotePropertyValue ""
+    }
+    if ($launching) {
+        $sessionNo = @(Get-ChildItem "evals\results\EXP-047" -Directory -Filter "session-*" -ErrorAction SilentlyContinue).Count + 1
+        $own = "a"; $other = "b"
+        if ($sessionNo % 2 -eq 0) { $own = "b"; $other = "a" }
+        $state.kernel_slug = "frontier-exp047-$own"
+        if ($sessionNo -gt 1) { $kernelSources = @("$user/frontier-exp047-$other") }
+        $readsText = "nothing (first session)"
+        if ($sessionNo -gt 1) { $readsText = "the output of $user/frontier-exp047-$other" }
+        Add-Report "INFO 2c: session $sessionNo runs on kernel $user/$($state.kernel_slug) and reads $readsText"
+    }
+    if (-not $state.kernel_slug) { Stop-Run "no EXP-047 kernel is remembered; run this line again with -Relaunch" 1 }
+    $kernelSlug = $state.kernel_slug
+    $kernelId = "$user/$kernelSlug"
+}
 if ($Final -and $launching) {
     # the model is EXP-043's model_final.pt, in the output of the kernel that ran the LAST session (odd
     # session numbers ran on -a, even ones on -b); refuse before EXP-043 is complete
@@ -540,6 +569,20 @@ if ($launching) {
         }
         Add-Report "PASS 4a: private dataset $textId is ready on Kaggle"
     }
+    if ($Exp -eq "EXP-047") {
+        # slice 1 (the 13-language dataset) + slice 2 (the founder's backups, D-051). Kaggle starts a
+        # kernel even when a dataset source is missing, so both must be ready BEFORE the push
+        $slice2Ids = @("$user/frontier-v2-slice2-a", "$user/frontier-v2-slice2-b")
+        foreach ($sid in $slice2Ids) {
+            $r = Invoke-Logged "$kaggle datasets status $sid"
+            if ($r.Code -ne 0 -or -not (($r.Lines -join " ") -match "ready")) {
+                Add-Tail $r
+                Stop-Run "the slice-2 dataset $sid does not exist or is not ready on Kaggle (no kernel was started)" 2
+            }
+        }
+        Add-Report "PASS 4a: slice-2 datasets $($slice2Ids -join ', ') are ready on Kaggle"
+        $meta.dataset_sources = @($datasetId) + $slice2Ids
+    }
     Write-Ascii "$stage\kernel-metadata.json" ($meta | ConvertTo-Json -Depth 5)
     $r = Invoke-Logged "$kaggle kernels push -p $stage"
     if ($r.Code -ne 0 -or (($r.Lines -join " ") -match "error")) { Add-Tail $r; Stop-Run "Kaggle did not accept the kernel (Kaggle's message is above)" 1 }
@@ -580,7 +623,7 @@ Add-Report "=== kernel finished with status: $status - $(Get-Date -Format 'yyyy-
 $outputDir = "$outDir\output"
 # EXP-042 has one launch per session: a fresh download folder per launched commit, so an older
 # session's files can never be mistaken for this one's
-if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043") { $outputDir = "$outDir\output-$($state.pinned_commit.Substring(0, 7))" }
+if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-047") { $outputDir = "$outDir\output-$($state.pinned_commit.Substring(0, 7))" }
 New-Item -ItemType Directory -Force $outputDir | Out-Null
 if ($Exp -eq "EXP-043") {
     # only the small result files; the 2.3 GB checkpoint stays on Kaggle for the next session
@@ -588,6 +631,16 @@ if ($Exp -eq "EXP-043") {
     $got = @(Get-ChildItem "$outputDir\EXP-043" -Recurse -Filter "summary.json" -ErrorAction SilentlyContinue)
     if ($r.Code -ne 0 -or $got.Count -eq 0) {
         Add-Report "INFO 5: this Kaggle tool could not download only the result files; downloading the whole output (about 2.3 GB) instead"
+        $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force"
+    } else {
+        Add-Report "PASS 5: downloaded only the small result files (--file-pattern)"
+    }
+} elseif ($Exp -eq "EXP-047") {
+    # only the small result files; the 6.1 GB checkpoint stays on Kaggle for the next session
+    $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern EXP-047/.*"
+    $got = @(Get-ChildItem "$outputDir\EXP-047" -Recurse -Filter "summary.json" -ErrorAction SilentlyContinue)
+    if ($r.Code -ne 0 -or $got.Count -eq 0) {
+        Add-Report "INFO 5: this Kaggle tool could not download only the result files; downloading the whole output (about 6.1 GB) instead"
         $r = Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force"
     } else {
         Add-Report "PASS 5: downloaded only the small result files (--file-pattern)"
@@ -611,7 +664,7 @@ if ($Exp -eq "EXP-043") {
 if ($r.Code -ne 0) { Add-Tail $r; Stop-Run "downloading the kernel output failed; run this line again" 1 }
 $resultDir = "$outputDir\$Exp"
 $publishSrc = $resultDir
-if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043") {
+if ($Exp -eq "EXP-042" -or $Exp -eq "EXP-043" -or $Exp -eq "EXP-047") {
     # the kernel writes <EXP>\session-<n>\; exactly one session folder is expected
     $sessions = @(Get-ChildItem "$outputDir\$Exp" -Directory -Filter "session-*" -ErrorAction SilentlyContinue)
     if ($sessions.Count -gt 1) { Stop-Run "the kernel output has $($sessions.Count) session folders; expected one" 1 }
@@ -638,7 +691,7 @@ if ($summary.environment.code_commit -and ($summary.environment.code_commit -ne 
     Stop-Run "summary.json was made by commit $($summary.environment.code_commit), expected $($state.pinned_commit)" 1
 }
 Add-Report "PASS 5a: results downloaded (complete: $($summary.complete))"
-if ($Exp -eq "EXP-043" -and $summary.chain_check -and ($summary.chain_check.ok -eq $false)) {
+if (($Exp -eq "EXP-043" -or $Exp -eq "EXP-047") -and $summary.chain_check -and ($summary.chain_check.ok -eq $false)) {
     # not published: the session number stays, so the retry reads the same checkpoint again
     $state.pinned_commit = ""
     Save-State $state
@@ -749,6 +802,38 @@ if ($Exp -eq "EXP-043") {
         if (Test-Path $mf) {
             $h = (Get-FileHash -Algorithm SHA256 $mf).Hash
             if ($h -ieq $summary.final.model_final.sha256) { Add-Report "PASS 7: model_final.pt downloaded to $mf (sha256 matches)" }
+            else { Add-Report "FAIL 7: model_final.pt sha256 $h does not match the summary ($($summary.final.model_final.sha256))" }
+        } else {
+            Add-Report "INFO 7: model_final.pt could not be downloaded now; it stays in the Kaggle output of $kernelId"
+        }
+    }
+    if ($summary.stop_rule) {
+        Add-Report "TRAINING: A STOP RULE FIRED ($($summary.stop_rule)). Do NOT run the line again; paste this report into the Arena chat."
+    } elseif ($summary.stopped -and -not $summary.complete) {
+        Add-Report "TRAINING: this session stopped early ($($summary.stopped)). Do NOT run the line again until the chat says so."
+    } elseif ($summary.complete) {
+        Add-Report "TRAINING: COMPLETE after session $($summary.session) - the one pass is finished; no more sessions are needed."
+    } else {
+        if ($summary.main) {
+            Add-Report "TRAINING: step $($summary.main.end_step) of $($summary.main.total_steps) done."
+        } else {
+            Add-Report "TRAINING: learning-rate check: $($summary.lr_choice.reason)"
+        }
+        Add-Report "NEXT: after pasting this report into the Arena chat, run the same line again (session $($summary.session + 1))."
+    }
+}
+if ($Exp -eq "EXP-047") {
+    # as EXP-043: this session is safely on GitHub; forget its commit, so the same line launches the next
+    $state.pinned_commit = ""
+    Save-State $state
+    Add-Report ""
+    if ($summary.complete -and $summary.final -and $summary.final.model_final) {
+        # the final weights (about 2 GB), once, into out\ (never committed); sha256 checked
+        $mf47 = "$outputDir\exp047_final\model_final.pt"
+        if (-not (Test-Path $mf47)) { Invoke-Logged "$kaggle kernels output $kernelId -p $outputDir --force --file-pattern exp047_final/.*" | Out-Null }
+        if (Test-Path $mf47) {
+            $h = (Get-FileHash -Algorithm SHA256 $mf47).Hash
+            if ($h -ieq $summary.final.model_final.sha256) { Add-Report "PASS 7: model_final.pt downloaded to $mf47 (sha256 matches)" }
             else { Add-Report "FAIL 7: model_final.pt sha256 $h does not match the summary ($($summary.final.model_final.sha256))" }
         } else {
             Add-Report "INFO 7: model_final.pt could not be downloaded now; it stays in the Kaggle output of $kernelId"
