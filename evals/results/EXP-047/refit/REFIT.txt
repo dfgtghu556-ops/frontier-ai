@@ -1,0 +1,23 @@
+EXP-047 section 4 refit (approved 2026-10-12; CPU only, no training)
+
+1. The fit: loss = E + A/N^alpha + B/D^beta (EXP-042's secondary fit, same grid, same runs)
+   EXP-042's 20 runs:          E 0.6143  A 27.23  B 7298.4  alpha 0.34  beta 0.58  rmse 0.0186
+   20 runs + EXP-043 (primary): E 0.5342  A 12.80  B 2398.4  alpha 0.27  beta 0.51  rmse 0.0196
+
+2. Check at EXP-043 (actual 0.6283): old fit 0.6827, refit 0.6487 -> miss -0.0205 (OUTSIDE seed noise 0.0174)
+   Same 14 x 896 model on 8.16 B tokens: refit 0.6333 (vs 0.6283 already reached on 2.78 B), calibrated 0.6128
+
+3. FLOP-match size at 8.16 B tokens (growth laws, unchanged): C* 3.07e+19, N_opt 568 M total (leave-one-out 77 M - 9.1 B); between 20 x 1280 and 22 x 1408
+
+4. Table at 8,159,265,692 tokens (gate: below 0.6109)
+   size        params     old   refit       LOO range  best-lr  calib.  2xT4 h  weeks    H100 h  option
+   14 x 896      190M  0.6715  0.6333   0.6228-0.6397   0.6399  0.6128     122    4.1    6-10  A (free)
+   16 x 1024     273M  0.6659  0.6254   0.6158-0.6327   0.6327  0.6049     172    5.7    8-14  A (free)
+   18 x 1152     378M  0.6615  0.6190   0.6082-0.6272   0.6270  0.5985     236    7.9   11-19  A (free)
+   20 x 1280     507M  0.6580  0.6138   0.6019-0.6227   0.6223  0.5934     314   10.5   15-25  B (free + sharded optimizer, new code) or C (rented H100)
+   22 x 1408     665M  0.6552  0.6095   0.5966-0.6190   0.6185  0.5890     408   13.6   20-33  C (rented H100) only (above FLOP-match)
+
+Honest limits: one point (EXP-043) at 10-40x the ladder's largest budget carries the refit;
+every row is an extrapolation. 'calib.' is post-hoc (refit shifted by its miss at EXP-043),
+not pre-registered.
+Free quota 30 h/week, T4 speed scaling, memory and H100 numbers are NOT VERIFIED estimates.
