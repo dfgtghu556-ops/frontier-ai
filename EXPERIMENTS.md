@@ -4474,6 +4474,14 @@ founder's PC (`out\kaggle\EXP-045-final\output\exp045_fp16\model_fp16.pt`, sha25
 
 **Status:** complete (tests 1-5 done; Belebele at chance in 12 of 13 languages, Tamil above chance by the rule but not without flagged questions; protected suite 0.9099 bpb; baseline recorded)
 
+**Correction 2026-10-12 (count only; nothing else changes):** the Test 5 line "11 of the 208 continuations"
+cannot be reproduced, because the rule behind it was not written down. Mechanical recounts of
+`evals/results/EXP-043/session-6/samples.jsonl` and `evals/results/EXP-045/final/samples.jsonl`, English
+excluded (192 continuations): **15 of 192** contain the odd fragments (regex `Li|setto|onychow`, e.g.
+"Library", "Li-setto", "Liquid", "onychow"), all at temperature 0.8, in 9 languages; **23 of 192** contain any
+run of two or more Latin letters (20 at temperature 0.8; the 3 greedy ones are ordinary names and words such
+as "Kolhapur Court"). The observation and its NOT VERIFIED cause stand as written.
+
 ### EXP-046 — Data for the next model: plan FrontierCorpus v2-slice2 (more Sangraha Verified, same recipe), built on Kaggle CPU sessions
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-046" before any code)
 
@@ -5093,6 +5101,48 @@ now known: EXP-047's final slice-1 mean must be below 0.6283 − 0.0174 = **0.61
 than EXP-043's final by more than 0.0174 (`scripts/pretrain_exp047.py` reads these from
 `evals/results/EXP-043/session-6/`). Nothing else changes; the run still needs "approve EXP-047" and the
 compute choice.
+
+**§4 refit (2026-10-12; founder "approve refit"; CPU only, no training, ₹0).** `scripts/refit_exp047.py` →
+`evals/results/EXP-047/refit/` (`REFIT.txt`, `refit.json`); test `tests/test_refit_exp047.py`.
+- **Method as pre-registered:** the same secondary fit (`ladder_fit.fit_parametric`, same grid) on the same 20
+  EXP-042 runs plus EXP-043's final as one more point (160,589,184 non-embedding parameters, 2,783,821,824
+  tokens, 0.6283 bpb; both use the 13-language mean of full-validation bpb). Without EXP-043 the code
+  reproduces EXP-042's recorded fit exactly.
+- **Refit:** E 0.6143 → 0.5342, A 27.23 → 12.80, α 0.34 → 0.27, B 7298 → 2398, β 0.58 → 0.51; rmse
+  0.0186 → 0.0196.
+- **Check at EXP-043:** the refit predicts 0.6487 against the actual 0.6283, a miss of −0.0205, outside seed
+  noise (0.0174) and in the same direction as before (−0.054). The 20 small runs outweigh the one large run,
+  so the refit is still pessimistic at this scale: it predicts 0.6333 for the same 14 × 896 model on 8.16 B
+  tokens, worse than the 0.6283 it already reached on 2.78 B.
+- **Growth laws unchanged** (they come from 3 bracketed budgets; one run at one size adds no optimum):
+  FLOP-match size 568 M total parameters (leave-one-out 77 M–9.1 B), between 20 × 1280 and 22 × 1408. By
+  §4 rule (a) the largest allowed size is **20 × 1280**; 22 × 1408 is out.
+- **Recomputed table** (8,159,265,692 tokens; gate: below 0.6109). "Calibrated" = refit shifted by its miss
+  at EXP-043: post-hoc, not pre-registered. Hours are Kaggle 2×T4 session-hours, now including the
+  learning-rate check (one GPU) and the one-GPU first session, from EXP-043's measured sessions (21,306
+  tokens/s on two GPUs, 3.1% session overhead), assuming speed scales with FLOPs per token (NOT VERIFIED).
+  Weeks assume 30 free hours a week (NOT VERIFIED).
+
+| size | parameters | old §1 | refit | leave-one-out range | calibrated (post-hoc) | 2×T4 hours | weeks of free quota | option |
+|---|---|---|---|---|---|---|---|---|
+| 14 × 896 | 190 M | 0.6715 | 0.6333 | 0.6228–0.6397 | 0.6128 | ≈122 | 4.1 | A |
+| 16 × 1024 | 273 M | 0.6659 | 0.6254 | 0.6158–0.6327 | 0.6049 | ≈172 | 5.7 | A |
+| 18 × 1152 | 378 M | 0.6615 | 0.6190 | 0.6082–0.6272 | 0.5985 | ≈236 | 7.9 | A |
+| 20 × 1280 | 507 M | 0.6580 | 0.6138 | 0.6019–0.6227 | 0.5934 | ≈314 | 10.5 | B or C |
+| 22 × 1408 | 665 M | 0.6552 | 0.6095 | 0.5966–0.6190 | 0.5890 | ≈408 | 13.6 | C; above the FLOP-match size |
+
+- **Reading:** by the pre-registered refit no allowed size is predicted to pass the gate (20 × 1280: 0.6138),
+  although the leave-one-out ranges of 18 × 1152 and 20 × 1280 dip below 0.6109. By the post-hoc calibration,
+  16 × 1024 and larger pass (18 × 1152: 0.5985; 20 × 1280: 0.5934) and 14 × 896 does not (0.6128). Which
+  is closer is not known; the gate decides after the run. A fit that already missed twice in the same
+  direction is weak evidence either way.
+- **Cost changes:** the free-quota time is longer than §3 said (18 × 1152: ≈7.9 weeks, not 3.4–6.7;
+  20 × 1280: ≈10.5 weeks, not ≈9). One rented H100 for 20 × 1280, learning-rate check included: ≈15–25 GPU-hours,
+  ≈₹1,200–8,900 (30–50% of bf16 peak, $0.90–3.99/h, ₹88/$; NOT measured, prices NOT VERIFIED now; the bf16
+  path is not built).
+- Nothing else changes: the gate stays 0.6109, and the run still needs "approve EXP-047" and the compute choice.
+
+**Status:** proposed; step 1 (slice-aware loader) built 2026-10-09; runner code built 2026-10-11; §4 refit done 2026-10-12 (largest allowed size 20 × 1280); the run itself needs "approve EXP-047" and the founder's compute choice A/B/C (A → 18 × 1152; B or C → 20 × 1280)
 
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")

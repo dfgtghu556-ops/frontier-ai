@@ -863,6 +863,7 @@ comes next. They also update the table in §3.
     190 M); Tamil 29.1% is above chance by the rule but not without flagged questions. Same-passages bits vs English
     1.20× (hi) to 1.58× (as). Stray Latin "Li…" fragments in 11 of 208 samples (cause NOT VERIFIED). fp16 weights on
     the founder's PC. Next: EXP-047 decision (the §4 refit first).
+- EXP-047 §4 refit DONE (2026-10-12, "approve refit", CPU only): laws refit with EXP-043 (`scripts/refit_exp047.py`, `evals/results/EXP-047/refit/`). The refit still misses EXP-043 by −0.0205 (pessimistic); FLOP-match size unchanged (568 M), so the largest allowed size is 20 × 1280. Gate 0.6109: refit says no allowed size passes; post-hoc calibration says 16 × 1024 and up pass. 2×T4 hours: 18 × 1152 ≈236 (≈7.9 free weeks), 20 × 1280 ≈314 (≈10.5). Next: founder's "approve EXP-047" + compute choice A/B/C. EXP-045 Latin-fragment count corrected (15 of 192).
 
 
 ## 9. The prompt the operator pastes into a new Arena chat
