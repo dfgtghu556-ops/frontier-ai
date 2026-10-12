@@ -849,6 +849,10 @@ comes next. They also update the table in §3.
   - **EXP-043 session 4 complete (2026-10-11, results `8c11805`):** steps 61,207 → 100,653 of 169,911 on two
     GPUs (21,261 tokens/s, 17 skipped steps, no stop rule); session-end full validation 0.6828 bpb mean (mid-run,
     not a result; all 13 languages improved). 34.04 of 100 session-hours used; about 2 sessions left. Next: session 5.
+  - **EXP-043 session 5 complete (2026-10-12, results `71079cd`):** steps 100,653 → 141,459 of 169,911 on two
+    GPUs (21,993 tokens/s, 16 skipped steps, no stop rule; first session on code with the EXP-047 hooks, same
+    behaviour); session-end full validation 0.6430 bpb mean (mid-run, not a result; all 13 languages improved).
+    42.70 of 100 session-hours used. Next: session 6, which should finish the pass and give the final result.
 
 
 ## 9. The prompt the operator pastes into a new Arena chat

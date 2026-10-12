@@ -3921,6 +3921,31 @@ in `evals/results/EXP-043/session-3/` (results commit `d0c3655`).
 
 **Status:** running — sessions 1–4 complete (main run at step 100,653 of 169,911; two GPUs); next: session 5 (about 2 sessions left)
 
+**Update (2026-10-12): session 5 complete (two GPUs).** Commit `2ddaf5b`; results in
+`evals/results/EXP-043/session-5/` (results commit `71079cd`). Same setup and one-pass order
+(fingerprint) as sessions 1–4. This is the first session on code that contains the EXP-047 hooks in
+`scripts/gpu_pretrain.py` (`b629b7b`); it behaved like sessions 3–4 (setup accepted, chain verified, two
+GPUs, same memory), as the unchanged EXP-043 tests predicted.
+- **Chain:** the step-100,653 checkpoint (kernel `frontier-exp043-b`) was found, its sha256 (5 files)
+  verified, and resumed on two GPUs (no fallback, no failure).
+- **Steps 100,653 → 141,459 (40,806 this session; 83.3% of the pass done)**, 2,317,664,256 tokens seen
+  in total. The session ended at its time budget; no stop rule fired.
+- **Speed:** 21,993 tokens/s (0.745 s per step): 1.98× session 2's one-GPU speed. Memory 8.97 GB per GPU.
+- **Health:** 16 skipped fp16 steps (0.04%), no bad evaluations. Sampled validation loss 1.982
+  (step 101,000) → 1.892 (step 141,000); the best so far is 1.8740 (step 129,000).
+- **Checkpoint:** step 141,459 (`model.pt` `d9cf2b8c…`); periodic saves every 5,000 steps from 105,000
+  to 140,000.
+- **Full validation at the session end (still mid-run, not a result):** mean **0.6430 bpb**
+  (token-weighted 0.7238, pooled 0.6440), down 0.0398 from session 4. All 13 languages improved (by
+  0.030 for ta up to 0.078 for en; hi 0.5651). The gate (final mean < 0.7562) and the comparison with
+  the predicted 0.683 are judged only on the final score at the end of the pass.
+- **Time:** 8.66 session-hours, 42.70 of the 100-hour cap used. 28,452 steps remain: about 5.9 h of
+  training at this speed, so **session 6 finishes the pass** and runs the final evaluation, the
+  samples and `model_final.pt`.
+- **D-050 revisit rules clear:** the run stays on two GPUs.
+
+**Status:** running — sessions 1–5 complete (main run at step 141,459 of 169,911; two GPUs); next: session 6, which should finish the pass
+
 ### EXP-044 — Step 13: train on both Kaggle GPUs at once (two-GPU data parallel), checked before use
 **Date:** 2026-10-04 · **Status:** proposed (needs the founder's "approve EXP-044" before any code)
 
