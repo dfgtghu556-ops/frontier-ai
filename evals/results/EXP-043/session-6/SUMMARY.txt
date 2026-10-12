@@ -1,0 +1,44 @@
+EXP-043 - train the step-12 model (D-049), session 6
+started 2026-10-12 01:52:38  finished 2026-10-12 08:46:39
+elapsed 414.0 min; GPU-hours before this session 42.70
+Part 0: data files 13/13 (sha256 checked); tests 46 passed in 15.46s; one-step float64 check pass=True
+Checkpoint chain: checkpoint of step 141,459 verified (sha256 of 5 files)
+One-pass order: 5,437,162 windows, 169,911 steps, fingerprint 19199520944bc37b...
+Micro-batch: 16 x 2 accumulation (chosen in an earlier session)
+
+Learning-rate check (6,104 steps each, same first 100 M tokens):
+         lr session status                        mean bpb  minutes
+    0.00025       1 done                            0.8543    160.2
+     0.0005       1 done                            0.8172    159.8
+      0.001       1 done                            0.8160    159.5
+  Chosen learning rate: 0.0005  (lowest mean bpb 0.8160 at 0.001; 0.0005 is within the noise 0.0174 so the lower one is chosen)
+
+Main run: steps 141,459 -> 169,911 of 169,911 at lr 0.0005; session end: one pass complete
+  19,571 tokens/s; peak memory 8.97 GB
+  skipped fp16 steps this session: 10
+  trained on 2 GPU(s): 16 x 1 per GPU; peak memory per GPU [8.969, 8.969] GB  [two GPUs (Tesla T4 x 2; D-050)]
+  sampled validation loss: 159000: 1.8938, 160000: 1.9101, 161000: 1.8674, 162000: 1.8550, 163000: 1.8883, 164000: 1.8717, 165000: 1.8894, 166000: 1.8769, 167000: 1.8842, 168000: 1.9076, 169000: 1.8753, 169911: 1.8301
+  full validation at session end: mean 0.6283 bpb (token-weighted 0.7068, pooled 0.6292)
+Checkpoint for the next session: step 169,911 (made in session 6)
+
+FINAL (one pass complete):
+  mean 0.6283 bpb, token-weighted 0.7068, pooled 0.6292
+    as     0.6027   (C3-s3 0.7424)
+    bn     0.5735   (C3-s3 0.7053)
+    en     1.2195   (C3-s3 1.5181)
+    gu     0.6527   (C3-s3 0.7910)
+    hi     0.5536   (C3-s3 0.6845)
+    kn     0.5227   (C3-s3 0.6475)
+    ml     0.4709   (C3-s3 0.5853)
+    mr     0.5102   (C3-s3 0.6373)
+    or     0.5787   (C3-s3 0.7063)
+    pa     0.5924   (C3-s3 0.7230)
+    ta     0.4663   (C3-s3 0.5769)
+    te     0.5740   (C3-s3 0.7092)
+    ur     0.8503   (C3-s3 1.0299)
+  check1_gate: PASS: mean 0.6283 vs < 0.7562 (C3-s3 0.7736 minus noise 0.0174)
+  check1_pass: True
+  check2_prediction: not consistent: 0.6283 vs predicted 0.683 (+/- 0.03)
+  check2_consistent: False
+  check3_languages: 13 of 13 languages below C3-s3
+  model_final.pt sha256 5494c0285091917737c4e0dde29789239ba67265ae0bb3be6293c20f5c11bccf
