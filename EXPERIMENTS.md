@@ -5144,6 +5144,19 @@ compute choice.
 
 **Status:** proposed; step 1 (slice-aware loader) built 2026-10-09; runner code built 2026-10-11; §4 refit done 2026-10-12 (largest allowed size 20 × 1280); the run itself needs "approve EXP-047" and the founder's compute choice A/B/C (A → 18 × 1152; B or C → 20 × 1280)
 
+**Approved 2026-10-12 (D-052): compute option B, size 20 × 1280.** After the §4 refit the founder chose
+"Approve EXP-047, option B (free, bigger)". Under the §4 rule the size is 20 × 1280 (507,464,960 parameters),
+subject to rule (b): if the two-GPU memory probe with the sharded optimizer fails, the run uses 18 × 1152
+and this is recorded here. The gate is now fixed: final slice-1 mean below **0.6109**, and no language worse
+than EXP-043's final by more than 0.0174. Build order (code and CPU tests first; no GPU use until the founder
+starts it):
+(1) sharded optimizer states (ZeRO stage 1), off by default, with checkpoint save and resume;
+(2) a two-process memory probe at 20 × 1280;
+(3) the EXP-047 Kaggle kernel and runner;
+(4) session 1, the learning-rate check (2.5e-4, 5e-4, 1e-3; 6,104 steps each), then the main run.
+
+**Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); building the sharded optimizer, probe, kernel and runner (no GPU use yet)
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 

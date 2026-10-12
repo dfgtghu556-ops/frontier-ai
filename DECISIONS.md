@@ -1997,6 +1997,39 @@ the data, and any training on v2-slice2, each need their own approval.
 
 ---
 
+## D-052 — EXP-047 runs on free Kaggle 2×T4 with a sharded optimizer (compute option B), size 20 × 1280 by the §4 rule
+**Date:** 2026-10-12 · **Status:** accepted (founder decision 2026-10-12, choosing "Approve EXP-047, option B (free, bigger)" from the options after the §4 refit; evidence EXP-047 §3–§4 and its refit note, EXP-043, EXP-042, D-047, D-050, D-051)
+
+**Decision:**
+1. EXP-047 (one pass over v2-slice1 + v2-slice2, 8,159,265,692 tokens) is approved with **compute option B**:
+   free Kaggle 2×T4, ₹0, no spending.
+2. **Size: 20 × 1280** (507,464,960 parameters), the largest family member allowed by the §4 rule: not above
+   the FLOP-match size (568 M; unchanged by the refit), and inside the chosen compute. Rule (b) still
+   applies: if the memory probe shows 20 × 1280 does not fit on the T4s even with the sharded optimizer, the
+   run uses the next size down (18 × 1152) and this is recorded, not re-decided.
+3. **New code allowed for this run only:** optimizer states sharded across the two GPUs (ZeRO stage 1,
+   `torch.distributed.optim.ZeroRedundancyOptimizer`), off by default, so EXP-043's code path and results
+   stay exactly as they are. Also the EXP-047 Kaggle kernel and runner, and a two-process memory probe.
+4. **Gate (now fixed):** final slice-1 mean bpb below **0.6109** (EXP-043's final 0.6283 minus the seed noise
+   0.0174), and no language worse than EXP-043's final by more than 0.0174.
+5. Everything else as EXP-047 §5 and D-047 (fp16 + compile on T4) and D-050 (two GPUs).
+
+**Rationale:** the founder's choice among A/B/C after the refit (EXP-047 note 2026-10-12). Option B gives
+the largest allowed size at ₹0. Its costs, accepted with the choice: new code before the run, and about 314
+Kaggle session-hours (≈10.5 weeks at 30 free hours a week; quota NOT VERIFIED; speed scaling NOT VERIFIED).
+Whether the gate passes is uncertain: the pre-registered refit predicts 0.6138 at this size (fail), and the
+post-hoc calibration predicts 0.5934 (pass).
+
+**Consequences:** no GPU training starts until the sharded optimizer, probe, kernel and runner are built
+and tested on CPU, and the founder starts session 1 (the learning-rate check). The free GPU quota is
+mostly used by EXP-047 for about ten weeks.
+
+**Revisit when:** the memory probe fails at 20 × 1280 (then rule (b) applies); measured speed is much
+slower than the estimate (more than 20%, which would mean about two extra weeks); a free or paid GPU
+option changes; or the learning-rate check or the stop rules end the run early.
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 

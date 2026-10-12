@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "f5d26d72c715f392fc061db1ebbbf49bfe37729a1a9cac7e592e33811b46e1e2",
+  "source_digest": "c8d74f88abbc5416a0658264801a4dd1980099162da6c05cc6ec09c9dcf61dda",
   "sources": {
-    "EXPERIMENTS.md": "6b3a495ac1364714d02f187390335e19974d5dfee90fe20e08bd9e4cc2a44a10",
-    "DECISIONS.md": "0674c257887402bc26c71402d2c65bbeafed6e35804af02e750c5a6265ca2ad1",
+    "EXPERIMENTS.md": "e9bd8e832ef57ddda24093beada027960c3b36f7a26a3107cecb11443bff7e49",
+    "DECISIONS.md": "2d2f610805a22c5b4f210866a65996063685f8a63ebfac809d275585d46bc904",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "5c1d0f789a71b46b7f31c615730a9f88d68eb07ef59f36c6f65a3ad9e959f54f",
+    "lab/registry.json": "e12c117984e077030a759fd97cfbd68009235e5e061d820d8b0e06214af50377",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -369,7 +369,7 @@
   ],
   "current_work": [
     {
-      "title": "EXP-043 complete (14 x 896 model, one pass over 2.78 B tokens): gate PASS, final 0.6283 bpb mean (< 0.7562; predicted 0.683); EXP-045 baseline done; EXP-047 §4 refit done (largest allowed size 20 × 1280); next: founder's \"approve EXP-047\" + compute choice A/B/C",
+      "title": "EXP-043 complete (14 x 896 model, one pass over 2.78 B tokens): gate PASS, final 0.6283 bpb mean (< 0.7562; predicted 0.683); EXP-045 baseline done; EXP-047 approved (D-052: option B, 20 × 1280, gate 0.6109); building the sharded optimizer, probe, kernel and runner",
       "evidence": [
         "EXP-043",
         "D-049",
@@ -377,7 +377,8 @@
         "D-048",
         "D-047",
         "D-050",
-        "EXP-047"
+        "EXP-047",
+        "D-052"
       ],
       "evidence_files": [
         "scripts/gpu_pretrain.py",
@@ -985,7 +986,7 @@
       "id": "EXP-047",
       "title": "Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2",
       "date": "2026-10-08",
-      "status": "proposed; step 1 (slice-aware loader) built 2026-10-09; runner code built 2026-10-11; §4 refit done 2026-10-12 (largest allowed size 20 × 1280); the run itself …",
+      "status": "approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); building the sharded optimizer, probe, kernel and runner (no GPU use yet)",
       "category": "planned",
       "step": null,
       "summary": "EXP-043 trains a 190 M model on 2.78 B tokens. D-051 added 5.38 B more verified tokens (8.16 B in total). The next model should be bigger and see all of it. This plan says how its size will be chosen (from evidence, not a fixed number), what it costs on each kind of hardware, and which code is needed. It is written …",
@@ -994,7 +995,8 @@
         "D-047",
         "D-049",
         "D-050",
-        "D-051"
+        "D-051",
+        "D-052"
       ],
       "line": 4947,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L4947"
@@ -1011,8 +1013,8 @@
         "D-044",
         "D-045"
       ],
-      "line": 5147,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L5147"
+      "line": 5160,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L5160"
     }
   ],
   "experiment_numbers_not_in_log": [
@@ -1648,6 +1650,21 @@
       ],
       "line": 1926,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L1926"
+    },
+    {
+      "id": "D-052",
+      "title": "EXP-047 runs on free Kaggle 2×T4 with a sharded optimizer (compute option B), size 20 × 1280 by the §4 rule",
+      "date": "2026-10-12",
+      "status": "accepted (founder decision 2026-10-12, choosing \"Approve EXP-047, option B (free, bigger)\" from the options after the §4 refit; evidence EXP-047 §3–§4 and its …",
+      "category": "accepted",
+      "summary": "1. EXP-047 (one pass over v2-slice1 + v2-slice2, 8,159,265,692 tokens) is approved with compute option B: free Kaggle 2×T4, ₹0, no spending. 2. Size: 20 × 1280 (507,464,960 parameters), the largest family member allowed by the §4 rule: not above the FLOP-match size (568 M; unchanged by the refit), and inside the …",
+      "experiments": [
+        "EXP-042",
+        "EXP-043",
+        "EXP-047"
+      ],
+      "line": 2000,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L2000"
     }
   ],
   "open_questions": [

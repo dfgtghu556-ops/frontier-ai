@@ -269,7 +269,7 @@
   ],
   "current_work": [
     {
-      "title": "EXP-043 complete (14 x 896 model, one pass over 2.78 B tokens): gate PASS, final 0.6283 bpb mean (< 0.7562; predicted 0.683); EXP-045 baseline done; EXP-047 §4 refit done (largest allowed size 20 × 1280); next: founder's \"approve EXP-047\" + compute choice A/B/C",
+      "title": "EXP-043 complete (14 x 896 model, one pass over 2.78 B tokens): gate PASS, final 0.6283 bpb mean (< 0.7562; predicted 0.683); EXP-045 baseline done; EXP-047 approved (D-052: option B, 20 × 1280, gate 0.6109); building the sharded optimizer, probe, kernel and runner",
       "evidence": [
         "EXP-043",
         "D-049",
@@ -277,7 +277,8 @@
         "D-048",
         "D-047",
         "D-050",
-        "EXP-047"
+        "EXP-047",
+        "D-052"
       ],
       "evidence_files": [
         "scripts/gpu_pretrain.py",
