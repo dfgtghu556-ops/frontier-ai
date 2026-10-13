@@ -4,9 +4,9 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "10fd31c83970bfda8cb399a328a191ba9d3ffbdaced1bd8e831d624777953424",
+  "source_digest": "5b5fc7133e40a556cd58abbd4e84ffafa67637098857cfd6cfa405864a6106f7",
   "sources": {
-    "EXPERIMENTS.md": "7edd474fa18e29b1fc5b4ba8a845814edd5f4a923c68607c4667b54c7f47562a",
+    "EXPERIMENTS.md": "ed1a8bb239d5dc688a05b1450b351edda5440108ce153b6921e9925ea03a3d85",
     "DECISIONS.md": "460d7fbd436c5605a1cad726d8794451135e068843c5037041300faa72ffb904",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
     "lab/registry.json": "997674d609b86612b53235fd38972a98550f9659d8db2b50a030c8469f8ead0e",
@@ -988,7 +988,7 @@
       "id": "EXP-047",
       "title": "Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2",
       "date": "2026-10-08",
-      "status": "approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); kernel and runner built 2026-10-13 (session 1 = memory probe only; learning-rate sessions up to …",
+      "status": "approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 1 done 2026-10-13 (memory probe: micro-batch 4 × 8, 11.33 GB); next: session 2 (first …",
       "category": "planned",
       "step": null,
       "summary": "EXP-043 trains a 190 M model on 2.78 B tokens. D-051 added 5.38 B more verified tokens (8.16 B in total). The next model should be bigger and see all of it. This plan says how its size will be chosen (from evidence, not a fixed number), what it costs on each kind of hardware, and which code is needed. It is written …",
@@ -1015,8 +1015,8 @@
         "D-044",
         "D-045"
       ],
-      "line": 5212,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L5212"
+      "line": 5230,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L5230"
     }
   ],
   "experiment_numbers_not_in_log": [

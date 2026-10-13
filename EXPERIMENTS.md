@@ -5209,6 +5209,24 @@ starts it):
 
 **Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); kernel and runner built 2026-10-13 (session 1 = memory probe only; learning-rate sessions up to 11 hours so the check cannot stall); next: the founder starts session 1; the sharded optimizer is not built (not needed unless the probe fails)
 
+**Result (2026-10-13, session 1: Part 0 and memory probe only; Kaggle kernel frontier-exp047-a, commit
+e1fb887; `evals/results/EXP-047/session-1/`):**
+- Elapsed 8.7 min on one T4 (wall time on Kaggle ≈20 min, from launch to finish). Part 0: all 26 data files
+  have matching SHA-256 values (8,159,265,692 training and 41,846,520 validation tokens); 54 tests passed;
+  the one-step float64 check passed (largest loss difference 8.9e-16 against the 1e-12 tolerance). The
+  one-pass order has 15,936,053 windows and 498,001 steps, as planned.
+- **Memory probe (measured):** micro-batch 16 × 2 and 8 × 4 ran **out of memory**; micro-batch **4 × 8**
+  fits at a **11.33 GB** peak (limit 14.5 GB). It is chosen and used by all later sessions. My estimate
+  in the 2026-10-13 note was wrong for micro-batch 8 (≈13.1 GB estimated; it does not fit) and ≈0.7 GB low
+  for micro-batch 4 (≈10.6 GB estimated). No learning-rate run was started (by design).
+- **Not yet known:** the speed at micro-batch 4. The ≈7-hour learning-rate run and the 314 session-hour
+  total assumed EXP-043's efficiency at micro-batch 16. A smaller micro-batch may be slower. Session 2
+  measures this; the cap stays 380 hours (D-052), and reaching it is the trigger to revisit.
+- The learning-rate run has no time limit of its own: the session deadline only decides whether a run
+  may start. A run under ≈11.5 hours therefore finishes within Kaggle's 12-hour limit.
+
+**Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 1 done 2026-10-13 (memory probe: micro-batch 4 × 8, 11.33 GB); next: session 2 (first learning-rate run, 2.5e-4)
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 
