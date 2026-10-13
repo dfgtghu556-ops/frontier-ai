@@ -5227,6 +5227,35 @@ e1fb887; `evals/results/EXP-047/session-1/`):**
 
 **Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 1 done 2026-10-13 (memory probe: micro-batch 4 × 8, 11.33 GB); next: session 2 (first learning-rate run, 2.5e-4)
 
+**Result (2026-10-13, session 2: first learning-rate run; kernel frontier-exp047-b, commit 353869e;
+`evals/results/EXP-047/session-2/`):**
+- Learning rate 2.5e-4, 6,104 steps (100,007,936 tokens), finished without skipped steps: **slice-1 mean
+  0.8279 bpb**. EXP-043 (190 M) at the same learning rate and the same token count reached 0.8543. The
+  two runs' first 100 M tokens are not the same text (EXP-047 also draws from slice 2), so this is not a
+  controlled comparison. 2 of 3 grid runs remain (5e-4, 1e-3).
+- **Speed (measured, one T4, micro-batch 4 × 8):** 4,624 tokens/s; peak 11.47 GB. EXP-043 on one T4
+  reached 11,091 tokens/s at the same learning rate, which is 2.40× faster. The estimate assumed 2.63×
+  from the FLOPs ratio, so micro-batch 4 did not slow training beyond the FLOPs. The run took 417.4
+  minutes (360.8 of them training; the rest is evaluation on 26 validation sets). The ≈7.0-hour estimate
+  held.
+- **Total-hours projection (NOT VERIFIED until the first main session):** EXP-043 ran 1.92× faster on
+  two GPUs than on one. Applied here, that gives ≈8,860 tokens/s and ≈256 hours of pure training for the
+  8.16 billion tokens. EXP-043's overhead (evaluations, checkpoints, Part 0) adds ≈15%, and the learning-
+  rate sessions add ≈22 hours: about 316 session-hours in total, in line with the planned 314 and under
+  the 380-hour cap.
+- **Two-GPU memory:** the main run uses DDP with `gradient_as_bucket_view=True`. In EXP-043 the two-GPU
+  peak per GPU (8.97 GB) was below the one-GPU peak (9.27 GB), so micro-batch 4 is expected to fit
+  (NOT VERIFIED at 20 × 1280).
+- The validation curve rose once (step 5000: 2.474 nats; step 6000: 2.536) before ending at 2.447. The
+  curve evaluations are small samples, and no stop rule fired; recorded, not acted on.
+- **Kaggle quota:** about 4.6 free hours were left at launch, and the session ran ≈7.2 hours on Kaggle
+  without being stopped. This matches the 2020 Kaggle staff note (the quota is checked only when a
+  session starts; one overrun per week). The quota is now used up until the weekly reset (Saturday
+  2026-10-17, 05:30 IST; NOT VERIFIED). Session 3 lasts 9 hours: 1.1 × 417 min + 0.5 h = 8.2 h, which
+  fits in 9 (the 2026-10-13 rule).
+
+**Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 2 done 2026-10-13 (LR 2.5e-4: 0.8279 bpb, 4,624 tokens/s on one T4); next: session 3 (LR 5e-4) after the Kaggle quota resets on Sat 2026-10-17 05:30 IST
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 
