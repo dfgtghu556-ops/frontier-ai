@@ -69,6 +69,7 @@ Read these first if you are joining the project (human or AI agent):
 | [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the full run log (EXP-001…EXP-048) |
 | [apps/lab-os/](apps/lab-os/) | **Lab OS**: a read-only dashboard of this repository (roadmap, experiments, decisions, results); public copy: https://dfgtghu556-ops.github.io/frontier-ai/dashboard/ |
 | [docs/compute_options_and_costs.md](docs/compute_options_and_costs.md) | GPU options and costs; [docs/compute_credits_guide.md](docs/compute_credits_guide.md): free startup credits |
+| [docs/showcase_setup_guide.md](docs/showcase_setup_guide.md) | Step-by-step: GitHub settings, dashboard website, private Hugging Face demo (D-053) |
 | [GPU_COLLABORATOR_START_HERE.md](GPU_COLLABORATOR_START_HERE.md) | setting up a GPU machine for the project, working rules, readiness report |
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | earlier project overview (2026-09); for the current state use the table above and NEW_CHAT_START_HERE.md |
 | [docs/frontier_corpus_v1.md](docs/frontier_corpus_v1.md), [docs/frontier_corpus_v2_sources.md](docs/frontier_corpus_v2_sources.md) | the training-data pipeline; source survey with licence evidence and data-rights options (D-044) |
