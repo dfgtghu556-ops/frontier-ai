@@ -6,13 +6,19 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// GitHub Pages build (opt-in): LAB_OS_BASE=/frontier-ai/ npm run build writes static pages, one per
+// route, under dist/client/, served below that sub-path. Without the variable nothing changes.
+const pagesBase = process.env["LAB_OS_BASE"];
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    ...(pagesBase ? { prerender: { enabled: true, crawlLinks: true } } : {}),
   },
+  ...(pagesBase ? { nitro: false as const } : {}),
   // Allow any Host header on the dev server so the dashboard opens behind a preview proxy.
   // It only serves the bundled, public repository snapshot (no secrets, no write actions).
-  vite: { server: { allowedHosts: true } },
+  vite: { server: { allowedHosts: true }, ...(pagesBase ? { base: pagesBase } : {}) },
 });

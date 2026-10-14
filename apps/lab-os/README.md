@@ -50,6 +50,18 @@ Needs Node.js 22 or newer.
 
 Checks: `npx tsc --noEmit`, `npm run lint`.
 
+## Public copy (GitHub Pages)
+
+The dashboard is published at **https://dfgtghu556-ops.github.io/frontier-ai/dashboard/**. GitHub
+Pages serves the `docs/` folder of the project branch; `docs/dashboard/` holds a static build of this
+app (one prerendered page per route). It does not update itself: after `scripts/export_lab_state.py`,
+run
+
+    scripts/build_lab_os_pages.sh      # rebuilds docs/dashboard/ (LAB_OS_BASE=/frontier-ai/dashboard/)
+
+and commit `docs/dashboard/` together with the new `lab_state.json`. Without `LAB_OS_BASE`,
+`npm run build` and `npm run dev` behave exactly as before.
+
 ## Origin
 
 The UI shell (layout, theme, table and panel components) comes from the founder's

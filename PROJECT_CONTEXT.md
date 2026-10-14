@@ -1,5 +1,9 @@
 # PROJECT_CONTEXT.md
 
+> **Note (2026-10-15):** this overview was last brought up to date in September 2026 and is kept
+> for the record. For the current state, read the status table in [README.md](README.md) and the
+> newest entries in [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md).
+
 > Read this file first if you are an AI agent (or human) opening this repository in a
 > new chat with no other context. It describes the mission, what exists today, what has
 > been proven, what has not, and where to start.

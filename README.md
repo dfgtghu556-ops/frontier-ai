@@ -26,24 +26,33 @@ Verbatim from `out/cpu-smoke/train.jsonl` (experiment **EXP-001**, see
 
 ---
 
-## Project status (2026-09-28)
+## Project status (2026-10-15)
 
 **Mission:** build, from scratch, a model family that can one day compete with the leading AI
 systems and become the best model in India (English + Indian languages). Progress is measured
-and recorded honestly; see [ROADMAP.md](ROADMAP.md) for the 24-step plan.
+and recorded honestly; see [ROADMAP.md](ROADMAP.md) for the 24-step plan. Our models are far from
+that goal today; the numbers below say exactly where we are.
 
 | Roadmap step (MASTER_CONTEXT §37) | Status | Record |
 |---|---|---|
-| Licensed 13-language research corpus, frozen | done | D-035, EXP-025 |
-| FrontierCorpus v1 pipeline (pilot build) | done | D-036, D-037, EXP-027 |
-| Production tokenizer: **Frontier Tokenizer v1** (mark-aware BPE, 32,768 tokens), frozen | done | D-040, D-041, EXP-028–030 |
-| Evaluation harness v1 + protected held-out suite `frontier-heldout-v1` | done | D-042, EXP-031 |
-| Step 9 — architecture ablations (CPU screening) | done | EXP-032, EXP-033; D-043 |
-| **Step 10 — first GPU training (bring-up)** | **next**, awaiting founder approval | — |
+| 1–8: corpus, data pipeline, **Frontier Tokenizer** (frozen), evaluation harness | done | D-035–D-042, EXP-025–031 |
+| 9–11: architecture ablations, first GPU training, scaling experiments (RoPE + GQA-2) | done | EXP-032–042, D-043–D-048 |
+| 12: **first serious base model** (EXP-043) | done | D-049, EXP-043, EXP-045 |
+| 13: distributed training (two GPUs) | in use | D-050, EXP-044 |
+| 14: scale pretraining on evidence (**EXP-047**) | **in progress** | D-052, EXP-047 |
+| 15–24: extensive evaluation, SFT, preference optimisation, reasoning, safety, … | not started | — |
 
-Every model so far is a small CPU research model (~5M parameters); **no GPU training has
-been performed yet**. **Joining as the GPU collaborator?** Start with
-[GPU_COLLABORATOR_START_HERE.md](GPU_COLLABORATOR_START_HERE.md).
+**Models so far** (all trained from scratch on free Kaggle T4 GPUs; bpb = bits per byte on our
+protected held-out texts, lower is better):
+
+| Model | Size | Training data | Result |
+|---|---|---|---|
+| EXP-043 | 190 M parameters (14 layers × 896) | one pass over 2.78 B tokens, 12 Indian languages + English | **0.6283 bpb** mean (gate < 0.7562: PASS). A base model: it continues text but **cannot answer questions yet** (Belebele reading test: chance level in 12 of 13 languages, EXP-045). |
+| EXP-047 | 507 M parameters (20 layers × 1280) | one pass over 8.16 B tokens (v2 slices 1 + 2) | **training now** (learning-rate check, run 1 of 3 done: 0.8279 bpb after 100 M tokens). Pre-registered gate: < 0.6109. |
+
+How the work is recorded: every experiment in [EXPERIMENTS.md](EXPERIMENTS.md), every decision in
+[DECISIONS.md](DECISIONS.md), every published number under [`evals/results/`](evals/results/).
+Nothing is reported that was not measured; estimates are marked NOT VERIFIED.
 
 ---
 
@@ -53,20 +62,20 @@ Read these first if you are joining the project (human or AI agent):
 
 | Document | What it covers |
 | --- | --- |
+| [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md) | the latest state, newest entries last; how a new AI chat catches up |
 | [MASTER_CONTEXT.md](MASTER_CONTEXT.md) | the founder's mission, working rules, 24-step roadmap and required answer format |
-| [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | mission, what exists today, what is proven vs not, **"CURRENT POSITION — START HERE"** |
-| [ROADMAP.md](ROADMAP.md) | staged plan from this tiny model toward frontier scale (no fixed size promises) |
+| [ROADMAP.md](ROADMAP.md) | staged plan from small models toward frontier scale (no fixed size promises) |
+| [DECISIONS.md](DECISIONS.md) | decision records (D-001…D-052) and open questions |
+| [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the full run log (EXP-001…EXP-048) |
+| [apps/lab-os/](apps/lab-os/) | **Lab OS**: a read-only dashboard of this repository (roadmap, experiments, decisions, results); public copy: https://dfgtghu556-ops.github.io/frontier-ai/dashboard/ |
+| [docs/compute_options_and_costs.md](docs/compute_options_and_costs.md) | GPU options and costs; [docs/compute_credits_guide.md](docs/compute_credits_guide.md): free startup credits |
 | [GPU_COLLABORATOR_START_HERE.md](GPU_COLLABORATOR_START_HERE.md) | setting up a GPU machine for the project, working rules, readiness report |
-| [DECISIONS.md](DECISIONS.md) | architectural decision records (D-001…D-043) and open questions |
-| [EXPERIMENTS.md](EXPERIMENTS.md) | experiment template, rules, and the run log |
+| [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | earlier project overview (2026-09); for the current state use the table above and NEW_CHAT_START_HERE.md |
+| [docs/frontier_corpus_v1.md](docs/frontier_corpus_v1.md), [docs/frontier_corpus_v2_sources.md](docs/frontier_corpus_v2_sources.md) | the training-data pipeline; source survey with licence evidence and data-rights options (D-044) |
 | [docs/tokenization.md](docs/tokenization.md) | tokenizer research: why it matters, metrics, Indic/Unicode notes, workflow |
-| [docs/tokenizer_corpus_stage_a.md](docs/tokenizer_corpus_stage_a.md) | Project 004 Stage A: the tokenizer research corpus (manifest, licensing, split, leakage) |
-| [docs/tokenizer_corpus_stage_b_acquisition.md](docs/tokenizer_corpus_stage_b_acquisition.md) | Project 004 Stage B: how the real corpus was acquired and verified |
-| [NEW_CHAT_START_HERE.md](NEW_CHAT_START_HERE.md) | how a new AI chat catches up with the latest branch |
-| [docs/experiments.md](docs/experiments.md) | Project 003: experiment records, seeding and documented limits, git/data/env provenance, the runner |
-| [docs/frontier_corpus_v1.md](docs/frontier_corpus_v1.md) | FrontierCorpus v1: the reproducible, versioned training-data pipeline |
-| [docs/frontier_corpus_v2_sources.md](docs/frontier_corpus_v2_sources.md) | data scale-up phase 1: source survey with license evidence, India legal context, data-rights options (D-044 proposed) |
-| [evals/](evals/) | evaluation harness v1 suite definition and published results (`evals/results/EXP-0xx/`) |
+| [docs/experiments.md](docs/experiments.md) | experiment records, seeding and documented limits, git/data/env provenance, the runner |
+| [evals/](evals/) | evaluation suite definition and published results (`evals/results/EXP-0xx/`) |
+| [docs/archive/](docs/archive/) | finished task sheets and old reports, kept for the record |
 
 The rest of this README is the technical quickstart.
 
