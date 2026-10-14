@@ -23,7 +23,7 @@ So the whole EXP-047 run would be very roughly 55 A100-hours or 20 H100-hours: a
 credits at the public prices seen (A100 ≈ $3.67/h, H100 ≈ $6.98/h on Azure), instead of about 10 weeks of
 free Kaggle sessions. Even the first $1,000 would likely be enough; it is valid for **90 days**.
 
-**Nothing moves off Kaggle without a new decision (D-053) that you approve.** Moving the run changes
+**Nothing moves off Kaggle without a new written decision that you approve.** Moving the run changes
 the hardware in the middle of an experiment; that must be planned, written down and tested first.
 
 ## Before you start: what you need
@@ -45,7 +45,7 @@ still be possible, but the larger credits need registration.
 2. Credits are placed in an Azure "sponsorship" subscription. **Do not upgrade to "pay-as-you-go"** if
    Azure offers it; that is how a card gets charged.
 3. **Do not start any virtual machine or GPU yet.** Credits start counting down only when used, but the
-   first $1,000 expires 90 days after it is given. We start only when D-053 is approved and the
+   first $1,000 expires 90 days after it is given. We start only when that decision is approved and the
    commands are ready in the repo.
 4. After the account exists, set a budget alert (the chat will give the exact clicks) so any charge is
    visible immediately.
@@ -101,5 +101,5 @@ questions (EXP-045: chance level on Belebele in 12 of 13 languages); say "resear
 ## After approval
 
 Paste the short status lines above into the Arena chat. The next steps would then be: a GPU quota request
-(new Azure accounts usually start with zero GPU quota), a written plan D-053 for moving EXP-047 (or
+(new Azure accounts usually start with zero GPU quota), a written decision for moving EXP-047 (or
 starting the next run) on the new hardware, a short test, and only then the real run.

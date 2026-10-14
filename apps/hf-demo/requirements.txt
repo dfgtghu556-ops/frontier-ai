@@ -1,0 +1,4 @@
+# CPU-only PyTorch (the Space has no GPU); gradio itself comes from sdk_version in README.md.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+numpy

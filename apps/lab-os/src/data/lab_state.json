@@ -4,10 +4,10 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "cba27f919fc41b6c39b3105ec5797d62b030d613257b8893074a2b7b30285584",
+  "source_digest": "71e73113fe2a94f7cecf53d630ddb52e57e27dad0965d24eb5ced70e91982e18",
   "sources": {
     "EXPERIMENTS.md": "87db438f634b52cb7f27cdcb5bece708d3812342a818e0fcd330ee28885dff76",
-    "DECISIONS.md": "460d7fbd436c5605a1cad726d8794451135e068843c5037041300faa72ffb904",
+    "DECISIONS.md": "4929291473cc0b53b8092f12886287e567ddfc38b0fb822aa22ed2c20a84a0f3",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
     "lab/registry.json": "8994307cc7c46bd482b5ca565f46fb3025a07a51b262f07553ed1d21aaa6e110",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
@@ -1669,6 +1669,21 @@
       ],
       "line": 2000,
       "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L2000"
+    },
+    {
+      "id": "D-053",
+      "title": "Showcase and repo tidy: dashboard on GitHub Pages, a private Hugging Face preview of the EXP-043 model, no pull request",
+      "date": "2026-10-15",
+      "status": "accepted (founder decision 2026-10-15, \"Haan\" to points 2 and 3 of the plan sent the same day; evidence EXP-043, EXP-045, D-044)",
+      "category": "accepted",
+      "summary": "1. The repo is tidied without a pull request. The founder does not want PRs from this session. The work stays on arena/01a0dc16-frontier-ai; the founder makes that branch the repo's default branch in the GitHub settings, so visitors see the current README. Nothing is deleted: six old root files moved to docs/archive/ …",
+      "experiments": [
+        "EXP-043",
+        "EXP-045",
+        "EXP-047"
+      ],
+      "line": 2040,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/DECISIONS.md?plain=1#L2040"
     }
   ],
   "open_questions": [

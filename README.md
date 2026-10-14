@@ -42,12 +42,12 @@ that goal today; the numbers below say exactly where we are.
 | 14: scale pretraining on evidence (**EXP-047**) | **in progress** | D-052, EXP-047 |
 | 15–24: extensive evaluation, SFT, preference optimisation, reasoning, safety, … | not started | — |
 
-**Models so far** (all trained from scratch on free Kaggle T4 GPUs; bpb = bits per byte on our
-protected held-out texts, lower is better):
+**Models so far** (all trained from scratch on free Kaggle T4 GPUs; bpb = bits per byte, lower is
+better, measured on the validation split of the training corpus, v2-slice1):
 
 | Model | Size | Training data | Result |
 |---|---|---|---|
-| EXP-043 | 190 M parameters (14 layers × 896) | one pass over 2.78 B tokens, 12 Indian languages + English | **0.6283 bpb** mean (gate < 0.7562: PASS). A base model: it continues text but **cannot answer questions yet** (Belebele reading test: chance level in 12 of 13 languages, EXP-045). |
+| EXP-043 | 190 M parameters (14 layers × 896) | one pass over 2.78 B tokens, 12 Indian languages + English | **0.6283 bpb** mean (gate < 0.7562: PASS); 0.9099 bpb on our separate protected held-out suite (EXP-045). A base model: it continues text but **cannot answer questions yet** (Belebele reading test: chance level in 12 of 13 languages, EXP-045). |
 | EXP-047 | 507 M parameters (20 layers × 1280) | one pass over 8.16 B tokens (v2 slices 1 + 2) | **training now** (learning-rate check, run 1 of 3 done: 0.8279 bpb after 100 M tokens). Pre-registered gate: < 0.6109. |
 
 How the work is recorded: every experiment in [EXPERIMENTS.md](EXPERIMENTS.md), every decision in

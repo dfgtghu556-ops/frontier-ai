@@ -2037,6 +2037,50 @@ the automatic fallback in point 2. The decision text above is unchanged.
 
 ---
 
+## D-053 — Showcase and repo tidy: dashboard on GitHub Pages, a private Hugging Face preview of the EXP-043 model, no pull request
+
+**Date:** 2026-10-15 · **Status:** accepted (founder decision 2026-10-15, "Haan" to points 2 and 3 of the plan sent the same day; evidence EXP-043, EXP-045, D-044)
+
+**Decision:**
+1. **The repo is tidied without a pull request.** The founder does not want PRs from this session. The work
+   stays on `arena/01a0dc16-frontier-ai`; the founder makes that branch the repo's default branch in the
+   GitHub settings, so visitors see the current README. Nothing is deleted: six old root files moved to
+   `docs/archive/` (with a README saying where each came from); `PROJECT_CONTEXT.md` stays because FREEZE.json
+   points at it. The README status section and the models table were rewritten from the records.
+2. **The Lab OS dashboard is published with GitHub Pages from the branch's `/docs` folder** (`docs/dashboard/`,
+   built by `scripts/build_lab_os_pages.sh`). A GitHub Actions workflow was the first choice, but this
+   session's GitHub access may not push workflow files (refused), so a committed static build is used. It does
+   not update by itself: after each `export_lab_state.py`, rebuild and commit `docs/dashboard/`.
+3. **Repo settings are clicked by the founder.** Default branch, description, website, topics and Pages were
+   refused through the API (HTTP 403, "Resource not accessible by integration"), so the founder sets them in
+   the GitHub web pages; the exact clicks were sent in the chat.
+4. **A private Hugging Face Space shows the EXP-043 model** (`<founder's HF user>/frontier-exp043-preview`): a
+   text-continuation page (`apps/hf-demo/`) on the free CPU tier, with the fp16 copy of `model_final.pt`
+   (SHA-256 checked against the EXP-043 record) and frozen tokenizer v2. The founder uploads it from his PC
+   with `scripts/run_hf_demo.ps1`; his Hugging Face token stays on his PC and is never sent to the chat or the
+   repo. `scripts/hf_demo.py` only creates **private** Spaces and refuses to upload to an existing public one.
+5. **The page and its card stay honest:** a 190 M-parameter base model that continues text (not a chat
+   assistant), validation 0.6283 bpb on v2-slice1, 0.9099 bpb on the protected held-out suite (EXP-045), at
+   chance on Belebele in 12 of 13 languages; no comparisons with other companies' models.
+
+**Not decided here:** making the Space or the weights **public**. That needs its own founder decision with a
+licence for the weights, attribution for the training data (D-044 sources, e.g. Sangraha CC-BY-4.0) and a full
+model card (Q-7).
+
+**Alternatives rejected:** one PR merging the branch into `main` (founder refused PRs); a workflow-built Pages
+site (workflow push refused); a demo on the founder's PC (i3-4030U too slow, and he does not want notebooks);
+a public Space now (licence and attribution not decided).
+
+**Consequences we accept:** the dashboard on Pages is only as fresh as the last rebuild; `main` stays at its old
+commit and is no longer the default branch; the free CPU Space is slow (seconds per short answer, NOT
+MEASURED on Hugging Face) and sleeps when unused.
+
+**Revisit when:** the founder wants a public release (new decision); the session gets workflow or settings
+permission (then a Pages workflow can replace the committed build); or a later model (EXP-047) replaces
+EXP-043 on the page (new bundle, same private-first rule).
+
+---
+
 ## Open items to decide later (not yet decisions)
 
 
