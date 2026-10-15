@@ -136,13 +136,15 @@ powershell -ExecutionPolicy Bypass -File scripts\run_hf_demo.ps1
 What happens, step by step:
 
 1. **First run only:** "Installing the Hugging Face tool..." (about 1 minute).
-2. **First run only:** it asks for your token: `Enter your token (input will not be visible):`
-   - Paste the token: **right-click** inside the PowerShell window (or press Ctrl+V).
-   - **Nothing appears on screen. That is normal** (it is hidden like a password).
+2. **First run only:** it asks `Hugging Face token:`
+   - Paste the token with a **right-click** inside the PowerShell window (or press Ctrl+V).
+   - You will see **one `*` per character** (about 37 stars). The token itself is never shown.
    - Press **Enter** once.
-   - If it asks `Add token as git credential? (Y/n)`, type **n** and press Enter.
-   - It prints `Logged in to Hugging Face as <your username>`. The token is now saved only on this laptop;
+   - It prints `Received 37 characters starting with hf_` (the number may differ), then
+     `Logged in to Hugging Face as <your username>`. The token is now saved only on this laptop;
      later runs will not ask again.
+   - If no stars appear when you paste: click once inside the window first, then right-click. Still nothing?
+     Click the small icon at the top-left of the window → **Edit** → **Paste**.
 3. `Checking ... model_final.pt ...`: it looks for the EXP-043 model file on your laptop and checks its
    fingerprint (SHA-256) against the record in the repo.
 4. If the file is not on the laptop: `Downloading model_final.pt (about 880 MB) ...` from your Kaggle

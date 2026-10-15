@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 from dataclasses import asdict
 from pathlib import Path
 from types import SimpleNamespace
@@ -135,8 +136,15 @@ def test_recorded_model_is_exp043_final(hd):
 def test_pc_runner_script_is_safe_and_ascii() -> None:
     ps1 = (Path(__file__).resolve().parents[1] / "scripts" / "run_hf_demo.ps1").read_bytes()
     text = ps1.decode("ascii")  # Windows PowerShell 5.1 misreads non-ASCII BOM-less scripts
-    assert "login(add_to_git_credential=False)" in text  # the token is typed on the PC, never stored in git
-    assert "hf_" not in text.replace("hf_demo", "")  # no token in the file
+    assert (
+        'Read-Host -AsSecureString "Hugging Face token"' in text
+    )  # pasteable, shows *, typed on the PC only
+    assert "add_to_git_credential=False" in text and "Remove-Item Env:FRONTIER_HF_TOKEN_INPUT" in text
+    assert (
+        "Write-Host $plainToken" not in text
+        and "Set-Content" not in text.split("# 2. the Hugging Face login")[1]
+    )
+    assert re.search(r"hf_[A-Za-z0-9]{20,}", text) is None  # no real token in the file
     assert '--file-pattern "exp043_final/.*"' in text  # never download the whole kernel output
     assert "frontier-exp043-b" in text and "session-6\\summary.json" in text
     assert "scripts\\hf_demo.py --weights" in text and "--build-only" not in text

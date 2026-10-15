@@ -7,7 +7,8 @@
 # What it does:
 #   1. installs the Hugging Face tool (huggingface_hub) into .venv if it is missing;
 #   2. FIRST TIME ONLY: asks for your Hugging Face token. You paste it into THIS PowerShell window
-#      (not into any chat); it is stored only on this PC by huggingface_hub;
+#      (not into any chat; right-click or Ctrl+V, one * per character); it is stored only on this PC
+#      by huggingface_hub;
 #   3. finds EXP-043's model_final.pt under out\kaggle\ by its recorded SHA-256; if it is not there,
 #      downloads it (about 880 MB, no GPU hours) from the Kaggle kernel that ran EXP-043's last session;
 #   4. runs scripts\hf_demo.py: checks the file, makes the fp16 copy (about 380 MB), tests the page's
@@ -51,12 +52,24 @@ if ($LASTEXITCODE -ne 0) {
 $hfUser = & $py -c "from huggingface_hub import whoami; print(whoami()['name'])" 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $hfUser) {
     Write-Host ""
-    Write-Host "FIRST TIME ONLY: paste your Hugging Face token below and press Enter."
-    Write-Host "  (Make it at https://huggingface.co/settings/tokens - type: Write. Nothing is shown while you paste."
-    Write-Host "   If it asks 'Add token as git credential?', type n and press Enter.)"
-    & $py -c "from huggingface_hub import login; login(add_to_git_credential=False)"
+    Write-Host "FIRST TIME ONLY: your Hugging Face token is needed (https://huggingface.co/settings/tokens, type Write)."
+    Write-Host "  Paste it with a RIGHT-CLICK (or Ctrl+V) and press Enter. You will see one * per character."
+    $secureToken = Read-Host -AsSecureString "Hugging Face token"
+    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken)
+    $plainToken = ([Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)).Trim()
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+    if (-not $plainToken.StartsWith("hf_")) {
+        Stop-WithReport "the pasted text does not start with hf_ ($($plainToken.Length) characters received); copy the token again and run the line again"
+    }
+    Write-Host "Received $($plainToken.Length) characters starting with hf_. Checking it with Hugging Face..."
+    # handed to Python only through this window's environment (never written to a file, the repo or the chat);
+    # huggingface_hub then saves it in its own token file on this PC
+    $env:FRONTIER_HF_TOKEN_INPUT = $plainToken
+    $plainToken = $null
+    & $py -c "import os; from huggingface_hub import login; login(token=os.environ['FRONTIER_HF_TOKEN_INPUT'], add_to_git_credential=False)"
+    Remove-Item Env:FRONTIER_HF_TOKEN_INPUT -ErrorAction SilentlyContinue
     $hfUser = & $py -c "from huggingface_hub import whoami; print(whoami()['name'])" 2>$null
-    if ($LASTEXITCODE -ne 0 -or -not $hfUser) { Stop-WithReport "the Hugging Face login did not work; make a new Write token and run the line again" }
+    if ($LASTEXITCODE -ne 0 -or -not $hfUser) { Stop-WithReport "Hugging Face did not accept the token; make a new Write token and run the line again" }
 }
 Write-Host "Logged in to Hugging Face as $hfUser"
 
