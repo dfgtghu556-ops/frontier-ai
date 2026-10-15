@@ -2079,6 +2079,15 @@ MEASURED on Hugging Face) and sleeps when unused.
 permission (then a Pages workflow can replace the committed build); or a later model (EXP-047) replaces
 EXP-043 on the page (new bundle, same private-first rule).
 
+**Update (2026-10-15): point 4 is blocked by a Hugging Face policy change (founder's REPORT, 08:14 IST).** The
+founder's run passed steps 1–3 on his PC (SHA-256 match `5494c0285091…`; fp16 bundle 380,164,163 bytes; bundle
+test 8 tokens in 3.36 s on his i3-4030U), then Hugging Face refused to create the Space: HTTP 402 "Static Spaces
+are free for everyone, but hosting Gradio and Docker Spaces on free cpu-basic requires a PRO subscription." Nothing
+was created on Hugging Face. Hub docs (manage-spaces guide, 2026) confirm: Gradio/Docker Spaces on cpu-basic need
+PRO; static Spaces stay free; a free personal account in good standing (verified email, account older than 30
+days; NOT VERIFIED beyond a third-party summary) may host up to 2 Gradio Spaces on ZeroGPU. No spending was
+approved, so the way forward goes back to the founder. The decision text above is unchanged.
+
 ---
 
 ## Open items to decide later (not yet decisions)

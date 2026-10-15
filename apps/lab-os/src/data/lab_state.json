@@ -4,10 +4,10 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "71e73113fe2a94f7cecf53d630ddb52e57e27dad0965d24eb5ced70e91982e18",
+  "source_digest": "15900e38cba4aee83d83d395f2070882e5d6825285e16605480142c8b2cddfc4",
   "sources": {
     "EXPERIMENTS.md": "87db438f634b52cb7f27cdcb5bece708d3812342a818e0fcd330ee28885dff76",
-    "DECISIONS.md": "4929291473cc0b53b8092f12886287e567ddfc38b0fb822aa22ed2c20a84a0f3",
+    "DECISIONS.md": "209123b91f38c694e0f8c59c1fa763a6c5808818bf5787c03d51bfdecc418feb",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
     "lab/registry.json": "8994307cc7c46bd482b5ca565f46fb3025a07a51b262f07553ed1d21aaa6e110",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
