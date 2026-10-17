@@ -1,0 +1,17 @@
+EXP-047 - train the next base model (20x1280, v2-slice1 + v2-slice2), session 4
+started 2026-10-17 15:36:38  finished 2026-10-17 23:28:08
+elapsed 471.5 min; GPU-hours before this session 14.51
+Part 0: data files 26/26 (sha256 checked); tests 54 passed in 16.27s; one-step float64 check pass=True
+Checkpoint chain: session 3's output is mounted (no checkpoint expected yet)
+One-pass order: 15,936,053 windows, 498,001 steps, fingerprint e654b9592bbff0aa...
+Micro-batch: 4 x 8 accumulation (chosen in an earlier session)
+
+Learning-rate check (6,104 steps each, same first 100 M tokens):
+         lr session status                        mean bpb  minutes
+    0.00025       2 done                            0.8279    417.4
+     0.0005       3 done                            0.8163    433.7
+      0.001       4 done                            0.8250    467.3
+  Not decided yet: lowest mean bpb 0.8163 at 0.0005; 0.00025 is within the noise 0.0174 so the lower one is chosen; 0.00025 is at the edge of the grid, one extension run at 0.000125
+  slice s1: 13 files, 2,783,830,088 training tokens
+  slice s2a: 6 files, 3,098,207,159 training tokens
+  slice s2b: 7 files, 2,277,228,445 training tokens
