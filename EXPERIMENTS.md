@@ -5256,6 +5256,34 @@ e1fb887; `evals/results/EXP-047/session-1/`):**
 
 **Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 2 done 2026-10-13 (LR 2.5e-4: 0.8279 bpb, 4,624 tokens/s on one T4); next: session 3 (LR 5e-4) after the Kaggle quota resets on Sat 2026-10-17 05:30 IST
 
+**Result (2026-10-17, session 3: second learning-rate run; kernel frontier-exp047-a, commit e1d2533;
+results df09d48, `evals/results/EXP-047/session-3/`):**
+- Part 0 passed again (26/26 SHA-256, 54 tests, one-step float64 check); chain check: session 2's output was
+  mounted (no checkpoint expected yet). Micro-batch 4 × 8 as chosen in session 1.
+- Learning rate 5e-4, 6,104 steps (100,007,936 tokens, the same first 100 M tokens as the 2.5e-4 run), no
+  skipped steps, peak 11.465 GB: **slice-1 mean 0.8163 bpb** (2.5e-4: 0.8279, so −0.0115). All 13 slice-1
+  languages and all 13 slice-2 validation sets are lower at 5e-4 than at 2.5e-4 (slice 1: largest gain ml
+  −0.0172, smallest ur −0.0024). EXP-043 (190 M) improved more over the same pair (0.8543 → 0.8172, −0.0371):
+  the larger model gains less from the higher learning rate (one seed; an observation, not a test).
+- 433.7 minutes for the run (376.0 training), session 440.2 minutes; 4,435 tokens/s, 4% below session 2's
+  4,624 on the same GPU type (cause NOT VERIFIED; the main-run projection of ≈316 session-hours is unchanged
+  within that margin).
+- The validation curve shows the same rise at step 6000 as in session 2 (5e-4: 2.435 → 2.497 nats, then
+  2.409 at step 6104). Both runs read the same data in the same order and use the same small evaluation
+  samples, so this points to the data at that point rather than to instability (NOT VERIFIED). No stop rule.
+- **What the pre-registered rule will do after session 4 (1e-3),** worked out from the rule as written
+  (`choose_lr` in `scripts/gpu_pretrain.py`, noise 0.0174) before that result exists:
+  - 1e-3 at 0.8105 or above (or the run fails): 2.5e-4 is within the noise of the best, so 2.5e-4 is chosen;
+    it is at the edge of the grid, so one extension run at 1.25e-4 follows (session 5), then the decision.
+  - 1e-3 from 0.7989 up to 0.8105: 5e-4 is chosen; decided; the main run starts.
+  - 1e-3 below 0.7989: 1e-3 is chosen; it is at the edge, so one extension run at 2e-3 follows (session 5).
+  EXP-043's 1e-3 run was within 0.0012 of its 5e-4 run; if that pattern repeats, the first case (one more
+  run at 1.25e-4) is the most likely. The rule is not changed.
+- **Kaggle quota:** session 3 used ≈7.3 of this week's ≈30 hours (NOT VERIFIED), so session 4 (≈7.5 h) and,
+  if needed, an extension session both fit before the next reset (Sat 2026-10-24, 05:30 IST).
+
+**Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 3 done 2026-10-17 (LR 5e-4: 0.8163 bpb; 2.5e-4: 0.8279); next: session 4 (LR 1e-3), the same founder line, this week
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 

@@ -4,12 +4,12 @@
     "url": "https://github.com/dfgtghu556-ops/frontier-ai",
     "branch": "arena/01a0dc16-frontier-ai"
   },
-  "source_digest": "15900e38cba4aee83d83d395f2070882e5d6825285e16605480142c8b2cddfc4",
+  "source_digest": "7d196d14c544223285bc5536754d4304f3d0da086421bb7cf6703c8228ea21b2",
   "sources": {
-    "EXPERIMENTS.md": "87db438f634b52cb7f27cdcb5bece708d3812342a818e0fcd330ee28885dff76",
+    "EXPERIMENTS.md": "35b31ea06fa62ffad7c6bae45cc3ae38e9459df749b0a4294890c11325df990b",
     "DECISIONS.md": "209123b91f38c694e0f8c59c1fa763a6c5808818bf5787c03d51bfdecc418feb",
     "MASTER_CONTEXT.md": "38c91b803184a12c6ea91ef935c128e6cec5240244581ba71299b09fd490d2e9",
-    "lab/registry.json": "8994307cc7c46bd482b5ca565f46fb3025a07a51b262f07553ed1d21aaa6e110",
+    "lab/registry.json": "e1c79f248f9f7b8045e9696d381e064d2c0833a38547a36727469bd9f6f829b7",
     "tokenizers/frontier-tokenizer-v1/FREEZE.json": "06454bc771ae9cb9a0e1facd45956341c6a1814fa7fa3b9d4d8a00d94f36dedb",
     "corpora/frontier/v1/manifest.json": "1c41beb9b1a399b2bb6d51421e6f1d7420cfebac57fb02e55724f44c6a05548f",
     "corpora/frontier/v2/sangraha_slice1.json": "81706256b5cdc291c9a9cf393a55be3b291407ff70f589b1996b602f1ceb057d",
@@ -369,7 +369,7 @@
   ],
   "current_work": [
     {
-      "title": "EXP-043 complete (14 x 896 model, one pass over 2.78 B tokens): gate PASS, final 0.6283 bpb mean (< 0.7562; predicted 0.683); EXP-045 baseline done; EXP-047 (D-052: 20 × 1280, gate 0.6109) in progress: session 1 memory probe (micro-batch 4 x 8, 11.33 GB), session 2 learning-rate run 1 of 3 (2.5e-4: 0.8279 bpb); next: session 3 after the Kaggle quota reset (Sat 2026-10-17)",
+      "title": "EXP-043 complete (14 x 896 model, one pass over 2.78 B tokens): gate PASS, final 0.6283 bpb mean (< 0.7562; predicted 0.683); EXP-045 baseline done; EXP-047 (D-052: 20 × 1280, gate 0.6109) in progress: session 1 memory probe (micro-batch 4 x 8, 11.33 GB), learning-rate runs 2 of 3 (2.5e-4: 0.8279, 5e-4: 0.8163 bpb); next: session 4 (1e-3)",
       "evidence": [
         "EXP-043",
         "D-049",
@@ -398,7 +398,8 @@
         "scripts/run_kaggle_exp047.ps1",
         "scripts/kaggle/exp047_kernel.py",
         "evals/results/EXP-047/session-1/summary.json",
-        "evals/results/EXP-047/session-2/summary.json"
+        "evals/results/EXP-047/session-2/summary.json",
+        "evals/results/EXP-047/session-3/summary.json"
       ],
       "note": "EXP-043 approved 2026-10-03 (\"approve EXP-043\"); code 2026-10-04: one-pass sampler (fixed SplitMix64 order, fingerprint checked every session), lr check {2.5e-4, 5e-4, 1e-3} x 6,104 steps with the pre-registered rule, main run 169,911 steps across Kaggle sessions with sha256-checked checkpoints passed between kernels -a/-b (kernel_sources, NOT VERIFIED on the account), stop rules, final evaluation. CPU: a split run gives bit-identical weights to one run. Fixed a RoPE KV-cache generation bug (training unaffected). Next: the founder runs scripts\\run_kaggle_exp043.ps1 (session 1). About 85 GPU-h (NOT VERIFIED), cap 100, Rs 0. Session 1 (2026-10-04): lr check done, bpb 0.8543 / 0.8172 / 0.8160 at 2.5e-4 / 5e-4 / 1e-3, no skipped steps; 5e-4 chosen by the pre-registered rule (within noise 0.0174 of the best -> the lower one); 9.27 GB peak, about 11,100 tokens/s, 8.05 GPU-h used. Session 2 = first main-run session and first real kernel_sources chain test. D-050 approved 2026-10-04 (\"APPROVE D-50\") and built 2026-10-05: gpu_pretrain.py --gpus 2 (torchrun worker, 16 x 1 per GPU, process 0 decides and writes, fallback to one GPU if the start fails); the kernel passes --gpus 2. One-GPU path bit-identical (CPU smoke hashes); tests/test_pretrain_ddp.py 6 passed; full suite 748 passed, 1 skipped. Whole-session two-GPU speed NOT VERIFIED. Correction 2026-10-05: session 2 had not been launched; the code now keeps the first main-run session (no checkpoint yet) on one GPU even with --gpus 2 (D-050 point 2), so two GPUs start from session 3. Session 2 (2026-10-06, commit 37788c7, results 1eeca41): main run steps 0 -> 20,594 on one GPU, 11,115 tokens/s (1.474 s/step), 9.27 GB, 7 skipped steps, checkpoint step 20,594; session-end full validation 0.7727 bpb mean (mid-run, not a result); 16.72 of 100 session-h used. Session 3 = first checkpoint load from the other kernel and first two-GPU session. Session 3 (2026-10-06, commit 166a47f, results d0c3655), the first on two GPUs: checkpoint 20,594 verified from kernel b and resumed; steps 20,594 -> 61,207; 22,030 tokens/s (0.744 s/step, 1.98x one GPU); 8.97 GB per GPU; 16 skipped steps; all D-050 revisit rules clear; session-end full validation 0.7199 bpb mean (mid-run, not a result); 25.38 of 100 session-h used. Session 4 (2026-10-11, commit 71bd885, results 8c11805): checkpoint 61,207 verified from kernel a and resumed on two GPUs; steps 61,207 -> 100,653; 21,261 tokens/s (0.771 s/step, 1.91x one GPU); 8.97 GB per GPU; 17 skipped steps; D-050 revisit rules clear; session-end full validation 0.6828 bpb mean (mid-run, not a result; all 13 languages improved); 34.04 of 100 session-h used; about 2 sessions left. Session 5 (2026-10-12, commit 2ddaf5b, results 71079cd; first on code with the EXP-047 hooks, same behaviour): checkpoint 100,653 verified from kernel b and resumed on two GPUs; steps 100,653 -> 141,459; 21,993 tokens/s (0.745 s/step, 1.98x one GPU); 8.97 GB per GPU; 16 skipped steps; session-end full validation 0.6430 bpb mean (mid-run, not a result; all 13 languages improved); 42.70 of 100 session-h used; 28,452 steps (about 5.9 h) left: session 6 should finish. Session 6 (2026-10-12, commit f3006f5, results 5309abd): checkpoint 141,459 verified from kernel a; steps 141,459 -> 169,911, one pass complete (2,783,821,824 tokens); 19,571 tokens/s; 10 skipped steps (66 in the run); no stop rule in any session. FINAL: mean 0.6283 bpb (token-weighted 0.7068, pooled 0.6292); check 1 PASS (< 0.7562); check 2 not consistent (predicted 0.683, 0.055 better); check 3: 13 of 13 languages below C3-s3. model_final.pt sha256 5494c028... (878,191,613 bytes, not in git). 49.60 of 100 session-h, Rs 0. Samples: fluent news-style sentences; repetition loops in greedy decoding, invented facts; base model only."
     },
@@ -990,7 +991,7 @@
       "id": "EXP-047",
       "title": "Plan for the next base model (roadmap steps 13–14): size from the EXP-042 laws, trained on v2-slice1 + v2-slice2",
       "date": "2026-10-08",
-      "status": "approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 2 done 2026-10-13 (LR 2.5e-4: 0.8279 bpb, 4,624 tokens/s on one T4); next: session 3 (LR …",
+      "status": "approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 3 done 2026-10-17 (LR 5e-4: 0.8163 bpb; 2.5e-4: 0.8279); next: session 4 (LR 1e-3), the …",
       "category": "planned",
       "step": null,
       "summary": "EXP-043 trains a 190 M model on 2.78 B tokens. D-051 added 5.38 B more verified tokens (8.16 B in total). The next model should be bigger and see all of it. This plan says how its size will be chosen (from evidence, not a fixed number), what it costs on each kind of hardware, and which code is needed. It is written …",
@@ -1017,8 +1018,8 @@
         "D-044",
         "D-045"
       ],
-      "line": 5259,
-      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L5259"
+      "line": 5287,
+      "url": "https://github.com/dfgtghu556-ops/frontier-ai/blob/arena/01a0dc16-frontier-ai/EXPERIMENTS.md?plain=1#L5287"
     }
   ],
   "experiment_numbers_not_in_log": [
