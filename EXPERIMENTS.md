@@ -5310,6 +5310,28 @@ results 1f89577, `evals/results/EXP-047/session-4/`):**
 
 **Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 4 done 2026-10-18 (LR 1e-3: 0.8250; grid 0.8279 / 0.8163 / 0.8250 at 2.5e-4 / 5e-4 / 1e-3; rule → extension run at 1.25e-4); next: session 5 (1.25e-4), the same founder line, this week
 
+**Result (2026-10-18, session 5: extension learning-rate run; kernel frontier-exp047-a, commit 5d88826;
+results 5b29075, `evals/results/EXP-047/session-5/`):**
+- Part 0 passed again; chain check: session 4's output was mounted (no checkpoint expected yet).
+- Learning rate 1.25e-4, 6,104 steps (the same 100,007,936 tokens), no skipped steps, peak 11.465 GB: **slice-1
+  mean 0.8488 bpb**, worse than 2.5e-4 (0.8279) on all 26 validation sets.
+- **Learning rate decided by the pre-registered rule: 2.5e-4.** Grid with the extension: 0.8488 / 0.8279 /
+  0.8163 / 0.8250 at 1.25e-4 / 2.5e-4 / 5e-4 / 1e-3. Lowest mean 0.8163 at 5e-4; 2.5e-4 is within the noise
+  0.0174, so the lower one is chosen; 1.25e-4 (0.8488) is above 0.8337, outside the noise. This is the second
+  outcome stated in advance in the session-4 note. The short-run best (5e-4) is not used: the rule prefers the
+  lower value for a main run about 80 times longer. Recorded, not re-decided.
+- 470.8 minutes for the run (406.3 training), 4,104 tokens/s: the speed drift seems to have levelled off
+  (4,624 → 4,435 → 4,144 → 4,104 over sessions 2–5; cause NOT VERIFIED). Scaled from session 2's projection,
+  ≈356 session-hours (NOT VERIFIED), under the 380-hour cap; the first two-GPU session (session 7) measures it.
+- The main run did not start in this session (not enough time left after the run). **Session 6 is the first
+  main-run session**: it starts from step 0 at 2.5e-4 on one GPU (no checkpoint yet; the same rule as EXP-043
+  under D-050), and two GPUs are used from session 7.
+- **Kaggle quota:** sessions 3–5 used ≈23.1 of this week's ≈30 hours (NOT VERIFIED), ≈6.9 left. Session 6 runs
+  up to 9 hours; Kaggle checks the quota only at session start and allowed one overrun (seen 2026-10-13), so
+  session 6 may start this week. After it, the next session waits for the reset (Sat 2026-10-24, 05:30 IST).
+
+**Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); learning-rate check complete 2026-10-18 (rule chose 2.5e-4; 1.25e-4 / 2.5e-4 / 5e-4 / 1e-3: 0.8488 / 0.8279 / 0.8163 / 0.8250); next: session 6, the first main-run session (one GPU), the same founder line
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 
