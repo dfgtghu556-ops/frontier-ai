@@ -5284,6 +5284,32 @@ results df09d48, `evals/results/EXP-047/session-3/`):**
 
 **Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 3 done 2026-10-17 (LR 5e-4: 0.8163 bpb; 2.5e-4: 0.8279); next: session 4 (LR 1e-3), the same founder line, this week
 
+**Result (2026-10-18, session 4: third learning-rate run; kernel frontier-exp047-b, commit 0546453;
+results 1f89577, `evals/results/EXP-047/session-4/`):**
+- Part 0 passed again; chain check: session 3's output was mounted (no checkpoint expected yet).
+- Learning rate 1e-3, 6,104 steps (the same 100,007,936 tokens), no skipped steps, peak 11.465 GB: **slice-1
+  mean 0.8250 bpb**, worse than 5e-4 (0.8163) by 0.0087 and better than 2.5e-4 (0.8279). All 26 validation
+  sets (13 slice-1, 13 slice-2) are worse at 1e-3 than at 5e-4; the largest gap is English (+0.0291), the
+  smallest Malayalam (+0.0030). In EXP-043 (190 M), 1e-3 was still 0.0012 better than 5e-4: the larger model's
+  best learning rate at this token count is lower, as expected for a larger model.
+- **The pre-registered rule, applied by the runner:** lowest mean 0.8163 at 5e-4; 2.5e-4 (0.8279) is within the
+  noise 0.0174, so the lower one is chosen; 2.5e-4 is at the edge of the grid, so **one extension run at
+  1.25e-4** follows in session 5. This is the first case stated in advance in the session-3 note.
+- **After session 5** (1.25e-4 = c; the extension is then used up, so the rule decides): c at or below 0.8337
+  (within the noise of 0.8163, or better) → 1.25e-4 is chosen; c above 0.8337, or a failed run → 2.5e-4 is
+  chosen. Either way the learning rate is decided in session 5. Choosing a value below the short-run best is
+  what the rule intends: the main run is about 80 times longer than these runs, and longer runs favour lower
+  learning rates.
+- **Speed is drifting down:** training-only throughput 4,624 (session 2) → 4,435 (session 3) → 4,144 tokens/s
+  (session 4), −10% in total, with the same code, micro-batch and GPU type. The learning rate does not change
+  the work per step, so the cause is probably the Kaggle machines (NOT VERIFIED). If the main run were 10%
+  slower than projected, ≈316 session-hours would become ≈350, still under the 380-hour cap; the first
+  two-GPU main session measures the real speed.
+- **Kaggle quota:** sessions 3 and 4 used ≈15.2 of this week's ≈30 hours (NOT VERIFIED), so session 5
+  (≈8–9 h) fits before the reset on Sat 2026-10-24, 05:30 IST.
+
+**Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); session 4 done 2026-10-18 (LR 1e-3: 0.8250; grid 0.8279 / 0.8163 / 0.8250 at 2.5e-4 / 5e-4 / 1e-3; rule → extension run at 1.25e-4); next: session 5 (1.25e-4), the same founder line, this week
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 
