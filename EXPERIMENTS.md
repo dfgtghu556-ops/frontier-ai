@@ -5332,6 +5332,31 @@ results 5b29075, `evals/results/EXP-047/session-5/`):**
 
 **Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); learning-rate check complete 2026-10-18 (rule chose 2.5e-4; 1.25e-4 / 2.5e-4 / 5e-4 / 1e-3: 0.8488 / 0.8279 / 0.8163 / 0.8250); next: session 6, the first main-run session (one GPU), the same founder line
 
+**Result (2026-10-19, session 6: first main-run session; kernel frontier-exp047-b, commit 8b84c1c; results
+1e45ac0, `evals/results/EXP-047/session-6/`):**
+- Part 0 passed again; chain check: session 5's output was mounted (no checkpoint expected yet).
+- **Main run steps 0 → 7,354 of 498,001** at learning rate 2.5e-4, on one GPU (no checkpoint yet; D-050 rule),
+  micro-batch 4 × 8: 120,487,936 tokens, 4,101 tokens/s, peak 11.32 GB, **no skipped fp16 steps**, no stop rule
+  (0 bad evaluations). Periodic save at step 5,000; checkpoint for session 7 at step 7,354 (five files with
+  SHA-256 in `summary.json`; the files stay on Kaggle).
+- Sampled validation loss 3.302 (step 1,000) → 2.447 (step 7,000), with the same rise at step 6,000 (2.576)
+  seen in all four learning-rate runs, so it is a feature of that stretch of data, not of this run. Slice-1
+  validation at session end: **mean 0.8280 bpb** (token-weighted 0.9299, pooled 0.8290). This is a mid-run
+  number at about 1.5% of the run, not a result.
+- **Time per session:** 518.1 minutes elapsed, 489.6 of them training (94.5%); the session-end evaluation took
+  22.5 minutes.
+- **Hours projection from this session (NOT VERIFIED until session 7 measures two GPUs):** 490,647 steps
+  (8,038,760,448 tokens) remain. With EXP-043's two-GPU gain (1.92×) that is ≈7,870 tokens/s and ≈284 hours of
+  training, ≈300 session-hours at this session's 94.5% training share; with EXP-044's lower gain (1.79×),
+  ≈322. Adding the 38.9 hours used so far gives **≈340–361 of the 380-hour cap**. If session 7 shows a
+  projection above 380, the cap (which ends the run when used up) comes back to the founder before it is
+  reached.
+- **Kaggle quota:** this week ≈31.7 hours were used against ≈30 (NOT VERIFIED); Kaggle again let the last
+  session run past zero (second time seen). The next session starts after the reset on Sat 2026-10-24,
+  05:30 IST.
+
+**Status:** approved 2026-10-12 (D-052: option B, 20 × 1280, gate 0.6109); main run started 2026-10-18 (session 6: steps 0 → 7,354 at 2.5e-4, one GPU, mid-run slice-1 0.8280 bpb); next: session 7 (first two-GPU session) after the Kaggle reset on Sat 2026-10-24, 05:30 IST
+
 ### EXP-048 — Measure FineWeb-2 for our 12 Indian languages before deciding to use it (Kaggle CPU, no data enters the corpus)
 **Date:** 2026-10-08 · **Status:** proposed (plan written with the founder's approval of 2026-10-08, "approve 2 3 4"; building or running it needs a further "approve EXP-048")
 
