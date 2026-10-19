@@ -1,0 +1,26 @@
+EXP-047 - train the next base model (20x1280, v2-slice1 + v2-slice2), session 6
+started 2026-10-18 17:34:08  finished 2026-10-19 02:12:13
+elapsed 518.1 min; GPU-hours before this session 30.28
+Part 0: data files 26/26 (sha256 checked); tests 54 passed in 15.32s; one-step float64 check pass=True
+Checkpoint chain: session 5's output is mounted (no checkpoint expected yet)
+One-pass order: 15,936,053 windows, 498,001 steps, fingerprint e654b9592bbff0aa...
+Micro-batch: 4 x 8 accumulation (chosen in an earlier session)
+
+Learning-rate check (6,104 steps each, same first 100 M tokens):
+         lr session status                        mean bpb  minutes
+    0.00025       2 done                            0.8279    417.4
+     0.0005       3 done                            0.8163    433.7
+      0.001       4 done                            0.8250    467.3
+   0.000125       5 done                            0.8488    470.8
+  Chosen learning rate: 0.00025  (lowest mean bpb 0.8163 at 0.0005; 0.00025 is within the noise 0.0174 so the lower one is chosen)
+
+Main run: steps 0 -> 7,354 of 498,001 at lr 0.00025; session end: time budget of this session
+  4,101 tokens/s; peak memory 11.32 GB
+  skipped fp16 steps this session: 0
+  trained on 1 GPU(s): 4 x 8 per GPU  [one GPU: the main run has no checkpoint yet (D-050: the first main-run session runs on one GPU; the switch to two GPUs happens at a checkpoint)]
+  sampled validation loss: 1000: 3.3020, 2000: 3.0242, 3000: 2.8620, 4000: 2.6894, 5000: 2.5071, 6000: 2.5761, 7000: 2.4474
+  slice-1 validation at session end: mean 0.8280 bpb (token-weighted 0.9299, pooled 0.8290)
+Checkpoint for the next session: step 7,354 (made in session 6)
+  slice s1: 13 files, 2,783,830,088 training tokens
+  slice s2a: 6 files, 3,098,207,159 training tokens
+  slice s2b: 7 files, 2,277,228,445 training tokens
